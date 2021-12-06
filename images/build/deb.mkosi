@@ -1,0 +1,11 @@
+[Distribution]
+Distribution=debian
+Release=sid
+
+[Output]
+Format=directory
+Output=deb.img
+OutputDirectory=/var/lib/fatbuildr/images/
+
+[Content]
+Packages=cowbuilder

@@ -1,0 +1,11 @@
+[Distribution]
+Distribution=fedora
+Release=35
+
+[Output]
+Format=directory
+Output=rpm.img
+OutputDirectory=/var/lib/fatbuildr/images
+
+[Content]
+Packages=mock
