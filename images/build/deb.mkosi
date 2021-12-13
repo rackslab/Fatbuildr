@@ -8,4 +8,7 @@ Output=deb.img
 OutputDirectory=/var/lib/fatbuildr/images/
 
 [Content]
-Packages=cowbuilder
+# Docs are useful to get examples from packages and manpages when digging
+WithDocs=yes
+Packages=cowbuilder,neovim,man-db,less
+ExtraTree=images/build/deb.extra/
