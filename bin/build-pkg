@@ -1,0 +1,320 @@
+#!/usr/bin/env python3
+
+import os
+import sys
+import yaml
+import requests
+import jinja2
+import hashlib
+import atexit
+import shutil
+import tempfile
+import tarfile
+import subprocess
+import shutil
+
+tmpdir = None
+
+def cleantmp():
+
+    if tmpdir is not None:
+        print("Removing temporary directory %s" % (tmpdir))
+        shutil.rmtree(tmpdir)
+
+#atexit.register(cleantmp)
+
+def hasher(hash_format):
+    """Return the hashlib object corresponding to the hash_format."""
+    if hash_format == 'sha1':
+        return hashlib.sha1()
+    else:
+        raise RuntimeError("Unsupported hash format %s" % (hash_format))
+
+
+class Singleton(type):
+    """Class to use as metaclass by all classes that want to be a singleton."""
+
+    _instances = {}
+
+    def __call__(cls, *args, **kwargs):
+
+        if cls not in cls._instances:
+            cls._instances[cls] = \
+                super(Singleton, cls).__call__(*args, **kwargs)
+        return cls._instances[cls]
+
+
+class RuntimeConf(metaclass=Singleton):
+    """Singleton class to hold main runtime configuration parameters."""
+
+    def __init__(self):
+        self.cache_dir = '/var/cache/fatbuildr'
+        self.tmp_dir = '/var/tmp/fatbuildr'
+
+
+class DefRepo(metaclass=Singleton):
+    """Class to manipulate the packages definitions repository."""
+
+    def __init__(self, path):
+        self.path = path
+        dists_yml_f = os.path.join(self.path, 'distributions.yml')
+        with open(dists_yml_f) as fh:
+            self.dists = yaml.safe_load(fh)
+
+    def dist_format(self, distribution):
+        """Deb or RPM for this distribution? Returns None if distribution has
+           not been found in DefRepo."""
+        for format, dists in self.dists.items():
+            if distribution in dists.keys():
+                return format
+        return None
+
+    def dist_env(self, distribution):
+        """Return the name of the build environment for the given
+           distribution."""
+        for format, dists in self.dists.items():
+            if distribution in dists.keys():
+                return dists[distribution]
+        return None
+
+
+class PackageFactory(object):
+    """Factory to create the specializes Package instance."""
+
+    def create(name, distribution):
+        pkg_format = DefRepo().dist_format(distribution)
+        # FIXME: use hash
+        if pkg_format == 'rpm':
+            return PackageRpm(name, distribution)
+        elif pkg_format == 'deb':
+            return PackageDeb(name, distribution)
+        else:
+            raise RuntimeError("Unsupported package format %s" % (pkg_format))
+
+class Package(object):
+    """Abstract package class."""
+
+    def __init__(self, name, distribution):
+        self.name = name
+        self.distribution = distribution
+        meta_yml_f = os.path.join(DefRepo().path, self.name, 'meta.yml')
+        with open(meta_yml_f) as fh:
+            self.meta = yaml.safe_load(fh)
+        self.tarball_url = jinja2.Template(self.meta['tarball']).render(pkg=self)
+        self.tarball_cache_path = os.path.join(self.cache_dir,
+                                               os.path.basename(self.tarball_url))
+
+    @property
+    def version(self):
+        return self.meta['version']
+
+    @property
+    def fullversion(self):
+        return self.version + '-' + self.release
+
+    @property
+    def cache_dir(self):
+        return os.path.join(RuntimeConf().cache_dir, self.name)
+
+    @property
+    def checksum_format(self):
+        return self.meta['checksums'][self.version].keys()[0]  # pickup the first format
+
+    @property
+    def checksum_value(self):
+        return self.meta['checksums'][self.version][self.checksum_format]
+
+    @property
+    def tarball_in_cache(self):
+        return os.path.exists(self.tarball_cache_path)
+
+    def ensure_cache_dir(self):
+        """Ensure package subdirectory in cache directory exists or create
+           it."""
+        tarball_cache_dir = os.path.dirname(self.tarball_cache_path)
+        if not os.path.exists(tarball_cache_dir):
+            os.mkdir(tarball_cache_dir)
+
+    def dl_tarball(self):
+        """Download the package upstream tarball and verify checksum if not
+           present in cache."""
+
+        if self.tarball_in_cache:
+            # nothing to do here
+            return
+
+        # ensure package subdir exist in cache
+        self.ensure_cache_dir()
+
+        # actual download and write in cache
+        dl = requests.get(self.tarball_url, allow_redirects=True)
+        open(self.tarball_cache_path, 'wb').write(dl.content)
+
+        # verify checksum after download        
+        with open(self.tarball_cache_path, "rb") as fh:
+            
+            tarball_hash = hasher(self.checksum_format)
+            while chunk := fh.read(8192):
+                tarball_hash.update(chunk)
+
+        if tarball_hash.hexdigest() != self.checksum_value:
+            raise RuntimeError("%s checksum do not match: %s != %s" \
+                               % (self.checksum_format,
+                                  tarball_hash.hexdigest(),
+                                  self.checksum_value))
+
+    def create_tmpdir(self):
+        global tmpdir
+        parent = RuntimeConf().tmp_dir
+        # ensure parent exists or create it
+        if not os.path.exists(parent):
+            os.mkdir(parent)
+        tmpdir = tempfile.mkdtemp(dir=parent)
+
+
+class PackageDeb(Package):
+    """Class to manipulation package in Deb format."""
+    def __init__(self, name, distribution):
+        super().__init__(name, distribution)
+
+    @property
+    def release(self):
+        return str(self.meta['deb']['release'])
+
+    def build_src(self):
+        raise NotImplementedError
+
+    def build(self):
+        self._build_src()
+        self._build_bin()
+
+    def _build_src(self):
+        """Build source SRPM"""
+        self.create_tmpdir()
+
+        # extract tarball in tmpdir
+        # FIXME: use mimetypes to define tarfile open option
+        tar = tarfile.open(self.tarball_cache_path, "r:bz2")
+        tarball_subdir_info = tar.getmembers()[0]
+        if not tarball_subdir_info.isdir():
+            raise RuntimeError("unable to define tarball %s subdirectory" \
+                               % (self.tarball_cache_path))
+        tarball_subdir = os.path.join(tmpdir, tarball_subdir_info.name)
+        tar.extractall(path=tmpdir)
+        tar.close()
+        # copy debian dir
+        shutil.copytree(os.path.join(DefRepo().path, self.name, 'deb'),
+                        os.path.join(tarball_subdir, 'debian'))
+
+        # generate changelog
+        # FIXME: run it in deb.img
+        cmd = ['debchange', '--create', '--package', self.name,
+               '--newversion',  self.fullversion,
+               '--distribution', self.distribution,
+               "hpck.it release" ]
+        subprocess.run(cmd, cwd=tarball_subdir,
+                       env={'DEBEMAIL': 'remi@rackslab.io',
+                            'DEBFULLNAME': 'Rémi Palancher'})
+
+        # add symlink to tarball
+        # FIXME: use mimetype to define extension
+        orig_tarball_path = os.path.join(tmpdir, self.name + '_' + self.version + '.orig' + '.tar.bz2')
+        os.symlink(self.tarball_cache_path, orig_tarball_path)
+
+        # build source package
+        # FIXME: run it in deb.img
+        cmd = ['dpkg-source', '--build', tarball_subdir ]
+        subprocess.run(cmd, cwd=tmpdir)
+
+        print("tarball_subdir: %s" % (tarball_subdir))
+
+    def _build_bin(self):
+        # build deb packages
+        dsc_path = os.path.join(tmpdir, self.name + '_' + self.fullversion + '.dsc')
+        cmd = ['systemd-nspawn', '--directory', '/var/lib/fatbuildr/images/deb.img',
+               '--bind', RuntimeConf().tmp_dir,
+               '--bind', RuntimeConf().cache_dir,
+               'cowbuilder',
+               '--build',
+               '--configfile', '/etc/fatbuildr/pbuilderrc',
+               '--distribution', self.distribution,
+               '--basepath', '/var/cache/pbuilder/' + self.distribution,
+               '--buildresult', tmpdir,
+               dsc_path ]
+        print("RUN CMD: %s" % (' '.join(cmd)))
+        subprocess.run(cmd)
+        print("tmpdir: %s" % (tmpdir))
+
+class PackageRpm(Package):
+    """Class to manipulation package in Deb format."""
+    def __init__(self, name, distribution):
+        super().__init__(name, distribution)
+
+    @property
+    def release(self):
+        return str(self.meta['rpm']['release']) + '.' + self.distribution
+
+    @property
+    def spec_basename(self):
+        return self.name + '.spec'
+
+    @property
+    def srpm_filename(self):
+        return self.name + '-' + self.version + '-' + self.release + '.src.rpm'
+
+    @property
+    def srpm_path(self):
+        return os.path.join(tmpdir, self.srpm_filename)
+
+    def build(self):
+        self._build_src()
+        self._build_bin()
+
+    def _build_src(self):
+        """Build source SRPM"""
+        self.create_tmpdir()
+
+        # load spec template
+        spec_tpl_dir = os.path.join(DefRepo().path, self.name, 'rpm')
+        file_loader = jinja2.FileSystemLoader(spec_tpl_dir)
+        env = jinja2.Environment(loader=file_loader)
+        template = env.get_template(self.spec_basename)
+
+        # generate spec in tmpdir
+        spec_path = os.path.join(tmpdir, self.spec_basename)
+        with open(spec_path, 'w+') as fh:
+            fh.write(template.render(pkg=self))
+
+        # run SRPM build
+        cmd = ['systemd-nspawn', '--directory', '/var/lib/fatbuildr/images/rpm.img',
+               '--bind', RuntimeConf().tmp_dir,
+               '--bind', RuntimeConf().cache_dir,
+               'mock', '--root=' + DefRepo().dist_env(self.distribution),
+               '--buildsrpm', '--sources=' + self.cache_dir, '--spec=' + spec_path, '--resultdir=' + tmpdir ]
+        print("RUN CMD: %s" % (' '.join(cmd)))
+        subprocess.run(cmd)
+
+    def _build_bin(self):
+        """Build binary RPM"""
+        # run RPM build
+        cmd = ['systemd-nspawn', '--directory', '/var/lib/fatbuildr/images/rpm.img',
+               '--bind', RuntimeConf().tmp_dir,
+               '--bind', RuntimeConf().cache_dir,
+               'mock', '--root=' + DefRepo().dist_env(self.distribution),
+               '--resultdir=' + tmpdir,
+               '--rebuild', self.srpm_path ]
+        if 'buildargs' in self.meta['rpm']:
+            cmd.extend(self.meta['rpm']['buildargs'].split(' '))
+        print("RUN CMD: %s" % (' '.join(cmd)))
+        subprocess.run(cmd)
+
+def main():
+
+    # usage: build-pkg PATH PKG DIST (ex: build-pkg /mnt/hpck.it slurm rocky8)
+    defrepo = DefRepo(sys.argv[1])
+    package = PackageFactory.create(sys.argv[2], sys.argv[3])
+    package.dl_tarball()
+    package.build()
+
+if __name__ == '__main__':
+    main()
