@@ -4,7 +4,9 @@
 - [x] mkosi fedora35 + debiansid
 - [x] Test mock with output dir outside of chroot
 - [ ] Test mock with ordinary user
-- [x] Script to setup images + builders on debian11
+- [x] Script to setup images + builders on debian11
+- [x] Script to generate GPG key
+- [ ] Add configuration parameters in input repository for GPG keys
 - [ ] Add code to publish packages in repositories
 - [ ] GPG sign key for packages and mkosi images
 - [ ] Add logger to build-pkg
@@ -17,3 +19,4 @@
 - [ ] Use prefix instead of subdir for tmpdir so ordinary user can create them
 - [ ] Add feature to prepare git dev environment to help adapt debian patches (inspired from `gbp pq`)
 - [ ] Save images build logs into files
+- [ ] Run lintian after build to check packages

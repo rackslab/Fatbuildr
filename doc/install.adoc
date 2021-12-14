@@ -17,7 +17,7 @@ Install required packages:
 
 [source,bash]
 ----
-apt install systemd-container vim curl qemu-system-x86 dnf rpm python3-yaml python3-jinja2
+apt install systemd-container vim curl qemu-system-x86 dnf rpm python3-yaml python3-jinja2 python3-gnupg
 ----
 
 Install _osi_ from _backports_:
@@ -53,6 +53,13 @@ Create cache directory:
 [source,bash]
 ----
 mkdir /var/cache/fatbuildr
+----
+
+Generate GPG signing key:
+
+[source,bash]
+----
+bin/init-key
 ----
 
 == Base images
