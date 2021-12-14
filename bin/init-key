@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 
-import gnupg
+import gpg
 import os
 import string
 import secrets
@@ -10,14 +10,11 @@ def main():
 
     keyring_dir = '/var/lib/fatbuildr/keyring'
 
-    # init gnupg library
-    gpg = gnupg.GPG(gnupghome=keyring_dir)
-    gpg.encoding = 'utf-8'
-
-    # check if key is already present
-    if len(gpg.list_keys()):
-        print("Fatbuildr GPG key is already present, leaving.")
-        sys.exit(1)
+    # check if key already exist
+    with gpg.Context(home_dir=keyring_dir) as ctx:
+        if any(ctx.keylist()):
+            print("Fatbuildr GPG key already exists, leaving.")
+            sys.exit(1)
 
     # generate random passphrase and save it in file
     print("Generating random passphrase")
@@ -28,24 +25,21 @@ def main():
         fh.write(passphrase)
     os.chmod(passphrase_path, 0o400)  # restrict access to RO
 
-    # generate GPG key
+    # generate GPG key with its subkey
     print("Generating GPG key")
-    input_data = gpg.gen_key_input(key_type="RSA", key_length=4096,
-                                   expire_date=0,
-                                   name_real="HPCk.it maintainers",
-                                   name_email="maintainers@hpck.it",
+    with gpg.Context(home_dir=keyring_dir) as ctx:
+        genmasterkey = ctx.create_key(userid='HPCk.it maintainers <maintainers@hpck.it>',
+                                      algorithm='rsa4096',
+                                      expires=False,
+                                      passphrase=passphrase)
+        print("Generated key with fingerprint {0}.".format(genmasterkey.fpr))
+        masterkey = ctx.get_key(genmasterkey.fpr)
+        subkey = ctx.create_subkey(key=masterkey,
+                                   algorithm='rsa4096',
+                                   expires=False,
+                                   sign=True,
                                    passphrase=passphrase)
-    gpg.gen_key(input_data)
-
-    # report generated key
-    key = gpg.list_keys()[0]
-    print("Generated key\n"
-          "  type: %s\n"
-          "  length: %s\n"
-          "  id: %s\n"
-          "  fingerprint: %s\n"
-          "  uid: %s" % \
-          ('RSA', key['length'], key['keyid'], key['fingerprint'], key['uids'][0]))
+        print("Generated subkey for signature with fingerprint {0}".format(subkey.fpr))
 
 if __name__ == '__main__':
     main()
