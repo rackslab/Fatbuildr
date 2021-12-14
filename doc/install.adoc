@@ -17,7 +17,7 @@ Install required packages:
 
 [source,bash]
 ----
-apt install systemd-container vim curl qemu-system-x86 dnf rpm python3-yaml python3-jinja2 python3-gpg
+apt install systemd-container vim curl qemu-system-x86 dnf rpm python3-yaml python3-jinja2 python3-gpg reprepro
 ----
 
 Install _osi_ from _backports_:

@@ -12,6 +12,7 @@ import tempfile
 import tarfile
 import subprocess
 import shutil
+import gpg
 
 tmpdir = None
 
@@ -50,6 +51,9 @@ class RuntimeConf(metaclass=Singleton):
     def __init__(self):
         self.cache_dir = '/var/cache/fatbuildr'
         self.tmp_dir = '/var/tmp/fatbuildr'
+        self.repos_dir = '/var/lib/fatbuildr/repos'
+        self.keyring_dir = '/var/lib/fatbuildr/keyring'
+        self.conf_dir = 'conf'
 
 
 class DefRepo(metaclass=Singleton):
@@ -76,6 +80,10 @@ class DefRepo(metaclass=Singleton):
             if distribution in dists.keys():
                 return dists[distribution]
         return None
+
+    def format_dists(self, format):
+        """Return the list of distributions for the given format."""
+        return self.dists[format].keys()
 
 
 class PackageFactory(object):
@@ -181,6 +189,15 @@ class PackageDeb(Package):
     def release(self):
         return str(self.meta['deb']['release'])
 
+    @property
+    def repos_path(self):
+        return os.path.join(RuntimeConf().repos_dir, 'deb')
+
+    @property
+    def changes_filename(self):
+        # FIXME: find correct architecture
+        return self.name + '_' + self.fullversion + '_amd64.changes'
+
     def build_src(self):
         raise NotImplementedError
 
@@ -189,7 +206,7 @@ class PackageDeb(Package):
         self._build_bin()
 
     def _build_src(self):
-        """Build source SRPM"""
+        """Build deb source package."""
         self.create_tmpdir()
 
         # extract tarball in tmpdir
@@ -229,7 +246,7 @@ class PackageDeb(Package):
         print("tarball_subdir: %s" % (tarball_subdir))
 
     def _build_bin(self):
-        # build deb packages
+        """Build deb packages binary package."""
         dsc_path = os.path.join(tmpdir, self.name + '_' + self.fullversion + '.dsc')
         cmd = ['systemd-nspawn', '--directory', '/var/lib/fatbuildr/images/deb.img',
                '--bind', RuntimeConf().tmp_dir,
@@ -244,6 +261,82 @@ class PackageDeb(Package):
         print("RUN CMD: %s" % (' '.join(cmd)))
         subprocess.run(cmd)
         print("tmpdir: %s" % (tmpdir))
+
+    def _find_gpg_subkey(self):
+        """Returns the first subkey found in keyring or None if not found."""
+        with gpg.Context(home_dir=RuntimeConf().keyring_dir) as ctx:
+            masterkey = next(ctx.keylist())
+            for subkey in masterkey.subkeys:
+                # skip subkey if it is actually the master key
+                if subkey.fpr == masterkey.fpr:
+                    continue
+                return subkey
+        return None
+
+    def _load_gpg_subkey(self, subkey):
+        """Load GPG signing subkey in gpg-agent so reprepro can use the key
+           non-interactively."""
+
+        # First stop agent if running (ie. socket is present), as it may not
+        # has been started to allow preset.
+        gpgagent_sock_path = os.path.join(RuntimeConf().keyring_dir,
+                                          'S.gpg-agent')
+        if os.path.exists(gpgagent_sock_path):
+            cmd = ['gpgconf', '--kill',
+                   '--homedir', RuntimeConf().keyring_dir, 'gpg-agent' ]
+            subprocess.run(cmd)
+
+        # Start agent with --allow-preset-passphrase so the key can be loaded
+        # non-interactively.
+        cmd = ['gpg-agent', '--homedir', RuntimeConf().keyring_dir,
+               '--allow-preset-passphrase', '--daemon' ]
+        subprocess.run(cmd)
+
+        # Load passphrase from file
+        passphrase = None
+        passphrase_path = os.path.join(RuntimeConf().keyring_dir, 'passphrase')
+        with open(passphrase_path, 'rb') as fh:
+            passphrase = fh.read()
+
+        # Load GPG in agent using the passphrase
+        cmd = ['/usr/lib/gnupg/gpg-preset-passphrase',
+               '--preset', subkey.keygrip ]
+        subprocess.run(cmd,
+                       env={'GNUPGHOME': RuntimeConf().keyring_dir},
+                       input=passphrase)
+
+
+    def publish(self):
+        """Publish both source and binary package in repository."""
+
+        # find GPG signing subkey
+        subkey = _find_gpg_subkey()
+        if subkey is None:
+            raise RuntimeError("Unable to find GPG signing subkey")
+
+        # load reprepro distributions template
+        reprepro_tpl_dir = os.path.join(RuntimeConf().conf_dir, 'reprepro')
+        file_loader = jinja2.FileSystemLoader(reprepro_tpl_dir)
+        env = jinja2.Environment(loader=file_loader)
+        dists_template = env.get_template('distributions.j2')
+        dists_path = os.path.join(self.repos_path, 'conf', 'distributions')
+        # create parent directory recursively, if not present
+        if not os.path.exists(os.path.dirname(dists_path)):
+            os.makedirs(os.path.dirname(dists_path))
+
+        # generate reprepro distributions file
+        with open(dists_path, 'w+') as fh:
+            fh.write(dists_template.render(
+                       distributions=DefRepo().format_dists('deb'),
+                       key=subkey.fpr,
+                       instance='HPCk.it'))
+
+        self._load_gpg_subkey(subkey)
+
+        changes_path = os.path.join(tmpdir, self.changes_filename)
+        cmd = ['reprepro', '--verbose', '--basedir', self.repos_path,
+               'include', self.distribution, changes_path ]
+        subprocess.run(cmd, env={'GNUPGHOME': RuntimeConf().keyring_dir})
 
 class PackageRpm(Package):
     """Class to manipulation package in Deb format."""
@@ -315,6 +408,7 @@ def main():
     package = PackageFactory.create(sys.argv[2], sys.argv[3])
     package.dl_tarball()
     package.build()
+    package.publish()
 
 if __name__ == '__main__':
     main()
