@@ -336,6 +336,21 @@ class PackageDeb(Package):
 
         self._load_gpg_subkey(subkey)
 
+        # Check packages are not already present in this distribution of the
+        # repository with this version before trying to publish them, or fail
+        # when it is the case.
+        cmd = ['reprepro', '--basedir', self.repos_path,
+               '--list-format', '${version}',
+               'list', self.distribution, self.name ]
+        print("RUN CMD: %s" % (' '.join(cmd)))
+        repo_list = subprocess.run(cmd, capture_output=True)
+        if repo_list.stdout.decode() == self.fullversion:
+            raise RuntimeError("package %s already present in distribution %s "
+                               "with version %s" \
+                               % (self.name,
+                                  self.distribution,
+                                  self.fullversion))
+
         changes_glob = os.path.join(tmpdir, '*.changes')
         for changes_path in glob.glob(changes_glob):
             # Skip source changes, source package is published in repository as
