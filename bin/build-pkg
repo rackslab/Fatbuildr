@@ -13,6 +13,7 @@ import tarfile
 import subprocess
 import shutil
 import gpg
+import glob
 
 tmpdir = None
 
@@ -193,11 +194,6 @@ class PackageDeb(Package):
     def repos_path(self):
         return os.path.join(RuntimeConf().repos_dir, 'deb')
 
-    @property
-    def changes_filename(self):
-        # FIXME: find correct architecture
-        return self.name + '_' + self.fullversion + '_amd64.changes'
-
     def build_src(self):
         raise NotImplementedError
 
@@ -333,10 +329,17 @@ class PackageDeb(Package):
 
         self._load_gpg_subkey(subkey)
 
-        changes_path = os.path.join(tmpdir, self.changes_filename)
-        cmd = ['reprepro', '--verbose', '--basedir', self.repos_path,
-               'include', self.distribution, changes_path ]
-        subprocess.run(cmd, env={'GNUPGHOME': RuntimeConf().keyring_dir})
+        changes_glob = os.path.join(tmpdir, '*.changes')
+        for changes_path in glob.glob(changes_glob):
+            # Skip source changes, source package is published in repository as
+            # part of binary changes.
+            if changes_path.endswith('_source.changes'):
+                continue
+            cmd = ['reprepro', '--verbose', '--basedir', self.repos_path,
+                   'include', self.distribution, changes_path ]
+            print("RUN CMD: %s" % (' '.join(cmd)))
+            subprocess.run(cmd, env={'GNUPGHOME': RuntimeConf().keyring_dir})
+
 
 class PackageRpm(Package):
     """Class to manipulation package in Deb format."""
