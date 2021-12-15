@@ -220,14 +220,18 @@ class PackageDeb(Package):
                         os.path.join(tarball_subdir, 'debian'))
 
         # generate changelog
-        # FIXME: run it in deb.img
-        cmd = ['debchange', '--create', '--package', self.name,
+        cmd = ['systemd-nspawn', '--directory', '/var/lib/fatbuildr/images/deb.img',
+               '--bind', RuntimeConf().tmp_dir,
+               '--bind', RuntimeConf().cache_dir,
+               '--chdir', tarball_subdir,
+               '--setenv', 'DEBEMAIL=remi@rackslab.io',
+               '--setenv', 'DEBFULLNAME=Rémi Palancher',
+               'debchange', '--create', '--package', self.name,
                '--newversion',  self.fullversion,
                '--distribution', self.distribution,
                "hpck.it release" ]
-        subprocess.run(cmd, cwd=tarball_subdir,
-                       env={'DEBEMAIL': 'remi@rackslab.io',
-                            'DEBFULLNAME': 'Rémi Palancher'})
+        subprocess.run(cmd)
+        print("RUN CMD: %s" % (' '.join(cmd)))
 
         # add symlink to tarball
         # FIXME: use mimetype to define extension
@@ -235,9 +239,12 @@ class PackageDeb(Package):
         os.symlink(self.tarball_cache_path, orig_tarball_path)
 
         # build source package
-        # FIXME: run it in deb.img
-        cmd = ['dpkg-source', '--build', tarball_subdir ]
-        subprocess.run(cmd, cwd=tmpdir)
+        cmd = ['systemd-nspawn', '--directory', '/var/lib/fatbuildr/images/deb.img',
+               '--bind', RuntimeConf().tmp_dir,
+               '--bind', RuntimeConf().cache_dir,
+               '--chdir', tmpdir,
+               'dpkg-source', '--build', tarball_subdir ]
+        subprocess.run(cmd)
 
         print("tarball_subdir: %s" % (tarball_subdir))
 
