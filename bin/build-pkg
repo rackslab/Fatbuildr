@@ -310,7 +310,7 @@ class PackageDeb(Package):
         """Publish both source and binary package in repository."""
 
         # find GPG signing subkey
-        subkey = _find_gpg_subkey()
+        subkey = self._find_gpg_subkey()
         if subkey is None:
             raise RuntimeError("Unable to find GPG signing subkey")
 
