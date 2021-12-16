@@ -87,19 +87,6 @@ class DefRepo(metaclass=Singleton):
         return self.dists[format].keys()
 
 
-class PackageFactory(object):
-    """Factory to create the specializes Package instance."""
-
-    def create(name, distribution):
-        pkg_format = DefRepo().dist_format(distribution)
-        # FIXME: use hash
-        if pkg_format == 'rpm':
-            return PackageRpm(name, distribution)
-        elif pkg_format == 'deb':
-            return PackageDeb(name, distribution)
-        else:
-            raise RuntimeError("Unsupported package format %s" % (pkg_format))
-
 class Package(object):
     """Abstract package class."""
 
@@ -422,6 +409,22 @@ class PackageRpm(Package):
             cmd.extend(self.meta['rpm']['buildargs'].split(' '))
         print("RUN CMD: %s" % (' '.join(cmd)))
         subprocess.run(cmd)
+
+
+class PackageFactory(object):
+    """Factory to create the specializes Package instance."""
+
+    fmt_init = {
+        'rpm': PackageRpm,
+        'deb': PackageDeb,
+    }
+
+    def create(name, distribution):
+        pkg_format = DefRepo().dist_format(distribution)
+        if pkg_format not in PackageFactory.fmt_init:
+            raise RuntimeError("Unsupported package format %s" % (pkg_format))
+        return PackageFactory.fmt_init[pkg_format](name, distribution)
+
 
 def main():
 
