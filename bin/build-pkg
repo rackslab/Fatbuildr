@@ -14,6 +14,7 @@ import subprocess
 import shutil
 import gpg
 import glob
+import mimetypes
 
 tmpdir = None
 
@@ -181,6 +182,17 @@ class PackageDeb(Package):
     def repos_path(self):
         return os.path.join(RuntimeConf().repos_dir, 'deb')
 
+    @property
+    def tarball_ext(self):
+        # Dicts to map mimetype encoding to tarfile.open() options and orig
+        # symlink source extension.
+        exts = {
+            'bzip2': 'bz2',
+            'gzip':  'gz',
+            'xz':    'xz',
+        }
+        return exts[mimetypes.guess_type(self.tarball_cache_path)[1]]
+
     def build(self):
         self._build_src()
         self._build_bin()
@@ -188,10 +200,8 @@ class PackageDeb(Package):
     def _build_src(self):
         """Build deb source package."""
         self.create_tmpdir()
-
         # extract tarball in tmpdir
-        # FIXME: use mimetypes to define tarfile open option
-        tar = tarfile.open(self.tarball_cache_path, "r:bz2")
+        tar = tarfile.open(self.tarball_cache_path, 'r:' + self.tarball_ext)
         tarball_subdir_info = tar.getmembers()[0]
         if not tarball_subdir_info.isdir():
             raise RuntimeError("unable to define tarball %s subdirectory" \
@@ -218,8 +228,9 @@ class PackageDeb(Package):
         print("RUN CMD: %s" % (' '.join(cmd)))
 
         # add symlink to tarball
-        # FIXME: use mimetype to define extension
-        orig_tarball_path = os.path.join(tmpdir, self.name + '_' + self.version + '.orig' + '.tar.bz2')
+        orig_tarball_path = os.path.join(tmpdir,
+            self.name + '_' + self.version + '.orig'
+            + '.tar.' + self.tarball_ext)
         os.symlink(self.tarball_cache_path, orig_tarball_path)
 
         # build source package

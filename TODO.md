@@ -13,10 +13,11 @@
 - [ ] Add real arg parser
 - [ ] Configuration (at least with paths)
 - [ ] Redevelop build-images.sh in Python
-- [ ] Use mimetype to open tarball with correct options according to format
+- [x] Use mimetype to open tarball with correct options according to format
 - [ ] Support images and build environment updates in build-images
 - [ ] Add force mode in build-images to recreating the images when they exists
 - [ ] Use prefix instead of subdir for tmpdir so ordinary user can create them
 - [ ] Add feature to prepare git dev environment to help adapt debian patches (inspired from `gbp pq`)
 - [ ] Save images build logs into files
 - [ ] Run lintian after build to check packages
+- [ ] Manage multiple instances on the same server
