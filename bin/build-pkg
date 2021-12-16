@@ -194,9 +194,6 @@ class PackageDeb(Package):
     def repos_path(self):
         return os.path.join(RuntimeConf().repos_dir, 'deb')
 
-    def build_src(self):
-        raise NotImplementedError
-
     def build(self):
         self._build_src()
         self._build_bin()
