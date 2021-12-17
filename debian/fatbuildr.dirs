@@ -1,0 +1,4 @@
+var/lib/fatbuildr
+var/lib/fatbuildr/queue
+var/lib/fatbuildr/state
+var/cache/fatbuildr
