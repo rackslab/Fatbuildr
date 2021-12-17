@@ -168,6 +168,49 @@ class Package(object):
             os.mkdir(parent)
         tmpdir = tempfile.mkdtemp(dir=parent)
 
+    def _find_gpg_subkey(self):
+        """Returns the first subkey found in keyring or None if not found."""
+        with gpg.Context(home_dir=RuntimeConf().keyring_dir) as ctx:
+            masterkey = next(ctx.keylist())
+            for subkey in masterkey.subkeys:
+                # skip subkey if it is actually the master key
+                if subkey.fpr == masterkey.fpr:
+                    continue
+                return subkey
+        return None
+
+    def _load_gpg_subkey(self, subkey):
+        """Load GPG signing subkey in gpg-agent so reprepro can use the key
+           non-interactively."""
+
+        # First stop agent if running (ie. socket is present), as it may not
+        # has been started to allow preset.
+        gpgagent_sock_path = os.path.join(RuntimeConf().keyring_dir,
+                                          'S.gpg-agent')
+        if os.path.exists(gpgagent_sock_path):
+            cmd = ['gpgconf', '--kill',
+                   '--homedir', RuntimeConf().keyring_dir, 'gpg-agent' ]
+            subprocess.run(cmd)
+
+        # Start agent with --allow-preset-passphrase so the key can be loaded
+        # non-interactively.
+        cmd = ['gpg-agent', '--homedir', RuntimeConf().keyring_dir,
+               '--allow-preset-passphrase', '--daemon' ]
+        subprocess.run(cmd)
+
+        # Load passphrase from file
+        passphrase = None
+        passphrase_path = os.path.join(RuntimeConf().keyring_dir, 'passphrase')
+        with open(passphrase_path, 'rb') as fh:
+            passphrase = fh.read()
+
+        # Load GPG in agent using the passphrase
+        cmd = ['/usr/lib/gnupg/gpg-preset-passphrase',
+               '--preset', subkey.keygrip ]
+        subprocess.run(cmd,
+                       env={'GNUPGHOME': RuntimeConf().keyring_dir},
+                       input=passphrase)
+
 
 class PackageDeb(Package):
     """Class to manipulation package in Deb format."""
@@ -259,50 +302,6 @@ class PackageDeb(Package):
         print("RUN CMD: %s" % (' '.join(cmd)))
         subprocess.run(cmd)
         print("tmpdir: %s" % (tmpdir))
-
-    def _find_gpg_subkey(self):
-        """Returns the first subkey found in keyring or None if not found."""
-        with gpg.Context(home_dir=RuntimeConf().keyring_dir) as ctx:
-            masterkey = next(ctx.keylist())
-            for subkey in masterkey.subkeys:
-                # skip subkey if it is actually the master key
-                if subkey.fpr == masterkey.fpr:
-                    continue
-                return subkey
-        return None
-
-    def _load_gpg_subkey(self, subkey):
-        """Load GPG signing subkey in gpg-agent so reprepro can use the key
-           non-interactively."""
-
-        # First stop agent if running (ie. socket is present), as it may not
-        # has been started to allow preset.
-        gpgagent_sock_path = os.path.join(RuntimeConf().keyring_dir,
-                                          'S.gpg-agent')
-        if os.path.exists(gpgagent_sock_path):
-            cmd = ['gpgconf', '--kill',
-                   '--homedir', RuntimeConf().keyring_dir, 'gpg-agent' ]
-            subprocess.run(cmd)
-
-        # Start agent with --allow-preset-passphrase so the key can be loaded
-        # non-interactively.
-        cmd = ['gpg-agent', '--homedir', RuntimeConf().keyring_dir,
-               '--allow-preset-passphrase', '--daemon' ]
-        subprocess.run(cmd)
-
-        # Load passphrase from file
-        passphrase = None
-        passphrase_path = os.path.join(RuntimeConf().keyring_dir, 'passphrase')
-        with open(passphrase_path, 'rb') as fh:
-            passphrase = fh.read()
-
-        # Load GPG in agent using the passphrase
-        cmd = ['/usr/lib/gnupg/gpg-preset-passphrase',
-               '--preset', subkey.keygrip ]
-        subprocess.run(cmd,
-                       env={'GNUPGHOME': RuntimeConf().keyring_dir},
-                       input=passphrase)
-
 
     def publish(self):
         """Publish both source and binary package in repository."""
@@ -420,6 +419,22 @@ class PackageRpm(Package):
             cmd.extend(self.meta['rpm']['buildargs'].split(' '))
         print("RUN CMD: %s" % (' '.join(cmd)))
         subprocess.run(cmd)
+
+        # find and load GPG signing subkey
+        subkey = self._find_gpg_subkey()
+        if subkey is None:
+            raise RuntimeError("Unable to find GPG signing subkey")
+        self._load_gpg_subkey(subkey)
+
+        # sign all RPM packages, including SRPM
+        rpm_glob = os.path.join(tmpdir, '*.rpm')
+        for rpm_path in glob.glob(rpm_glob):
+            cmd = ['rpmsign', '--define', '%__gpg /usr/bin/gpg',
+                   '--define',
+                   '%_gpg_name HPCk.it maintainers <maintainers@hpck.it>',
+                   '--addsign', rpm_path ]
+            print("RUN CMD: %s" % (' '.join(cmd)))
+            subprocess.run(cmd, env={'GNUPGHOME': RuntimeConf().keyring_dir})
 
 
 class PackageFactory(object):
