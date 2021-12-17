@@ -62,6 +62,13 @@ Create keyring directory:
 mkdir --mode=0700 /var/lib/fatbuildr/keyring
 ----
 
+Create repos directory:
+
+[source,bash]
+----
+mkdir /var/lib/fatbuildr/repos
+----
+
 Generate GPG signing key:
 
 [source,bash]
