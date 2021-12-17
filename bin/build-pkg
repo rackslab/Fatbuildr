@@ -378,6 +378,14 @@ class PackageRpm(Package):
     def srpm_path(self):
         return os.path.join(tmpdir, self.srpm_filename)
 
+    @property
+    def repo_dir(self):
+        return os.path.join(RuntimeConf().repos_dir, 'rpm', self.distribution)
+
+    @property
+    def pkg_dir(self):
+        return os.path.join(self.repo_dir, 'Packages')
+
     def build(self):
         self._build_src()
         self._build_bin()
@@ -435,6 +443,26 @@ class PackageRpm(Package):
                    '--addsign', rpm_path ]
             print("RUN CMD: %s" % (' '.join(cmd)))
             subprocess.run(cmd, env={'GNUPGHOME': RuntimeConf().keyring_dir})
+
+    def _mk_missing_repo_dirs(self):
+        """Create pkg_dir if it does not exists, considering pkg_dir is a
+           subdirectory of repo_dir."""
+        if not os.path.exists(self.pkg_dir):
+            os.makedirs(self.pkg_dir)
+
+    def publish(self):
+        """Publish RPM (including SRPM) in yum/dnf repository."""
+        self._mk_missing_repo_dirs()
+
+        rpm_glob = os.path.join(tmpdir, '*.rpm')
+
+        for rpm_path in glob.glob(rpm_glob):
+            print("publishing: %s" % (os.path.basename(rpm_path)))
+            shutil.copy(rpm_path, self.pkg_dir)
+
+        cmd = [ 'createrepo_c', '--update', self.repo_dir ]
+        print("RUN CMD: %s" % (' '.join(cmd)))
+        subprocess.run(cmd)
 
 
 class PackageFactory(object):
