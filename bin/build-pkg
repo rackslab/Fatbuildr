@@ -115,7 +115,7 @@ class Package(object):
 
     @property
     def checksum_format(self):
-        return self.meta['checksums'][self.version].keys()[0]  # pickup the first format
+        return self.meta['checksums'][self.version].keys()  # pickup the first format
 
     @property
     def checksum_value(self):
