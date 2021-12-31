@@ -8,4 +8,6 @@ Output=rpm.img
 OutputDirectory=/var/lib/fatbuildr/images
 
 [Content]
-Packages=mock
+# Docs are useful to get examples from packages and manpages when digging
+WithDocs=yes
+Packages=mock,man-db
