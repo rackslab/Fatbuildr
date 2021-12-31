@@ -19,9 +19,12 @@
 
 import argparse
 import sys
+import logging
+
 from ..version import __version__
 from ..conf import RuntimeConf
 
+logger = logging.getLogger(__name__)
 
 class FatbuildrCliApp(object):
 
@@ -80,10 +83,17 @@ class Fatbuildrctl(FatbuildrCliApp):
             print("Action must be choosen, see --help for details")
             sys.exit(1)
 
+        # setup logger
+        if args.debug:
+            logging_level = logging.DEBUG
+        else:
+            logging_level = logging.INFO
+        logging.basicConfig(level=logging_level)
+
         args.func(args)
 
     def _run_build(self, args):
-        print("running build for package: %s" % (args.package))
+        logging.info("running build for package: %s" % (args.package))
 
     def _run_list(self, args):
         raise NotImplementedError
