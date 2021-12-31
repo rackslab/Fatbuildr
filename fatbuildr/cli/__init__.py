@@ -24,6 +24,7 @@ import logging
 
 from ..version import __version__
 from ..conf import RuntimeConfCtl
+from ..images import ImagesManager
 
 logger = logging.getLogger(__name__)
 
@@ -121,6 +122,9 @@ class Fatbuildrctl(FatbuildrCliApp):
 
     def _run_images(self):
         logging.info("running images operation: %s" % (self.conf.ctl.operation))
+        mgr = ImagesManager(self.conf)
+        if self.conf.ctl.operation == 'create':
+            mgr.create()
 
     def _run_build(self):
         logging.info("running build for package: %s instance: %s" % (self.conf.ctl.package, self.conf.ctl.instance))

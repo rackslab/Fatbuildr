@@ -37,7 +37,6 @@ class RuntimeSubConfDirs(object):
 
     def load(self, config):
         section = 'dirs'
-        self.img = config.get(section, 'img')
         self.queue = config.get(section, 'queue')
         self.state = config.get(section, 'state')
         self.repos = config.get(section, 'repos')
@@ -46,12 +45,33 @@ class RuntimeSubConfDirs(object):
 
     def dump(self):
         logger.debug("[dirs]")
-        logger.debug("  img: %s" % (self.img))
         logger.debug("  queue: %s" % (self.queue))
         logger.debug("  state: %s" % (self.state))
         logger.debug("  repos: %s" % (self.repos))
         logger.debug("  cache: %s" % (self.cache))
         logger.debug("  tmp: %s" % (self.tmp))
+
+
+class RuntimeSubConfImages(object):
+    """Runtime sub-configuration class to hold images settings."""
+
+    def __init__(self):
+
+        self.storage = None
+        self.defs = None
+        self.formats = None
+
+    def load(self, config):
+        section = 'images'
+        self.storage = config.get(section, 'storage')
+        self.defs = config.get(section, 'defs')
+        self.formats = config.get(section, 'formats').split(',')
+
+    def dump(self):
+        logger.debug("[images]")
+        logger.debug("  storage: %s" % (self.storage))
+        logger.debug("  defs: %s" % (self.defs))
+        logger.debug("  formats: %s" % (self.formats))
 
 
 class RuntimeSubConfCtl(object):
@@ -77,12 +97,13 @@ class RuntimeSubConfCtl(object):
         logger.debug("  package: %s" % (self.package))
         logger.debug("  basedir: %s" % (self.basedir))
 
+
 class RuntimeConf(object):
     """Runtime configuration class common to all Fatbuildr applications."""
 
     def __init__(self):
         self.dirs = RuntimeSubConfDirs()
-        self.instance = None
+        self.images = RuntimeSubConfImages()
         self.config = None
 
     def load(self):
@@ -97,9 +118,12 @@ class RuntimeConf(object):
         logger.debug("Loading site specific configuration file %s" % (site_conf_path))
         self.config.read_file(open(site_conf_path))
         self.dirs.load(self.config)
+        self.images.load(self.config)
 
     def dump(self):
         self.dirs.dump()
+        self.images.dump()
+
 
 class RuntimeConfCtl(RuntimeConf):
     """Runtime configuration class for FatbuildrCtl application."""
