@@ -17,9 +17,42 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import configparser
+
+
+class RuntimeConfDirs(object):
+    """Runtime configuration class to hold directories paths."""
+
+    def __init__(self):
+
+        self.img = None
+        self.queue = None
+        self.state = None
+        self.repos = None
+        self.cache = None
+        self.tmp = None
+
+    def load(self, config):
+        section = 'dirs'
+        self.img = config.get(section, 'images')
+        self.queue = config.get(section, 'queue')
+        self.state = config.get(section, 'state')
+        self.repos = config.get(section, 'repos')
+        self.cache = config.get(section, 'cache')
+        self.tmp = config.get(section, 'tmp')
+
 
 class RuntimeConf(object):
     """Runtime configuration class for all Fatbuildr applications."""
 
     def __init__(self):
-        pass
+        self.dirs = RuntimeConfDirs()
+
+    def load(self):
+        config = configparser.ConfigParser()
+        # read vendor configuration file and override with site specific
+        # configuration file
+        config.read_file(open('/usr/lib/fatbuildr/fatbuildr.ini'))
+        config.read_file(open('/etc/fatbuildr/fatbuildr.ini'))
+
+        self.dirs.load(config)

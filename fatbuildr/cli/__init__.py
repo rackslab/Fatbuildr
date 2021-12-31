@@ -37,6 +37,8 @@ class FatbuildrCliApp(object):
     def __init__(self):
         self.conf = RuntimeConf()
 
+    def load(self):
+        self.conf.load()
 
 class Fatbuildrd(FatbuildrCliApp):
 
@@ -90,6 +92,7 @@ class Fatbuildrctl(FatbuildrCliApp):
             logging_level = logging.INFO
         logging.basicConfig(level=logging_level)
 
+        self.load()
         args.func(args)
 
     def _run_build(self, args):
