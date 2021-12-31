@@ -11,4 +11,4 @@ OutputDirectory=/var/lib/fatbuildr/images/
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
 Packages=cowbuilder,devscripts,neovim,man-db,less
-ExtraTree=images/build/deb.extra/
+ExtraTree=/usr/lib/fatbuildr/images/build/deb.extra/
