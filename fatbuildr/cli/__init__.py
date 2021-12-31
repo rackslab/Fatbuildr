@@ -67,7 +67,7 @@ class Fatbuildrctl(FatbuildrCliApp):
         parser.add_argument('--debug', dest='debug', action='store_true', help="Enable debug mode")
         parser.add_argument('-i', '--instance', dest='instance', help="Name of the instance")
 
-        subparsers = parser.add_subparsers(help='Action to perform', required=True)
+        subparsers = parser.add_subparsers(help='Action to perform', dest='action', required=True)
 
         # create the parser for the build command
         parser_build = subparsers.add_parser('build', help='Submit new build job')
@@ -85,12 +85,7 @@ class Fatbuildrctl(FatbuildrCliApp):
         parser_watch.add_argument('--job', help='Job to watch')
         parser_watch.set_defaults(func=self._run_list)
 
-        try:
-            args = parser.parse_args()
-        except TypeError:
-            # type error is raised when no subparser action is given
-            print("Action must be choosen, see --help for details")
-            sys.exit(1)
+        args = parser.parse_args()
 
         # setup logger
         if args.debug:
