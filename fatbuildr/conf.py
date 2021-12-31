@@ -34,7 +34,7 @@ class RuntimeConfDirs(object):
 
     def load(self, config):
         section = 'dirs'
-        self.img = config.get(section, 'images')
+        self.img = config.get(section, 'img')
         self.queue = config.get(section, 'queue')
         self.state = config.get(section, 'state')
         self.repos = config.get(section, 'repos')
@@ -47,6 +47,7 @@ class RuntimeConf(object):
 
     def __init__(self):
         self.dirs = RuntimeConfDirs()
+        self.instance = None
 
     def load(self):
         config = configparser.ConfigParser()
@@ -56,3 +57,4 @@ class RuntimeConf(object):
         config.read_file(open('/etc/fatbuildr/fatbuildr.ini'))
 
         self.dirs.load(config)
+        self.instance = config.get('main', 'default_instance')

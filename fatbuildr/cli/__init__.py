@@ -59,6 +59,7 @@ class Fatbuildrctl(FatbuildrCliApp):
         #parser.add_argument('action', help='Action to perform', choices=['build', 'list', 'watch'])
         parser.add_argument('-v', '--version', dest='version', action='version', version='%(prog)s ' + __version__)
         parser.add_argument('--debug', dest='debug', action='store_true', help="Enable debug mode")
+        parser.add_argument('-i', '--instance', dest='instance', help="Name of the instance")
 
         subparsers = parser.add_subparsers(help='Action to perform', required=True)
 
@@ -92,11 +93,16 @@ class Fatbuildrctl(FatbuildrCliApp):
             logging_level = logging.INFO
         logging.basicConfig(level=logging_level)
 
-        self.load()
+        self.load(args)
         args.func(args)
 
+    def load(self, args):
+        super().load()
+        if args.instance is not None:
+            self.conf.instance = args.instance
+
     def _run_build(self, args):
-        logging.info("running build for package: %s" % (args.package))
+        logging.info("running build for package: %s instance: %s" % (args.package, self.conf.instance))
 
     def _run_list(self, args):
         raise NotImplementedError
