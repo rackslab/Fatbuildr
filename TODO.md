@@ -8,14 +8,15 @@
 - [x] Script to generate GPG key
 - [ ] Add configuration parameters in input repository for GPG keys
 - [x] Add code to publish packages in repositories
-- [ ] GPG sign key for packages and mkosi images
+- [x] GPG sign key for packages
+- [ ] Sign mkosi images with GPG
 - [ ] Add logger to build-pkg
 - [ ] Add real arg parser
 - [ ] Configuration (at least with paths)
 - [ ] Redevelop build-images.sh in Python
 - [x] Use mimetype to open tarball with correct options according to format
 - [ ] Support images and build environment updates in build-images
-- [ ] Add force mode in build-images to recreating the images when they exists
+- [x] Add force mode in build-images to recreating the images when they exists
 - [ ] Use prefix instead of subdir for tmpdir so ordinary user can create them
 - [ ] Add feature to prepare git dev environment to help adapt debian patches (inspired from `gbp pq`)
 - [ ] Save images build logs into files
@@ -30,4 +31,4 @@
       - Status code: 404 for https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=x86_64 (IP: 18.133.140.134)
       Error: Failed to download metadata for repo 'fedora': Cannot prepare internal mirrorlist: Status code: 404 for https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=x86_64 (IP: 18.133.140.134)
       ```
-- [ ] Manage architecture
+- [ ] Properly manage packages architectures
