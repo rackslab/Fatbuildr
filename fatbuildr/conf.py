@@ -82,6 +82,7 @@ class RuntimeSubConfCtl(object):
         self.action = None
         # parameters for image action
         self.operation = None
+        self.force = None
         # parameters for package action
         self.package = None
         self.basedir = None
@@ -94,6 +95,7 @@ class RuntimeSubConfCtl(object):
         logger.debug("  instance: %s" % (self.instance))
         logger.debug("  action: %s" % (self.action))
         logger.debug("  operation: %s" % (self.operation))
+        logger.debug("  force: %s" % (self.force))
         logger.debug("  package: %s" % (self.package))
         logger.debug("  basedir: %s" % (self.basedir))
 

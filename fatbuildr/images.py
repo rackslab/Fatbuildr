@@ -42,4 +42,6 @@ class ImagesManager(object):
 
             logging.info("Creating image for format %s" % (_format))
             cmd = ['mkosi', '--default', def_path ]
+            if self.conf.ctl.force:
+                cmd.insert(1, '--force')
             subprocess.run(cmd)

@@ -65,6 +65,7 @@ class Fatbuildrctl(FatbuildrCliApp):
         parser_build = subparsers.add_parser('images', help='Manage build images')
         parser_build.add_argument('--create', action='store_true', help='Create the images')
         parser_build.add_argument('--update', action='store_true', help='Update the images')
+        parser_build.add_argument('--force', action='store_true', help='Force creation of images even they already exist')
         parser_build.set_defaults(func=self._run_images)
 
         # create the parser for the build command
@@ -114,6 +115,7 @@ class Fatbuildrctl(FatbuildrCliApp):
             else:
                 print("An operation on the images must be specified, type '%s images --help' for details" % (progname()))
                 sys.exit(1)
+            self.conf.ctl.force = args.force
         elif args.action == 'build':
             self.conf.ctl.package = args.package
             self.conf.ctl.basedir = args.basedir
