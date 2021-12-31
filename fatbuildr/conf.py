@@ -18,7 +18,9 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import configparser
+import logging
 
+logger = logging.getLogger(__name__)
 
 class RuntimeConfDirs(object):
     """Runtime configuration class to hold directories paths."""
@@ -41,6 +43,14 @@ class RuntimeConfDirs(object):
         self.cache = config.get(section, 'cache')
         self.tmp = config.get(section, 'tmp')
 
+    def dump(self):
+        logger.debug("[dirs]")
+        logger.debug("  img: %s" % (self.img))
+        logger.debug("  queue: %s" % (self.queue))
+        logger.debug("  state: %s" % (self.state))
+        logger.debug("  repos: %s" % (self.repos))
+        logger.debug("  cache: %s" % (self.cache))
+        logger.debug("  tmp: %s" % (self.tmp))
 
 class RuntimeConf(object):
     """Runtime configuration class for all Fatbuildr applications."""
@@ -50,11 +60,25 @@ class RuntimeConf(object):
         self.instance = None
 
     def load(self):
+        """Load configuration files and set runtime parameters accordingly."""
         config = configparser.ConfigParser()
         # read vendor configuration file and override with site specific
         # configuration file
-        config.read_file(open('/usr/lib/fatbuildr/fatbuildr.ini'))
-        config.read_file(open('/etc/fatbuildr/fatbuildr.ini'))
+        vendor_conf_path = '/usr/lib/fatbuildr/fatbuildr.ini'
+        site_conf_path = '/etc/fatbuildr/fatbuildr.ini'
+        logger.debug("Loading vendor configuration file %s" % (vendor_conf_path))
+        config.read_file(open(vendor_conf_path))
+        logger.debug("Loading site specific configuration file %s" % (site_conf_path))
+        config.read_file(open(site_conf_path))
 
         self.dirs.load(config)
         self.instance = config.get('main', 'default_instance')
+
+    def dump(self):
+        """Dump all runtime configuration parameters when in debug mode."""
+
+        if not logger.isEnabledFor(logging.DEBUG):
+            return
+        logger.debug("[main]")
+        logger.debug("  instance: %s" % (self.instance))
+        self.dirs.dump()

@@ -38,7 +38,13 @@ class FatbuildrCliApp(object):
         self.conf = RuntimeConf()
 
     def load(self):
+        """Load runtime configuration with configuration files."""
         self.conf.load()
+
+    def dump(self):
+        """Dump runtime configuration."""
+        self.conf.dump()
+
 
 class Fatbuildrd(FatbuildrCliApp):
 
@@ -100,6 +106,7 @@ class Fatbuildrctl(FatbuildrCliApp):
         super().load()
         if args.instance is not None:
             self.conf.instance = args.instance
+        super().dump()
 
     def _run_build(self, args):
         logging.info("running build for package: %s instance: %s" % (args.package, self.conf.instance))
