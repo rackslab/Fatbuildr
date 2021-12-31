@@ -19,12 +19,19 @@
 
 import argparse
 import sys
+import os
 import logging
 
 from ..version import __version__
-from ..conf import RuntimeConf
+from ..conf import RuntimeConfCtl
 
 logger = logging.getLogger(__name__)
+
+
+def progname():
+    """Return the name of the program."""
+    return os.path.basename(sys.argv[0])
+
 
 class FatbuildrCliApp(object):
 
@@ -32,26 +39,11 @@ class FatbuildrCliApp(object):
     def run(cls):
         """Instanciate and execute the CliApp."""
         app = cls()
-        app.exec()
-
-    def __init__(self):
-        self.conf = RuntimeConf()
-
-    def load(self):
-        """Load runtime configuration with configuration files."""
-        self.conf.load()
-
-    def dump(self):
-        """Dump runtime configuration."""
-        self.conf.dump()
 
 
 class Fatbuildrd(FatbuildrCliApp):
 
     def __init__(self):
-        super().__init__()
-
-    def exec(self):
         print("running fatbuildrd")
 
 
@@ -60,7 +52,6 @@ class Fatbuildrctl(FatbuildrCliApp):
     def __init__(self):
         super().__init__()
 
-    def exec(self):
         parser = argparse.ArgumentParser(description='Do something with fatbuildr.')
         #parser.add_argument('action', help='Action to perform', choices=['build', 'list', 'watch'])
         parser.add_argument('-v', '--version', dest='version', action='version', version='%(prog)s ' + __version__)
@@ -68,6 +59,12 @@ class Fatbuildrctl(FatbuildrCliApp):
         parser.add_argument('-i', '--instance', dest='instance', help="Name of the instance")
 
         subparsers = parser.add_subparsers(help='Action to perform', dest='action', required=True)
+
+        # create the parser for the images command
+        parser_build = subparsers.add_parser('images', help='Manage build images')
+        parser_build.add_argument('--create', action='store_true', help='Create the images')
+        parser_build.add_argument('--update', action='store_true', help='Update the images')
+        parser_build.set_defaults(func=self._run_images)
 
         # create the parser for the build command
         parser_build = subparsers.add_parser('build', help='Submit new build job')
@@ -94,20 +91,42 @@ class Fatbuildrctl(FatbuildrCliApp):
             logging_level = logging.INFO
         logging.basicConfig(level=logging_level)
 
+        self.conf = RuntimeConfCtl()
         self.load(args)
-        args.func(args)
+
+        # run the method corresponding to the provided action
+        args.func()
 
     def load(self, args):
-        super().load()
+
+        self.conf.load()  # load configuration file
+        self.conf.ctl.action = args.action
+
         if args.instance is not None:
-            self.conf.instance = args.instance
-        super().dump()
+            self.conf.ctl.instance = args.instance
 
-    def _run_build(self, args):
-        logging.info("running build for package: %s instance: %s" % (args.package, self.conf.instance))
+        if args.action == 'images':
+            if args.create is True:
+                self.conf.ctl.operation = 'create'
+            elif args.update is True:
+                self.conf.ctl.operation = 'update'
+            else:
+                print("An operation on the images must be specified, type '%s images --help' for details" % (progname()))
+                sys.exit(1)
+        elif args.action == 'build':
+            self.conf.ctl.package = args.package
+            self.conf.ctl.basedir = args.basedir
 
-    def _run_list(self, args):
+        self.conf.dump()
+
+    def _run_images(self):
+        logging.info("running images operation: %s" % (self.conf.ctl.operation))
+
+    def _run_build(self):
+        logging.info("running build for package: %s instance: %s" % (self.conf.ctl.package, self.conf.ctl.instance))
+
+    def _run_list(self):
         raise NotImplementedError
 
-    def _run_watch(self, args):
+    def _run_watch(self):
         raise NotImplementedError

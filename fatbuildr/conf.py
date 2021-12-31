@@ -22,8 +22,9 @@ import logging
 
 logger = logging.getLogger(__name__)
 
-class RuntimeConfDirs(object):
-    """Runtime configuration class to hold directories paths."""
+
+class RuntimeSubConfDirs(object):
+    """Runtime sub-configuration class to hold directories paths."""
 
     def __init__(self):
 
@@ -52,33 +53,68 @@ class RuntimeConfDirs(object):
         logger.debug("  cache: %s" % (self.cache))
         logger.debug("  tmp: %s" % (self.tmp))
 
-class RuntimeConf(object):
-    """Runtime configuration class for all Fatbuildr applications."""
+
+class RuntimeSubConfCtl(object):
+    """Runtime sub-configuration class to ctl parameters."""
 
     def __init__(self):
-        self.dirs = RuntimeConfDirs()
         self.instance = None
+        self.action = None
+        # parameters for image action
+        self.operation = None
+        # parameters for package action
+        self.package = None
+        self.basedir = None
+
+    def load(self, config):
+       self.instance = config.get('ctl', 'default_instance')
+
+    def dump(self):
+        logger.debug("[ctl]")
+        logger.debug("  instance: %s" % (self.instance))
+        logger.debug("  action: %s" % (self.action))
+        logger.debug("  operation: %s" % (self.operation))
+        logger.debug("  package: %s" % (self.package))
+        logger.debug("  basedir: %s" % (self.basedir))
+
+class RuntimeConf(object):
+    """Runtime configuration class common to all Fatbuildr applications."""
+
+    def __init__(self):
+        self.dirs = RuntimeSubConfDirs()
+        self.instance = None
+        self.config = None
 
     def load(self):
         """Load configuration files and set runtime parameters accordingly."""
-        config = configparser.ConfigParser()
+        self.config = configparser.ConfigParser()
         # read vendor configuration file and override with site specific
         # configuration file
         vendor_conf_path = '/usr/lib/fatbuildr/fatbuildr.ini'
         site_conf_path = '/etc/fatbuildr/fatbuildr.ini'
         logger.debug("Loading vendor configuration file %s" % (vendor_conf_path))
-        config.read_file(open(vendor_conf_path))
+        self.config.read_file(open(vendor_conf_path))
         logger.debug("Loading site specific configuration file %s" % (site_conf_path))
-        config.read_file(open(site_conf_path))
+        self.config.read_file(open(site_conf_path))
+        self.dirs.load(self.config)
 
-        self.dirs.load(config)
-        self.instance = config.get('main', 'default_instance')
+    def dump(self):
+        self.dirs.dump()
+
+class RuntimeConfCtl(RuntimeConf):
+    """Runtime configuration class for FatbuildrCtl application."""
+
+    def __init__(self):
+        super().__init__()
+        self.ctl = RuntimeSubConfCtl()
 
     def dump(self):
         """Dump all runtime configuration parameters when in debug mode."""
-
         if not logger.isEnabledFor(logging.DEBUG):
             return
-        logger.debug("[main]")
-        logger.debug("  instance: %s" % (self.instance))
-        self.dirs.dump()
+        super().dump()
+        self.ctl.dump()
+
+    def load(self):
+        super().load()
+        self.ctl.load(self.config)
