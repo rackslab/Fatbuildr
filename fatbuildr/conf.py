@@ -74,6 +74,54 @@ class RuntimeSubConfImages(object):
         logger.debug("  formats: %s" % (self.formats))
 
 
+class RuntimeSubConfContainers(object):
+    """Runtime sub-configuration class to hold containers settings."""
+
+    def __init__(self):
+
+        self.init_opts = None
+
+    def load(self, config):
+        section = 'containers'
+        self.init_opts = config.get(section, 'init_opts')
+
+    def dump(self):
+        logger.debug("[containers]")
+        logger.debug("  init_opts: %s" % (self.init_opts))
+
+
+class RuntimeSubConfFormatDeb(object):
+    """Runtime sub-configuration class to hold Deb format settings."""
+
+    def __init__(self):
+
+        self.init_cmd = None
+
+    def load(self, config):
+        section = 'format:deb'
+        self.init_cmd = config.get(section, 'init_cmd')
+
+    def dump(self):
+        logger.debug("[format:deb]")
+        logger.debug("  init_cmd: %s" % (self.init_cmd))
+
+
+class RuntimeSubConfFormatRpm(object):
+    """Runtime sub-configuration class to hold RPM format settings."""
+
+    def __init__(self):
+
+        self.initenvcmd = None
+
+    def load(self, config):
+        section = 'format:rpm'
+        self.init_cmd = config.get(section, 'init_cmd')
+
+    def dump(self):
+        logger.debug("[format:rpm]")
+        logger.debug("  init_cmd: %s" % (self.init_cmd))
+
+
 class RuntimeSubConfCtl(object):
     """Runtime sub-configuration class to ctl parameters."""
 
@@ -106,6 +154,9 @@ class RuntimeConf(object):
     def __init__(self):
         self.dirs = RuntimeSubConfDirs()
         self.images = RuntimeSubConfImages()
+        self.containers = RuntimeSubConfContainers()
+        self.deb = RuntimeSubConfFormatDeb()
+        self.rpm = RuntimeSubConfFormatRpm()
         self.config = None
 
     def load(self):
@@ -121,10 +172,16 @@ class RuntimeConf(object):
         self.config.read_file(open(site_conf_path))
         self.dirs.load(self.config)
         self.images.load(self.config)
+        self.containers.load(self.config)
+        self.deb.load(self.config)
+        self.rpm.load(self.config)
 
     def dump(self):
         self.dirs.dump()
         self.images.dump()
+        self.containers.dump()
+        self.deb.dump()
+        self.rpm.dump()
 
 
 class RuntimeConfCtl(RuntimeConf):

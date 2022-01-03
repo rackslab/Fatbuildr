@@ -66,6 +66,9 @@ class Fatbuildrctl(FatbuildrCliApp):
         parser_build.add_argument('--create', action='store_true', help='Create the images')
         parser_build.add_argument('--update', action='store_true', help='Update the images')
         parser_build.add_argument('--force', action='store_true', help='Force creation of images even they already exist')
+        parser_build.add_argument('--create-envs', action='store_true', help='Create the build environments in the images')
+        parser_build.add_argument('--update-envs', action='store_true', help='Update the build environments in the images')
+        parser_build.add_argument('-b', '--basedir', help='Artefacts definitions directory')
         parser_build.set_defaults(func=self._run_images)
 
         # create the parser for the build command
@@ -112,10 +115,19 @@ class Fatbuildrctl(FatbuildrCliApp):
                 self.conf.ctl.operation = 'create'
             elif args.update is True:
                 self.conf.ctl.operation = 'update'
+            elif args.create_envs is True:
+                self.conf.ctl.operation = 'create_envs'
+            elif args.update_envs is True:
+                self.conf.ctl.operation = 'update_envs'
             else:
                 print("An operation on the images must be specified, type '%s images --help' for details" % (progname()))
                 sys.exit(1)
             self.conf.ctl.force = args.force
+            if self.conf.ctl.operation in ['create_envs', 'update_envs'] and args.basedir is None:
+                print("The base directory must be specified to operate on build environments, type '%s images --help' for details" % (progname()))
+                sys.exit(1)
+            self.conf.ctl.basedir = args.basedir
+
         elif args.action == 'build':
             self.conf.ctl.package = args.package
             self.conf.ctl.basedir = args.basedir
@@ -127,6 +139,9 @@ class Fatbuildrctl(FatbuildrCliApp):
         mgr = ImagesManager(self.conf)
         if self.conf.ctl.operation == 'create':
             mgr.create()
+        elif self.conf.ctl.operation == 'create_envs':
+            mgr.create_envs()
+
 
     def _run_build(self):
         logging.info("running build for package: %s instance: %s" % (self.conf.ctl.package, self.conf.ctl.instance))

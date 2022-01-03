@@ -16,3 +16,22 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
+
+import subprocess
+import logging
+
+logger = logging.getLogger(__name__)
+
+
+class ContainerRunner(object):
+
+    def __init__(self, conf):
+        self.conf = conf
+
+    def run_init(self, image, envcmd):
+
+        cmd = ['systemd-nspawn', '--directory', image.path ]
+        cmd.extend(self.conf.init_opts.split(' '))
+        cmd.extend(envcmd.split(' '))
+        logger.debug("Running command: %s" % ' '.join(cmd))
+        subprocess.run(cmd)
