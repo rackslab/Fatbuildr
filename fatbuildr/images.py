@@ -36,6 +36,10 @@ class Image(object):
         self.path = os.path.join(conf.images.storage, self.format + '.img')
         self.def_path = os.path.join(conf.images.defs, self.format + '.mkosi')
 
+    @property
+    def exists(self):
+        return os.path.exists(self.path)
+
 
 class ImagesManager(object):
 
@@ -50,6 +54,11 @@ class ImagesManager(object):
         for _format in self.conf.images.formats:
 
             img = Image(self.conf, _format)
+
+            if img.exists and not self.conf.ctl.force:
+                logger.error("Image %s already exists, use --force to ignore" % (img.def_path))
+                sys.exit(1)
+
             if not os.path.exists(img.def_path):
                 logger.error("Unable to find image definition file %s" % (img.def_path))
                 sys.exit(1)
