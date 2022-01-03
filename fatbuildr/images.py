@@ -55,6 +55,14 @@ class Image(object):
             cmd.insert(1, '--force')
         subprocess.run(cmd)
 
+    def update(self):
+        logger.info("Updating image for format %s" % (self.format))
+        cmds = [ _cmd.strip() for _cmd in
+                 getattr(self.conf, self.format).img_update_cmds.split('&&') ]
+        ctn = ContainerRunner(self.conf.containers)
+        for cmd in cmds:
+            ctn.run(self, cmd)
+
 
 class BuildEnv(object):
 
@@ -93,6 +101,15 @@ class ImagesManager(object):
                 sys.exit(1)
 
             img.create()
+
+    def update(self):
+
+        for _format in self.conf.images.formats:
+            img = Image(self.conf, _format)
+            if not img.exists:
+                logger.warning("Image %s does not exist, create it first" % (img.path))
+                continue
+            img.update()
 
     def create_envs(self):
 

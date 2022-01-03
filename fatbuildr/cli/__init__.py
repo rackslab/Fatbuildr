@@ -139,9 +139,12 @@ class Fatbuildrctl(FatbuildrCliApp):
         mgr = ImagesManager(self.conf)
         if self.conf.ctl.operation == 'create':
             mgr.create()
+        elif self.conf.ctl.operation == 'update':
+            mgr.update()
         elif self.conf.ctl.operation == 'create_envs':
             mgr.create_envs()
-
+        elif self.conf.ctl.operation == 'update_envs':
+            mgr.update_envs()
 
     def _run_build(self):
         logging.info("running build for package: %s instance: %s" % (self.conf.ctl.package, self.conf.ctl.instance))

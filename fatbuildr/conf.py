@@ -98,14 +98,17 @@ class RuntimeSubConfFormatDeb(object):
     def __init__(self):
 
         self.init_cmd = None
+        self.img_update_cmds = None
 
     def load(self, config):
         section = 'format:deb'
         self.init_cmd = config.get(section, 'init_cmd')
+        self.img_update_cmds = config.get(section, 'img_update_cmds')
 
     def dump(self):
         logger.debug("[format:deb]")
         logger.debug("  init_cmd: %s" % (self.init_cmd))
+        logger.debug("  img_update_cmds: %s" % (self.img_update_cmds))
 
 
 class RuntimeSubConfFormatRpm(object):
@@ -113,15 +116,18 @@ class RuntimeSubConfFormatRpm(object):
 
     def __init__(self):
 
-        self.initenvcmd = None
+        self.init_cmd = None
+        self.img_update_cmds = None
 
     def load(self, config):
         section = 'format:rpm'
         self.init_cmd = config.get(section, 'init_cmd')
+        self.img_update_cmds = config.get(section, 'img_update_cmds')
 
     def dump(self):
         logger.debug("[format:rpm]")
         logger.debug("  init_cmd: %s" % (self.init_cmd))
+        logger.debug("  img_update_cmds: %s" % (self.img_update_cmds))
 
 
 class RuntimeSubConfCtl(object):

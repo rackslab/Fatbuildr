@@ -35,3 +35,11 @@ class ContainerRunner(object):
         cmd.extend(envcmd.split(' '))
         logger.debug("Running command: %s" % ' '.join(cmd))
         subprocess.run(cmd)
+
+    def run(self, image, runcmd):
+
+        cmd = ['systemd-nspawn', '--directory', image.path ]
+        cmd.extend(self.conf.init_opts.split(' '))
+        cmd.extend(runcmd.split(' '))
+        logger.debug("Running command: %s" % ' '.join(cmd))
+        subprocess.run(cmd)
