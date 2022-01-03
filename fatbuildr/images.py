@@ -41,10 +41,12 @@ class Image(object):
     def exists(self):
         return os.path.exists(self.path)
 
-    def create():
+    def create(self):
 
-        logger.info("Creating image for format %s" % (_format))
-        cmd = ['mkosi', '--default', img.def_path ]
+        logger.info("Creating image for format %s" % (self.format))
+
+        cmd = Templeter.args(self.conf.images.create_cmd,
+                             definition=self.def_path).split(' ')
         if self.conf.ctl.force:
             cmd.insert(1, '--force')
         subprocess.run(cmd)

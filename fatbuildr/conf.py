@@ -60,19 +60,21 @@ class RuntimeSubConfImages(object):
         self.storage = None
         self.defs = None
         self.formats = None
+        self.create_cmd = None
 
     def load(self, config):
         section = 'images'
         self.storage = config.get(section, 'storage')
         self.defs = config.get(section, 'defs')
         self.formats = config.get(section, 'formats').split(',')
+        self.create_cmd = config.get(section, 'create_cmd')
 
     def dump(self):
         logger.debug("[images]")
         logger.debug("  storage: %s" % (self.storage))
         logger.debug("  defs: %s" % (self.defs))
         logger.debug("  formats: %s" % (self.formats))
-
+        logger.debug("  create_cmd: %s" % (self.create_cmd))
 
 class RuntimeSubConfContainers(object):
     """Runtime sub-configuration class to hold containers settings."""
