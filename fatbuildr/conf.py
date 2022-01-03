@@ -99,16 +99,18 @@ class RuntimeSubConfFormatDeb(object):
 
         self.init_cmd = None
         self.img_update_cmds = None
+        self.env_update_cmds = None
 
     def load(self, config):
         section = 'format:deb'
         self.init_cmd = config.get(section, 'init_cmd')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
+        self.env_update_cmds = config.get(section, 'env_update_cmds')
 
     def dump(self):
         logger.debug("[format:deb]")
         logger.debug("  init_cmd: %s" % (self.init_cmd))
-        logger.debug("  img_update_cmds: %s" % (self.img_update_cmds))
+        logger.debug("  env_update_cmds: %s" % (self.env_update_cmds))
 
 
 class RuntimeSubConfFormatRpm(object):
@@ -118,16 +120,19 @@ class RuntimeSubConfFormatRpm(object):
 
         self.init_cmd = None
         self.img_update_cmds = None
+        self.env_update_cmds = None
 
     def load(self, config):
         section = 'format:rpm'
         self.init_cmd = config.get(section, 'init_cmd')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
+        self.env_update_cmds = config.get(section, 'env_update_cmds')
 
     def dump(self):
         logger.debug("[format:rpm]")
         logger.debug("  init_cmd: %s" % (self.init_cmd))
         logger.debug("  img_update_cmds: %s" % (self.img_update_cmds))
+        logger.debug("  env_update_cmds: %s" % (self.env_update_cmds))
 
 
 class RuntimeSubConfCtl(object):

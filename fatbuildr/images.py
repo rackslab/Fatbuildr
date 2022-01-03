@@ -72,10 +72,18 @@ class BuildEnv(object):
         self.name = name
 
     def create(self):
-
+        logger.info("Create build environment %s in %s image" % (self.name, self.image.format))
         cmd = Templeter.args(getattr(self.conf, self.image.format).init_cmd,
                              environment=self.name)
         ContainerRunner(self.conf.containers).run_init(self.image, cmd)
+
+    def update(self):
+        logger.info("Updating build environment %s in %s image" % (self.name, self.image.format))
+        cmds = [ Templeter.args(_cmd.strip(), environment=self.name) for _cmd in
+                 getattr(self.conf, self.image.format).env_update_cmds.split('&&') ]
+        ctn = ContainerRunner(self.conf.containers)
+        for cmd in cmds:
+            ctn.run(self.image, cmd)
 
 
 class ImagesManager(object):
@@ -126,3 +134,16 @@ class ImagesManager(object):
             for _dist in pipelines.format_dists(_format):
                 env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
                 env.create()
+
+    def update_envs(self):
+
+        logging.info("Updating build environments")
+        # Load build environments declared in the basedir
+        pipelines = PipelinesDefs(self.conf.ctl.basedir)
+
+        for _format in self.conf.images.formats:
+            img = Image(self.conf, _format)
+            for _dist in pipelines.format_dists(_format):
+                env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
+
+                env.update()
