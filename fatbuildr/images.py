@@ -32,6 +32,7 @@ logger = logging.getLogger(__name__)
 class Image(object):
 
     def __init__(self, conf, fmt):
+        self.conf = conf
         self.format = fmt
         self.path = os.path.join(conf.images.storage, self.format + '.img')
         self.def_path = os.path.join(conf.images.defs, self.format + '.mkosi')
@@ -39,6 +40,28 @@ class Image(object):
     @property
     def exists(self):
         return os.path.exists(self.path)
+
+    def create():
+
+        logger.info("Creating image for format %s" % (_format))
+        cmd = ['mkosi', '--default', img.def_path ]
+        if self.conf.ctl.force:
+            cmd.insert(1, '--force')
+        subprocess.run(cmd)
+
+
+class BuildEnv(object):
+
+    def __init__(self, conf, image, name):
+        self.conf = conf
+        self.image = image
+        self.name = name
+
+    def create(self):
+
+        cmd = Templeter.args(getattr(self.conf, self.image.format).init_cmd,
+                             environment=self.name)
+        ContainerRunner(self.conf.containers).run_init(self.image, cmd)
 
 
 class ImagesManager(object):
@@ -63,11 +86,7 @@ class ImagesManager(object):
                 logger.error("Unable to find image definition file %s" % (img.def_path))
                 sys.exit(1)
 
-            logging.info("Creating image for format %s" % (_format))
-            cmd = ['mkosi', '--default', img.def_path ]
-            if self.conf.ctl.force:
-                cmd.insert(1, '--force')
-            subprocess.run(cmd)
+            img.create()
 
     def create_envs(self):
 
@@ -78,12 +97,9 @@ class ImagesManager(object):
         logging.info("Creating build environments")
         # Load build environments declared in the basedir
         pipelines = PipelinesDefs(self.conf.ctl.basedir)
-        # Initialize container runner
-        ctn = ContainerRunner(self.conf.containers)
 
         for _format in self.conf.images.formats:
             img = Image(self.conf, _format)
             for _dist in pipelines.format_dists(_format):
-                cmd = Templeter.args(getattr(self.conf, _format).init_cmd,
-                                     environment=pipelines.dist_env(_dist))
-                ctn.run_init(img, cmd)
+                env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
+                env.create()
