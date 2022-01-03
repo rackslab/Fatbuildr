@@ -41,6 +41,10 @@ class Image(object):
     def exists(self):
         return os.path.exists(self.path)
 
+    @property
+    def def_exists(self):
+        return os.path.exists(self.def_path)
+
     def create(self):
 
         logger.info("Creating image for format %s" % (self.format))
@@ -84,7 +88,7 @@ class ImagesManager(object):
                 logger.error("Image %s already exists, use --force to ignore" % (img.def_path))
                 sys.exit(1)
 
-            if not os.path.exists(img.def_path):
+            if not img.def_exists:
                 logger.error("Unable to find image definition file %s" % (img.def_path))
                 sys.exit(1)
 
