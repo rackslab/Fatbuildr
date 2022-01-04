@@ -34,6 +34,14 @@ class PipelinesDefs():
         with open(dists_yml_f) as fh:
             self.dists = yaml.safe_load(fh)
 
+    @property
+    def gpg_name(self):
+        return self.dists['gpg']['name']
+
+    @property
+    def gpg_email(self):
+        return self.dists['gpg']['email']
+
     def dist_format(self, distribution):
         """Which format (ex: RPM) for this distribution? Returns None if
            distribution has not been found."""

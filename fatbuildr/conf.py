@@ -18,6 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import configparser
+import re
 import logging
 
 logger = logging.getLogger(__name__)
@@ -76,6 +77,7 @@ class RuntimeSubConfImages(object):
         logger.debug("  formats: %s" % (self.formats))
         logger.debug("  create_cmd: %s" % (self.create_cmd))
 
+
 class RuntimeSubConfContainers(object):
     """Runtime sub-configuration class to hold containers settings."""
 
@@ -90,6 +92,50 @@ class RuntimeSubConfContainers(object):
     def dump(self):
         logger.debug("[containers]")
         logger.debug("  init_opts: %s" % (self.init_opts))
+
+
+class RuntimeSubConfKeyring(object):
+    """Runtime sub-configuration class to hold keyring settings."""
+
+    def __init__(self):
+
+        self.storage = None
+        self.type = None
+        self.size = None
+        self.expires = None
+
+    def _parse_duration(self, _expires):
+        m = re.search(r'(\d+)([a-z])', _expires)
+        quantity = int(m.group(1))
+        unit = m.group(2)
+        if unit == 'd':
+            self.expires = quantity * 86400
+        elif unit == 'm':
+            self.expires = quantity * 86400 * 30
+        elif unit == 'y':
+            self.expires = quantity * 86400 * 365
+        else:
+            raise ValueError("keyring expires unit '%s' is not valid" % (unit))
+
+    def load(self, config):
+        section = 'keyring'
+        self.storage = config.get(section, 'storage')
+        self.type = config.get(section, 'type')
+        self.size = config.getint(section, 'size')
+        try:
+            self.expires = config.getboolean(section, 'expires')
+        except ValueError:
+            _expires = config.get(section, 'expires')
+            self._parse_duration(_expires)
+        if self.expires == True:
+            raise ValueError("keyring expires must be set with a duration to be enabled")
+
+    def dump(self):
+        logger.debug("[keyring]")
+        logger.debug("  storage: %s" % (self.storage))
+        logger.debug("  type: %s" % (self.type))
+        logger.debug("  size: %s" % (self.size))
+        logger.debug("  expires: %s" % (str(self.expires)))
 
 
 class RuntimeSubConfFormatDeb(object):
@@ -168,6 +214,7 @@ class RuntimeConf(object):
         self.dirs = RuntimeSubConfDirs()
         self.images = RuntimeSubConfImages()
         self.containers = RuntimeSubConfContainers()
+        self.keyring = RuntimeSubConfKeyring()
         self.deb = RuntimeSubConfFormatDeb()
         self.rpm = RuntimeSubConfFormatRpm()
         self.config = None
@@ -186,6 +233,7 @@ class RuntimeConf(object):
         self.dirs.load(self.config)
         self.images.load(self.config)
         self.containers.load(self.config)
+        self.keyring.load(self.config)
         self.deb.load(self.config)
         self.rpm.load(self.config)
 
@@ -193,6 +241,7 @@ class RuntimeConf(object):
         self.dirs.dump()
         self.images.dump()
         self.containers.dump()
+        self.keyring.dump()
         self.deb.dump()
         self.rpm.dump()
 

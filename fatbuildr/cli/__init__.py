@@ -25,6 +25,7 @@ import logging
 from ..version import __version__
 from ..conf import RuntimeConfCtl
 from ..images import ImagesManager
+from ..keyring import KeyringManager
 
 logger = logging.getLogger(__name__)
 
@@ -62,14 +63,20 @@ class Fatbuildrctl(FatbuildrCliApp):
         subparsers = parser.add_subparsers(help='Action to perform', dest='action', required=True)
 
         # create the parser for the images command
-        parser_build = subparsers.add_parser('images', help='Manage build images')
-        parser_build.add_argument('--create', action='store_true', help='Create the images')
-        parser_build.add_argument('--update', action='store_true', help='Update the images')
-        parser_build.add_argument('--force', action='store_true', help='Force creation of images even they already exist')
-        parser_build.add_argument('--create-envs', action='store_true', help='Create the build environments in the images')
-        parser_build.add_argument('--update-envs', action='store_true', help='Update the build environments in the images')
-        parser_build.add_argument('-b', '--basedir', help='Artefacts definitions directory')
-        parser_build.set_defaults(func=self._run_images)
+        parser_images = subparsers.add_parser('images', help='Manage build images')
+        parser_images.add_argument('--create', action='store_true', help='Create the images')
+        parser_images.add_argument('--update', action='store_true', help='Update the images')
+        parser_images.add_argument('--force', action='store_true', help='Force creation of images even they already exist')
+        parser_images.add_argument('--create-envs', action='store_true', help='Create the build environments in the images')
+        parser_images.add_argument('--update-envs', action='store_true', help='Update the build environments in the images')
+        parser_images.add_argument('-b', '--basedir', help='Artefacts definitions directory')
+        parser_images.set_defaults(func=self._run_images)
+
+        # create the parser for the build command
+        parser_keyring = subparsers.add_parser('keyring', help='Manage signing keyring')
+        parser_keyring.add_argument('--create', action='store_true', help='Create keyring')
+        parser_keyring.add_argument('-b', '--basedir', help='Artefacts definitions directory', required=True)
+        parser_keyring.set_defaults(func=self._run_keyring)
 
         # create the parser for the build command
         parser_build = subparsers.add_parser('build', help='Submit new build job')
@@ -104,7 +111,12 @@ class Fatbuildrctl(FatbuildrCliApp):
 
     def load(self, args):
 
-        self.conf.load()  # load configuration file
+        try:
+            self.conf.load()  # load configuration file
+        except ValueError as err:
+            logger.error("Error while loading configuration: %s" % (err))
+            sys.exit(1)
+
         self.conf.ctl.action = args.action
 
         if args.instance is not None:
@@ -128,6 +140,14 @@ class Fatbuildrctl(FatbuildrCliApp):
                 sys.exit(1)
             self.conf.ctl.basedir = args.basedir
 
+        if args.action == 'keyring':
+            if args.create is True:
+                self.conf.ctl.operation = 'create'
+            else:
+                print("An operation on the keyring must be specified, type '%s keyring --help' for details" % (progname()))
+                sys.exit(1)
+            self.conf.ctl.basedir = args.basedir
+
         elif args.action == 'build':
             self.conf.ctl.package = args.package
             self.conf.ctl.basedir = args.basedir
@@ -135,7 +155,7 @@ class Fatbuildrctl(FatbuildrCliApp):
         self.conf.dump()
 
     def _run_images(self):
-        logging.info("running images operation: %s" % (self.conf.ctl.operation))
+        logger.debug("running images operation: %s" % (self.conf.ctl.operation))
         mgr = ImagesManager(self.conf)
         if self.conf.ctl.operation == 'create':
             mgr.create()
@@ -146,8 +166,14 @@ class Fatbuildrctl(FatbuildrCliApp):
         elif self.conf.ctl.operation == 'update_envs':
             mgr.update_envs()
 
+    def _run_keyring(self):
+        logger.debug("running keyring operation: %s" % (self.conf.ctl.operation))
+        mgr = KeyringManager(self.conf)
+        if self.conf.ctl.operation == 'create':
+            mgr.create()
+
     def _run_build(self):
-        logging.info("running build for package: %s instance: %s" % (self.conf.ctl.package, self.conf.ctl.instance))
+        logger.debug("running build for package: %s instance: %s" % (self.conf.ctl.package, self.conf.ctl.instance))
 
     def _run_list(self):
         raise NotImplementedError
