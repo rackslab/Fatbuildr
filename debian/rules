@@ -1,5 +1,10 @@
 #!/usr/bin/make -f
 # -*- makefile -*-
 
+UNITS = $(notdir $(wildcard conf/units/*))
+
 %:
 	dh $@ --with python3 --buildsystem=pybuild
+
+override_dh_installsystemd:
+	dh_installsystemd $(UNITS)

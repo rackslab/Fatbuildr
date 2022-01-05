@@ -1,3 +1,4 @@
 conf/etc/fatbuildr.ini etc/fatbuildr
 conf/vendor/fatbuildr.ini usr/lib/fatbuildr
 images usr/lib/fatbuildr
+conf/units/* lib/systemd/system
