@@ -60,6 +60,7 @@ class JobManager(object):
 
         # create yaml job description
         description = {
+            'instance': self.conf.app.instance,
             'distribution': self.conf.app.distribution,
             'environment': self.pipelines.dist_env(self.conf.app.distribution),
             'format': self.pipelines.dist_format(self.conf.app.distribution),
