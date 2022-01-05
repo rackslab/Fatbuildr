@@ -85,7 +85,7 @@ class Fatbuildrctl(FatbuildrCliApp):
 
         # create the parser for the build command
         parser_build = subparsers.add_parser('build', help='Submit new build job')
-        parser_build.add_argument('-p', '--package', help='Package name', required=True)
+        parser_build.add_argument('-a', '--artefact', help='Artefact name', required=True)
         parser_build.add_argument('-d', '--distribution', help='Distribution name', required=True)
         parser_build.add_argument('-b', '--basedir', help='Artefacts repository directory', required=True)
         parser_build.set_defaults(func=self._run_build)
@@ -160,7 +160,7 @@ class Fatbuildrctl(FatbuildrCliApp):
             self.conf.app.basedir = args.basedir
 
         elif args.action == 'build':
-            self.conf.app.artefact = args.package
+            self.conf.app.artefact = args.artefact
             self.conf.app.distribution = args.distribution
             self.conf.app.basedir = args.basedir
 
