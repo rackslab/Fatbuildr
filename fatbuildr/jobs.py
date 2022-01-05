@@ -89,7 +89,7 @@ class JobManager(object):
         for _dir in jobs_dirs:
             yml_path = os.path.join(self.conf.dirs.queue, _dir, 'job.yml')
             with open(yml_path, 'r') as fh:
-                description = yaml.load(fh)
+                description = yaml.load(fh, Loader=yaml.FullLoader)
             print("Job %s" % (_dir))
             print("  instance: %s" % (description['instance']))
             print("  distribution: %s" % (description['distribution']))
