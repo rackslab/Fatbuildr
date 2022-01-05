@@ -46,11 +46,10 @@ class Image(object):
         return os.path.exists(self.def_path)
 
     def create(self):
-
         logger.info("Creating image for format %s" % (self.format))
-
         cmd = Templeter.args(self.conf.images.create_cmd,
-                             definition=self.def_path).split(' ')
+                             definition=self.def_path,
+                             path=self.path).split(' ')
         if self.conf.app.force:
             cmd.insert(1, '--force')
         subprocess.run(cmd)
