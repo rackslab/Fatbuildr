@@ -75,7 +75,8 @@ class Fatbuildrctl(FatbuildrCliApp):
         # create the parser for the build command
         parser_keyring = subparsers.add_parser('keyring', help='Manage signing keyring')
         parser_keyring.add_argument('--create', action='store_true', help='Create keyring')
-        parser_keyring.add_argument('-b', '--basedir', help='Artefacts definitions directory', required=True)
+        parser_keyring.add_argument('--show', action='store_true', help='Show keyring information')
+        parser_keyring.add_argument('-b', '--basedir', help='Artefacts definitions directory')
         parser_keyring.set_defaults(func=self._run_keyring)
 
         # create the parser for the build command
@@ -143,8 +144,13 @@ class Fatbuildrctl(FatbuildrCliApp):
         if args.action == 'keyring':
             if args.create is True:
                 self.conf.ctl.operation = 'create'
+            elif args.show is True:
+                self.conf.ctl.operation = 'show'
             else:
                 print("An operation on the keyring must be specified, type '%s keyring --help' for details" % (progname()))
+                sys.exit(1)
+            if self.conf.ctl.operation == 'create' and args.basedir is None:
+                print("The base directory must be specified to create keyring, type '%s keyring --help' for details" % (progname()))
                 sys.exit(1)
             self.conf.ctl.basedir = args.basedir
 
@@ -171,6 +177,8 @@ class Fatbuildrctl(FatbuildrCliApp):
         mgr = KeyringManager(self.conf)
         if self.conf.ctl.operation == 'create':
             mgr.create()
+        elif self.conf.ctl.operation == 'show':
+            mgr.show()
 
     def _run_build(self):
         logger.debug("running build for package: %s instance: %s" % (self.conf.ctl.package, self.conf.ctl.instance))
