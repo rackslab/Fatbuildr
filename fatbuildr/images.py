@@ -34,7 +34,7 @@ class Image(object):
     def __init__(self, conf, fmt):
         self.conf = conf
         self.format = fmt
-        self.path = os.path.join(conf.images.storage, self.format + '.img')
+        self.path = os.path.join(conf.images.storage, conf.app.instance, self.format + '.img')
         self.def_path = os.path.join(conf.images.defs, self.format + '.mkosi')
 
     @property
@@ -46,6 +46,15 @@ class Image(object):
         return os.path.exists(self.def_path)
 
     def create(self):
+        """Create the image."""
+
+        # ensure instance images directory is present
+        _dirname = os.path.dirname(self.path)
+        if not os.path.exists(_dirname):
+            logger.info("Creating instance image directory %s" % (_dirname))
+            os.mkdir(_dirname)
+            os.chmod(_dirname, 0o755)  # be umask agnostic
+
         logger.info("Creating image for format %s" % (self.format))
         cmd = Templeter.args(self.conf.images.create_cmd,
                              definition=self.def_path,
