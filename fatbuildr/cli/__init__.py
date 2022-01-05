@@ -196,7 +196,13 @@ class Fatbuildrctl(FatbuildrCliApp):
             sys.exit(1)
 
     def _run_list(self):
-        raise NotImplementedError
+        logger.debug("running list")
+        mgr = JobManager(self.conf)
+        try:
+            mgr.list()
+        except RuntimeError as err:
+            logger.error("Error while submitting build job: %s" % (err))
+            sys.exit(1)
 
     def _run_watch(self):
         raise NotImplementedError

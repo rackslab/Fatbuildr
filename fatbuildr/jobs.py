@@ -37,7 +37,6 @@ class JobManager(object):
 
     def __init__(self, conf):
         self.conf = conf
-        self.pipelines = PipelinesDefs(self.conf.app.basedir)
 
     def submit(self):
         # create tmp job directory
@@ -45,10 +44,13 @@ class JobManager(object):
         CleanupRegistry.add_tmpdir(tmpdir)
         logger.debug("Created tmp directory %s" % (tmpdir))
 
+        # load pipelines defs to get dist→format/env mapping
+        pipelines = PipelinesDefs(self.conf.app.basedir)
+
         # create an archive of artefact subdirectory
         artefact_def_path = os.path.join(self.conf.app.basedir,
                                          self.conf.app.artefact,
-                                         self.pipelines.dist_format(self.conf.app.distribution))
+                                         pipelines.dist_format(self.conf.app.distribution))
         if not os.path.exists(artefact_def_path):
             raise RuntimeError("artefact definition directory %s does not exist" % (artefact_def_path))
 
@@ -62,8 +64,8 @@ class JobManager(object):
         description = {
             'instance': self.conf.app.instance,
             'distribution': self.conf.app.distribution,
-            'environment': self.pipelines.dist_env(self.conf.app.distribution),
-            'format': self.pipelines.dist_format(self.conf.app.distribution),
+            'environment': pipelines.dist_env(self.conf.app.distribution),
+            'format': pipelines.dist_format(self.conf.app.distribution),
             'artefact': self.conf.app.artefact,
         }
         yml_path = os.path.join(tmpdir, 'job.yml')
@@ -80,3 +82,17 @@ class JobManager(object):
         shutil.move(tmpdir, dest)
         CleanupRegistry.del_tmpdir(tmpdir)
         logger.info("Build job %s submited" % (build_id))
+
+    def list(self):
+        """Print about jobs in the queue."""
+        jobs_dirs = os.listdir(self.conf.dirs.queue)
+        for _dir in jobs_dirs:
+            yml_path = os.path.join(self.conf.dirs.queue, _dir, 'job.yml')
+            with open(yml_path, 'r') as fh:
+                description = yaml.load(fh)
+            print("Job %s" % (_dir))
+            print("  instance: %s" % (description['instance']))
+            print("  distribution: %s" % (description['distribution']))
+            print("  environment: %s" % (description['environment']))
+            print("  format: %s" % (description['format']))
+            print("  artefact: %s" % (description['artefact']))
