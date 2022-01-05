@@ -214,17 +214,30 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         logger.debug("  basedir: %s" % (self.basedir))
 
 
+class RuntimeSubConfd(RuntimeConfApp):
+    """Runtime sub-configuration class to fatbuildrd parameters."""
+
+    def __init__(self):
+        super().__init__()
+
+    def load(self, config):
+        pass
+
+    def dump(self):
+        pass
+
+
 class RuntimeConf(object):
     """Runtime configuration class common to all Fatbuildr applications."""
 
     def __init__(self, app):
+        self.app = app
         self.dirs = RuntimeSubConfDirs()
         self.images = RuntimeSubConfImages()
         self.containers = RuntimeSubConfContainers()
         self.keyring = RuntimeSubConfKeyring()
         self.deb = RuntimeSubConfFormatDeb()
         self.rpm = RuntimeSubConfFormatRpm()
-        self.app = app
         self.config = None
 
     def load(self):
@@ -238,6 +251,7 @@ class RuntimeConf(object):
         self.config.read_file(open(vendor_conf_path))
         logger.debug("Loading site specific configuration file %s" % (site_conf_path))
         self.config.read_file(open(site_conf_path))
+        self.app.load(self.config)
         self.dirs.load(self.config)
         self.images.load(self.config)
         self.containers.load(self.config)
@@ -246,6 +260,10 @@ class RuntimeConf(object):
         self.rpm.load(self.config)
 
     def dump(self):
+        """Dump all runtime configuration parameters when in debug mode."""
+        if not logger.isEnabledFor(logging.DEBUG):
+            return
+        self.app.dump()
         self.dirs.dump()
         self.images.dump()
         self.containers.dump()
@@ -261,13 +279,9 @@ class RuntimeConfCtl(RuntimeConf):
     def __init__(self):
         super().__init__(RuntimeSubConfCtl())
 
-    def dump(self):
-        """Dump all runtime configuration parameters when in debug mode."""
-        if not logger.isEnabledFor(logging.DEBUG):
-            return
-        super().dump()
-        self.app.dump()
 
-    def load(self):
-        super().load()
-        self.app.load(self.config)
+class RuntimeConfd(RuntimeConf):
+    """Runtime configuration class for Fatbuildrd application."""
+
+    def __init__(self):
+        super().__init__(RuntimeSubConfd())

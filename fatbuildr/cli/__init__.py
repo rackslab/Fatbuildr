@@ -22,9 +22,10 @@ import sys
 import os
 import logging
 import atexit
+import time
 
 from ..version import __version__
-from ..conf import RuntimeConfCtl
+from ..conf import RuntimeConfd, RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
 from ..jobs import JobManager
@@ -46,11 +47,54 @@ class FatbuildrCliApp(object):
         atexit.register(CleanupRegistry.clean)
         app = cls()
 
+    def __init__(self):
+
+        self.conf = None
+
+    def load(self):
+
+        try:
+            self.conf.load()  # load configuration file
+        except ValueError as err:
+            logger.error("Error while loading configuration: %s" % (err))
+            sys.exit(1)
+
+        self.conf.dump()
+
 
 class Fatbuildrd(FatbuildrCliApp):
 
     def __init__(self):
-        print("running fatbuildrd")
+        super().__init__()
+
+        parser = argparse.ArgumentParser(description='Do something with fatbuildr.')
+        parser.add_argument('-v', '--version', dest='version', action='version', version='%(prog)s ' + __version__)
+        parser.add_argument('--debug', dest='debug', action='store_true', help="Enable debug mode")
+
+        args = parser.parse_args()
+
+        # setup logger
+        if args.debug:
+            logging_level = logging.DEBUG
+        else:
+            logging_level = logging.INFO
+        logging.basicConfig(level=logging_level)
+
+        self.conf = RuntimeConfd()
+        self.load()
+        self._run()
+
+    def _run(self):
+        logger.debug("Running fatbuildrd")
+        mgr = JobManager(self.conf)
+        try:
+            for job in mgr.load():
+                logger.info("Processing job %s" % (job.id))
+                mgr.remove(job)
+                time.sleep(1)
+        except RuntimeError as err:
+            logger.error("Error while processing job: %s" % (err))
+            sys.exit(1)
 
 
 class Fatbuildrctl(FatbuildrCliApp):
@@ -116,12 +160,7 @@ class Fatbuildrctl(FatbuildrCliApp):
         args.func()
 
     def load(self, args):
-
-        try:
-            self.conf.load()  # load configuration file
-        except ValueError as err:
-            logger.error("Error while loading configuration: %s" % (err))
-            sys.exit(1)
+        super().load()
 
         self.conf.app.action = args.action
 
@@ -199,7 +238,7 @@ class Fatbuildrctl(FatbuildrCliApp):
         logger.debug("running list")
         mgr = JobManager(self.conf)
         try:
-            mgr.list()
+            mgr.dump()
         except RuntimeError as err:
             logger.error("Error while submitting build job: %s" % (err))
             sys.exit(1)

@@ -1,0 +1,9 @@
+[Unit]
+Description=Fatbuildr build daemon
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/fatbuildrd
+
+[Install]
+WantedBy=multi-user.target

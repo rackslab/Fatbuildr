@@ -32,6 +32,47 @@ from .cleanup import CleanupRegistry
 
 logger = logging.getLogger(__name__)
 
+class BuildJob(object):
+
+    def __init__(self, instance, distribution, environment, fmt, artefact, submission, id=str(uuid.uuid4())):
+        self.id = id
+        self.instance = instance
+        self.distribution = distribution
+        self.environment = environment
+        self.format = fmt
+        self.artefact = artefact
+        self.submission = submission
+
+    def todict(self):
+        return {
+            'instance': self.instance,
+            'distribution': self.distribution,
+            'environment': self.environment,
+            'format': self.format,
+            'artefact': self.artefact,
+            'submission': int(self.submission.timestamp())
+        }
+
+    def dump(self):
+        print("Job %s" % (_dir))
+        print("  instance: %s" % (self.instance))
+        print("  distribution: %s" % (self.distribution))
+        print("  environment: %s" % (self.environment))
+        print("  format: %s" % (self.format))
+        print("  artefact: %s" % (self.artefact))
+        print("  submission: %s" % (self.submission.isoformat(sep=' ',timespec='seconds')))
+
+    @classmethod
+    def fromyaml(cls, id, stream):
+        description = yaml.load(stream, Loader=yaml.FullLoader)
+        return cls(description['instance'],
+                   description['distribution'],
+                   description['environment'],
+                   description['format'],
+                   description['artefact'],
+                   datetime.fromtimestamp(description['submission']),
+                   id=id)
+
 
 class JobManager(object):
     """Manage artefact build jobs."""
@@ -62,40 +103,45 @@ class JobManager(object):
         tar.close()
 
         # create yaml job description
-        description = {
-            'instance': self.conf.app.instance,
-            'distribution': self.conf.app.distribution,
-            'environment': pipelines.dist_env(self.conf.app.distribution),
-            'format': pipelines.dist_format(self.conf.app.distribution),
-            'artefact': self.conf.app.artefact,
-            'submission': int(datetime.now().timestamp()),
-        }
+        job = BuildJob(self.conf.app.instance,
+                       self.conf.app.distribution,
+                       pipelines.dist_env(self.conf.app.distribution),
+                       pipelines.dist_format(self.conf.app.distribution),
+                       self.conf.app.artefact,
+                       datetime.now())
+
         yml_path = os.path.join(tmpdir, 'job.yml')
         logger.debug("Creating YAML job description file %s" % (yml_path))
         with open(yml_path, 'w+') as fh:
-            yaml.dump(description, fh)
-
-        # generate random build id
-        build_id = str(uuid.uuid4())
+            yaml.dump(job.todict(), fh)
 
         # move tmp job directory in queue
-        dest = os.path.join(self.conf.dirs.queue, build_id)
+        dest = os.path.join(self.conf.dirs.queue, job.id)
         logger.debug("Moving tmp directory %s to %s" % (tmpdir, dest))
         shutil.move(tmpdir, dest)
         CleanupRegistry.del_tmpdir(tmpdir)
-        logger.info("Build job %s submited" % (build_id))
+        logger.info("Build job %s submited" % (job.id))
 
-    def list(self):
-        """Print about jobs in the queue."""
+    def _load_jobs(self):
+        _jobs = []
         jobs_dirs = os.listdir(self.conf.dirs.queue)
         for _dir in jobs_dirs:
             yml_path = os.path.join(self.conf.dirs.queue, _dir, 'job.yml')
             with open(yml_path, 'r') as fh:
-                description = yaml.load(fh, Loader=yaml.FullLoader)
-            print("Job %s" % (_dir))
-            print("  instance: %s" % (description['instance']))
-            print("  distribution: %s" % (description['distribution']))
-            print("  environment: %s" % (description['environment']))
-            print("  format: %s" % (description['format']))
-            print("  artefact: %s" % (description['artefact']))
-            print("  submission: %s" % (datetime.fromtimestamp(description['submission']).isoformat(sep=' ',timespec='seconds')))
+                _jobs.append(BuildJob.fromyaml(_dir, fh))
+         # Returns jobs sorted by submission timestamps
+        _jobs.sort(key=lambda job: job.submission)
+        return _jobs
+
+    def dump(self):
+        """Print about jobs in the queue."""
+        for job in self._load_jobs():
+            job.dump()
+
+    def load(self):
+        return self._load_jobs()
+
+    def remove(self, job):
+        logger.info("Removing job %s" % (job.id))
+        job_dir = os.path.join(self.conf.dirs.queue, job.id)
+        shutil.rmtree(job_dir)
