@@ -181,11 +181,18 @@ class RuntimeSubConfFormatRpm(object):
         logger.debug("  env_update_cmds: %s" % (self.env_update_cmds))
 
 
-class RuntimeSubConfCtl(object):
-    """Runtime sub-configuration class to ctl parameters."""
+class RuntimeConfApp(object):
+    """Runtime sub-configuration class common to all Fatbuildr applications."""
 
     def __init__(self):
         self.instance = None
+
+
+class RuntimeSubConfCtl(RuntimeConfApp):
+    """Runtime sub-configuration class to ctl parameters."""
+
+    def __init__(self):
+        super().__init__()
         self.action = None
         # parameters for image action
         self.operation = None
@@ -195,10 +202,10 @@ class RuntimeSubConfCtl(object):
         self.basedir = None
 
     def load(self, config):
-       self.instance = config.get('ctl', 'default_instance')
+       self.instance = config.get('app', 'default_instance')
 
     def dump(self):
-        logger.debug("[ctl]")
+        logger.debug("[app]")
         logger.debug("  instance: %s" % (self.instance))
         logger.debug("  action: %s" % (self.action))
         logger.debug("  operation: %s" % (self.operation))
@@ -210,13 +217,14 @@ class RuntimeSubConfCtl(object):
 class RuntimeConf(object):
     """Runtime configuration class common to all Fatbuildr applications."""
 
-    def __init__(self):
+    def __init__(self, app):
         self.dirs = RuntimeSubConfDirs()
         self.images = RuntimeSubConfImages()
         self.containers = RuntimeSubConfContainers()
         self.keyring = RuntimeSubConfKeyring()
         self.deb = RuntimeSubConfFormatDeb()
         self.rpm = RuntimeSubConfFormatRpm()
+        self.app = app
         self.config = None
 
     def load(self):
@@ -242,6 +250,7 @@ class RuntimeConf(object):
         self.images.dump()
         self.containers.dump()
         self.keyring.dump()
+        self.app.dump()
         self.deb.dump()
         self.rpm.dump()
 
@@ -250,16 +259,15 @@ class RuntimeConfCtl(RuntimeConf):
     """Runtime configuration class for FatbuildrCtl application."""
 
     def __init__(self):
-        super().__init__()
-        self.ctl = RuntimeSubConfCtl()
+        super().__init__(RuntimeSubConfCtl())
 
     def dump(self):
         """Dump all runtime configuration parameters when in debug mode."""
         if not logger.isEnabledFor(logging.DEBUG):
             return
         super().dump()
-        self.ctl.dump()
+        self.app.dump()
 
     def load(self):
         super().load()
-        self.ctl.load(self.config)
+        self.app.load(self.config)

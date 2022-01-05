@@ -118,70 +118,70 @@ class Fatbuildrctl(FatbuildrCliApp):
             logger.error("Error while loading configuration: %s" % (err))
             sys.exit(1)
 
-        self.conf.ctl.action = args.action
+        self.conf.app.action = args.action
 
         if args.instance is not None:
-            self.conf.ctl.instance = args.instance
+            self.conf.app.instance = args.instance
 
         if args.action == 'images':
             if args.create is True:
-                self.conf.ctl.operation = 'create'
+                self.conf.app.operation = 'create'
             elif args.update is True:
-                self.conf.ctl.operation = 'update'
+                self.conf.app.operation = 'update'
             elif args.create_envs is True:
-                self.conf.ctl.operation = 'create_envs'
+                self.conf.app.operation = 'create_envs'
             elif args.update_envs is True:
-                self.conf.ctl.operation = 'update_envs'
+                self.conf.app.operation = 'update_envs'
             else:
                 print("An operation on the images must be specified, type '%s images --help' for details" % (progname()))
                 sys.exit(1)
-            self.conf.ctl.force = args.force
-            if self.conf.ctl.operation in ['create_envs', 'update_envs'] and args.basedir is None:
+            self.conf.app.force = args.force
+            if self.conf.app.operation in ['create_envs', 'update_envs'] and args.basedir is None:
                 print("The base directory must be specified to operate on build environments, type '%s images --help' for details" % (progname()))
                 sys.exit(1)
-            self.conf.ctl.basedir = args.basedir
+            self.conf.app.basedir = args.basedir
 
         if args.action == 'keyring':
             if args.create is True:
-                self.conf.ctl.operation = 'create'
+                self.conf.app.operation = 'create'
             elif args.show is True:
-                self.conf.ctl.operation = 'show'
+                self.conf.app.operation = 'show'
             else:
                 print("An operation on the keyring must be specified, type '%s keyring --help' for details" % (progname()))
                 sys.exit(1)
-            if self.conf.ctl.operation == 'create' and args.basedir is None:
+            if self.conf.app.operation == 'create' and args.basedir is None:
                 print("The base directory must be specified to create keyring, type '%s keyring --help' for details" % (progname()))
                 sys.exit(1)
-            self.conf.ctl.basedir = args.basedir
+            self.conf.app.basedir = args.basedir
 
         elif args.action == 'build':
-            self.conf.ctl.package = args.package
-            self.conf.ctl.basedir = args.basedir
+            self.conf.app.package = args.package
+            self.conf.app.basedir = args.basedir
 
         self.conf.dump()
 
     def _run_images(self):
-        logger.debug("running images operation: %s" % (self.conf.ctl.operation))
+        logger.debug("running images operation: %s" % (self.conf.app.operation))
         mgr = ImagesManager(self.conf)
-        if self.conf.ctl.operation == 'create':
+        if self.conf.app.operation == 'create':
             mgr.create()
-        elif self.conf.ctl.operation == 'update':
+        elif self.conf.app.operation == 'update':
             mgr.update()
-        elif self.conf.ctl.operation == 'create_envs':
+        elif self.conf.app.operation == 'create_envs':
             mgr.create_envs()
-        elif self.conf.ctl.operation == 'update_envs':
+        elif self.conf.app.operation == 'update_envs':
             mgr.update_envs()
 
     def _run_keyring(self):
-        logger.debug("running keyring operation: %s" % (self.conf.ctl.operation))
+        logger.debug("running keyring operation: %s" % (self.conf.app.operation))
         mgr = KeyringManager(self.conf)
-        if self.conf.ctl.operation == 'create':
+        if self.conf.app.operation == 'create':
             mgr.create()
-        elif self.conf.ctl.operation == 'show':
+        elif self.conf.app.operation == 'show':
             mgr.show()
 
     def _run_build(self):
-        logger.debug("running build for package: %s instance: %s" % (self.conf.ctl.package, self.conf.ctl.instance))
+        logger.debug("running build for package: %s instance: %s" % (self.conf.app.package, self.conf.app.instance))
 
     def _run_list(self):
         raise NotImplementedError

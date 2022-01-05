@@ -51,7 +51,7 @@ class Image(object):
 
         cmd = Templeter.args(self.conf.images.create_cmd,
                              definition=self.def_path).split(' ')
-        if self.conf.ctl.force:
+        if self.conf.app.force:
             cmd.insert(1, '--force')
         subprocess.run(cmd)
 
@@ -100,7 +100,7 @@ class ImagesManager(object):
 
             img = Image(self.conf, _format)
 
-            if img.exists and not self.conf.ctl.force:
+            if img.exists and not self.conf.app.force:
                 logger.error("Image %s already exists, use --force to ignore" % (img.def_path))
                 sys.exit(1)
 
@@ -121,13 +121,13 @@ class ImagesManager(object):
 
     def create_envs(self):
 
-        if not os.path.exists(self.conf.ctl.basedir):
-            logger.error("Unable to find base directory %s" % (self.conf.ctl.basedir))
+        if not os.path.exists(self.conf.app.basedir):
+            logger.error("Unable to find base directory %s" % (self.conf.app.basedir))
             sys.exit(1)
 
         logging.info("Creating build environments")
         # Load build environments declared in the basedir
-        pipelines = PipelinesDefs(self.conf.ctl.basedir)
+        pipelines = PipelinesDefs(self.conf.app.basedir)
 
         for _format in self.conf.images.formats:
             img = Image(self.conf, _format)
@@ -139,7 +139,7 @@ class ImagesManager(object):
 
         logging.info("Updating build environments")
         # Load build environments declared in the basedir
-        pipelines = PipelinesDefs(self.conf.ctl.basedir)
+        pipelines = PipelinesDefs(self.conf.app.basedir)
 
         for _format in self.conf.images.formats:
             img = Image(self.conf, _format)
