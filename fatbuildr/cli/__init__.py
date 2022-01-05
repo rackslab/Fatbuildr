@@ -21,11 +21,14 @@ import argparse
 import sys
 import os
 import logging
+import atexit
 
 from ..version import __version__
 from ..conf import RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
+from ..jobs import JobManager
+from ..cleanup import CleanupRegistry
 
 logger = logging.getLogger(__name__)
 
@@ -40,6 +43,7 @@ class FatbuildrCliApp(object):
     @classmethod
     def run(cls):
         """Instanciate and execute the CliApp."""
+        atexit.register(CleanupRegistry.clean)
         app = cls()
 
 
@@ -82,7 +86,8 @@ class Fatbuildrctl(FatbuildrCliApp):
         # create the parser for the build command
         parser_build = subparsers.add_parser('build', help='Submit new build job')
         parser_build.add_argument('-p', '--package', help='Package name', required=True)
-        parser_build.add_argument('-b', '--basedir', help='Artefacts definitions directory', required=True)
+        parser_build.add_argument('-d', '--distribution', help='Distribution name', required=True)
+        parser_build.add_argument('-b', '--basedir', help='Artefacts repository directory', required=True)
         parser_build.set_defaults(func=self._run_build)
 
         # create the parser for the list command
@@ -155,7 +160,8 @@ class Fatbuildrctl(FatbuildrCliApp):
             self.conf.app.basedir = args.basedir
 
         elif args.action == 'build':
-            self.conf.app.package = args.package
+            self.conf.app.artefact = args.package
+            self.conf.app.distribution = args.distribution
             self.conf.app.basedir = args.basedir
 
         self.conf.dump()
@@ -181,7 +187,13 @@ class Fatbuildrctl(FatbuildrCliApp):
             mgr.show()
 
     def _run_build(self):
-        logger.debug("running build for package: %s instance: %s" % (self.conf.app.package, self.conf.app.instance))
+        logger.debug("running build for package: %s instance: %s" % (self.conf.app.artefact, self.conf.app.instance))
+        mgr = JobManager(self.conf)
+        try:
+            mgr.submit()
+        except RuntimeError as err:
+            logger.error("Error while submitting build job: %s" % (err))
+            sys.exit(1)
 
     def _run_list(self):
         raise NotImplementedError
