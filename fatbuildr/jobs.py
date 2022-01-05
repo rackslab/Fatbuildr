@@ -22,6 +22,7 @@ import tarfile
 import tempfile
 import uuid
 import shutil
+from datetime import datetime
 import logging
 
 import yaml
@@ -67,6 +68,7 @@ class JobManager(object):
             'environment': pipelines.dist_env(self.conf.app.distribution),
             'format': pipelines.dist_format(self.conf.app.distribution),
             'artefact': self.conf.app.artefact,
+            'submission': int(datetime.now().timestamp()),
         }
         yml_path = os.path.join(tmpdir, 'job.yml')
         logger.debug("Creating YAML job description file %s" % (yml_path))
@@ -96,3 +98,4 @@ class JobManager(object):
             print("  environment: %s" % (description['environment']))
             print("  format: %s" % (description['format']))
             print("  artefact: %s" % (description['artefact']))
+            print("  submission: %s" % (datetime.fromtimestamp(description['submission']).isoformat(sep=' ',timespec='seconds')))
