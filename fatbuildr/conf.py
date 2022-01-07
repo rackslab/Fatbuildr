@@ -78,6 +78,22 @@ class RuntimeSubConfImages(object):
         logger.debug("  create_cmd: %s" % (self.create_cmd))
 
 
+class RuntimeSubConfRegistry(object):
+    """Runtime sub-configuration class to hold registry settings."""
+
+    def __init__(self):
+
+        self.conf = None
+
+    def load(self, config):
+        section = 'registry'
+        self.conf = config.get(section, 'conf')
+
+    def dump(self):
+        logger.debug("[registry]")
+        logger.debug("  conf: %s" % (self.conf))
+
+
 class RuntimeSubConfContainers(object):
     """Runtime sub-configuration class to hold containers settings."""
 
@@ -200,18 +216,23 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         # parameters for package action
         self.package = None
         self.basedir = None
+        self.user_name = None
+        self.user_email = None
 
     def load(self, config):
-       self.instance = config.get('app', 'default_instance')
+       self.instance = config.get('run', 'default_instance')
 
     def dump(self):
-        logger.debug("[app]")
+        logger.debug("[run]")
         logger.debug("  instance: %s" % (self.instance))
         logger.debug("  action: %s" % (self.action))
         logger.debug("  operation: %s" % (self.operation))
         logger.debug("  force: %s" % (self.force))
         logger.debug("  package: %s" % (self.package))
         logger.debug("  basedir: %s" % (self.basedir))
+        logger.debug("  user_name: %s" % (self.user_name))
+        logger.debug("  user_email: %s" % (self.user_email))
+        logger.debug("  build_msg: %s" % (self.build_msg))
 
 
 class RuntimeSubConfd(RuntimeConfApp):
@@ -230,10 +251,11 @@ class RuntimeSubConfd(RuntimeConfApp):
 class RuntimeConf(object):
     """Runtime configuration class common to all Fatbuildr applications."""
 
-    def __init__(self, app):
-        self.app = app
+    def __init__(self, run):
+        self.run = run
         self.dirs = RuntimeSubConfDirs()
         self.images = RuntimeSubConfImages()
+        self.registry = RuntimeSubConfRegistry()
         self.containers = RuntimeSubConfContainers()
         self.keyring = RuntimeSubConfKeyring()
         self.deb = RuntimeSubConfFormatDeb()
@@ -251,9 +273,10 @@ class RuntimeConf(object):
         self.config.read_file(open(vendor_conf_path))
         logger.debug("Loading site specific configuration file %s" % (site_conf_path))
         self.config.read_file(open(site_conf_path))
-        self.app.load(self.config)
+        self.run.load(self.config)
         self.dirs.load(self.config)
         self.images.load(self.config)
+        self.registry.load(self.config)
         self.containers.load(self.config)
         self.keyring.load(self.config)
         self.deb.load(self.config)
@@ -263,12 +286,12 @@ class RuntimeConf(object):
         """Dump all runtime configuration parameters when in debug mode."""
         if not logger.isEnabledFor(logging.DEBUG):
             return
-        self.app.dump()
+        self.run.dump()
         self.dirs.dump()
         self.images.dump()
+        self.registry.dump()
         self.containers.dump()
         self.keyring.dump()
-        self.app.dump()
         self.deb.dump()
         self.rpm.dump()
 

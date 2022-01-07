@@ -34,7 +34,7 @@ class Image(object):
     def __init__(self, conf, fmt):
         self.conf = conf
         self.format = fmt
-        self.path = os.path.join(conf.images.storage, conf.app.instance, self.format + '.img')
+        self.path = os.path.join(conf.images.storage, conf.run.instance, self.format + '.img')
         self.def_path = os.path.join(conf.images.defs, self.format + '.mkosi')
 
     @property
@@ -59,7 +59,7 @@ class Image(object):
         cmd = Templeter.args(self.conf.images.create_cmd,
                              definition=self.def_path,
                              path=self.path).split(' ')
-        if self.conf.app.force:
+        if self.conf.run.force:
             cmd.insert(1, '--force')
         subprocess.run(cmd)
 
@@ -91,7 +91,7 @@ class BuildEnv(object):
                  getattr(self.conf, self.image.format).env_update_cmds.split('&&') ]
         ctn = ContainerRunner(self.conf.containers)
         for cmd in cmds:
-            ctn.run(self.image, cmd)
+            ctn.run_init(self.image, cmd)
 
 
 class ImagesManager(object):
@@ -108,7 +108,7 @@ class ImagesManager(object):
 
             img = Image(self.conf, _format)
 
-            if img.exists and not self.conf.app.force:
+            if img.exists and not self.conf.run.force:
                 logger.error("Image %s already exists, use --force to ignore" % (img.def_path))
                 sys.exit(1)
 
@@ -129,13 +129,13 @@ class ImagesManager(object):
 
     def create_envs(self):
 
-        if not os.path.exists(self.conf.app.basedir):
-            logger.error("Unable to find base directory %s" % (self.conf.app.basedir))
+        if not os.path.exists(self.conf.run.basedir):
+            logger.error("Unable to find base directory %s" % (self.conf.run.basedir))
             sys.exit(1)
 
         logging.info("Creating build environments")
         # Load build environments declared in the basedir
-        pipelines = PipelinesDefs(self.conf.app.basedir)
+        pipelines = PipelinesDefs(self.conf.run.basedir)
 
         for _format in self.conf.images.formats:
             img = Image(self.conf, _format)
@@ -147,7 +147,7 @@ class ImagesManager(object):
 
         logging.info("Updating build environments")
         # Load build environments declared in the basedir
-        pipelines = PipelinesDefs(self.conf.app.basedir)
+        pipelines = PipelinesDefs(self.conf.run.basedir)
 
         for _format in self.conf.images.formats:
             img = Image(self.conf, _format)

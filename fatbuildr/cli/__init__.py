@@ -29,6 +29,7 @@ from ..conf import RuntimeConfd, RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
 from ..jobs import JobManager
+from ..builder import BuilderFactory
 from ..cleanup import CleanupRegistry
 
 logger = logging.getLogger(__name__)
@@ -39,13 +40,13 @@ def progname():
     return os.path.basename(sys.argv[0])
 
 
-class FatbuildrCliApp(object):
+class FatbuildrCliRun(object):
 
     @classmethod
     def run(cls):
-        """Instanciate and execute the CliApp."""
+        """Instanciate and execute the CliRun."""
         atexit.register(CleanupRegistry.clean)
-        app = cls()
+        run = cls()
 
     def __init__(self):
 
@@ -62,7 +63,7 @@ class FatbuildrCliApp(object):
         self.conf.dump()
 
 
-class Fatbuildrd(FatbuildrCliApp):
+class Fatbuildrd(FatbuildrCliRun):
 
     def __init__(self):
         super().__init__()
@@ -84,20 +85,30 @@ class Fatbuildrd(FatbuildrCliApp):
         self.load()
         self._run()
 
+    def load_job(self, job):
+        self.conf.run.instance = job.instance
+
     def _run(self):
         logger.debug("Running fatbuildrd")
         mgr = JobManager(self.conf)
         try:
             for job in mgr.load():
                 logger.info("Processing job %s" % (job.id))
-                mgr.remove(job)
-                time.sleep(1)
+                self.load_job(job)
+                tmpdir = mgr.pick(job)
+                builder = BuilderFactory.builder(self.conf, job, tmpdir)
+                try:
+                    builder.run()
+                except RuntimeError as err:
+                    logger.error("Error while building job: %s" % (err))
+                finally:
+                    mgr.remove(job)
         except RuntimeError as err:
             logger.error("Error while processing job: %s" % (err))
             sys.exit(1)
 
 
-class Fatbuildrctl(FatbuildrCliApp):
+class Fatbuildrctl(FatbuildrCliRun):
 
     def __init__(self):
         super().__init__()
@@ -132,6 +143,9 @@ class Fatbuildrctl(FatbuildrCliApp):
         parser_build.add_argument('-a', '--artefact', help='Artefact name', required=True)
         parser_build.add_argument('-d', '--distribution', help='Distribution name', required=True)
         parser_build.add_argument('-b', '--basedir', help='Artefacts repository directory', required=True)
+        parser_build.add_argument('-n', '--name', help='Maintainer name', required=True)
+        parser_build.add_argument('-e', '--email', help='Maintainer email', required=True)
+        parser_build.add_argument('-m', '--msg', help='Build log message')
         parser_build.set_defaults(func=self._run_build)
 
         # create the parser for the list command
@@ -162,71 +176,74 @@ class Fatbuildrctl(FatbuildrCliApp):
     def load(self, args):
         super().load()
 
-        self.conf.app.action = args.action
+        self.conf.run.action = args.action
 
         if args.instance is not None:
-            self.conf.app.instance = args.instance
+            self.conf.run.instance = args.instance
 
         if args.action == 'images':
             if args.create is True:
-                self.conf.app.operation = 'create'
+                self.conf.run.operation = 'create'
             elif args.update is True:
-                self.conf.app.operation = 'update'
+                self.conf.run.operation = 'update'
             elif args.create_envs is True:
-                self.conf.app.operation = 'create_envs'
+                self.conf.run.operation = 'create_envs'
             elif args.update_envs is True:
-                self.conf.app.operation = 'update_envs'
+                self.conf.run.operation = 'update_envs'
             else:
                 print("An operation on the images must be specified, type '%s images --help' for details" % (progname()))
                 sys.exit(1)
-            self.conf.app.force = args.force
-            if self.conf.app.operation in ['create_envs', 'update_envs'] and args.basedir is None:
+            self.conf.run.force = args.force
+            if self.conf.run.operation in ['create_envs', 'update_envs'] and args.basedir is None:
                 print("The base directory must be specified to operate on build environments, type '%s images --help' for details" % (progname()))
                 sys.exit(1)
-            self.conf.app.basedir = args.basedir
+            self.conf.run.basedir = args.basedir
 
         if args.action == 'keyring':
             if args.create is True:
-                self.conf.app.operation = 'create'
+                self.conf.run.operation = 'create'
             elif args.show is True:
-                self.conf.app.operation = 'show'
+                self.conf.run.operation = 'show'
             else:
                 print("An operation on the keyring must be specified, type '%s keyring --help' for details" % (progname()))
                 sys.exit(1)
-            if self.conf.app.operation == 'create' and args.basedir is None:
+            if self.conf.run.operation == 'create' and args.basedir is None:
                 print("The base directory must be specified to create keyring, type '%s keyring --help' for details" % (progname()))
                 sys.exit(1)
-            self.conf.app.basedir = args.basedir
+            self.conf.run.basedir = args.basedir
 
         elif args.action == 'build':
-            self.conf.app.artefact = args.artefact
-            self.conf.app.distribution = args.distribution
-            self.conf.app.basedir = args.basedir
+            self.conf.run.artefact = args.artefact
+            self.conf.run.distribution = args.distribution
+            self.conf.run.basedir = args.basedir
+            self.conf.run.user_name = args.name
+            self.conf.run.user_email = args.email
+            self.conf.run.build_msg = args.msg
 
         self.conf.dump()
 
     def _run_images(self):
-        logger.debug("running images operation: %s" % (self.conf.app.operation))
+        logger.debug("running images operation: %s" % (self.conf.run.operation))
         mgr = ImagesManager(self.conf)
-        if self.conf.app.operation == 'create':
+        if self.conf.run.operation == 'create':
             mgr.create()
-        elif self.conf.app.operation == 'update':
+        elif self.conf.run.operation == 'update':
             mgr.update()
-        elif self.conf.app.operation == 'create_envs':
+        elif self.conf.run.operation == 'create_envs':
             mgr.create_envs()
-        elif self.conf.app.operation == 'update_envs':
+        elif self.conf.run.operation == 'update_envs':
             mgr.update_envs()
 
     def _run_keyring(self):
-        logger.debug("running keyring operation: %s" % (self.conf.app.operation))
+        logger.debug("running keyring operation: %s" % (self.conf.run.operation))
         mgr = KeyringManager(self.conf)
-        if self.conf.app.operation == 'create':
+        if self.conf.run.operation == 'create':
             mgr.create()
-        elif self.conf.app.operation == 'show':
+        elif self.conf.run.operation == 'show':
             mgr.show()
 
     def _run_build(self):
-        logger.debug("running build for package: %s instance: %s" % (self.conf.app.artefact, self.conf.app.instance))
+        logger.debug("running build for package: %s instance: %s" % (self.conf.run.artefact, self.conf.run.instance))
         mgr = JobManager(self.conf)
         try:
             mgr.submit()

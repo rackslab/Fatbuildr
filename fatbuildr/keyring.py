@@ -17,17 +17,21 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import gpg
+
 import os
 import string
 import secrets
 import sys
 from datetime import datetime
+import subprocess
 import logging
+
+import gpg
 
 from .pipelines import PipelinesDefs
 
 logger = logging.getLogger(__name__)
+
 
 class KeyringKey(object):
 
@@ -38,6 +42,10 @@ class KeyringKey(object):
     @property
     def fingerprint(self):
         return self._key.fpr
+
+    @property
+    def keygrip(self):
+        return self._key.keygrip
 
     @property
     def id(self):
@@ -160,7 +168,7 @@ class KeyringManager(object):
     def __init__(self, conf):
 
         self.conf = conf
-        self.homedir = os.path.join(self.conf.keyring.storage, self.conf.app.instance)
+        self.homedir = os.path.join(self.conf.keyring.storage, self.conf.run.instance)
         self.passphrase_path = os.path.join(self.homedir, 'passphrase')
         self.algorithm = self.conf.keyring.type+str(self.conf.keyring.size)
         if type(self.conf.keyring.expires) is bool:
@@ -173,7 +181,7 @@ class KeyringManager(object):
 
     @property
     def pipelines_userid(self):
-        pipelines = PipelinesDefs(self.conf.app.basedir)
+        pipelines = PipelinesDefs(self.conf.run.basedir)
         return pipelines.gpg_name + ' <' + pipelines.gpg_email + '>'
 
     @property
@@ -215,12 +223,39 @@ class KeyringManager(object):
             logger.info("Subkey generated for signature with fingerprint {0}" \
                         .format(self.masterkey.subkey.fingerprint))
 
-
-    def show(self):
+    def load(self):
         with gpg.Context(home_dir=self.homedir) as ctx:
             try:
                 self.masterkey.load_from_keyring(ctx)
             except RuntimeError as err:
                 logger.error("Error while loading keyring %s: %s" % (self.homedir, err))
-            else:
-                self.masterkey.show()
+
+    def show(self):
+
+        self.load()
+        self.masterkey.show()
+
+    def load_agent(self):
+        """Load GPG signing subkey in gpg-agent so reprepro can use the key
+           non-interactively."""
+
+        # First stop agent if running (ie. socket is present), as it may not
+        # has been started to allow preset.
+        gpgagent_sock_path = os.path.join(self.homedir, 'S.gpg-agent')
+        if os.path.exists(gpgagent_sock_path):
+            cmd = ['gpgconf', '--kill',
+                   '--homedir', self.homedir, 'gpg-agent' ]
+            subprocess.run(cmd)
+
+        # Start agent with --allow-preset-passphrase so the key can be loaded
+        # non-interactively.
+        cmd = ['gpg-agent', '--homedir', self.homedir,
+               '--allow-preset-passphrase', '--daemon' ]
+        subprocess.run(cmd)
+
+        # Load GPG in agent using the passphrase
+        cmd = ['/usr/lib/gnupg/gpg-preset-passphrase',
+               '--preset', self.masterkey.subkey.keygrip ]
+        subprocess.run(cmd,
+                       env={'GNUPGHOME': self.homedir},
+                       input=self.passphrase.encode())

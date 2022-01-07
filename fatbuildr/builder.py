@@ -17,25 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import logging
-
-import jinja2
-
-logger = logging.getLogger(__name__)
+from .builders.deb import BuilderArtefactDeb
+from .builders.rpm import BuilderArtefactRpm
 
 
-class Templeter(object):
-    """Class to abstract backend templating library."""
+class BuilderFactory(object):
 
-    @staticmethod
-    def args(str, **kwargs):
-        return jinja2.Template(str).render(kwargs)
+    _builders = {
+        'deb': BuilderArtefactDeb,
+        'rpm': BuilderArtefactRpm,
+    }
 
     @staticmethod
-    def render(path, **kwargs):
-        dirpath = os.path.dirname(path)
-        tplfile = os.path.basename(path)
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(dirpath))
-        tpl = env.get_template(tplfile)
-        return tpl.render(kwargs)
+    def builder(conf, job, tmpdir):
+        if not job.format in BuilderFactory._builders:
+            raise RuntimeError("format %s unsupported by builders" % (job.format))
+        return BuilderFactory._builders[job.format](conf, job, tmpdir)
