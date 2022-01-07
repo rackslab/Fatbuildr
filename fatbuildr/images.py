@@ -110,11 +110,11 @@ class ImagesManager(object):
 
             if img.exists and not self.conf.run.force:
                 logger.error("Image %s already exists, use --force to ignore" % (img.def_path))
-                sys.exit(1)
+                continue
 
             if not img.def_exists:
                 logger.error("Unable to find image definition file %s" % (img.def_path))
-                sys.exit(1)
+                continue
 
             img.create()
 
