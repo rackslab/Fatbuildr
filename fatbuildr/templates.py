@@ -29,11 +29,13 @@ class Templeter(object):
     """Class to abstract backend templating library."""
 
     @staticmethod
-    def args(str, **kwargs):
+    def srender(str, **kwargs):
+        """Render a string template."""
         return jinja2.Template(str).render(kwargs)
 
     @staticmethod
-    def render(path, **kwargs):
+    def frender(path, **kwargs):
+        """Render a file template."""
         dirpath = os.path.dirname(path)
         tplfile = os.path.basename(path)
         env = jinja2.Environment(loader=jinja2.FileSystemLoader(dirpath))

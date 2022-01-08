@@ -71,7 +71,7 @@ class BuilderArtefactRpm(BuilderArtefact):
         logger.debug("Generate RPM spec file %s base on %s" \
                      % (spec_path, spec_tpl_path))
         with open(spec_path, 'w+') as fh:
-            fh.write(Templeter.render(spec_tpl_path, pkg=self))
+            fh.write(Templeter.frender(spec_tpl_path, pkg=self))
 
         # run SRPM build
         logger.debug("Generate RPM spec file %s base on %s" \

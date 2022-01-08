@@ -105,7 +105,7 @@ class ArtefactDefs(object):
 
     @property
     def tarball(self):
-        return Templeter.args(self.meta['tarball'], pkg=self)
+        return Templeter.srender(self.meta['tarball'], pkg=self)
 
     @property
     def has_buildargs(self):

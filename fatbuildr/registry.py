@@ -71,7 +71,7 @@ class RegistryDeb(Registry):
         # generate reprepro distributions file
         logger.debug("Generating distribution file %s" % (dists_path))
         with open(dists_path, 'w+') as fh:
-            fh.write(Templeter.render(dists_tpl_path,
+            fh.write(Templeter.frender(dists_tpl_path,
                        distributions=[build.distribution],
                        key=self.keyring.masterkey.subkey.fingerprint,
                        instance=build.source))

@@ -56,9 +56,9 @@ class Image(object):
             os.chmod(_dirname, 0o755)  # be umask agnostic
 
         logger.info("Creating image for format %s" % (self.format))
-        cmd = Templeter.args(self.conf.images.create_cmd,
-                             definition=self.def_path,
-                             path=self.path).split(' ')
+        cmd = Templeter.srender(self.conf.images.create_cmd,
+                                definition=self.def_path,
+                                path=self.path).split(' ')
         if self.conf.run.force:
             cmd.insert(1, '--force')
         subprocess.run(cmd)
@@ -81,14 +81,16 @@ class BuildEnv(object):
 
     def create(self):
         logger.info("Create build environment %s in %s image" % (self.name, self.image.format))
-        cmd = Templeter.args(getattr(self.conf, self.image.format).init_cmd,
-                             environment=self.name)
+        cmd = Templeter.srender(getattr(self.conf, self.image.format).init_cmd,
+                                environment=self.name)
         ContainerRunner(self.conf.containers).run_init(self.image, cmd)
 
     def update(self):
         logger.info("Updating build environment %s in %s image" % (self.name, self.image.format))
-        cmds = [ Templeter.args(_cmd.strip(), environment=self.name) for _cmd in
-                 getattr(self.conf, self.image.format).env_update_cmds.split('&&') ]
+        cmds = [ Templeter.srender(_cmd.strip(), environment=self.name)
+                 for _cmd in
+                 getattr(self.conf, self.image.format) \
+                   .env_update_cmds.split('&&') ]
         ctn = ContainerRunner(self.conf.containers)
         for cmd in cmds:
             ctn.run_init(self.image, cmd)
