@@ -49,7 +49,7 @@ class BuilderArtefact(ArtefactDefs):
         self.tmpdir = tmpdir
         self.cache = CacheArtefact(conf, self)
         self.registry = registry(conf, job.distribution)
-        self.container = ContainerRunner(conf)
+        self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, job.format)
         self.env = BuildEnv(conf, self.image, job.environment)
 
