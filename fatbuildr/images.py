@@ -69,7 +69,7 @@ class Image(object):
                  getattr(self.conf, self.format).img_update_cmds.split('&&') ]
         ctn = ContainerRunner(self.conf.containers)
         for cmd in cmds:
-            ctn.run(self, cmd)
+            ctn.run_init(self, cmd)
 
 
 class BuildEnv(object):
