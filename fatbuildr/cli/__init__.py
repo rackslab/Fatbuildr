@@ -85,7 +85,7 @@ class Fatbuildrd(FatbuildrCliRun):
 
     def load(self):
         super().load()
-        print(self.conf.run.debug)
+
         # set debug level on root logger if set in conf file
         if self.conf.run.debug:
             logging.getLogger().setLevel(level=logging.DEBUG)
