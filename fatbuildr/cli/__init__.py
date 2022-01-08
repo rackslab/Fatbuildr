@@ -60,8 +60,6 @@ class FatbuildrCliRun(object):
             logger.error("Error while loading configuration: %s" % (err))
             sys.exit(1)
 
-        self.conf.dump()
-
 
 class Fatbuildrd(FatbuildrCliRun):
 
@@ -74,7 +72,7 @@ class Fatbuildrd(FatbuildrCliRun):
 
         args = parser.parse_args()
 
-        # setup logger
+        # setup logger according to args
         if args.debug:
             logging_level = logging.DEBUG
         else:
@@ -84,6 +82,15 @@ class Fatbuildrd(FatbuildrCliRun):
         self.conf = RuntimeConfd()
         self.load()
         self._run()
+
+    def load(self):
+        super().load()
+        print(self.conf.run.debug)
+        # set debug level on root logger if set in conf file
+        if self.conf.run.debug:
+            logging.getLogger().setLevel(level=logging.DEBUG)
+
+        self.conf.dump()
 
     def load_job(self, job):
         self.conf.run.instance = job.instance

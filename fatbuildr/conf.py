@@ -253,12 +253,15 @@ class RuntimeSubConfd(RuntimeConfApp):
 
     def __init__(self):
         super().__init__()
+        self.debug = None
 
     def load(self, config):
-        pass
+        self.debug = config.getboolean('daemon', 'debug')
 
     def dump(self):
-        pass
+        logger.debug("[daemon]")
+        logger.debug("  instance: %s" % (self.instance))
+        logger.debug("  debug: %s" % (self.debug))
 
 
 class RuntimeConf(object):
