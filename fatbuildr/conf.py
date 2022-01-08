@@ -218,6 +218,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         self.basedir = None
         self.user_name = None
         self.user_email = None
+        self.build_msg = None
 
     def load(self, config):
        self.instance = config.get('run', 'default_instance')
