@@ -6,22 +6,24 @@
 - [ ] Test mock with ordinary user
 - [x] Script to setup images + builders on debian11
 - [x] Script to generate GPG key
-- [ ] Add configuration parameters in input repository for GPG keys
+- [x] Add configuration parameters in input repository for GPG keys
 - [x] Add code to publish packages in repositories
 - [x] GPG sign key for packages
-- [ ] Sign mkosi images with GPG
-- [ ] Add logger to build-pkg
-- [ ] Add real arg parser
-- [ ] Configuration (at least with paths)
+- [x] Add logger to build-pkg
+- [x] Add real arg parser
+- [x] Configuration (at least with paths)
 - [x] Redevelop build-images.sh in Python
 - [x] Use mimetype to open tarball with correct options according to format
 - [x] Support images and build environment updates in build-images
 - [x] Add force mode in build-images to recreating the images when they exists
-- [ ] Use prefix instead of subdir for tmpdir so ordinary user can create them
-- [ ] Add feature to prepare git dev environment to help adapt debian patches (inspired from `gbp pq`)
+- [x] Use prefix instead of subdir for tmpdir so ordinary user can create them
 - [ ] Save images build logs into files
+- [ ] Archive builds
+- [ ] Run fatbuildrd with dedicated system user with limited permissions
+- [ ] Support build of mkosi images
+- [ ] Add feature to prepare git dev environment to help adapt debian patches (inspired from `gbp pq`)
 - [ ] Run lintian after build to check packages
-- [ ] Manage multiple instances on the same server
+- [x] Manage multiple instances on the same server
 - [ ] Fix releasever error in rpm.img :
       ```
       [root@rpm ~]# dnf search rpmsign
