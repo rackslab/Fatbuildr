@@ -1,7 +1,12 @@
 #!/bin/bash
-# example file to be used with --hookdir
-#
 # invoke shell if build fails.
+
+FATBUILDR_INTERACTIVE="${FATBUILDR_INTERACTIVE:-no}"
+
+# do nothing if not explicitely interactive
+if [[ "${FATBUILDR_INTERACTIVE}" != "yes" ]]; then
+  exit 0
+fi
 
 BUILDDIR="${BUILDDIR:-/tmp/buildd}"
 
