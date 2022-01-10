@@ -98,17 +98,23 @@ class Fatbuildrd(FatbuildrCliRun):
     def _run(self):
         logger.debug("Running fatbuildrd")
         mgr = JobManager(self.conf)
-        try:
-            for job in mgr.load():
-                logger.info("Processing job %s" % (job.id))
-                self.load_job(job)
-                mgr.pick(job)
-                builder = BuilderFactory.builder(self.conf, job)
-                builder.run()
-                mgr.archive(job)
-        except RuntimeError as err:
-            logger.error("Error while processing job: %s" % (err))
-            sys.exit(1)
+
+        while True:
+            jobs = mgr.load()
+            if not len(jobs):
+                logger.info("No job available in queue, leaving")
+                sys.exit(0)
+            for job in jobs:
+                try:
+                    logger.info("Processing job %s" % (job.id))
+                    self.load_job(job)
+                    mgr.pick(job)
+                    builder = BuilderFactory.builder(self.conf, job)
+                    builder.run()
+                    mgr.archive(job)
+                except RuntimeError as err:
+                    logger.error("Error while processing job: %s" % (err))
+                    sys.exit(1)
 
 
 class Fatbuildrctl(FatbuildrCliRun):
