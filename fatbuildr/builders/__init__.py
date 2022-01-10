@@ -69,10 +69,9 @@ class BuilderArtefact(ArtefactDefs):
             self.registry.publish(self)
         except RuntimeError as err:
             logger.error("error during build of %s: %s" % (self.jobid, err))
-        finally:
-            logger.debug("Deleting tmp directory %s" % (self.tmpdir))
-            shutil.rmtree(self.tmpdir)
-            CleanupRegistry.del_tmpdir(self.tmpdir)
+            logger.info("Build failed")
+        else:
+            logger.info("Build succeeded")
 
         logging.getLogger().removeHandler(handler)
 

@@ -105,7 +105,7 @@ class Fatbuildrd(FatbuildrCliRun):
                 tmpdir = mgr.pick(job)
                 builder = BuilderFactory.builder(self.conf, job, tmpdir)
                 builder.run()
-                mgr.remove(job)
+                mgr.archive(job, tmpdir)
         except RuntimeError as err:
             logger.error("Error while processing job: %s" % (err))
             sys.exit(1)

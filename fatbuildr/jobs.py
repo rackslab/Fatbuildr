@@ -162,13 +162,25 @@ class JobManager(object):
         tar.extractall(path=tmpdir)
         tar.close()
 
-        # create job state file and write tmpdir
+        # create job state file and write to tmpdir
         state_path = os.path.join(self.conf.dirs.queue, job.id, 'state')
         logger.debug("Creating state file %s" % (state_path))
         with open(state_path, 'w+') as fh:
             fh.write(tmpdir)
 
         return tmpdir
+
+    def archive(self, job, tmpdir):
+
+        dest = os.path.join(self.conf.dirs.archives, job.id)
+        logger.info("Moving build directory %s to archives directory %s" % (tmpdir, dest))
+        shutil.move(tmpdir, dest)
+        CleanupRegistry.del_tmpdir(tmpdir)
+
+        logger.info("Removing job %s from queue" % (job.id))
+        job_dir = os.path.join(self.conf.dirs.queue, job.id)
+        shutil.rmtree(job_dir)
+
 
     def _load_jobs(self):
         _jobs = []
@@ -188,8 +200,3 @@ class JobManager(object):
 
     def load(self):
         return self._load_jobs()
-
-    def remove(self, job):
-        logger.info("Removing job %s from queue" % (job.id))
-        job_dir = os.path.join(self.conf.dirs.queue, job.id)
-        shutil.rmtree(job_dir)
