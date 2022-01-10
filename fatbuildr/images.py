@@ -61,7 +61,10 @@ class Image(object):
                                 path=self.path).split(' ')
         if self.conf.run.force:
             cmd.insert(1, '--force')
-        subprocess.run(cmd)
+        proc = subprocess.run(cmd)
+        if proc.returncode:
+            raise RuntimeError("Command failed with exit code %d: %s" \
+                               % (proc.returncode, ' '.join(cmd)))
 
     def update(self):
         logger.info("Updating image for format %s" % (self.format))
@@ -118,7 +121,10 @@ class ImagesManager(object):
                 logger.error("Unable to find image definition file %s" % (img.def_path))
                 continue
 
-            img.create()
+            try:
+                img.create()
+            except RuntimeError as err:
+                logger.error("Error while creating the image %s: %s" % (img.path, err))
 
     def update(self):
 
