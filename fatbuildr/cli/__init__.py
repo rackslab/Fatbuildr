@@ -102,10 +102,10 @@ class Fatbuildrd(FatbuildrCliRun):
             for job in mgr.load():
                 logger.info("Processing job %s" % (job.id))
                 self.load_job(job)
-                tmpdir = mgr.pick(job)
-                builder = BuilderFactory.builder(self.conf, job, tmpdir)
+                mgr.pick(job)
+                builder = BuilderFactory.builder(self.conf, job)
                 builder.run()
-                mgr.archive(job, tmpdir)
+                mgr.archive(job)
         except RuntimeError as err:
             logger.error("Error while processing job: %s" % (err))
             sys.exit(1)
@@ -158,8 +158,8 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         # create the parser for the watch command
         parser_watch = subparsers.add_parser('watch', help='Watch build jobs')
-        parser_watch.add_argument('--job', help='Job to watch')
-        parser_watch.set_defaults(func=self._run_list)
+        parser_watch.add_argument('-j', '--job', help='Job to watch')
+        parser_watch.set_defaults(func=self._run_watch)
 
         args = parser.parse_args()
 
@@ -223,6 +223,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             self.conf.run.user_email = args.email
             self.conf.run.build_msg = args.msg
 
+        elif args.action == 'watch':
+            self.conf.run.job = args.job
+
         self.conf.dump()
 
     def _run_images(self):
@@ -264,4 +267,21 @@ class Fatbuildrctl(FatbuildrCliRun):
             sys.exit(1)
 
     def _run_watch(self):
-        raise NotImplementedError
+        mgr = JobManager(self.conf)
+
+        job = mgr.get(self.conf.run.job)
+        warned_pending = False
+        # if job is pending, wait
+        while job.state == 'pending':
+            if not warned_pending:
+                logger.info("Job %s is pending, waiting for the job to start." % (job.id))
+                warned_pending = True
+            time.sleep(1)
+            # poll job state again
+            job = mgr.get(self.conf.run.job)
+
+        if job.state in ['finished', 'running']:
+            build = BuilderFactory.builder(self.conf, job)
+            build.watch()
+        else:
+            logger.debug("Unexpected job state %s" % (job.state))

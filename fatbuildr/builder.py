@@ -29,7 +29,7 @@ class BuilderFactory(object):
     }
 
     @staticmethod
-    def builder(conf, job, tmpdir):
+    def builder(conf, job):
         if not job.format in BuilderFactory._builders:
             raise RuntimeError("format %s unsupported by builders" % (job.format))
-        return BuilderFactory._builders[job.format](conf, job, tmpdir)
+        return BuilderFactory._builders[job.format](conf, job)

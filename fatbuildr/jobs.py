@@ -34,10 +34,10 @@ logger = logging.getLogger(__name__)
 
 class BuildJob(object):
 
-    def __init__(self, source, user, email, instance, distribution, environment, fmt, artefact, submission, message, id=str(uuid.uuid4()), state='pending', buildlog=None):
+    def __init__(self, source, user, email, instance, distribution, environment, fmt, artefact, submission, message, id=str(uuid.uuid4()), state='pending', build_dir=None):
         self.id = id
         self.state = state
-        self.buildlog = buildlog
+        self.build_dir = build_dir
         self.source = source
         self.user = user
         self.email = email
@@ -66,7 +66,7 @@ class BuildJob(object):
     def dump(self):
         print("Job %s" % (self.id))
         print("  state: %s" % (self.state))
-        print("  buildlog: %s" % (self.buildlog))
+        print("  build_dir: %s" % (self.build_dir))
         print("  source: %s" % (self.source))
         print("  source: %s" % (self.source))
         print("  user: %s" % (self.user))
@@ -80,7 +80,7 @@ class BuildJob(object):
         print("  message: %s" % (self.message))
 
     @classmethod
-    def fromyaml(cls, id, state, buildlog, stream):
+    def fromyaml(cls, id, state, build_dir, stream):
         description = yaml.load(stream, Loader=yaml.FullLoader)
         return cls(description['source'],
                    description['user'],
@@ -94,7 +94,7 @@ class BuildJob(object):
                    description['message'],
                    id=id,
                    state=state,
-                   buildlog=buildlog)
+                   build_dir=build_dir)
 
 
 class JobManager(object):
@@ -157,35 +157,40 @@ class JobManager(object):
     def pick(self, job):
 
         logger.info("Picking up job %s from queue" % (job.id))
-        # create tmp job directory
-        tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
-        CleanupRegistry.add_tmpdir(tmpdir)
-        logger.debug("Created tmp directory %s" % (tmpdir))
+        # create temporary build directory
+        build_dir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
+        CleanupRegistry.add_tmpdir(build_dir)
+        logger.debug("Created tmp directory %s" % (build_dir))
+
+        # attach the build directory to the job
+        job.build_dir = build_dir
 
         # extract artefact tarball
         tar_path = os.path.join(self.conf.dirs.queue, job.id, 'artefact.tar.xz')
         logger.debug("Extracting tarball %s" % (tar_path))
         tar = tarfile.open(tar_path, 'r:xz')
-        tar.extractall(path=tmpdir)
+        tar.extractall(path=build_dir)
         tar.close()
 
-        # create job state file and write to tmpdir
+        # create job state file and write the temporary build directory
         state_path = os.path.join(self.conf.dirs.queue, job.id, 'state')
         logger.debug("Creating state file %s" % (state_path))
         with open(state_path, 'w+') as fh:
-            fh.write(tmpdir)
+            fh.write(build_dir)
 
-        return tmpdir
-
-    def archive(self, job, tmpdir):
+    def archive(self, job):
 
         dest = os.path.join(self.conf.dirs.archives, job.id)
-        logger.info("Moving build directory %s to archives directory %s" % (tmpdir, dest))
-        shutil.move(tmpdir, dest)
-        CleanupRegistry.del_tmpdir(tmpdir)
+        logger.info("Moving build directory %s to archives directory %s" % (job.build_dir, dest))
+        shutil.move(job.build_dir, dest)
+        CleanupRegistry.del_tmpdir(job.build_dir)
+
+        job_dir = os.path.join(self.conf.dirs.queue, job.id)
+        yml_path = os.path.join(job_dir, 'job.yml')
+        logger.info("Moving YAML job description file %s to archives directory %s" % (yml_path, dest))
+        shutil.move(yml_path, dest)
 
         logger.info("Removing job %s from queue" % (job.id))
-        job_dir = os.path.join(self.conf.dirs.queue, job.id)
         shutil.rmtree(job_dir)
 
     @staticmethod
@@ -194,35 +199,34 @@ class JobManager(object):
             return BuildJob.fromyaml(jobid, state, build_dir, fh)
 
     def _load_job_state(self, _dir, jobid):
-        """Return (state, buildlog) for jobid in _dir."""
+        """Return (state, build_dir) for jobid in _dir."""
 
         # job in archives are finished
         if _dir == self.conf.dirs.archives:
-            buildlog = os.path.join(self.conf.dirs.archives, jobid, 'build.log')
-            return ("finished", buildlog)
+            build_dir = os.path.join(self.conf.dirs.archives, jobid)
+            return ("finished", build_dir)
 
         # check presence of state file and set build_dir if present
         state = None
-        buildlog = None
+        build_dir = None
         state_path = os.path.join(_dir, jobid, 'state')
         if os.path.exists(state_path):
             state = "running"
             with open(state_path) as fh:
                 build_dir = fh.read()
-                buildlog = os.path.join(build_dir, 'build.log')
         else:
             state = "pending"
-            buildlog = None
+            build_dir = None
 
-        return (state, buildlog)
+        return (state, build_dir)
 
     def _load_jobs(self):
         _jobs = []
         jobs_dirs = os.listdir(self.conf.dirs.queue)
         for jobid in jobs_dirs:
-            (state, buildlog) = self._load_job_state(self.conf.dirs.queue, jobid)
+            (state, build_dir) = self._load_job_state(self.conf.dirs.queue, jobid)
             yml_path = os.path.join(self.conf.dirs.queue, jobid, 'job.yml')
-            _jobs.append(self._load_from_yaml_path(jobid, state, buildlog, yml_path))
+            _jobs.append(self._load_from_yaml_path(jobid, state, build_dir, yml_path))
          # Returns jobs sorted by submission timestamps
         _jobs.sort(key=lambda job: job.submission)
         return _jobs
@@ -234,3 +238,22 @@ class JobManager(object):
 
     def load(self):
         return self._load_jobs()
+
+    def get(self, jobid):
+        """Return the BuildJob with the jobid in argument, looking both in the
+           queue and in the archives."""
+
+        state = None
+        build_dir = None
+        if jobid in os.listdir(self.conf.dirs.queue):
+            logger.debug("Found job %s in queue" % (jobid))
+            (state, build_dir) = self._load_job_state(self.conf.dirs.queue, jobid)
+            yml_path = os.path.join(self.conf.dirs.queue, jobid, 'job.yml')
+        elif jobid in os.listdir(self.conf.dirs.archives):
+            logger.debug("Found job %s in archives" % (jobid))
+            (state, build_dir) = self._load_job_state(self.conf.dirs.archives, jobid)
+            yml_path = os.path.join(self.conf.dirs.archives, jobid, 'job.yml')
+        else:
+            raise RuntimeError("Unable to find job %s" % (jobid))
+
+        return JobManager._load_from_yaml_path(jobid, state, build_dir, yml_path)

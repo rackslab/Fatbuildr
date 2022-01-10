@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 class BuilderArtefactDeb(BuilderArtefact):
     """Class to manipulation package in Deb format."""
 
-    def __init__(self, conf, job, tmpdir):
-        super().__init__(conf, job, tmpdir, RegistryDeb)
+    def __init__(self, conf, job):
+        super().__init__(conf, job, RegistryDeb)
 
     @property
     def tarball_ext(self):

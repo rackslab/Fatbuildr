@@ -38,18 +38,19 @@ logger = logging.getLogger(__name__)
 class BuilderArtefact(ArtefactDefs):
     """Generic parent class of all BuilderArtefact formats."""
 
-    def __init__(self, conf, job, tmpdir, registry):
-        super().__init__(tmpdir, job.artefact, job.format)
+    def __init__(self, conf, job, registry):
+        super().__init__(job.build_dir, job.artefact, job.format)
         self.conf = conf
         self.name = job.artefact
         self.source = job.source
         self.distribution = job.distribution
         self.jobid = job.id
+        self.state = job.state
         self.user = job.user
         self.email = job.email
         self.msg = job.message
-        self.tmpdir = tmpdir
-        self.logfile = os.path.join(tmpdir, 'build.log')
+        self.tmpdir = job.build_dir
+        self.logfile = os.path.join(self.tmpdir, 'build.log')
         self.cache = CacheArtefact(conf, self)
         self.registry = registry(conf, job.distribution)
         self.container = ContainerRunner(conf.containers)
@@ -74,6 +75,22 @@ class BuilderArtefact(ArtefactDefs):
             logger.info("Build succeeded")
 
         logging.getLogger().removeHandler(handler)
+
+    def watch(self):
+        """Watch build log file."""
+        if self.state == 'finished':
+            # dump full build log
+            log_path = os.path.join(self.tmpdir, 'build.log')
+            with open(log_path, 'r') as fh:
+                while chunk := fh.read(8192):
+                    print(chunk, end='')
+        else:
+            # Follow the log file. It has been choosen to exec `tail -f`
+            # because python lacks well maintained and common inotify library.
+            # This tail command is in coreutils and it is installed basically
+            # everywhere.
+            cmd = ['tail', '--follow', self.logfile]
+            subprocess.run(cmd)
 
     @staticmethod
     def hasher(hash_format):
