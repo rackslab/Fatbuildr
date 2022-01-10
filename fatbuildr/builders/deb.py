@@ -83,9 +83,7 @@ class BuilderArtefactDeb(BuilderArtefact):
                '--distribution', self.distribution,
                self.msg ]
         _envs = ['DEBEMAIL='+self.email, 'DEBFULLNAME='+self.user]
-        _binds = [self.tmpdir, self.cache.dir]
-        self.container.run(self.image, cmd, binds=_binds,
-                           chdir=tarball_subdir, envs=_envs)
+        self.contruncmd(cmd, chdir=tarball_subdir, envs=_envs)
 
         # add symlink to tarball
         orig_tarball_path = os.path.join(self.tmpdir,
@@ -98,7 +96,7 @@ class BuilderArtefactDeb(BuilderArtefact):
         # build source package
         logger.info("Building source package")
         cmd = ['dpkg-source', '--build', tarball_subdir ]
-        self.container.run(self.image, cmd, binds=_binds, chdir=self.tmpdir)
+        self.contruncmd(cmd, chdir=self.tmpdir)
 
     def _build_bin(self):
         """Build deb packages binary package."""
@@ -113,5 +111,4 @@ class BuilderArtefactDeb(BuilderArtefact):
                '--basepath', '/var/cache/pbuilder/' + self.distribution,
                '--buildresult', self.tmpdir,
                dsc_path ]
-        _binds = [self.tmpdir, self.cache.dir]
-        self.container.run(self.image, cmd, binds=_binds)
+        self.contruncmd(cmd)

@@ -31,7 +31,7 @@ class ContainerRunner(object):
     def run_init(self, image, envcmd):
         self.run(image, envcmd, opts=self.conf.init_opts)
 
-    def run(self, image, runcmd, opts=None, binds=[], chdir=None, envs=[]):
+    def run(self, image, runcmd, opts=None, binds=[], chdir=None, envs=[], logfile=None):
         """Generic fully featured method to run command in container using
            systemd-nspawn."""
         cmd = ['systemd-nspawn', '--directory', image.path ]
@@ -52,4 +52,9 @@ class ContainerRunner(object):
         else:
             cmd.extend(runcmd)
         logger.debug("Running command: %s" % ' '.join(cmd))
-        subprocess.run(cmd)
+        fh = None
+        if logfile is not None:
+            fh = open(logfile, 'a')
+        subprocess.run(cmd, stdout=fh, stderr=fh)
+        if fh is not None:
+            fh.close()

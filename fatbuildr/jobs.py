@@ -62,7 +62,7 @@ class BuildJob(object):
         }
 
     def dump(self):
-        print("Job %s" % (_dir))
+        print("Job %s" % (self.id))
         print("  source: %s" % (self.source))
         print("  user: %s" % (self.user))
         print("  email: %s" % (self.email))

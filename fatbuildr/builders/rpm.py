@@ -18,7 +18,6 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import subprocess
 import glob
 import logging
 
@@ -80,8 +79,7 @@ class BuilderArtefactRpm(BuilderArtefact):
                '--sources', self.cache.dir,
                '--spec', spec_path,
                '--resultdir', self.tmpdir ]
-        _binds = [self.tmpdir, self.cache.dir]
-        self.container.run(self.image, cmd, binds=_binds)
+        self.contruncmd(cmd)
 
     def _build_bin(self):
         """Build binary RPM"""
@@ -97,8 +95,7 @@ class BuilderArtefactRpm(BuilderArtefact):
         if self.has_buildargs:
             cmd.extend(self.buildargs)
 
-        _binds = [self.tmpdir, self.cache.dir]
-        self.container.run(self.image, cmd, binds=_binds)
+        self.contruncmd(cmd)
 
         # Load keys in agent prior to signing
         self.keyring.load_agent()
@@ -112,5 +109,4 @@ class BuilderArtefactRpm(BuilderArtefact):
                    '--define', '%__gpg /usr/bin/gpg',
                    '--define', '%_gpg_name ' + self.keyring.masterkey.userid,
                    '--addsign', rpm_path ]
-            logger.debug("run cmd: %s" % (' '.join(cmd)))
-            subprocess.run(cmd, env={'GNUPGHOME': self.keyring.homedir})
+            self.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})

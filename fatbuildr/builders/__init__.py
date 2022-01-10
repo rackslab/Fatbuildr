@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import tempfile
 import hashlib
 import shutil
+import subprocess
 import logging
 
 import requests
@@ -47,6 +49,7 @@ class BuilderArtefact(ArtefactDefs):
         self.email = job.email
         self.msg = job.message
         self.tmpdir = tmpdir
+        self.logfile = os.path.join(tmpdir, 'build.log')
         self.cache = CacheArtefact(conf, self)
         self.registry = registry(conf, job.distribution)
         self.container = ContainerRunner(conf.containers)
@@ -57,6 +60,9 @@ class BuilderArtefact(ArtefactDefs):
         """Run the build! This is the entry point for fatbuildrd."""
         logger.info("Running build for job %s" % (self.jobid))
 
+        handler = logging.FileHandler(self.logfile)
+        logging.getLogger().addHandler(handler)
+
         self.prepare()
         self.build()
         self.registry.publish(self)
@@ -64,6 +70,8 @@ class BuilderArtefact(ArtefactDefs):
         logger.debug("Deleting tmp directory %s" % (self.tmpdir))
         shutil.rmtree(self.tmpdir)
         CleanupRegistry.del_tmpdir(self.tmpdir)
+
+        logging.getLogger().removeHandler(handler)
 
     @staticmethod
     def hasher(hash_format):
@@ -99,3 +107,15 @@ class BuilderArtefact(ArtefactDefs):
                                % (self.checksum_format,
                                   tarball_hash.hexdigest(),
                                   self.checksum_value))
+
+    def runcmd(self, cmd, **kwargs):
+        """Run command locally and log output in build log file."""
+        logger.debug("run cmd: %s" % (' '.join(cmd)))
+        with open(self.logfile, 'a') as fh:
+            subprocess.run(cmd, **kwargs, stdout=fh, stderr=fh)
+
+    def contruncmd(self, cmd, **kwargs):
+        """Run command in container and log output in build log file."""
+        _binds = [self.tmpdir, self.cache.dir]
+        self.container.run(self.image, cmd, **kwargs, binds=_binds,
+                           logfile=self.logfile)
