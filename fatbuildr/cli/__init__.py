@@ -149,6 +149,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_build.add_argument('-n', '--name', help='Maintainer name', required=True)
         parser_build.add_argument('-e', '--email', help='Maintainer email', required=True)
         parser_build.add_argument('-m', '--msg', help='Build log message')
+        parser_build.add_argument('-w', '--watch', action='store_true', help='Watch build log and wait job ends')
         parser_build.set_defaults(func=self._run_build)
 
         # create the parser for the list command
@@ -222,6 +223,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             self.conf.run.user_name = args.name
             self.conf.run.user_email = args.email
             self.conf.run.build_msg = args.msg
+            self.conf.run.watch = args.watch
 
         elif args.action == 'watch':
             self.conf.run.job = args.job
@@ -252,10 +254,12 @@ class Fatbuildrctl(FatbuildrCliRun):
         logger.debug("running build for package: %s instance: %s" % (self.conf.run.artefact, self.conf.run.instance))
         mgr = JobManager(self.conf)
         try:
-            mgr.submit()
+            jobid = mgr.submit()
         except RuntimeError as err:
             logger.error("Error while submitting build job: %s" % (err))
             sys.exit(1)
+        if self.conf.run.watch:
+            self._watch_job(jobid)
 
     def _run_list(self):
         logger.debug("running list")
@@ -266,10 +270,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             logger.error("Error while submitting build job: %s" % (err))
             sys.exit(1)
 
-    def _run_watch(self):
+    def _watch_job(self, jobid):
         mgr = JobManager(self.conf)
 
-        job = mgr.get(self.conf.run.job)
+        job = mgr.get(jobid)
         warned_pending = False
         # if job is pending, wait
         while job.state == 'pending':
@@ -278,10 +282,13 @@ class Fatbuildrctl(FatbuildrCliRun):
                 warned_pending = True
             time.sleep(1)
             # poll job state again
-            job = mgr.get(self.conf.run.job)
+            job = mgr.get(jobid)
 
         if job.state in ['finished', 'running']:
             build = BuilderFactory.builder(self.conf, job)
             build.watch()
         else:
-            logger.debug("Unexpected job state %s" % (job.state))
+            logger.error("Unexpected job state %s" % (job.state))
+
+    def _run_watch(self):
+        self._watch_job(self.conf.run.job)

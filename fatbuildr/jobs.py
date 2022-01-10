@@ -154,6 +154,8 @@ class JobManager(object):
         CleanupRegistry.del_tmpdir(tmpdir)
         logger.info("Build job %s submited" % (job.id))
 
+        return job.id
+
     def pick(self, job):
 
         logger.info("Picking up job %s from queue" % (job.id))
