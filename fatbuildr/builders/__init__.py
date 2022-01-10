@@ -63,13 +63,16 @@ class BuilderArtefact(ArtefactDefs):
         handler = logging.FileHandler(self.logfile)
         logging.getLogger().addHandler(handler)
 
-        self.prepare()
-        self.build()
-        self.registry.publish(self)
-
-        logger.debug("Deleting tmp directory %s" % (self.tmpdir))
-        shutil.rmtree(self.tmpdir)
-        CleanupRegistry.del_tmpdir(self.tmpdir)
+        try:
+            self.prepare()
+            self.build()
+            self.registry.publish(self)
+        except RuntimeError as err:
+            logger.error("error during build of %s: %s" % (self.jobid, err))
+        finally:
+            logger.debug("Deleting tmp directory %s" % (self.tmpdir))
+            shutil.rmtree(self.tmpdir)
+            CleanupRegistry.del_tmpdir(self.tmpdir)
 
         logging.getLogger().removeHandler(handler)
 
