@@ -273,7 +273,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         try:
             mgr.dump()
         except RuntimeError as err:
-            logger.error("Error while submitting build job: %s" % (err))
+            logger.error("Error while listing jobs: %s" % (err))
             sys.exit(1)
 
     def _watch_job(self, jobid):
