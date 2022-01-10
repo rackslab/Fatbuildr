@@ -273,7 +273,12 @@ class Fatbuildrctl(FatbuildrCliRun):
     def _watch_job(self, jobid):
         mgr = JobManager(self.conf)
 
-        job = mgr.get(jobid)
+        try:
+            job = mgr.get(jobid)
+        except RuntimeError as err:
+            logger.error(err)
+            sys.exit(1)
+
         warned_pending = False
         # if job is pending, wait
         while job.state == 'pending':
