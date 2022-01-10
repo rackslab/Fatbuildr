@@ -83,7 +83,12 @@ class BuilderArtefact(ArtefactDefs):
             log_path = os.path.join(self.tmpdir, 'build.log')
             with open(log_path, 'r') as fh:
                 while chunk := fh.read(8192):
-                    print(chunk, end='')
+                    try:
+                        print(chunk, end='')
+                    except BrokenPipeError:
+                        # Stop here if hit a broken pipe. It could happen when
+                        # watch is given to head for example.
+                        break
         else:
             # Follow the log file. It has been choosen to exec `tail -f`
             # because python lacks well maintained and common inotify library.
