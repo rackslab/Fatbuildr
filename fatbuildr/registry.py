@@ -40,11 +40,6 @@ class Registry(object):
     def publish(self, build):
         raise NotImplementedError
 
-    @staticmethod
-    def runcmd(build, cmd, **kwargs):
-        logger.debug("run cmd: %s" % (' '.join(cmd)))
-        with open(build.logfile, 'a') as fh:
-            subprocess.run(cmd, **kwargs, stdout=fh, stderr=fh)
 
 class RegistryDeb(Registry):
     """Registry for Deb format (aka. APT repository)."""
@@ -111,8 +106,8 @@ class RegistryDeb(Registry):
             logger.debug("Publishing deb changes file %s" % (changes_path))
             cmd = ['reprepro', '--verbose', '--basedir', self.path,
                    'include', build.distribution, changes_path ]
-            Registry.runcmd(build, cmd,
-                            env={'GNUPGHOME': self.keyring.homedir})
+            build.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})
+
 
 class RegistryRpm(Registry):
     """Registry for Rpm format (aka. yum/dnf repository)."""
@@ -151,4 +146,4 @@ class RegistryRpm(Registry):
 
         logger.debug("Updating metadata of RPM repository %s" % (self.path))
         cmd = [ 'createrepo_c', '--update', self.path ]
-        Registry.runcmd(build, cmd)
+        build.runcmd(cmd)
