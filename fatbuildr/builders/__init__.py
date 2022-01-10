@@ -90,7 +90,11 @@ class BuilderArtefact(ArtefactDefs):
             # This tail command is in coreutils and it is installed basically
             # everywhere.
             cmd = ['tail', '--follow', self.logfile]
-            subprocess.run(cmd)
+            try:
+                subprocess.run(cmd)
+            except KeyboardInterrupt:
+                # Leave gracefully after a keyboard interrupt (eg. ^c)
+                logger.debug("Received keyboard interrupt, leaving.")
 
     @staticmethod
     def hasher(hash_format):
