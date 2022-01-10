@@ -34,8 +34,10 @@ logger = logging.getLogger(__name__)
 
 class BuildJob(object):
 
-    def __init__(self, source, user, email, instance, distribution, environment, fmt, artefact, submission, message, id=str(uuid.uuid4())):
+    def __init__(self, source, user, email, instance, distribution, environment, fmt, artefact, submission, message, id=str(uuid.uuid4()), state='pending', buildlog=None):
         self.id = id
+        self.state = state
+        self.buildlog = buildlog
         self.source = source
         self.user = user
         self.email = email
@@ -63,6 +65,9 @@ class BuildJob(object):
 
     def dump(self):
         print("Job %s" % (self.id))
+        print("  state: %s" % (self.state))
+        print("  buildlog: %s" % (self.buildlog))
+        print("  source: %s" % (self.source))
         print("  source: %s" % (self.source))
         print("  user: %s" % (self.user))
         print("  email: %s" % (self.email))
@@ -75,7 +80,7 @@ class BuildJob(object):
         print("  message: %s" % (self.message))
 
     @classmethod
-    def fromyaml(cls, id, stream):
+    def fromyaml(cls, id, state, buildlog, stream):
         description = yaml.load(stream, Loader=yaml.FullLoader)
         return cls(description['source'],
                    description['user'],
@@ -87,7 +92,9 @@ class BuildJob(object):
                    description['artefact'],
                    datetime.fromtimestamp(description['submission']),
                    description['message'],
-                   id=id)
+                   id=id,
+                   state=state,
+                   buildlog=buildlog)
 
 
 class JobManager(object):
@@ -181,14 +188,41 @@ class JobManager(object):
         job_dir = os.path.join(self.conf.dirs.queue, job.id)
         shutil.rmtree(job_dir)
 
+    @staticmethod
+    def _load_from_yaml_path(jobid, state, build_dir, path):
+        with open(path, 'r') as fh:
+            return BuildJob.fromyaml(jobid, state, build_dir, fh)
+
+    def _load_job_state(self, _dir, jobid):
+        """Return (state, buildlog) for jobid in _dir."""
+
+        # job in archives are finished
+        if _dir == self.conf.dirs.archives:
+            buildlog = os.path.join(self.conf.dirs.archives, jobid, 'build.log')
+            return ("finished", buildlog)
+
+        # check presence of state file and set build_dir if present
+        state = None
+        buildlog = None
+        state_path = os.path.join(_dir, jobid, 'state')
+        if os.path.exists(state_path):
+            state = "running"
+            with open(state_path) as fh:
+                build_dir = fh.read()
+                buildlog = os.path.join(build_dir, 'build.log')
+        else:
+            state = "pending"
+            buildlog = None
+
+        return (state, buildlog)
 
     def _load_jobs(self):
         _jobs = []
         jobs_dirs = os.listdir(self.conf.dirs.queue)
-        for _dir in jobs_dirs:
-            yml_path = os.path.join(self.conf.dirs.queue, _dir, 'job.yml')
-            with open(yml_path, 'r') as fh:
-                _jobs.append(BuildJob.fromyaml(_dir, fh))
+        for jobid in jobs_dirs:
+            (state, buildlog) = self._load_job_state(self.conf.dirs.queue, jobid)
+            yml_path = os.path.join(self.conf.dirs.queue, jobid, 'job.yml')
+            _jobs.append(self._load_from_yaml_path(jobid, state, buildlog, yml_path))
          # Returns jobs sorted by submission timestamps
         _jobs.sort(key=lambda job: job.submission)
         return _jobs
