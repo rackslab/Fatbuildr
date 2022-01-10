@@ -55,6 +55,9 @@ class ContainerRunner(object):
         fh = None
         if logfile is not None:
             fh = open(logfile, 'a')
-        subprocess.run(cmd, stdout=fh, stderr=fh)
+        proc = subprocess.run(cmd, stdout=fh, stderr=fh)
         if fh is not None:
             fh.close()
+        if proc.returncode:
+            raise RuntimeError("Command failed with exit code %d: %s" \
+                               % (proc.returncode, ' '.join(cmd)))

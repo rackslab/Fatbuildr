@@ -112,7 +112,10 @@ class BuilderArtefact(ArtefactDefs):
         """Run command locally and log output in build log file."""
         logger.debug("run cmd: %s" % (' '.join(cmd)))
         with open(self.logfile, 'a') as fh:
-            subprocess.run(cmd, **kwargs, stdout=fh, stderr=fh)
+            proc = subprocess.run(cmd, **kwargs, stdout=fh, stderr=fh)
+            if proc.returncode:
+                raise RuntimeError("Command failed with exit code %d: %s" \
+                                   % (proc.returncode, ' '.join(cmd)))
 
     def contruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
