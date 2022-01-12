@@ -3,3 +3,5 @@ conf/vendor/fatbuildr.ini usr/lib/fatbuildr
 conf/registry usr/lib/fatbuildr
 conf/images usr/lib/fatbuildr
 conf/units/* lib/systemd/system
+conf/dbus/*.conf usr/share/dbus-1/system.d
+conf/dbus/*.service usr/share/dbus-1/system-services
