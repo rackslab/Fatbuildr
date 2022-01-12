@@ -31,11 +31,11 @@ class BuildFactory(object):
     }
 
     @staticmethod
-    def generate(conf, request):
-        """Generate a BuildArtefact from a new request."""
-        if not request.format in BuildFactory._formats:
-            raise RuntimeError("format %s unsupported by builders" % (request.format))
-        return BuildFactory._formats[request.format].load_from_request(conf, request)
+    def generate(conf, submission):
+        """Generate a BuildArtefact from a new submission."""
+        if not submission.format in BuildFactory._formats:
+            raise RuntimeError("format %s unsupported by builders" % (submission.format))
+        return BuildFactory._formats[submission.format].load_from_submission(conf, submission)
 
     @staticmethod
     def load(conf, place, build_id):

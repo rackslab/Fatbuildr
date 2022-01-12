@@ -1,5 +1,0 @@
-[Path]
-DirectoryNotEmpty=/var/lib/fatbuildr/queue
-
-[Install]
-WantedBy=multi-user.target

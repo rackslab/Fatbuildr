@@ -2,7 +2,7 @@
 Description=Fatbuildr build daemon
 
 [Service]
-Type=simple
+BusName=org.rackslab.Fatbuildr
 ExecStart=/usr/bin/fatbuildrd
 
 [Install]

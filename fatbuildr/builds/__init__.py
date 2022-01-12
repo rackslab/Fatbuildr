@@ -51,7 +51,7 @@ class AbstractBuild():
     def state(self):
         if isinstance(self, BuildArchive):
             return 'finished'
-        elif isinstance(self, BuildRequest):
+        elif isinstance(self, BuildSubmission):
             return 'pending'
         elif isinstance(self, ArtefactBuild):
             return 'running'
@@ -74,8 +74,8 @@ class AbstractBuild():
     def dump(self):
         if isinstance(self, BuildArchive):
             print("Build archive %s" % (self.id))
-        elif isinstance(self, BuildRequest):
-            print("Build request %s" % (self.id))
+        elif isinstance(self, BuildSubmission):
+            print("Build submission %s" % (self.id))
         elif isinstance(self, ArtefactBuild):
             print("Build %s" % (self.id))
         else:
@@ -112,13 +112,46 @@ class BuildArchive(AbstractBuild):
                     break
 
 
+class BuildSubmission(AbstractBuild):
+
+    ARCHIVE_FILE = 'artefact.tar.xz'
+
+    def __init__(self, place, build_id, form):
+        super().__init__(place, build_id)
+        self.form = form
+
+    def transfer_inputs(self, dest):
+        """Extract artefact archive and move build form in dest."""
+
+        # Extract artefact tarball in dest
+        tar_path = os.path.join(self.place, BuildSubmission.ARCHIVE_FILE)
+        logger.debug("Extracting tarball %s in destination %s" % (tar_path, dest))
+        tar = tarfile.open(tar_path, 'r:xz')
+        tar.extractall(path=dest)
+        tar.close()
+
+        # Move build form in dest
+        self.form.move(self.place, dest)
+
+    @classmethod
+    def load(cls, place, build_id):
+        form = BuildForm.load(place)
+        return cls(place, build_id, form)
+
+    @classmethod
+    def load_from_request(cls, place, request, build_id):
+        submission = cls(place, build_id, request.form)
+        logger.debug("Moving submission directory %s to %s" % (request.place, submission.place))
+        shutil.move(request.place, submission.place)
+        return submission
+
+
 class BuildRequest(AbstractBuild):
 
     ARCHIVE_FILE = 'artefact.tar.xz'
 
-    def __init__(self, place, build_id, *args):
-        super().__init__(place, build_id)
-
+    def __init__(self, place, *args):
+        super().__init__(place, None)
         if isinstance(args[0], BuildForm):
             self.form = args[0]
         else:
@@ -136,23 +169,9 @@ class BuildRequest(AbstractBuild):
         tar.add(artefact_def_path, arcname='.', recursive=True)
         tar.close()
 
-    def transfer_inputs(self, dest):
-        """Extract artefact archive and move build form in dest."""
-
-        # Extract artefact tarball in dest
-        tar_path = os.path.join(self.place, BuildRequest.ARCHIVE_FILE)
-        logger.debug("Extracting tarball %s in destination %s" % (tar_path, dest))
-        tar = tarfile.open(tar_path, 'r:xz')
-        tar.extractall(path=dest)
-        tar.close()
-
-        # Move build form in dest
-        self.form.move(self.place, dest)
-
     @classmethod
-    def load(cls, place, build_id):
-        """Return a BuildRequest loaded from place"""
-        return cls(place, build_id, BuildForm.load(place))
+    def load(cls, place):
+        return cls(place, BuildForm.load(place))
 
 
 class ArtefactBuild(AbstractBuild):
@@ -214,7 +233,7 @@ class ArtefactBuild(AbstractBuild):
             # Leave gracefully after a keyboard interrupt (eg. ^c)
             logger.debug("Received keyboard interrupt, leaving.")
 
-    def init_from_request(self, request):
+    def init_from_submission(self, submission):
 
         if os.path.exists(self.place):
             logger.warning("Build directory %s already exists" % (self.place))
@@ -225,7 +244,7 @@ class ArtefactBuild(AbstractBuild):
             os.chmod(self.place, 0o755)  # be umask agnostic
 
         # get input from requests
-        request.transfer_inputs(self.place)
+        submission.transfer_inputs(self.place)
 
     @staticmethod
     def hasher(hash_format):
@@ -281,7 +300,7 @@ class ArtefactBuild(AbstractBuild):
                            logfile=self.logfile)
 
     @classmethod
-    def load_from_request(cls, conf, request):
-        instance = cls(conf, request.id, request.form)
-        instance.init_from_request(request)
+    def load_from_submission(cls, conf, submission):
+        instance = cls(conf, submission.id, submission.form)
+        instance.init_from_submission(submission)
         return instance

@@ -21,15 +21,35 @@ import os
 import tempfile
 import uuid
 import shutil
+import threading
 from datetime import datetime
+from collections import deque
 import logging
 
 from ..pipelines import PipelinesDefs
 from ..cleanup import CleanupRegistry
-from . import BuildRequest, BuildArchive
+from . import BuildSubmission, BuildRequest, BuildArchive
 from .factory import BuildFactory
 
 logger = logging.getLogger(__name__)
+
+
+class QueueManager:
+
+    def __init__(self):
+        self._queue = deque()
+        self._count = threading.Semaphore(0)
+
+    def dump(self):
+        return list(self._queue)
+
+    def put(self, submission):
+        self._queue.append(submission)
+        self._count.release()
+
+    def get(self):
+        self._count.acquire(True, None)
+        return self._queue.popleft()
 
 
 class BuildsManager(object):
@@ -37,21 +57,30 @@ class BuildsManager(object):
 
     def __init__(self, conf):
         self.conf = conf
+        self.queue = QueueManager()
+        self.running = None
 
     @property
     def empty(self):
-        return len(os.listdir(self.conf.dirs.queue)) == 0
+        return self.queue.empty()
 
     def clear_orphaned(self):
-        for build in self._load_builds():
-            logger.warning("Clearing orphaned build %s" % (build.id))
-            self.archive(build)
+        """Remove all submissions in queue directory not actually in queue, and
+           archive all builds in build directory not actually running."""
+        for build_id in os.listdir(self.conf.dirs.queue):
+            if build_id not in [build.id for build in self.queue.dump()] :
+                logger.warning("Removing orphaned build submission %s" % (build_id))
+                shutil.rmtree(os.path.join(self.conf.dirs.queue, build_id))
+        for build_id in os.listdir(self.conf.dirs.build):
+            if not self.running or build_id != self.running :
+                logger.warning("Archiving orphaned build %s" % (build.id))
+                build = BuildFactory.load(self.conf, os.path.join(self.conf.dirs.build, build_id), build_id)
+                self.archive(build)
 
-    def submit(self, instance):
+    def request(self, instance):
         # create tmp submission directory
         tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
-        CleanupRegistry.add_tmpdir(tmpdir)
-        logger.debug("Created tmp directory %s" % (tmpdir))
+        logger.debug("Created request temporary directory %s" % (tmpdir))
 
         # load pipelines defs to get dist→format/env mapping
         pipelines = PipelinesDefs(self.conf.run.basedir)
@@ -62,11 +91,8 @@ class BuildsManager(object):
         if msg is None:
             msg = pipelines.msg
 
-        build_id = str(uuid.uuid4())  # generate build id
-
         # create build request
-        request = BuildRequest(os.path.join(self.conf.dirs.queue, build_id),
-                               build_id,
+        request = BuildRequest(tmpdir,
                                pipelines.name,
                                self.conf.run.user_name,
                                self.conf.run.user_email,
@@ -83,73 +109,64 @@ class BuildsManager(object):
 
         # prepare artefact tarball
         request.prepare_tarball(self.conf.run.basedir, tmpdir)
+        return request.place
 
-        # move tmp build submission directory to request place in queue
-        logger.debug("Moving tmp directory %s to %s" % (tmpdir, request.place))
-        shutil.move(tmpdir, request.place)
-        CleanupRegistry.del_tmpdir(tmpdir)
-        logger.info("Build build %s submitted" % (request.id))
+    def submit(self, input):
+        """Generate the build ID and place in queue."""
 
-        return request.id
+        build_id = str(uuid.uuid4())  # generate build ID
+        place = os.path.join(self.conf.dirs.queue, build_id)
+        request = BuildRequest.load(input)
+        submission = BuildSubmission.load_from_request(place, request, build_id)
+        self.queue.put(submission)
+        logger.info("Build %s submitted in queue" % (submission.id))
+        return submission
 
     def pick(self):
 
-        request = self._load_queue()[0]
-        logger.info("Picking up build request %s from queue" % (request.id))
+        submission = self.queue.get()
+        logger.info("Picking up build submission %s from queue" % (submission.id))
         # transition the request to an artefact build
         build = None
         try:
-            build = BuildFactory.generate(self.conf, request)
+            build = BuildFactory.generate(self.conf, submission)
+            self.running = build
         except RuntimeError as err:
-            logger.error("unable to generate build from request %s: %s" % (request.id, err))
+            logger.error("unable to generate build from submission %s: %s" % (submission.id, err))
         finally:
-            # remove request from queue
-            self.remove(request)
+            # remove submission from queue
+            self._remove(submission)
         return build
-
-    def remove(self, request):
-        """Remove request from queue."""
-        logger.debug("Deleting request directory %s" % (request.place))
-        shutil.rmtree(request.place)
-        logger.info("Build build %s removed from queue" % (request.id))
 
     def archive(self, build):
 
+        self.running = None
         dest = os.path.join(self.conf.dirs.archives, build.id)
         logger.info("Moving build directory %s to archives directory %s" % (build.place, dest))
         shutil.move(build.place, dest)
 
-    def _load_queue(self):
-        _requests = []
-        for build_id in os.listdir(self.conf.dirs.queue):
-            request = BuildRequest.load(os.path.join(self.conf.dirs.queue, build_id), build_id)
-            _requests.append(request)
-         # Returns build requests sorted by submission timestamps
-        _requests.sort(key=lambda build: build.submission)
-        return _requests
-
-    def _load_builds(self):
-        _builds = []
-        for build_id in os.listdir(self.conf.dirs.build):
-            build = BuildFactory.load(self.conf, os.path.join(self.conf.dirs.build, build_id), build_id)
-            _builds.append(build)
-         # Returns build requests sorted by submission timestamps
-        _builds.sort(key=lambda build: build.submission)
-        return _builds
+    def _remove(self, submission):
+        """Remove submission from queue."""
+        logger.debug("Deleting submission directory %s" % (submission.place))
+        shutil.rmtree(submission.place)
+        logger.info("Build submission %s removed from queue" % (submission.id))
 
     def dump(self):
-        """Print all builds requests in the queue."""
-        for build in self._load_builds() + self._load_queue():
+        """Print running build and all builds submissions in the queue."""
+        for build in (self.running or []) + self.queue.dump():
             build.dump()
 
+    def queue(self):
+        return self.queue.dump()
+
     def get(self, build_id):
-        """Return the BuildRequest, BuildFactory or the BuildArchive with the
-           build_id in argument, looking both in the queue and in the
+        """Return the BuildSubmission, BuildFactory or the BuildArchive with
+           the build_id in argument, looking both in the queue and in the
            archives."""
 
         if build_id in os.listdir(self.conf.dirs.queue):
             logger.debug("Found build %s in queue" % (build_id))
-            return BuildRequest.load(os.path.join(self.conf.dirs.queue, build_id), build_id)
+            return BuildSubmission.load(os.path.join(self.conf.dirs.queue, build_id), build_id)
         elif build_id in os.listdir(self.conf.dirs.build):
             logger.debug("Found running build %s" % (build_id))
             return BuildFactory.load(self.conf, os.path.join(self.conf.dirs.build, build_id), build_id)

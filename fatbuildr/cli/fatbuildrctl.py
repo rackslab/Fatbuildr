@@ -30,6 +30,7 @@ from ..images import ImagesManager
 from ..keyring import KeyringManager
 from ..builds.manager import BuildsManager
 from ..log import TTYFormatter
+from ..protocols import ClientFactory
 
 logger = logging.getLogger(__name__)
 
@@ -192,13 +193,16 @@ class Fatbuildrctl(FatbuildrCliRun):
     def _run_build(self):
         logger.debug("running build for package: %s instance: %s" % (self.conf.run.artefact, self.instance))
         mgr = BuildsManager(self.conf)
+        connection = ClientFactory.get()
         try:
-            build_id = mgr.submit(self.instance)
+            place = mgr.request(self.instance)
+            build_id = connection.submit(place)
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)
-        if self.conf.run.watch:
-            self._watch_build(build_id)
+        logging.info("Build %s submitted" % (build_id))
+        #if self.conf.run.watch:
+        #    self._watch_build(build_id)
 
     def _run_list(self):
         logger.debug("running list")

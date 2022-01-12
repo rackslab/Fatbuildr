@@ -19,12 +19,14 @@
 
 import argparse
 import sys
+import threading
 import logging
 
 from . import FatbuildrCliRun
 from ..version import __version__
 from ..conf import RuntimeConfd
 from ..builds.manager import BuildsManager
+from ..protocols import ServerFactory
 
 logger = logging.getLogger(__name__)
 
@@ -61,18 +63,34 @@ class Fatbuildrd(FatbuildrCliRun):
 
     def _run(self):
         logger.debug("Running fatbuildrd")
-        mgr = BuildsManager(self.conf)
+        self.mgr = BuildsManager(self.conf)
 
-        mgr.clear_orphaned()
+        builder_thread = threading.Thread(target=self._builder)
+        builder_thread.start()
 
-        while not mgr.empty:
+        server_thread = threading.Thread(target=self._server)
+        server_thread.start()
+
+        builder_thread.join()
+        server_thread.join()
+
+    def _builder(self):
+        """Thread handling build loop."""
+        logger.info("Starting builder thread")
+        self.mgr.clear_orphaned()
+
+        while True:
             try:
                 # pick the first request in queue
-                build = mgr.pick()
+                build = self.mgr.pick()
                 if build:
                     build.run()
-                    mgr.archive(build)
+                    self.mgr.archive(build)
             except RuntimeError as err:
                 logger.error("Error while processing build: %s" % (err))
-                sys.exit(1)
-        logger.info("No build request available in queue, leaving")
+
+    def _server(self):
+        """Thread handling requests from clients."""
+        logger.info("Starting server thread")
+        server = ServerFactory.get()
+        server.run(self.mgr)
