@@ -21,7 +21,7 @@ import os
 import glob
 import logging
 
-from ..builders import BuilderArtefact
+from . import ArtefactBuild
 from ..registry import RegistryRpm
 from ..keyring import KeyringManager
 from ..templates import Templeter
@@ -29,7 +29,7 @@ from ..templates import Templeter
 logger = logging.getLogger(__name__)
 
 
-class BuilderArtefactRpm(BuilderArtefact):
+class ArtefactBuildRpm(ArtefactBuild):
     """Class to manipulation package in RPM format."""
 
     def __init__(self, conf, request):

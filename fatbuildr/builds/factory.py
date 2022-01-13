@@ -17,19 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from .builders.deb import BuilderArtefactDeb
-from .builders.rpm import BuilderArtefactRpm
+from .deb import ArtefactBuildDeb
+from .rpm import ArtefactBuildRpm
 
 
-class BuilderFactory(object):
+class BuildFactory(object):
 
-    _builders = {
-        'deb': BuilderArtefactDeb,
-        'rpm': BuilderArtefactRpm,
+    _formats = {
+        'deb': ArtefactBuildDeb,
+        'rpm': ArtefactBuildRpm,
     }
 
     @staticmethod
-    def builder(conf, request):
-        if not request.form.format in BuilderFactory._builders:
+    def get(conf, request):
+        if not request.form.format in BuildFactory._formats:
             raise RuntimeError("format %s unsupported by builders" % (request.form.format))
-        return BuilderFactory._builders[request.form.format](conf, request)
+        return BuildFactory._formats[request.form.format](conf, request)

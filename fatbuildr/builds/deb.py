@@ -23,14 +23,14 @@ import tarfile
 import shutil
 import logging
 
-from ..builders import BuilderArtefact
+from . import ArtefactBuild
 from ..registry import RegistryDeb
 
 logger = logging.getLogger(__name__)
 
 
-class BuilderArtefactDeb(BuilderArtefact):
-    """Class to manipulation package in Deb format."""
+class ArtefactBuildDeb(ArtefactBuild):
+    """Class to manipulation build of package in Deb format."""
 
     def __init__(self, conf, request):
         super().__init__(conf, request, RegistryDeb)

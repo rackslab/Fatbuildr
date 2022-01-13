@@ -35,8 +35,8 @@ from ..images import Image, BuildEnv
 logger = logging.getLogger(__name__)
 
 
-class BuilderArtefact(ArtefactDefs):
-    """Generic parent class of all BuilderArtefact formats."""
+class ArtefactBuild(ArtefactDefs):
+    """Generic parent class of all ArtefactBuild formats."""
 
     def __init__(self, conf, request, registry):
         super().__init__(request.build_dir, request.form.artefact, request.form.format)
@@ -127,7 +127,7 @@ class BuilderArtefact(ArtefactDefs):
 
         # verify checksum after download
         with open(self.cache.tarball_path, "rb") as fh:
-            tarball_hash = BuilderArtefact.hasher(self.checksum_format)
+            tarball_hash = ArtefactBuild.hasher(self.checksum_format)
             while chunk := fh.read(8192):
                 tarball_hash.update(chunk)
 

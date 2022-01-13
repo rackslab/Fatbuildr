@@ -138,7 +138,7 @@ class BuildRequest(object):
 
     @classmethod
     def load(cls, place, build_id):
-        """Return a BuilderRequest loaded from place"""
+        """Return a BuildRequest loaded from place"""
 
         state_path = os.path.join(place, 'state')
         if os.path.exists(state_path):

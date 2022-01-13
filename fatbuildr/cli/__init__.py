@@ -29,7 +29,7 @@ from ..conf import RuntimeConfd, RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
 from ..queue import QueueManager
-from ..builder import BuilderFactory
+from ..builds.factory import BuildFactory
 from ..cleanup import CleanupRegistry
 
 logger = logging.getLogger(__name__)
@@ -109,9 +109,9 @@ class Fatbuildrd(FatbuildrCliRun):
                     logger.info("Processing build %s" % (request.id))
                     self.load_build_instance(request)
                     mgr.pick(request)
-                    builder = BuilderFactory.builder(self.conf, request)
-                    builder.run()
-                    mgr.archive(builder)
+                    build = BuildFactory.get(self.conf, request)
+                    build.run()
+                    mgr.archive(build)
                 except RuntimeError as err:
                     logger.error("Error while processing build: %s" % (err))
                     sys.exit(1)
@@ -296,7 +296,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             build = mgr.get(build_id)
 
         if build.state in ['finished', 'running']:
-            BuilderFactory.builder(self.conf, build).watch()
+            BuildFactory.get(self.conf, build).watch()
         else:
             logger.error("Unexpected build state %s" % (build.state))
 
