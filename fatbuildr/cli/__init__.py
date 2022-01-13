@@ -99,22 +99,18 @@ class Fatbuildrd(FatbuildrCliRun):
         logger.debug("Running fatbuildrd")
         mgr = QueueManager(self.conf)
 
-        while True:
-            requests = mgr.load()
-            if not len(requests):
-                logger.info("No build request available in queue, leaving")
-                sys.exit(0)
-            for request in requests:
-                try:
-                    logger.info("Processing build %s" % (request.id))
-                    self.load_build_instance(request)
-                    mgr.pick(request)
-                    build = BuildFactory.get(self.conf, request)
-                    build.run()
-                    mgr.archive(build)
-                except RuntimeError as err:
-                    logger.error("Error while processing build: %s" % (err))
-                    sys.exit(1)
+        while not mgr.empty:
+            try:
+                request = mgr.pick()
+                logger.info("Processing build %s" % (request.id))
+                self.load_build_instance(request)
+                build = BuildFactory.get(self.conf, request)
+                build.run()
+                mgr.archive(build)
+            except RuntimeError as err:
+                logger.error("Error while processing build: %s" % (err))
+                sys.exit(1)
+        logger.info("No build request available in queue, leaving")
 
 
 class Fatbuildrctl(FatbuildrCliRun):

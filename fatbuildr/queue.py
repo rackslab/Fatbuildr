@@ -158,6 +158,10 @@ class QueueManager(object):
     def __init__(self, conf):
         self.conf = conf
 
+    @property
+    def empty(self):
+        return len(os.listdir(self.conf.dirs.queue)) == 0
+
     def submit(self):
         # create tmp submission directory
         tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
@@ -214,7 +218,9 @@ class QueueManager(object):
 
         return request.id
 
-    def pick(self, request):
+    def pick(self):
+
+        request = self._load_requests()[0]
 
         logger.info("Picking up build request %s from queue" % (request.id))
 
@@ -235,6 +241,8 @@ class QueueManager(object):
 
         # create build state file and write the temporary build directory
         request.save_state()
+
+        return request
 
     def archive(self, build):
 
