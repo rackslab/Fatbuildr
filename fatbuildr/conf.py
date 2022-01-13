@@ -233,7 +233,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         self.build_msg = None
         self.watch = None
         # parameters for watch action
-        self.job = None
+        self.build = None
 
     def load(self, config):
        self.instance = config.get('run', 'default_instance')
@@ -245,7 +245,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         logger.debug("  operation: %s" % (self.operation))
         logger.debug("  force: %s" % (self.force))
         logger.debug("  package: %s" % (self.package))
-        logger.debug("  job: %s" % (self.job))
+        logger.debug("  build: %s" % (self.build))
         logger.debug("  basedir: %s" % (self.basedir))
         logger.debug("  user_name: %s" % (self.user_name))
         logger.debug("  user_email: %s" % (self.user_email))

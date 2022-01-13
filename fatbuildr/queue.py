@@ -32,7 +32,7 @@ from .cleanup import CleanupRegistry
 
 logger = logging.getLogger(__name__)
 
-class BuildJob(object):
+class BuildForm(object):
 
     def __init__(self, source, user, email, instance, distribution, environment, fmt, artefact, submission, message, id=str(uuid.uuid4()), state='pending', build_dir=None):
         self.id = id
@@ -64,7 +64,7 @@ class BuildJob(object):
         }
 
     def dump(self):
-        print("Job %s" % (self.id))
+        print("Build %s" % (self.id))
         print("  state: %s" % (self.state))
         print("  build_dir: %s" % (self.build_dir))
         print("  source: %s" % (self.source))
@@ -97,14 +97,14 @@ class BuildJob(object):
                    build_dir=build_dir)
 
 
-class JobManager(object):
-    """Manage artefact build jobs."""
+class QueueManager(object):
+    """Manage the queue of pending builds."""
 
     def __init__(self, conf):
         self.conf = conf
 
     def submit(self):
-        # create tmp job directory
+        # create tmp submission directory
         tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
         CleanupRegistry.add_tmpdir(tmpdir)
         logger.debug("Created tmp directory %s" % (tmpdir))
@@ -130,88 +130,89 @@ class JobManager(object):
         if msg is None:
             msg = pipelines.msg
 
-        # create yaml job description
-        job = BuildJob(pipelines.name,
-                       self.conf.run.user_name,
-                       self.conf.run.user_email,
-                       self.conf.run.instance,
-                       self.conf.run.distribution,
-                       pipelines.dist_env(self.conf.run.distribution),
-                       pipelines.dist_format(self.conf.run.distribution),
-                       self.conf.run.artefact,
-                       datetime.now(),
-                       msg)
+        # create yaml build form
+        form = BuildForm(pipelines.name,
+                         self.conf.run.user_name,
+                         self.conf.run.user_email,
+                         self.conf.run.instance,
+                         self.conf.run.distribution,
+                         pipelines.dist_env(self.conf.run.distribution),
+                         pipelines.dist_format(self.conf.run.distribution),
+                         self.conf.run.artefact,
+                         datetime.now(),
+                         msg)
 
-        yml_path = os.path.join(tmpdir, 'job.yml')
-        logger.debug("Creating YAML job description file %s" % (yml_path))
+        yml_path = os.path.join(tmpdir, 'build.yml')
+        logger.debug("Creating YAML build form file %s" % (yml_path))
         with open(yml_path, 'w+') as fh:
-            yaml.dump(job.todict(), fh)
+            yaml.dump(form.todict(), fh)
 
-        # move tmp job directory in queue
-        dest = os.path.join(self.conf.dirs.queue, job.id)
+        # move tmp build submission directory in queue
+        dest = os.path.join(self.conf.dirs.queue, form.id)
         logger.debug("Moving tmp directory %s to %s" % (tmpdir, dest))
         shutil.move(tmpdir, dest)
         CleanupRegistry.del_tmpdir(tmpdir)
-        logger.info("Build job %s submited" % (job.id))
+        logger.info("Build build %s submited" % (form.id))
 
-        return job.id
+        return form.id
 
-    def pick(self, job):
+    def pick(self, form):
 
-        logger.info("Picking up job %s from queue" % (job.id))
+        logger.info("Picking up build %s from queue" % (form.id))
+
         # create temporary build directory
         build_dir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
         CleanupRegistry.add_tmpdir(build_dir)
         logger.debug("Created tmp directory %s" % (build_dir))
 
-        # attach the build directory to the job
-        job.build_dir = build_dir
+        # attach the build directory to the build
+        form.build_dir = build_dir
 
         # extract artefact tarball
-        tar_path = os.path.join(self.conf.dirs.queue, job.id, 'artefact.tar.xz')
+        tar_path = os.path.join(self.conf.dirs.queue, form.id, 'artefact.tar.xz')
         logger.debug("Extracting tarball %s" % (tar_path))
         tar = tarfile.open(tar_path, 'r:xz')
         tar.extractall(path=build_dir)
         tar.close()
 
-        # create job state file and write the temporary build directory
-        state_path = os.path.join(self.conf.dirs.queue, job.id, 'state')
+        # create build state file and write the temporary build directory
+        state_path = os.path.join(self.conf.dirs.queue, form.id, 'state')
         logger.debug("Creating state file %s" % (state_path))
         with open(state_path, 'w+') as fh:
             fh.write(build_dir)
 
-    def archive(self, job):
+    def archive(self, form):
 
-        dest = os.path.join(self.conf.dirs.archives, job.id)
-        logger.info("Moving build directory %s to archives directory %s" % (job.build_dir, dest))
-        shutil.move(job.build_dir, dest)
-        CleanupRegistry.del_tmpdir(job.build_dir)
+        dest = os.path.join(self.conf.dirs.archives, form.id)
+        logger.info("Moving build directory %s to archives directory %s" % (form.build_dir, dest))
+        shutil.move(form.build_dir, dest)
+        CleanupRegistry.del_tmpdir(form.build_dir)
 
-        job_dir = os.path.join(self.conf.dirs.queue, job.id)
-        yml_path = os.path.join(job_dir, 'job.yml')
-        logger.info("Moving YAML job description file %s to archives directory %s" % (yml_path, dest))
+        build_dir = os.path.join(self.conf.dirs.queue, form.id)
+        yml_path = os.path.join(build_dir, 'build.yml')
+        logger.info("Moving YAML build description file %s to archives directory %s" % (yml_path, dest))
         shutil.move(yml_path, dest)
 
-        logger.info("Removing job %s from queue" % (job.id))
-        shutil.rmtree(job_dir)
+        logger.info("Removing build %s from queue" % (form.id))
+        shutil.rmtree(build_dir)
 
     @staticmethod
-    def _load_from_yaml_path(jobid, state, build_dir, path):
+    def _load_from_yaml_path(build_id, state, build_dir, path):
         with open(path, 'r') as fh:
-            return BuildJob.fromyaml(jobid, state, build_dir, fh)
+            return BuildForm.fromyaml(build_id, state, build_dir, fh)
 
-    def _load_job_state(self, _dir, jobid):
-        """Return (state, build_dir) for jobid in _dir."""
+    def _load_build_state(self, _dir, build_id):
+        """Return (state, build_dir) for build_id in _dir."""
 
-        # job in archives are finished
+        # builds in archives are finished
         if _dir == self.conf.dirs.archives:
-            build_dir = os.path.join(self.conf.dirs.archives, jobid)
+            build_dir = os.path.join(self.conf.dirs.archives, build_id)
             return ("finished", build_dir)
 
         # check presence of state file and set build_dir if present
         state = None
         build_dir = None
-        state_path = os.path.join(_dir, jobid, 'state')
+        state_path = os.path.join(_dir, build_id, 'state')
         if os.path.exists(state_path):
             state = "running"
             with open(state_path) as fh:
@@ -222,40 +223,39 @@ class JobManager(object):
 
         return (state, build_dir)
 
-    def _load_jobs(self):
-        _jobs = []
-        jobs_dirs = os.listdir(self.conf.dirs.queue)
-        for jobid in jobs_dirs:
-            (state, build_dir) = self._load_job_state(self.conf.dirs.queue, jobid)
-            yml_path = os.path.join(self.conf.dirs.queue, jobid, 'job.yml')
-            _jobs.append(self._load_from_yaml_path(jobid, state, build_dir, yml_path))
-         # Returns jobs sorted by submission timestamps
-        _jobs.sort(key=lambda job: job.submission)
-        return _jobs
+    def _load_forms(self):
+        _forms = []
+        for build_id in os.listdir(self.conf.dirs.queue):
+            (state, build_dir) = self._load_build_state(self.conf.dirs.queue, build_id)
+            yml_path = os.path.join(self.conf.dirs.queue, build_id, 'build.yml')
+            _forms.append(self._load_from_yaml_path(build_id, state, build_dir, yml_path))
+         # Returns build forms sorted by submission timestamps
+        _forms.sort(key=lambda build: build.submission)
+        return _forms
 
     def dump(self):
-        """Print about jobs in the queue."""
-        for job in self._load_jobs():
-            job.dump()
+        """Print all builds forms in the queue."""
+        for form in self._load_forms():
+            form.dump()
 
     def load(self):
-        return self._load_jobs()
+        return self._load_forms()
 
-    def get(self, jobid):
-        """Return the BuildJob with the jobid in argument, looking both in the
-           queue and in the archives."""
+    def get(self, build_id):
+        """Return the BuildForm with the build_id in argument, looking both in
+           the queue and in the archives."""
 
         state = None
         build_dir = None
-        if jobid in os.listdir(self.conf.dirs.queue):
-            logger.debug("Found job %s in queue" % (jobid))
-            (state, build_dir) = self._load_job_state(self.conf.dirs.queue, jobid)
-            yml_path = os.path.join(self.conf.dirs.queue, jobid, 'job.yml')
-        elif jobid in os.listdir(self.conf.dirs.archives):
-            logger.debug("Found job %s in archives" % (jobid))
-            (state, build_dir) = self._load_job_state(self.conf.dirs.archives, jobid)
-            yml_path = os.path.join(self.conf.dirs.archives, jobid, 'job.yml')
+        if build_id in os.listdir(self.conf.dirs.queue):
+            logger.debug("Found build %s in queue" % (build_id))
+            (state, build_dir) = self._load_build_state(self.conf.dirs.queue, build_id)
+            yml_path = os.path.join(self.conf.dirs.queue, build_id, 'build.yml')
+        elif build_id in os.listdir(self.conf.dirs.archives):
+            logger.debug("Found build %s in archives" % (build_id))
+            (state, build_dir) = self._load_build_state(self.conf.dirs.archives, build_id)
+            yml_path = os.path.join(self.conf.dirs.archives, build_id, 'build.yml')
         else:
-            raise RuntimeError("Unable to find job %s" % (jobid))
+            raise RuntimeError("Unable to find build %s" % (build_id))
 
-        return JobManager._load_from_yaml_path(jobid, state, build_dir, yml_path)
+        return QueueManager._load_from_yaml_path(build_id, state, build_dir, yml_path)

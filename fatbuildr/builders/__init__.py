@@ -38,28 +38,28 @@ logger = logging.getLogger(__name__)
 class BuilderArtefact(ArtefactDefs):
     """Generic parent class of all BuilderArtefact formats."""
 
-    def __init__(self, conf, job, registry):
-        super().__init__(job.build_dir, job.artefact, job.format)
+    def __init__(self, conf, form, registry):
+        super().__init__(form.build_dir, form.artefact, form.format)
         self.conf = conf
-        self.name = job.artefact
-        self.source = job.source
-        self.distribution = job.distribution
-        self.jobid = job.id
-        self.state = job.state
-        self.user = job.user
-        self.email = job.email
-        self.msg = job.message
-        self.tmpdir = job.build_dir
+        self.name = form.artefact
+        self.source = form.source
+        self.distribution = form.distribution
+        self.id = form.id
+        self.state = form.state
+        self.user = form.user
+        self.email = form.email
+        self.msg = form.message
+        self.tmpdir = form.build_dir
         self.logfile = os.path.join(self.tmpdir, 'build.log')
         self.cache = CacheArtefact(conf, self)
-        self.registry = registry(conf, job.distribution)
+        self.registry = registry(conf, form.distribution)
         self.container = ContainerRunner(conf.containers)
-        self.image = Image(conf, job.format)
-        self.env = BuildEnv(conf, self.image, job.environment)
+        self.image = Image(conf, form.format)
+        self.env = BuildEnv(conf, self.image, form.environment)
 
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""
-        logger.info("Running build for job %s" % (self.jobid))
+        logger.info("Running build %s" % (self.id))
 
         handler = logging.FileHandler(self.logfile)
         logging.getLogger().addHandler(handler)
@@ -69,7 +69,7 @@ class BuilderArtefact(ArtefactDefs):
             self.build()
             self.registry.publish(self)
         except RuntimeError as err:
-            logger.error("error during build of %s: %s" % (self.jobid, err))
+            logger.error("error during build of %s: %s" % (self.id, err))
             logger.info("Build failed")
         else:
             logger.info("Build succeeded")

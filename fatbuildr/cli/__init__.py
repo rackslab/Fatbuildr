@@ -28,7 +28,7 @@ from ..version import __version__
 from ..conf import RuntimeConfd, RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
-from ..jobs import JobManager
+from ..queue import QueueManager
 from ..builder import BuilderFactory
 from ..cleanup import CleanupRegistry
 
@@ -92,28 +92,28 @@ class Fatbuildrd(FatbuildrCliRun):
 
         self.conf.dump()
 
-    def load_job(self, job):
-        self.conf.run.instance = job.instance
+    def load_build_instance(self, form):
+        self.conf.run.instance = form.instance
 
     def _run(self):
         logger.debug("Running fatbuildrd")
-        mgr = JobManager(self.conf)
+        mgr = QueueManager(self.conf)
 
         while True:
-            jobs = mgr.load()
-            if not len(jobs):
-                logger.info("No job available in queue, leaving")
+            forms = mgr.load()
+            if not len(forms):
+                logger.info("No build available in queue, leaving")
                 sys.exit(0)
-            for job in jobs:
+            for form in forms:
                 try:
-                    logger.info("Processing job %s" % (job.id))
-                    self.load_job(job)
-                    mgr.pick(job)
-                    builder = BuilderFactory.builder(self.conf, job)
+                    logger.info("Processing build %s" % (form.id))
+                    self.load_build_instance(form)
+                    mgr.pick(form)
+                    builder = BuilderFactory.builder(self.conf, form)
                     builder.run()
-                    mgr.archive(job)
+                    mgr.archive(form)
                 except RuntimeError as err:
-                    logger.error("Error while processing job: %s" % (err))
+                    logger.error("Error while processing build: %s" % (err))
                     sys.exit(1)
 
 
@@ -148,24 +148,24 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_keyring.set_defaults(func=self._run_keyring)
 
         # create the parser for the build command
-        parser_build = subparsers.add_parser('build', help='Submit new build job')
+        parser_build = subparsers.add_parser('build', help='Submit new build')
         parser_build.add_argument('-a', '--artefact', help='Artefact name', required=True)
         parser_build.add_argument('-d', '--distribution', help='Distribution name', required=True)
         parser_build.add_argument('-b', '--basedir', help='Artefacts repository directory', required=True)
         parser_build.add_argument('-n', '--name', help='Maintainer name', required=True)
         parser_build.add_argument('-e', '--email', help='Maintainer email', required=True)
         parser_build.add_argument('-m', '--msg', help='Build log message')
-        parser_build.add_argument('-w', '--watch', action='store_true', help='Watch build log and wait job ends')
+        parser_build.add_argument('-w', '--watch', action='store_true', help='Watch build log and wait until its end')
         parser_build.set_defaults(func=self._run_build)
 
         # create the parser for the list command
-        parser_list = subparsers.add_parser('list', help='List build jobs')
-        parser_list.add_argument('-p', '--pending', help='List pending jobs')
+        parser_list = subparsers.add_parser('list', help='List builds')
+        parser_list.add_argument('-p', '--pending', help='List pending builds')
         parser_list.set_defaults(func=self._run_list)
 
         # create the parser for the watch command
-        parser_watch = subparsers.add_parser('watch', help='Watch build jobs')
-        parser_watch.add_argument('-j', '--job', help='Job to watch')
+        parser_watch = subparsers.add_parser('watch', help='Watch build')
+        parser_watch.add_argument('-b', '--build', help='ID of build to watch')
         parser_watch.set_defaults(func=self._run_watch)
 
         args = parser.parse_args()
@@ -232,7 +232,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             self.conf.run.watch = args.watch
 
         elif args.action == 'watch':
-            self.conf.run.job = args.job
+            self.conf.run.build = args.build
 
         self.conf.dump()
 
@@ -258,48 +258,48 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_build(self):
         logger.debug("running build for package: %s instance: %s" % (self.conf.run.artefact, self.conf.run.instance))
-        mgr = JobManager(self.conf)
+        mgr = QueueManager(self.conf)
         try:
-            jobid = mgr.submit()
+            build_id = mgr.submit()
         except RuntimeError as err:
-            logger.error("Error while submitting build job: %s" % (err))
+            logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)
         if self.conf.run.watch:
-            self._watch_job(jobid)
+            self._watch_build(build_id)
 
     def _run_list(self):
         logger.debug("running list")
-        mgr = JobManager(self.conf)
+        mgr = QueueManager(self.conf)
         try:
             mgr.dump()
         except RuntimeError as err:
-            logger.error("Error while listing jobs: %s" % (err))
+            logger.error("Error while listing builds: %s" % (err))
             sys.exit(1)
 
-    def _watch_job(self, jobid):
-        mgr = JobManager(self.conf)
+    def _watch_build(self, build_id):
+        mgr = QueueManager(self.conf)
 
         try:
-            job = mgr.get(jobid)
+            form = mgr.get(build_id)
         except RuntimeError as err:
             logger.error(err)
             sys.exit(1)
 
         warned_pending = False
-        # if job is pending, wait
-        while job.state == 'pending':
+        # if build is pending, wait
+        while form.state == 'pending':
             if not warned_pending:
-                logger.info("Job %s is pending, waiting for the job to start." % (job.id))
+                logger.info("Build %s is pending, waiting for the build to start." % (form.id))
                 warned_pending = True
             time.sleep(1)
-            # poll job state again
-            job = mgr.get(jobid)
+            # poll build state again
+            form = mgr.get(build_id)
 
-        if job.state in ['finished', 'running']:
-            build = BuilderFactory.builder(self.conf, job)
+        if form.state in ['finished', 'running']:
+            build = BuilderFactory.builder(self.conf, form)
             build.watch()
         else:
-            logger.error("Unexpected job state %s" % (job.state))
+            logger.error("Unexpected build state %s" % (form.state))
 
     def _run_watch(self):
-        self._watch_job(self.conf.run.job)
+        self._watch_build(self.conf.run.build)
