@@ -39,7 +39,7 @@ class ArtefactBuild(ArtefactDefs):
     """Generic parent class of all ArtefactBuild formats."""
 
     def __init__(self, conf, request, registry):
-        super().__init__(request.build_dir, request.form.artefact, request.form.format)
+        self.format = None  # abstract
         self.conf = conf
         self.request = request
         self.name = request.form.artefact
@@ -50,18 +50,30 @@ class ArtefactBuild(ArtefactDefs):
         self.user = request.form.user
         self.email = request.form.email
         self.msg = request.form.message
-        self.tmpdir = request.build_dir
-        self.logfile = os.path.join(self.tmpdir, 'build.log')
+        # If this ArtefactBuild is initialized from a BuildRequest loaded with
+        # a build_dir, use it. Otherwise, set it to None and it will
+        # initialized when needed in init_build_place().
+        self.place = request.build_dir or None
         self.cache = CacheArtefact(conf, self)
         self.registry = registry(conf, request.form.distribution)
         self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, request.form.format)
         self.env = BuildEnv(conf, self.image, request.form.environment)
+        self.defs = None  # loaded in init_build_place()
+
+    @property
+    def logfile(self):
+        if self.place is None:
+            return None
+        return os.path.join(self.place, 'build.log')
 
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""
         logger.info("Running build %s" % (self.id))
 
+        self.init_build_place()
+
+        # setup logger to use logfile
         handler = logging.FileHandler(self.logfile)
         logging.getLogger().addHandler(handler)
 
@@ -79,10 +91,11 @@ class ArtefactBuild(ArtefactDefs):
 
     def watch(self):
         """Watch build log file."""
+
         if self.state == 'finished':
             # dump full build log
-            log_path = os.path.join(self.tmpdir, 'build.log')
-            with open(log_path, 'r') as fh:
+            log_path = os.path.join(self.logfile)
+            with open(self.logfile, 'r') as fh:
                 while chunk := fh.read(8192):
                     try:
                         print(chunk, end='')
@@ -101,6 +114,27 @@ class ArtefactBuild(ArtefactDefs):
             except KeyboardInterrupt:
                 # Leave gracefully after a keyboard interrupt (eg. ^c)
                 logger.debug("Received keyboard interrupt, leaving.")
+
+    def init_build_place(self):
+
+        # create temporary build directory if not done yet
+        if self.place is None:
+            self.place = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
+            logger.debug("Created tmp directory %s" % (self.place))
+        elif not os.path.exists(self.place):
+            logger.warning("Build loaded with an unexisting build directory "
+                           "%s, creating a new one" % (self.place))
+            self.place = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
+        CleanupRegistry.add_tmpdir(self.place)
+
+        # create request state file and write the temporary build directory
+        self.request.save_state(self.place)
+
+        # extract artefact tarball
+        self.request.extract_tarball(self.place)
+
+        # load defs
+        super().__init__(self.place, self.name, self.format)
 
     @staticmethod
     def hasher(hash_format):
@@ -148,6 +182,6 @@ class ArtefactBuild(ArtefactDefs):
 
     def contruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
-        _binds = [self.tmpdir, self.cache.dir]
+        _binds = [self.place, self.cache.dir]
         self.container.run(self.image, cmd, **kwargs, binds=_binds,
                            logfile=self.logfile)

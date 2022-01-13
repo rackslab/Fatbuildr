@@ -34,6 +34,7 @@ class ArtefactBuildDeb(ArtefactBuild):
 
     def __init__(self, conf, request):
         super().__init__(conf, request, RegistryDeb)
+        self.format = 'deb'
 
     @property
     def tarball_ext(self):
@@ -56,21 +57,21 @@ class ArtefactBuildDeb(ArtefactBuild):
         logger.info("Building source Deb packages for %s in %s" \
                     % (self.name, self.env.name))
 
-        # extract tarball in tmpdir
+        # extract tarball in build place
         logger.debug("Extracting tarball %s in %s" \
                      % (self.cache.tarball_path,
-                        self.tmpdir))
+                        self.place))
         tar = tarfile.open(self.cache.tarball_path, 'r:' + self.tarball_ext)
         tarball_subdir_info = tar.getmembers()[0]
         if not tarball_subdir_info.isdir():
             raise RuntimeError("unable to define tarball %s subdirectory" \
                                % (self.cache.tarball_path))
-        tarball_subdir = os.path.join(self.tmpdir, tarball_subdir_info.name)
-        tar.extractall(path=self.tmpdir)
+        tarball_subdir = os.path.join(self.place, tarball_subdir_info.name)
+        tar.extractall(path=self.place)
         tar.close()
 
         # copy debian dir
-        deb_code_from = os.path.join(self.tmpdir, 'deb')
+        deb_code_from = os.path.join(self.place, 'deb')
         deb_code_to = os.path.join(tarball_subdir, 'debian')
         logger.debug("Copying debian packaging code from %s into %s" \
                      % (deb_code_from, deb_code_to))
@@ -86,7 +87,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         self.contruncmd(cmd, chdir=tarball_subdir, envs=_envs)
 
         # add symlink to tarball
-        orig_tarball_path = os.path.join(self.tmpdir,
+        orig_tarball_path = os.path.join(self.place,
             self.name + '_' + self.version + '.orig'
             + '.tar.' + self.tarball_ext)
         logger.debug("Creating symlink %s → %s" \
@@ -96,19 +97,19 @@ class ArtefactBuildDeb(ArtefactBuild):
         # build source package
         logger.info("Building source package")
         cmd = ['dpkg-source', '--build', tarball_subdir ]
-        self.contruncmd(cmd, chdir=self.tmpdir)
+        self.contruncmd(cmd, chdir=self.place)
 
     def _build_bin(self):
         """Build deb packages binary package."""
         logger.info("Building binary Deb packages for %s in %s" \
                     % (self.name, self.env.name))
-        dsc_path = os.path.join(self.tmpdir,
+        dsc_path = os.path.join(self.place,
                                 self.name + '_' + self.fullversion + '.dsc')
         cmd = ['cowbuilder',
                '--build',
                '--configfile', '/etc/fatbuildr/pbuilderrc',
                '--distribution', self.distribution,
                '--basepath', '/var/cache/pbuilder/' + self.distribution,
-               '--buildresult', self.tmpdir,
+               '--buildresult', self.place,
                dsc_path ]
         self.contruncmd(cmd)

@@ -111,7 +111,6 @@ class BuildRequest(object):
         else:
             self.form = BuildForm(*args)
 
-
     def dump(self):
         print("Build request %s" % (self.id))
         print("  state: %s" % (self.state))
@@ -130,11 +129,30 @@ class BuildRequest(object):
     def move_form(self, dest):
         self.form.move(self.place, dest)
 
-    def save_state(self):
+    def save_state(self, build_dir):
         state_path = os.path.join(self.place, 'state')
         logger.debug("Creating state file %s" % (state_path))
         with open(state_path, 'w+') as fh:
-            fh.write(self.build_dir)
+            fh.write(build_dir)
+
+    def prepare_tarball(self, basedir, dest):
+        # create an archive of artefact subdirectory
+        artefact_def_path = os.path.join(basedir, self.form.artefact)
+        if not os.path.exists(artefact_def_path):
+            raise RuntimeError("artefact definition directory %s does not exist" % (artefact_def_path))
+
+        tar_path = os.path.join(dest, 'artefact.tar.xz')
+        logger.debug("Creating archive %s with artefact definition directory %s" % (tar_path, artefact_def_path))
+        tar = tarfile.open(tar_path, 'x:xz')
+        tar.add(artefact_def_path, arcname='.', recursive=True)
+        tar.close()
+
+    def extract_tarball(self, dest):
+        tar_path = os.path.join(self.place, 'artefact.tar.xz')
+        logger.debug("Extracting tarball %s" % (tar_path))
+        tar = tarfile.open(tar_path, 'r:xz')
+        tar.extractall(path=dest)
+        tar.close()
 
     @classmethod
     def load(cls, place, build_id):
@@ -171,18 +189,6 @@ class QueueManager(object):
         # load pipelines defs to get dist→format/env mapping
         pipelines = PipelinesDefs(self.conf.run.basedir)
 
-        # create an archive of artefact subdirectory
-        artefact_def_path = os.path.join(self.conf.run.basedir,
-                                         self.conf.run.artefact)
-        if not os.path.exists(artefact_def_path):
-            raise RuntimeError("artefact definition directory %s does not exist" % (artefact_def_path))
-
-        tar_path = os.path.join(tmpdir, 'artefact.tar.xz')
-        logger.debug("Creating archive %s with artefact definition directory %s" % (tar_path, artefact_def_path))
-        tar = tarfile.open(tar_path, 'x:xz')
-        tar.add(artefact_def_path, arcname='.', recursive=True)
-        tar.close()
-
         # If the user did not provide a build  message, load the default
         # message from the pipelines definition.
         msg = self.conf.run.build_msg
@@ -210,6 +216,9 @@ class QueueManager(object):
         # save the request form in tmpdir
         request.form.save(tmpdir)
 
+        # prepare artefact tarball
+        request.prepare_tarball(self.conf.run.basedir, tmpdir)
+
         # move tmp build submission directory to request place in queue
         logger.debug("Moving tmp directory %s to %s" % (tmpdir, request.place))
         shutil.move(tmpdir, request.place)
@@ -224,32 +233,14 @@ class QueueManager(object):
 
         logger.info("Picking up build request %s from queue" % (request.id))
 
-        # create temporary build directory
-        build_dir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
-        CleanupRegistry.add_tmpdir(build_dir)
-        logger.debug("Created tmp directory %s" % (build_dir))
-
-        # attach the build directory to the build
-        request.build_dir = build_dir
-
-        # extract artefact tarball
-        tar_path = os.path.join(self.conf.dirs.queue, request.id, 'artefact.tar.xz')
-        logger.debug("Extracting tarball %s" % (tar_path))
-        tar = tarfile.open(tar_path, 'r:xz')
-        tar.extractall(path=build_dir)
-        tar.close()
-
-        # create build state file and write the temporary build directory
-        request.save_state()
-
         return request
 
     def archive(self, build):
 
         dest = os.path.join(self.conf.dirs.archives, build.id)
-        logger.info("Moving build directory %s to archives directory %s" % (build.tmpdir, dest))
-        shutil.move(build.tmpdir, dest)
-        CleanupRegistry.del_tmpdir(build.tmpdir)
+        logger.info("Moving build directory %s to archives directory %s" % (build.place, dest))
+        shutil.move(build.place, dest)
+        CleanupRegistry.del_tmpdir(build.place)
 
         build.request.move_form(dest)
 

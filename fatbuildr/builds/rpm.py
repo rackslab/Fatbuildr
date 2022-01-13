@@ -34,6 +34,7 @@ class ArtefactBuildRpm(ArtefactBuild):
 
     def __init__(self, conf, request):
         super().__init__(conf, request, RegistryRpm)
+        self.format = 'rpm'
         self.keyring = KeyringManager(conf)
         self.keyring.load()
 
@@ -52,7 +53,7 @@ class ArtefactBuildRpm(ArtefactBuild):
 
     @property
     def srpm_path(self):
-        return os.path.join(self.tmpdir, self.srpm_filename)
+        return os.path.join(self.place, self.srpm_filename)
 
     def build(self):
         self._build_src()
@@ -65,8 +66,8 @@ class ArtefactBuildRpm(ArtefactBuild):
                     % (self.name, self.env.name))
 
         # Generate spec file base on template
-        spec_tpl_path = os.path.join(self.tmpdir, 'rpm', self.spec_basename)
-        spec_path = os.path.join(self.tmpdir, self.spec_basename)
+        spec_tpl_path = os.path.join(self.place, 'rpm', self.spec_basename)
+        spec_path = os.path.join(self.place, self.spec_basename)
         logger.debug("Generate RPM spec file %s base on %s" \
                      % (spec_path, spec_tpl_path))
         with open(spec_path, 'w+') as fh:
@@ -78,7 +79,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         cmd = [ 'mock', '--root', self.env.name, '--buildsrpm',
                '--sources', self.cache.dir,
                '--spec', spec_path,
-               '--resultdir', self.tmpdir ]
+               '--resultdir', self.place ]
         self.contruncmd(cmd)
 
     def _build_bin(self):
@@ -88,7 +89,7 @@ class ArtefactBuildRpm(ArtefactBuild):
                     % (self.srpm_path, self.env.name))
 
         cmd = ['mock', '--root', self.env.name,
-               '--resultdir', self.tmpdir,
+               '--resultdir', self.place,
                '--rebuild', self.srpm_path ]
 
         # Add additional build args if defined
@@ -101,7 +102,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         self.keyring.load_agent()
 
         # sign all RPM packages, including SRPM
-        rpm_glob = os.path.join(self.tmpdir, '*.rpm')
+        rpm_glob = os.path.join(self.place, '*.rpm')
         for rpm_path in glob.glob(rpm_glob):
             logger.debug("Signing RPM %s with key %s" \
                          % (rpm_path, self.keyring.masterkey.fingerprint))

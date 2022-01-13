@@ -97,7 +97,7 @@ class RegistryDeb(Registry):
                                   build.distribution,
                                   build.fullversion))
 
-        changes_glob = os.path.join(build.tmpdir, '*.changes')
+        changes_glob = os.path.join(build.place, '*.changes')
         for changes_path in glob.glob(changes_glob):
             # Skip source changes, source package is published in repository as
             # part of binary changes.
@@ -139,7 +139,7 @@ class RegistryRpm(Registry):
 
         self._mk_missing_repo_dirs()
 
-        rpm_glob = os.path.join(build.tmpdir, '*.rpm')
+        rpm_glob = os.path.join(build.place, '*.rpm')
         for rpm_path in glob.glob(rpm_glob):
             logger.debug("Copying RPM %s to %s" % (rpm_path, self.pkg_dir))
             shutil.copy(rpm_path, self.pkg_dir)
