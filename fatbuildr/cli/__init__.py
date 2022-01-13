@@ -92,26 +92,26 @@ class Fatbuildrd(FatbuildrCliRun):
 
         self.conf.dump()
 
-    def load_build_instance(self, form):
-        self.conf.run.instance = form.instance
+    def load_build_instance(self, request):
+        self.conf.run.instance = request.form.instance
 
     def _run(self):
         logger.debug("Running fatbuildrd")
         mgr = QueueManager(self.conf)
 
         while True:
-            forms = mgr.load()
-            if not len(forms):
-                logger.info("No build available in queue, leaving")
+            requests = mgr.load()
+            if not len(requests):
+                logger.info("No build request available in queue, leaving")
                 sys.exit(0)
-            for form in forms:
+            for request in requests:
                 try:
-                    logger.info("Processing build %s" % (form.id))
-                    self.load_build_instance(form)
-                    mgr.pick(form)
-                    builder = BuilderFactory.builder(self.conf, form)
+                    logger.info("Processing build %s" % (request.id))
+                    self.load_build_instance(request)
+                    mgr.pick(request)
+                    builder = BuilderFactory.builder(self.conf, request)
                     builder.run()
-                    mgr.archive(form)
+                    mgr.archive(builder)
                 except RuntimeError as err:
                     logger.error("Error while processing build: %s" % (err))
                     sys.exit(1)
@@ -280,26 +280,25 @@ class Fatbuildrctl(FatbuildrCliRun):
         mgr = QueueManager(self.conf)
 
         try:
-            form = mgr.get(build_id)
+            build = mgr.get(build_id)
         except RuntimeError as err:
             logger.error(err)
             sys.exit(1)
 
         warned_pending = False
         # if build is pending, wait
-        while form.state == 'pending':
+        while build.state == 'pending':
             if not warned_pending:
-                logger.info("Build %s is pending, waiting for the build to start." % (form.id))
+                logger.info("Build %s is pending, waiting for the build to start." % (build.id))
                 warned_pending = True
             time.sleep(1)
             # poll build state again
-            form = mgr.get(build_id)
+            build = mgr.get(build_id)
 
-        if form.state in ['finished', 'running']:
-            build = BuilderFactory.builder(self.conf, form)
-            build.watch()
+        if build.state in ['finished', 'running']:
+            BuilderFactory.builder(self.conf, build).watch()
         else:
-            logger.error("Unexpected build state %s" % (form.state))
+            logger.error("Unexpected build state %s" % (build.state))
 
     def _run_watch(self):
         self._watch_build(self.conf.run.build)

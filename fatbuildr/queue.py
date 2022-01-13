@@ -34,10 +34,7 @@ logger = logging.getLogger(__name__)
 
 class BuildForm(object):
 
-    def __init__(self, source, user, email, instance, distribution, environment, fmt, artefact, submission, message, id=str(uuid.uuid4()), state='pending', build_dir=None):
-        self.id = id
-        self.state = state
-        self.build_dir = build_dir
+    def __init__(self, source, user, email, instance, distribution, environment, fmt, artefact, submission, message):
         self.source = source
         self.user = user
         self.email = email
@@ -63,25 +60,22 @@ class BuildForm(object):
             'message': self.message
         }
 
-    def dump(self):
-        print("Build %s" % (self.id))
-        print("  state: %s" % (self.state))
-        print("  build_dir: %s" % (self.build_dir))
-        print("  source: %s" % (self.source))
-        print("  source: %s" % (self.source))
-        print("  user: %s" % (self.user))
-        print("  email: %s" % (self.email))
-        print("  instance: %s" % (self.instance))
-        print("  distribution: %s" % (self.distribution))
-        print("  environment: %s" % (self.environment))
-        print("  format: %s" % (self.format))
-        print("  artefact: %s" % (self.artefact))
-        print("  submission: %s" % (self.submission.isoformat(sep=' ',timespec='seconds')))
-        print("  message: %s" % (self.message))
+    def save(self, path):
+        yml_path = os.path.join(path, 'build.yml')
+        logger.debug("Creating YAML build form file %s" % (yml_path))
+        with open(yml_path, 'w+') as fh:
+            yaml.dump(self.todict(), fh)
+
+    def move(self, src, dest):
+        yml_path = os.path.join(src, 'build.yml')
+        logger.debug("Moving YAML build form file %s to directory %s" % (yml_path, dest))
+        shutil.move(yml_path, dest)
 
     @classmethod
-    def fromyaml(cls, id, state, build_dir, stream):
-        description = yaml.load(stream, Loader=yaml.FullLoader)
+    def load(cls, path):
+        yml_path = os.path.join(path, 'build.yml')
+        with open(yml_path, 'r') as fh:
+            description = yaml.load(fh, Loader=yaml.FullLoader)
         return cls(description['source'],
                    description['user'],
                    description['email'],
@@ -91,10 +85,71 @@ class BuildForm(object):
                    description['format'],
                    description['artefact'],
                    datetime.fromtimestamp(description['submission']),
-                   description['message'],
-                   id=id,
-                   state=state,
-                   build_dir=build_dir)
+                   description['message'])
+
+
+class BuildArchive(object):
+
+    def __init__(self, place, build_id):
+        self.form = BuildForm.load(place)
+        self.id = build_id
+        self.state = 'finished'
+        self.build_dir = place
+
+
+class BuildRequest(object):
+
+    def __init__(self, place, build_id, state, build_dir, *args):
+
+        self.place = place
+        self.id = build_id
+        self.state = state
+        self.build_dir = build_dir
+
+        if isinstance(args[0], BuildForm):
+            self.form = args[0]
+        else:
+            self.form = BuildForm(*args)
+
+
+    def dump(self):
+        print("Build request %s" % (self.id))
+        print("  state: %s" % (self.state))
+        print("  build_dir: %s" % (self.build_dir))
+        print("  source: %s" % (self.form.source))
+        print("  user: %s" % (self.form.user))
+        print("  email: %s" % (self.form.email))
+        print("  instance: %s" % (self.form.instance))
+        print("  distribution: %s" % (self.form.distribution))
+        print("  environment: %s" % (self.form.environment))
+        print("  format: %s" % (self.form.format))
+        print("  artefact: %s" % (self.form.artefact))
+        print("  submission: %s" % (self.form.submission.isoformat(sep=' ',timespec='seconds')))
+        print("  message: %s" % (self.form.message))
+
+    def move_form(self, dest):
+        self.form.move(self.place, dest)
+
+    def save_state(self):
+        state_path = os.path.join(self.place, 'state')
+        logger.debug("Creating state file %s" % (state_path))
+        with open(state_path, 'w+') as fh:
+            fh.write(self.build_dir)
+
+    @classmethod
+    def load(cls, place, build_id):
+        """Return a BuilderRequest loaded from place"""
+
+        state_path = os.path.join(place, 'state')
+        if os.path.exists(state_path):
+            state = "running"
+            with open(state_path) as fh:
+                build_dir = fh.read()
+        else:
+            state = "pending"
+            build_dir = None
+
+        return cls(place, build_id, state, build_dir, BuildForm.load(place))
 
 
 class QueueManager(object):
@@ -130,35 +185,38 @@ class QueueManager(object):
         if msg is None:
             msg = pipelines.msg
 
-        # create yaml build form
-        form = BuildForm(pipelines.name,
-                         self.conf.run.user_name,
-                         self.conf.run.user_email,
-                         self.conf.run.instance,
-                         self.conf.run.distribution,
-                         pipelines.dist_env(self.conf.run.distribution),
-                         pipelines.dist_format(self.conf.run.distribution),
-                         self.conf.run.artefact,
-                         datetime.now(),
-                         msg)
+        build_id = str(uuid.uuid4())  # generate build id
 
-        yml_path = os.path.join(tmpdir, 'build.yml')
-        logger.debug("Creating YAML build form file %s" % (yml_path))
-        with open(yml_path, 'w+') as fh:
-            yaml.dump(form.todict(), fh)
+        # create build request
+        request = BuildRequest(os.path.join(self.conf.dirs.queue, build_id),
+                               build_id,
+                               'pending',  # initial state
+                               None,  # initial build_dir
+                               pipelines.name,
+                               self.conf.run.user_name,
+                               self.conf.run.user_email,
+                               self.conf.run.instance,
+                               self.conf.run.distribution,
+                               pipelines.dist_env(self.conf.run.distribution),
+                               pipelines.dist_format(self.conf.run.distribution),
+                               self.conf.run.artefact,
+                               datetime.now(),
+                               msg)
 
-        # move tmp build submission directory in queue
-        dest = os.path.join(self.conf.dirs.queue, form.id)
-        logger.debug("Moving tmp directory %s to %s" % (tmpdir, dest))
-        shutil.move(tmpdir, dest)
+        # save the request form in tmpdir
+        request.form.save(tmpdir)
+
+        # move tmp build submission directory to request place in queue
+        logger.debug("Moving tmp directory %s to %s" % (tmpdir, request.place))
+        shutil.move(tmpdir, request.place)
         CleanupRegistry.del_tmpdir(tmpdir)
-        logger.info("Build build %s submited" % (form.id))
+        logger.info("Build build %s submitted" % (request.id))
 
-        return form.id
+        return request.id
 
-    def pick(self, form):
+    def pick(self, request):
 
-        logger.info("Picking up build %s from queue" % (form.id))
+        logger.info("Picking up build request %s from queue" % (request.id))
 
         # create temporary build directory
         build_dir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
@@ -166,96 +224,59 @@ class QueueManager(object):
         logger.debug("Created tmp directory %s" % (build_dir))
 
         # attach the build directory to the build
-        form.build_dir = build_dir
+        request.build_dir = build_dir
 
         # extract artefact tarball
-        tar_path = os.path.join(self.conf.dirs.queue, form.id, 'artefact.tar.xz')
+        tar_path = os.path.join(self.conf.dirs.queue, request.id, 'artefact.tar.xz')
         logger.debug("Extracting tarball %s" % (tar_path))
         tar = tarfile.open(tar_path, 'r:xz')
         tar.extractall(path=build_dir)
         tar.close()
 
         # create build state file and write the temporary build directory
-        state_path = os.path.join(self.conf.dirs.queue, form.id, 'state')
-        logger.debug("Creating state file %s" % (state_path))
-        with open(state_path, 'w+') as fh:
-            fh.write(build_dir)
+        request.save_state()
 
-    def archive(self, form):
+    def archive(self, build):
 
-        dest = os.path.join(self.conf.dirs.archives, form.id)
-        logger.info("Moving build directory %s to archives directory %s" % (form.build_dir, dest))
-        shutil.move(form.build_dir, dest)
-        CleanupRegistry.del_tmpdir(form.build_dir)
+        dest = os.path.join(self.conf.dirs.archives, build.id)
+        logger.info("Moving build directory %s to archives directory %s" % (build.tmpdir, dest))
+        shutil.move(build.tmpdir, dest)
+        CleanupRegistry.del_tmpdir(build.tmpdir)
 
-        build_dir = os.path.join(self.conf.dirs.queue, form.id)
-        yml_path = os.path.join(build_dir, 'build.yml')
-        logger.info("Moving YAML build description file %s to archives directory %s" % (yml_path, dest))
-        shutil.move(yml_path, dest)
+        build.request.move_form(dest)
 
-        logger.info("Removing build %s from queue" % (form.id))
-        shutil.rmtree(build_dir)
+        logger.info("Removing build request %s from queue" % (build.id))
+        shutil.rmtree(build.request.place)
 
-    @staticmethod
-    def _load_from_yaml_path(build_id, state, build_dir, path):
-        with open(path, 'r') as fh:
-            return BuildForm.fromyaml(build_id, state, build_dir, fh)
-
-    def _load_build_state(self, _dir, build_id):
-        """Return (state, build_dir) for build_id in _dir."""
-
-        # builds in archives are finished
-        if _dir == self.conf.dirs.archives:
-            build_dir = os.path.join(self.conf.dirs.archives, build_id)
-            return ("finished", build_dir)
-
-        # check presence of state file and set build_dir if present
-        state = None
-        build_dir = None
-        state_path = os.path.join(_dir, build_id, 'state')
-        if os.path.exists(state_path):
-            state = "running"
-            with open(state_path) as fh:
-                build_dir = fh.read()
-        else:
-            state = "pending"
-            build_dir = None
-
-        return (state, build_dir)
-
-    def _load_forms(self):
-        _forms = []
+    def _load_requests(self):
+        _requests = []
         for build_id in os.listdir(self.conf.dirs.queue):
-            (state, build_dir) = self._load_build_state(self.conf.dirs.queue, build_id)
-            yml_path = os.path.join(self.conf.dirs.queue, build_id, 'build.yml')
-            _forms.append(self._load_from_yaml_path(build_id, state, build_dir, yml_path))
-         # Returns build forms sorted by submission timestamps
-        _forms.sort(key=lambda build: build.submission)
-        return _forms
+            request = BuildRequest.load(os.path.join(self.conf.dirs.queue, build_id), build_id)
+            _requests.append(request)
+         # Returns build requests sorted by submission timestamps
+        _requests.sort(key=lambda build: build.form.submission)
+        return _requests
 
     def dump(self):
-        """Print all builds forms in the queue."""
-        for form in self._load_forms():
-            form.dump()
+        """Print all builds requests in the queue."""
+        for request in self._load_requests():
+            request.dump()
 
     def load(self):
-        return self._load_forms()
+        return self._load_requests()
 
     def get(self, build_id):
-        """Return the BuildForm with the build_id in argument, looking both in
-           the queue and in the archives."""
+        """Return the BuildRequest or the BuildArchive with the build_id in
+           argument, looking both in the queue and in the archives."""
 
-        state = None
-        build_dir = None
+        build = None
         if build_id in os.listdir(self.conf.dirs.queue):
             logger.debug("Found build %s in queue" % (build_id))
-            (state, build_dir) = self._load_build_state(self.conf.dirs.queue, build_id)
-            yml_path = os.path.join(self.conf.dirs.queue, build_id, 'build.yml')
+            build = BuildRequest.load(os.path.join(self.conf.dirs.queue, build_id), build_id)
         elif build_id in os.listdir(self.conf.dirs.archives):
             logger.debug("Found build %s in archives" % (build_id))
-            (state, build_dir) = self._load_build_state(self.conf.dirs.archives, build_id)
-            yml_path = os.path.join(self.conf.dirs.archives, build_id, 'build.yml')
+            build = BuildArchive(os.path.join(self.conf.dirs.archives, build_id), build_id)
         else:
             raise RuntimeError("Unable to find build %s" % (build_id))
 
-        return QueueManager._load_from_yaml_path(build_id, state, build_dir, yml_path)
+        return build

@@ -38,24 +38,25 @@ logger = logging.getLogger(__name__)
 class BuilderArtefact(ArtefactDefs):
     """Generic parent class of all BuilderArtefact formats."""
 
-    def __init__(self, conf, form, registry):
-        super().__init__(form.build_dir, form.artefact, form.format)
+    def __init__(self, conf, request, registry):
+        super().__init__(request.build_dir, request.form.artefact, request.form.format)
         self.conf = conf
-        self.name = form.artefact
-        self.source = form.source
-        self.distribution = form.distribution
-        self.id = form.id
-        self.state = form.state
-        self.user = form.user
-        self.email = form.email
-        self.msg = form.message
-        self.tmpdir = form.build_dir
+        self.request = request
+        self.name = request.form.artefact
+        self.source = request.form.source
+        self.distribution = request.form.distribution
+        self.id = request.id
+        self.state = request.state
+        self.user = request.form.user
+        self.email = request.form.email
+        self.msg = request.form.message
+        self.tmpdir = request.build_dir
         self.logfile = os.path.join(self.tmpdir, 'build.log')
         self.cache = CacheArtefact(conf, self)
-        self.registry = registry(conf, form.distribution)
+        self.registry = registry(conf, request.form.distribution)
         self.container = ContainerRunner(conf.containers)
-        self.image = Image(conf, form.format)
-        self.env = BuildEnv(conf, self.image, form.environment)
+        self.image = Image(conf, request.form.format)
+        self.env = BuildEnv(conf, self.image, request.form.environment)
 
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""

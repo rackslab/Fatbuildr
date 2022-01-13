@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 class BuilderArtefactRpm(BuilderArtefact):
     """Class to manipulation package in RPM format."""
 
-    def __init__(self, conf, form):
-        super().__init__(conf, form, RegistryRpm)
+    def __init__(self, conf, request):
+        super().__init__(conf, request, RegistryRpm)
         self.keyring = KeyringManager(conf)
         self.keyring.load()
 
