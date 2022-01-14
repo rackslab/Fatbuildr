@@ -29,6 +29,7 @@ from ..conf import RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
 from ..builds.manager import BuildsManager
+from ..log import TTYFormatter
 
 logger = logging.getLogger(__name__)
 
@@ -90,18 +91,27 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         args = parser.parse_args()
 
-        # setup logger
-        if args.debug:
-            logging_level = logging.DEBUG
-        else:
-            logging_level = logging.INFO
-        logging.basicConfig(level=logging_level)
+        Fatbuildrctl.setup_logger(args.debug)
 
         self.conf = RuntimeConfCtl()
         self.load(args)
 
         # run the method corresponding to the provided action
         args.func()
+
+    @staticmethod
+    def setup_logger(debug):
+        if debug:
+            logging_level = logging.DEBUG
+        else:
+            logging_level = logging.INFO
+        _root_logger = logging.getLogger()
+        _root_logger.setLevel(logging_level)
+        handler = logging.StreamHandler()
+        handler.setLevel(logging_level)
+        formatter = TTYFormatter(debug)
+        handler.setFormatter(formatter)
+        _root_logger.addHandler(handler)
 
     def load(self, args):
         super().load()
