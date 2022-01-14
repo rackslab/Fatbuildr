@@ -165,10 +165,10 @@ class KeyringMasterKey(KeyringKey):
 
 class KeyringManager(object):
 
-    def __init__(self, conf):
+    def __init__(self, conf, instance):
 
         self.conf = conf
-        self.homedir = os.path.join(self.conf.keyring.storage, self.conf.run.instance)
+        self.homedir = os.path.join(self.conf.keyring.storage, instance)
         self.passphrase_path = os.path.join(self.homedir, 'passphrase')
         self.algorithm = self.conf.keyring.type+str(self.conf.keyring.size)
         if type(self.conf.keyring.expires) is bool:

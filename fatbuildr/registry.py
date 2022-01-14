@@ -32,9 +32,9 @@ logger = logging.getLogger(__name__)
 class Registry(object):
     """Abstract Registry class, parent of all specific Registry classes."""
 
-    def __init__(self, conf, distribution):
+    def __init__(self, conf, instance, distribution):
         self.conf = conf
-        self.instance_dir = os.path.join(conf.dirs.repos, conf.run.instance)
+        self.instance_dir = os.path.join(conf.dirs.repos, instance)
         self.distribution = distribution
 
     def publish(self, build):
@@ -44,9 +44,9 @@ class Registry(object):
 class RegistryDeb(Registry):
     """Registry for Deb format (aka. APT repository)."""
 
-    def __init__(self, conf, distribution):
-        super().__init__(conf, distribution)
-        self.keyring = KeyringManager(conf)
+    def __init__(self, conf, instance, distribution):
+        super().__init__(conf, instance, distribution)
+        self.keyring = KeyringManager(conf, instance)
         self.keyring.load()
 
     @property
@@ -112,8 +112,8 @@ class RegistryDeb(Registry):
 class RegistryRpm(Registry):
     """Registry for Rpm format (aka. yum/dnf repository)."""
 
-    def __init__(self, conf, distribution):
-        super().__init__(conf, distribution)
+    def __init__(self, conf, instance, distribution):
+        super().__init__(conf, instance, distribution)
 
     @property
     def path(self):

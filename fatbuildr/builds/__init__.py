@@ -164,10 +164,10 @@ class ArtefactBuild(AbstractBuild):
         self.name = form.artefact
         self.id = build_id
         self.place = os.path.join(self.conf.dirs.build, self.id)
-        self.cache = CacheArtefact(conf, self)
-        self.registry = registry(conf, self.distribution)
+        self.cache = CacheArtefact(conf, self.instance, self)
+        self.registry = registry(conf, self.instance, self.distribution)
         self.container = ContainerRunner(conf.containers)
-        self.image = Image(conf, self.format)
+        self.image = Image(conf, self.instance, self.format)
         self.env = BuildEnv(conf, self.image, self.environment)
         self.defs = None  # loaded in prepare()
 

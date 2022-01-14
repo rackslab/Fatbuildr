@@ -178,8 +178,11 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         self.conf.run.action = args.action
 
-        if args.instance is not None:
-            self.conf.run.instance = args.instance
+        # select the default instance from conf if not given in args
+        if args.instance is None:
+            self.instance = self.conf.run.default_instance
+        else:
+            self.instance = args.instance
 
         if args.action == 'images':
             if args.create is True:
@@ -228,7 +231,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_images(self):
         logger.debug("running images operation: %s" % (self.conf.run.operation))
-        mgr = ImagesManager(self.conf)
+        mgr = ImagesManager(self.conf, self.instance)
         if self.conf.run.operation == 'create':
             mgr.create()
         elif self.conf.run.operation == 'update':
@@ -240,17 +243,17 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_keyring(self):
         logger.debug("running keyring operation: %s" % (self.conf.run.operation))
-        mgr = KeyringManager(self.conf)
+        mgr = KeyringManager(self.conf, self.instance)
         if self.conf.run.operation == 'create':
             mgr.create()
         elif self.conf.run.operation == 'show':
             mgr.show()
 
     def _run_build(self):
-        logger.debug("running build for package: %s instance: %s" % (self.conf.run.artefact, self.conf.run.instance))
+        logger.debug("running build for package: %s instance: %s" % (self.conf.run.artefact, self.instance))
         mgr = BuildsManager(self.conf)
         try:
-            build_id = mgr.submit()
+            build_id = mgr.submit(self.instance)
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)

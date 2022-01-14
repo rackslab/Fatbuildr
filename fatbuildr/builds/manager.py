@@ -42,7 +42,7 @@ class BuildsManager(object):
     def empty(self):
         return len(os.listdir(self.conf.dirs.queue)) == 0
 
-    def submit(self):
+    def submit(self, instance):
         # create tmp submission directory
         tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
         CleanupRegistry.add_tmpdir(tmpdir)
@@ -65,7 +65,7 @@ class BuildsManager(object):
                                pipelines.name,
                                self.conf.run.user_name,
                                self.conf.run.user_email,
-                               self.conf.run.instance,
+                               instance,
                                self.conf.run.distribution,
                                pipelines.dist_env(self.conf.run.distribution),
                                pipelines.dist_format(self.conf.run.distribution),
@@ -91,8 +91,6 @@ class BuildsManager(object):
 
         request = self._load_queue()[0]
         logger.info("Picking up build request %s from queue" % (request.id))
-        # set the request instance in the runtime conf
-        self.conf.run.instance = request.instance
         # transition the request to an artefact build
         build = BuildFactory.generate(self.conf, request)
         # remove request from queue

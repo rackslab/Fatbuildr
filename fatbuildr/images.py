@@ -31,10 +31,10 @@ logger = logging.getLogger(__name__)
 
 class Image(object):
 
-    def __init__(self, conf, fmt):
+    def __init__(self, conf, instance, fmt):
         self.conf = conf
         self.format = fmt
-        self.path = os.path.join(conf.images.storage, conf.run.instance, self.format + '.img')
+        self.path = os.path.join(conf.images.storage, instance, self.format + '.img')
         self.def_path = os.path.join(conf.images.defs, self.format + '.mkosi')
 
     @property
@@ -101,8 +101,9 @@ class BuildEnv(object):
 
 class ImagesManager(object):
 
-    def __init__(self, conf):
+    def __init__(self, conf, instance):
         self.conf = conf
+        self.instance = instance
 
     def create(self):
         if not os.path.exists(self.conf.images.storage):
@@ -111,7 +112,7 @@ class ImagesManager(object):
 
         for _format in self.conf.images.formats:
 
-            img = Image(self.conf, _format)
+            img = Image(self.conf, self.instance, _format)
 
             if img.exists and not self.conf.run.force:
                 logger.error("Image %s already exists, use --force to ignore" % (img.def_path))
@@ -129,7 +130,7 @@ class ImagesManager(object):
     def update(self):
 
         for _format in self.conf.images.formats:
-            img = Image(self.conf, _format)
+            img = Image(self.conf, self.instance, _format)
             if not img.exists:
                 logger.warning("Image %s does not exist, create it first" % (img.path))
                 continue
@@ -146,7 +147,7 @@ class ImagesManager(object):
         pipelines = PipelinesDefs(self.conf.run.basedir)
 
         for _format in self.conf.images.formats:
-            img = Image(self.conf, _format)
+            img = Image(self.conf, self.instance, _format)
             for _dist in pipelines.format_dists(_format):
                 env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
                 env.create()
@@ -158,7 +159,7 @@ class ImagesManager(object):
         pipelines = PipelinesDefs(self.conf.run.basedir)
 
         for _format in self.conf.images.formats:
-            img = Image(self.conf, _format)
+            img = Image(self.conf, self.instance, _format)
             for _dist in pipelines.format_dists(_format):
                 env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
 

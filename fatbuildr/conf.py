@@ -216,7 +216,7 @@ class RuntimeConfApp(object):
     """Runtime sub-configuration class common to all Fatbuildr applications."""
 
     def __init__(self):
-        self.instance = None
+        pass
 
 
 class RuntimeSubConfCtl(RuntimeConfApp):
@@ -224,6 +224,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
 
     def __init__(self):
         super().__init__()
+        self.default_instance = None
         self.action = None
         # parameters for image action
         self.operation = None
@@ -239,11 +240,11 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         self.build = None
 
     def load(self, config):
-       self.instance = config.get('run', 'default_instance')
+       self.default_instance = config.get('run', 'default_instance')
 
     def dump(self):
         logger.debug("[run]")
-        logger.debug("  instance: %s" % (self.instance))
+        logger.debug("  default_instance: %s" % (self.default_instance))
         logger.debug("  action: %s" % (self.action))
         logger.debug("  operation: %s" % (self.operation))
         logger.debug("  force: %s" % (self.force))
@@ -268,7 +269,6 @@ class RuntimeSubConfd(RuntimeConfApp):
 
     def dump(self):
         logger.debug("[daemon]")
-        logger.debug("  instance: %s" % (self.instance))
         logger.debug("  debug: %s" % (self.debug))
 
 

@@ -25,8 +25,8 @@ logger = logging.getLogger(__name__)
 
 class CacheArtefact(object):
 
-    def __init__(self, conf, artefact):
-        self.instance_dir = os.path.join(conf.dirs.cache, conf.run.instance)
+    def __init__(self, conf, instance, artefact):
+        self.instance_dir = os.path.join(conf.dirs.cache, instance)
         self.dir = os.path.join(self.instance_dir, artefact.name)
         self.artefact = artefact
 
