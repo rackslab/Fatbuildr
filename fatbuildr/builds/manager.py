@@ -97,9 +97,14 @@ class BuildsManager(object):
         request = self._load_queue()[0]
         logger.info("Picking up build request %s from queue" % (request.id))
         # transition the request to an artefact build
-        build = BuildFactory.generate(self.conf, request)
-        # remove request from queue
-        self.remove(request)
+        build = None
+        try:
+            build = BuildFactory.generate(self.conf, request)
+        except RuntimeError as err:
+            logger.error("unable to generate build from request %s: %s" % (request.id, err))
+        finally:
+            # remove request from queue
+            self.remove(request)
         return build
 
     def remove(self, request):

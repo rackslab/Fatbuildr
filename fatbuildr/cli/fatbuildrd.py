@@ -69,9 +69,10 @@ class Fatbuildrd(FatbuildrCliRun):
             try:
                 # pick the first request in queue
                 build = mgr.pick()
-                build.run()
-                mgr.archive(build)
-            except SystemError as err:
+                if build:
+                    build.run()
+                    mgr.archive(build)
+            except RuntimeError as err:
                 logger.error("Error while processing build: %s" % (err))
                 sys.exit(1)
         logger.info("No build request available in queue, leaving")
