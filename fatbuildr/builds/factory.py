@@ -33,9 +33,9 @@ class BuildFactory(object):
     @staticmethod
     def generate(conf, request):
         """Generate a BuildArtefact from a new request."""
-        if not request.form.format in BuildFactory._formats:
-            raise RuntimeError("format %s unsupported by builders" % (request.form.format))
-        return BuildFactory._formats[request.form.format].load_from_request(conf, request)
+        if not request.format in BuildFactory._formats:
+            raise RuntimeError("format %s unsupported by builders" % (request.format))
+        return BuildFactory._formats[request.format].load_from_request(conf, request)
 
     @staticmethod
     def load(conf, place, build_id):

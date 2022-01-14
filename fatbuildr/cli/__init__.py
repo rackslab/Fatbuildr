@@ -102,8 +102,8 @@ class Fatbuildrd(FatbuildrCliRun):
                 request = mgr.pick()
                 logger.info("Processing build %s" % (request.id))
                 # set the request instance in the runtime conf
-                self.conf.run.instance = request.form.instance
-                # instanciate the build for this request
+                self.conf.run.instance = request.instance
+                # transition the request to an artefact build
                 build = BuildFactory.generate(self.conf, request)
                 # remove request from queue
                 mgr.remove(request)
