@@ -28,7 +28,7 @@ from ..version import __version__
 from ..conf import RuntimeConfd, RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
-from ..queue import QueueManager
+from ..builds.manager import BuildsManager
 from ..builds.factory import BuildFactory
 from ..cleanup import CleanupRegistry
 
@@ -94,7 +94,7 @@ class Fatbuildrd(FatbuildrCliRun):
 
     def _run(self):
         logger.debug("Running fatbuildrd")
-        mgr = QueueManager(self.conf)
+        mgr = BuildsManager(self.conf)
 
         while not mgr.empty:
             try:
@@ -256,7 +256,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_build(self):
         logger.debug("running build for package: %s instance: %s" % (self.conf.run.artefact, self.conf.run.instance))
-        mgr = QueueManager(self.conf)
+        mgr = BuildsManager(self.conf)
         try:
             build_id = mgr.submit()
         except RuntimeError as err:
@@ -267,7 +267,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_list(self):
         logger.debug("running list")
-        mgr = QueueManager(self.conf)
+        mgr = BuildsManager(self.conf)
         try:
             mgr.dump()
         except RuntimeError as err:
@@ -275,7 +275,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             sys.exit(1)
 
     def _watch_build(self, build_id):
-        mgr = QueueManager(self.conf)
+        mgr = BuildsManager(self.conf)
 
         try:
             build = mgr.get(build_id)

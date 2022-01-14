@@ -24,16 +24,16 @@ import shutil
 from datetime import datetime
 import logging
 
-from .pipelines import PipelinesDefs
-from .cleanup import CleanupRegistry
-from .builds import BuildRequest, BuildArchive
-from .builds.factory import BuildFactory
+from ..pipelines import PipelinesDefs
+from ..cleanup import CleanupRegistry
+from . import BuildRequest, BuildArchive
+from .factory import BuildFactory
 
 logger = logging.getLogger(__name__)
 
 
-class QueueManager(object):
-    """Manage the queue of pending builds."""
+class BuildsManager(object):
+    """Manage the various builds."""
 
     def __init__(self, conf):
         self.conf = conf
