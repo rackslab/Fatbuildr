@@ -42,6 +42,11 @@ class BuildsManager(object):
     def empty(self):
         return len(os.listdir(self.conf.dirs.queue)) == 0
 
+    def clear_orphaned(self):
+        for build in self._load_builds():
+            logger.warning("Clearing orphaned build %s" % (build.id))
+            self.archive(build)
+
     def submit(self, instance):
         # create tmp submission directory
         tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)

@@ -95,6 +95,8 @@ class Fatbuildrd(FatbuildrCliRun):
         logger.debug("Running fatbuildrd")
         mgr = BuildsManager(self.conf)
 
+        mgr.clear_orphaned()
+
         while not mgr.empty:
             try:
                 # pick the first request in queue
