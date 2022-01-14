@@ -21,10 +21,10 @@ import os
 import glob
 import logging
 
-from . import ArtefactBuild
-from ..registry import RegistryRpm
-from ..keyring import KeyringManager
-from ..templates import Templeter
+from .. import ArtefactBuild
+from ...registry import RegistryRpm
+from ...keyring import KeyringManager
+from ...templates import Templeter
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 class ArtefactBuildRpm(ArtefactBuild):
     """Class to manipulation package in RPM format."""
 
-    def __init__(self, conf, request):
-        super().__init__(conf, request, RegistryRpm)
+    def __init__(self, conf, build_id, form):
+        super().__init__(conf, build_id, form, RegistryRpm)
         self.format = 'rpm'
         self.keyring = KeyringManager(conf)
         self.keyring.load()

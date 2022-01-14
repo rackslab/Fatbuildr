@@ -22,6 +22,7 @@ import tempfile
 import hashlib
 import shutil
 import subprocess
+import tarfile
 import logging
 
 import requests
@@ -31,35 +32,31 @@ from ..pipelines import ArtefactDefs
 from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
+from .form import BuildForm
 
 logger = logging.getLogger(__name__)
 
 
-class ArtefactBuild(ArtefactDefs):
-    """Generic parent class of all ArtefactBuild formats."""
+class AbstractBuild():
 
-    def __init__(self, conf, request, registry):
-        self.format = None  # abstract
-        self.conf = conf
-        self.request = request
-        self.name = request.form.artefact
-        self.source = request.form.source
-        self.distribution = request.form.distribution
-        self.id = request.id
-        self.state = request.state
-        self.user = request.form.user
-        self.email = request.form.email
-        self.msg = request.form.message
-        # If this ArtefactBuild is initialized from a BuildRequest loaded with
-        # a build_dir, use it. Otherwise, set it to None and it will
-        # initialized when needed in init_build_place().
-        self.place = request.build_dir or None
-        self.cache = CacheArtefact(conf, self)
-        self.registry = registry(conf, request.form.distribution)
-        self.container = ContainerRunner(conf.containers)
-        self.image = Image(conf, request.form.format)
-        self.env = BuildEnv(conf, self.image, request.form.environment)
-        self.defs = None  # loaded in init_build_place()
+    def __init__(self, place, build_id):
+        self.form = None
+        self.id = build_id
+        self.place = place
+
+    def watch(self):
+        raise NotImplementedError()
+
+    @property
+    def state(self):
+        if isinstance(self, BuildArchive):
+            return 'finished'
+        elif isinstance(self, BuildRequest):
+            return 'pending'
+        elif isinstance(self, ArtefactBuild):
+            return 'running'
+        else:
+            raise RuntimeError("Unsupported instance %s" % (type(self)))
 
     @property
     def logfile(self):
@@ -67,11 +64,126 @@ class ArtefactBuild(ArtefactDefs):
             return None
         return os.path.join(self.place, 'build.log')
 
+    def __getattr__(self, name):
+        """Returns self.form attribute as if they were instance attributes."""
+        try:
+            return getattr(self.form, name)
+        except AttributeError:
+            raise AttributeError("%s does not have %s attribute" % (self.__class__.__name__, name))
+
+    def dump(self):
+        if isinstance(self, BuildArchive):
+            print("Build archive %s" % (self.id))
+        elif isinstance(self, BuildRequest):
+            print("Build request %s" % (self.id))
+        elif isinstance(self, ArtefactBuild):
+            print("Build %s" % (self.id))
+        else:
+            raise RuntimeError("Unsupported instance %s" % (type(self)))
+        print("  state: %s" % (self.state))
+        print("  source: %s" % (self.source))
+        print("  user: %s" % (self.user))
+        print("  email: %s" % (self.email))
+        print("  instance: %s" % (self.instance))
+        print("  distribution: %s" % (self.distribution))
+        print("  environment: %s" % (self.environment))
+        print("  format: %s" % (self.format))
+        print("  artefact: %s" % (self.artefact))
+        print("  submission: %s" % (self.submission.isoformat(sep=' ',timespec='seconds')))
+        print("  message: %s" % (self.message))
+
+
+class BuildArchive(AbstractBuild):
+
+    def __init__(self, place, build_id):
+        super().__init__(place, build_id)
+        self.form = BuildForm.load(place)
+
+    def watch(self):
+        # dump full build log
+        log_path = os.path.join(self.logfile)
+        with open(self.logfile, 'r') as fh:
+             while chunk := fh.read(8192):
+                try:
+                    print(chunk, end='')
+                except BrokenPipeError:
+                    # Stop here if hit a broken pipe. It could happen when
+                    # watch is given to head for example.
+                    break
+
+
+class BuildRequest(AbstractBuild):
+
+    ARCHIVE_FILE = 'artefact.tar.xz'
+
+    def __init__(self, place, build_id, *args):
+        super().__init__(place, build_id)
+
+        if isinstance(args[0], BuildForm):
+            self.form = args[0]
+        else:
+            self.form = BuildForm(*args)
+
+    def prepare_tarball(self, basedir, dest):
+        # create an archive of artefact subdirectory
+        artefact_def_path = os.path.join(basedir, self.artefact)
+        if not os.path.exists(artefact_def_path):
+            raise RuntimeError("artefact definition directory %s does not exist" % (artefact_def_path))
+
+        tar_path = os.path.join(dest, BuildRequest.ARCHIVE_FILE)
+        logger.debug("Creating archive %s with artefact definition directory %s" % (tar_path, artefact_def_path))
+        tar = tarfile.open(tar_path, 'x:xz')
+        tar.add(artefact_def_path, arcname='.', recursive=True)
+        tar.close()
+
+    def transfer_inputs(self, dest):
+        """Extract artefact archive and move build form in dest."""
+
+        # Extract artefact tarball in dest
+        tar_path = os.path.join(self.place, BuildRequest.ARCHIVE_FILE)
+        logger.debug("Extracting tarball %s in destination %s" % (tar_path, dest))
+        tar = tarfile.open(tar_path, 'r:xz')
+        tar.extractall(path=dest)
+        tar.close()
+
+        # Move build form in dest
+        self.form.move(self.place, dest)
+
+    @classmethod
+    def load(cls, place, build_id):
+        """Return a BuildRequest loaded from place"""
+        return cls(place, build_id, BuildForm.load(place))
+
+
+class ArtefactBuild(AbstractBuild):
+    """Generic parent class of all ArtefactBuild formats."""
+
+    def __init__(self, conf, build_id, form, registry):
+        self.conf = conf
+        self.form = form
+        self.name = form.artefact
+        self.id = build_id
+        self.place = os.path.join(self.conf.dirs.build, self.id)
+        self.cache = CacheArtefact(conf, self)
+        self.registry = registry(conf, self.distribution)
+        self.container = ContainerRunner(conf.containers)
+        self.image = Image(conf, self.format)
+        self.env = BuildEnv(conf, self.image, self.environment)
+        self.defs = None  # loaded in prepare()
+
+    def __getattr__(self, name):
+        # try in form first, then try in defs
+        try:
+            return getattr(self.form, name)
+        except AttributeError:
+            try:
+                return getattr(self.defs, name)
+            except AttributeError:
+                raise AttributeError("%s does not have %s attribute" % (self.__class__.__name__, name))
+
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""
         logger.info("Running build %s" % (self.id))
-
-        self.init_build_place()
 
         # setup logger to use logfile
         handler = logging.FileHandler(self.logfile)
@@ -90,51 +202,30 @@ class ArtefactBuild(ArtefactDefs):
         logging.getLogger().removeHandler(handler)
 
     def watch(self):
-        """Watch build log file."""
+        """Watch running build log file."""
+        # Follow the log file. It has been choosen to exec `tail -f`
+        # because python lacks well maintained and common inotify library.
+        # This tail command is in coreutils and it is installed basically
+        # everywhere.
+        cmd = ['tail', '--follow', self.logfile]
+        try:
+            subprocess.run(cmd)
+        except KeyboardInterrupt:
+            # Leave gracefully after a keyboard interrupt (eg. ^c)
+            logger.debug("Received keyboard interrupt, leaving.")
 
-        if self.state == 'finished':
-            # dump full build log
-            log_path = os.path.join(self.logfile)
-            with open(self.logfile, 'r') as fh:
-                while chunk := fh.read(8192):
-                    try:
-                        print(chunk, end='')
-                    except BrokenPipeError:
-                        # Stop here if hit a broken pipe. It could happen when
-                        # watch is given to head for example.
-                        break
+    def init_from_request(self, request):
+
+        if os.path.exists(self.place):
+            logger.warning("Build directory %s already exists" % (self.place))
         else:
-            # Follow the log file. It has been choosen to exec `tail -f`
-            # because python lacks well maintained and common inotify library.
-            # This tail command is in coreutils and it is installed basically
-            # everywhere.
-            cmd = ['tail', '--follow', self.logfile]
-            try:
-                subprocess.run(cmd)
-            except KeyboardInterrupt:
-                # Leave gracefully after a keyboard interrupt (eg. ^c)
-                logger.debug("Received keyboard interrupt, leaving.")
+            # create build directory
+            logger.debug("Creating build directory %s" % (self.place))
+            os.mkdir(self.place)
+            os.chmod(self.place, 0o755)  # be umask agnostic
 
-    def init_build_place(self):
-
-        # create temporary build directory if not done yet
-        if self.place is None:
-            self.place = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
-            logger.debug("Created tmp directory %s" % (self.place))
-        elif not os.path.exists(self.place):
-            logger.warning("Build loaded with an unexisting build directory "
-                           "%s, creating a new one" % (self.place))
-            self.place = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
-        CleanupRegistry.add_tmpdir(self.place)
-
-        # create request state file and write the temporary build directory
-        self.request.save_state(self.place)
-
-        # extract artefact tarball
-        self.request.extract_tarball(self.place)
-
-        # load defs
-        super().__init__(self.place, self.name, self.format)
+        # get input from requests
+        request.transfer_inputs(self.place)
 
     @staticmethod
     def hasher(hash_format):
@@ -147,6 +238,9 @@ class ArtefactBuild(ArtefactDefs):
     def prepare(self):
         """Download the package upstream tarball and verify checksum if not
            present in cache."""
+
+        # load defs
+        self.defs = ArtefactDefs(self.place, self.name, self.format)
 
         if self.cache.has_tarball:
             # nothing to do here
@@ -185,3 +279,9 @@ class ArtefactBuild(ArtefactDefs):
         _binds = [self.place, self.cache.dir]
         self.container.run(self.image, cmd, **kwargs, binds=_binds,
                            logfile=self.logfile)
+
+    @classmethod
+    def load_from_request(cls, conf, request):
+        instance = cls(conf, request.id, request.form)
+        instance.init_from_request(request)
+        return instance

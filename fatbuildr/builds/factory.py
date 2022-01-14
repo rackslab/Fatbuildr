@@ -17,9 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from .deb import ArtefactBuildDeb
-from .rpm import ArtefactBuildRpm
+import os
 
+from .formats.deb import ArtefactBuildDeb
+from .formats.rpm import ArtefactBuildRpm
+from .form import BuildForm
 
 class BuildFactory(object):
 
@@ -29,7 +31,17 @@ class BuildFactory(object):
     }
 
     @staticmethod
-    def get(conf, request):
+    def generate(conf, request):
+        """Generate a BuildArtefact from a new request."""
         if not request.form.format in BuildFactory._formats:
             raise RuntimeError("format %s unsupported by builders" % (request.form.format))
-        return BuildFactory._formats[request.form.format](conf, request)
+        return BuildFactory._formats[request.form.format].load_from_request(conf, request)
+
+    @staticmethod
+    def load(conf, place, build_id):
+        """Load a BuildArtefact based on a format."""
+        # Load the form to get the format
+        form = BuildForm.load(place)
+        if not form.format in BuildFactory._formats:
+            raise RuntimeError("format %s unsupported by builders" % (form.format))
+        return BuildFactory._formats[form.format](conf, build_id, form)

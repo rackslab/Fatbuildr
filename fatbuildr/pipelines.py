@@ -72,6 +72,7 @@ class PipelinesDefs(object):
         """Return the list of distributions for the given format."""
         return self.defs['formats'][format].keys()
 
+
 class ArtefactDefs(object):
     """Class to manipulate an artefact metadata definitions."""
 

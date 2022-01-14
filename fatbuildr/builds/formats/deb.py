@@ -23,8 +23,8 @@ import tarfile
 import shutil
 import logging
 
-from . import ArtefactBuild
-from ..registry import RegistryDeb
+from .. import ArtefactBuild
+from ...registry import RegistryDeb
 
 logger = logging.getLogger(__name__)
 
@@ -32,8 +32,8 @@ logger = logging.getLogger(__name__)
 class ArtefactBuildDeb(ArtefactBuild):
     """Class to manipulation build of package in Deb format."""
 
-    def __init__(self, conf, request):
-        super().__init__(conf, request, RegistryDeb)
+    def __init__(self, conf, build_id, form):
+        super().__init__(conf, build_id, form, RegistryDeb)
         self.format = 'deb'
 
     @property
@@ -82,7 +82,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         cmd = [ 'debchange', '--create', '--package', self.name,
                '--newversion',  self.fullversion,
                '--distribution', self.distribution,
-               self.msg ]
+               self.message ]
         _envs = ['DEBEMAIL='+self.email, 'DEBFULLNAME='+self.user]
         self.contruncmd(cmd, chdir=tarball_subdir, envs=_envs)
 

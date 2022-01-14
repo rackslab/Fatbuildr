@@ -92,22 +92,24 @@ class Fatbuildrd(FatbuildrCliRun):
 
         self.conf.dump()
 
-    def load_build_instance(self, request):
-        self.conf.run.instance = request.form.instance
-
     def _run(self):
         logger.debug("Running fatbuildrd")
         mgr = QueueManager(self.conf)
 
         while not mgr.empty:
             try:
+                # pick the first request in queue
                 request = mgr.pick()
                 logger.info("Processing build %s" % (request.id))
-                self.load_build_instance(request)
-                build = BuildFactory.get(self.conf, request)
+                # set the request instance in the runtime conf
+                self.conf.run.instance = request.form.instance
+                # instanciate the build for this request
+                build = BuildFactory.generate(self.conf, request)
+                # remove request from queue
+                mgr.remove(request)
                 build.run()
                 mgr.archive(build)
-            except RuntimeError as err:
+            except SystemError as err:
                 logger.error("Error while processing build: %s" % (err))
                 sys.exit(1)
         logger.info("No build request available in queue, leaving")
@@ -291,10 +293,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             # poll build state again
             build = mgr.get(build_id)
 
-        if build.state in ['finished', 'running']:
-            BuildFactory.get(self.conf, build).watch()
-        else:
-            logger.error("Unexpected build state %s" % (build.state))
+        build.watch()
 
     def _run_watch(self):
         self._watch_build(self.conf.run.build)
