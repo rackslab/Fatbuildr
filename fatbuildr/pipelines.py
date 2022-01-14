@@ -58,7 +58,8 @@ class PipelinesDefs(object):
         for format, dists in self.defs['formats'].items():
             if distribution in dists.keys():
                 return format
-        return None
+        raise RuntimeError("Unable to find format corresponding to "
+                           "distribution %s" % (distribution))
 
     def dist_env(self, distribution):
         """Return the name of the build environment for the given
@@ -66,7 +67,8 @@ class PipelinesDefs(object):
         for format, dists in self.defs['formats'].items():
             if distribution in dists.keys():
                 return dists[distribution]
-        return None
+        raise RuntimeError("Unable to find environment corresponding "
+                           "to distribution %s" % (distribution))
 
     def format_dists(self, format):
         """Return the list of distributions for the given format."""
