@@ -36,7 +36,7 @@ setup(name='Fatbuildr',
                         'yaml' ],
       entry_points = {
           'console_scripts': [
-              'fatbuildrd=fatbuildr.cli:Fatbuildrd.run',
-              'fatbuildrctl=fatbuildr.cli:Fatbuildrctl.run'
+              'fatbuildrd=fatbuildr.cli.fatbuildrd:Fatbuildrd.run',
+              'fatbuildrctl=fatbuildr.cli.fatbuildrctl:Fatbuildrctl.run'
           ],
       })
