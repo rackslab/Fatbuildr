@@ -91,7 +91,13 @@ class BuildsManager(object):
 
         request = self._load_queue()[0]
         logger.info("Picking up build request %s from queue" % (request.id))
-        return request
+        # set the request instance in the runtime conf
+        self.conf.run.instance = request.instance
+        # transition the request to an artefact build
+        build = BuildFactory.generate(self.conf, request)
+        # remove request from queue
+        self.remove(request)
+        return build
 
     def remove(self, request):
         """Remove request from queue."""

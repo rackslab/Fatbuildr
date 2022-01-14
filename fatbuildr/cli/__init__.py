@@ -29,7 +29,6 @@ from ..conf import RuntimeConfd, RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
 from ..builds.manager import BuildsManager
-from ..builds.factory import BuildFactory
 from ..cleanup import CleanupRegistry
 
 logger = logging.getLogger(__name__)
@@ -99,14 +98,7 @@ class Fatbuildrd(FatbuildrCliRun):
         while not mgr.empty:
             try:
                 # pick the first request in queue
-                request = mgr.pick()
-                logger.info("Processing build %s" % (request.id))
-                # set the request instance in the runtime conf
-                self.conf.run.instance = request.instance
-                # transition the request to an artefact build
-                build = BuildFactory.generate(self.conf, request)
-                # remove request from queue
-                mgr.remove(request)
+                build = mgr.pick()
                 build.run()
                 mgr.archive(build)
             except SystemError as err:
