@@ -41,10 +41,12 @@
       - Status code: 404 for https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=x86_64 (IP: 18.133.140.134)
       Error: Failed to download metadata for repo 'fedora': Cannot prepare internal mirrorlist: Status code: 404 for https://mirrors.fedoraproject.org/metalink?repo=fedora-$releasever&arch=x86_64 (IP: 18.133.140.134)
       ```
+- [] pep8
 
 # Nice to have
 
-- [ ] Add logger formatter with colors when connected to tty
+- [ ] Make CleanupRegistry handle tmp directory creation using a Singleton
+- [x] Add logger formatter with colors when connected to tty
 - [ ] Add logger formatter in build logs for watch post-processing
 - [ ] Add feature to prepare git dev environment to help adapt debian patches (inspired from `gbp pq`)
 - [ ] Run lintian after build to check packages
@@ -54,5 +56,6 @@
 - [ ] Add debchanges/cowbuilder commands in conf
 - [ ] Remove pbuilder hooks from deb image
 - [ ] Properly manage packages architectures
-- [ ] Rename BuilderArtefact class to ArtefactBuild
-- [ ] Rename BuilderArtefact.tmpdir to ArtefactBuild.dir
+- [x] Rename BuilderArtefact class to ArtefactBuild
+- [x] Rename BuilderArtefact.tmpdir to ArtefactBuild.place
+- [ ] Hooks for build submissions, build start and end
