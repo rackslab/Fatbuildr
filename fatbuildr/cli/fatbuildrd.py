@@ -25,7 +25,7 @@ import logging
 from . import FatbuildrCliRun
 from ..version import __version__
 from ..conf import RuntimeConfd
-from ..builds.manager import BuildsManager
+from ..builds.manager import ServerBuildsManager
 from ..protocols import ServerFactory
 
 logger = logging.getLogger(__name__)
@@ -63,7 +63,7 @@ class Fatbuildrd(FatbuildrCliRun):
 
     def _run(self):
         logger.debug("Running fatbuildrd")
-        self.mgr = BuildsManager(self.conf)
+        self.mgr = ServerBuildsManager(self.conf)
 
         builder_thread = threading.Thread(target=self._builder)
         builder_thread.start()

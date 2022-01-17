@@ -52,7 +52,7 @@ class QueueManager:
         return self._queue.popleft()
 
 
-class BuildsManager(object):
+class ServerBuildsManager:
     """Manage the various builds."""
 
     def __init__(self, conf):
@@ -72,44 +72,10 @@ class BuildsManager(object):
                 logger.warning("Removing orphaned build submission %s" % (build_id))
                 shutil.rmtree(os.path.join(self.conf.dirs.queue, build_id))
         for build_id in os.listdir(self.conf.dirs.build):
-            if not self.running or build_id != self.running :
-                logger.warning("Archiving orphaned build %s" % (build.id))
+            if not self.running or build_id != self.running.id :
+                logger.warning("Archiving orphaned build %s" % (build_id))
                 build = BuildFactory.load(self.conf, os.path.join(self.conf.dirs.build, build_id), build_id)
                 self.archive(build)
-
-    def request(self, instance):
-        # create tmp submission directory
-        tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
-        logger.debug("Created request temporary directory %s" % (tmpdir))
-
-        # load pipelines defs to get dist→format/env mapping
-        pipelines = PipelinesDefs(self.conf.run.basedir)
-
-        # If the user did not provide a build  message, load the default
-        # message from the pipelines definition.
-        msg = self.conf.run.build_msg
-        if msg is None:
-            msg = pipelines.msg
-
-        # create build request
-        request = BuildRequest(tmpdir,
-                               pipelines.name,
-                               self.conf.run.user_name,
-                               self.conf.run.user_email,
-                               instance,
-                               self.conf.run.distribution,
-                               pipelines.dist_env(self.conf.run.distribution),
-                               pipelines.dist_format(self.conf.run.distribution),
-                               self.conf.run.artefact,
-                               datetime.now(),
-                               msg)
-
-        # save the request form in tmpdir
-        request.form.save(tmpdir)
-
-        # prepare artefact tarball
-        request.prepare_tarball(self.conf.run.basedir, tmpdir)
-        return request.place
 
     def submit(self, input):
         """Generate the build ID and place in queue."""
@@ -151,14 +117,6 @@ class BuildsManager(object):
         shutil.rmtree(submission.place)
         logger.info("Build submission %s removed from queue" % (submission.id))
 
-    def dump(self):
-        """Print running build and all builds submissions in the queue."""
-        for build in (self.running or []) + self.queue.dump():
-            build.dump()
-
-    def queue(self):
-        return self.queue.dump()
-
     def get(self, build_id):
         """Return the BuildSubmission, BuildFactory or the BuildArchive with
            the build_id in argument, looking both in the queue and in the
@@ -175,3 +133,42 @@ class BuildsManager(object):
             return BuildArchive(os.path.join(self.conf.dirs.archives, build_id), build_id)
         else:
             raise RuntimeError("Unable to find build %s" % (build_id))
+
+class ClientBuildsManager:
+
+    def __init__(self, conf):
+        self.conf = conf
+
+    def request(self, instance):
+        # create tmp submission directory
+        tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
+        logger.debug("Created request temporary directory %s" % (tmpdir))
+
+        # load pipelines defs to get dist→format/env mapping
+        pipelines = PipelinesDefs(self.conf.run.basedir)
+
+        # If the user did not provide a build  message, load the default
+        # message from the pipelines definition.
+        msg = self.conf.run.build_msg
+        if msg is None:
+            msg = pipelines.msg
+
+        # create build request
+        request = BuildRequest(tmpdir,
+                               pipelines.name,
+                               self.conf.run.user_name,
+                               self.conf.run.user_email,
+                               instance,
+                               self.conf.run.distribution,
+                               pipelines.dist_env(self.conf.run.distribution),
+                               pipelines.dist_format(self.conf.run.distribution),
+                               self.conf.run.artefact,
+                               datetime.now(),
+                               msg)
+
+        # save the request form in tmpdir
+        request.form.save(tmpdir)
+
+        # prepare artefact tarball
+        request.prepare_tarball(self.conf.run.basedir, tmpdir)
+        return request.place

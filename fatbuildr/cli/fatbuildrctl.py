@@ -28,7 +28,7 @@ from ..version import __version__
 from ..conf import RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
-from ..builds.manager import BuildsManager
+from ..builds.manager import ClientBuildsManager
 from ..log import TTYFormatter
 from ..protocols import ClientFactory
 
@@ -192,7 +192,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_build(self):
         logger.debug("running build for package: %s instance: %s" % (self.conf.run.artefact, self.instance))
-        mgr = BuildsManager(self.conf)
+        mgr = ClientBuildsManager(self.conf)
         connection = ClientFactory.get()
         try:
             place = mgr.request(self.instance)
@@ -206,15 +206,28 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_list(self):
         logger.debug("running list")
-        mgr = BuildsManager(self.conf)
+        mgr = ClientBuildsManager(self.conf)
+        connection = ClientFactory.get()
         try:
-            mgr.dump()
+            _running = connection.running()
+            if _running:
+                print("Running build:")
+                _running.report()
+            else:
+                print("No running build")
+
+            _queue = connection.queue()
+            if _queue:
+                print("Pending build submissions:")
+                for _build in _queue:
+                    _build.report()
+
         except RuntimeError as err:
             logger.error("Error while listing builds: %s" % (err))
             sys.exit(1)
 
     def _watch_build(self, build_id):
-        mgr = BuildsManager(self.conf)
+        mgr = ClientBuildsManager(self.conf)
 
         try:
             build = mgr.get(build_id)

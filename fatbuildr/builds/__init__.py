@@ -71,27 +71,6 @@ class AbstractBuild():
         except AttributeError:
             raise AttributeError("%s does not have %s attribute" % (self.__class__.__name__, name))
 
-    def dump(self):
-        if isinstance(self, BuildArchive):
-            print("Build archive %s" % (self.id))
-        elif isinstance(self, BuildSubmission):
-            print("Build submission %s" % (self.id))
-        elif isinstance(self, ArtefactBuild):
-            print("Build %s" % (self.id))
-        else:
-            raise RuntimeError("Unsupported instance %s" % (type(self)))
-        print("  state: %s" % (self.state))
-        print("  source: %s" % (self.source))
-        print("  user: %s" % (self.user))
-        print("  email: %s" % (self.email))
-        print("  instance: %s" % (self.instance))
-        print("  distribution: %s" % (self.distribution))
-        print("  environment: %s" % (self.environment))
-        print("  format: %s" % (self.format))
-        print("  artefact: %s" % (self.artefact))
-        print("  submission: %s" % (self.submission.isoformat(sep=' ',timespec='seconds')))
-        print("  message: %s" % (self.message))
-
 
 class BuildArchive(AbstractBuild):
 

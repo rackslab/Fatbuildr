@@ -20,9 +20,10 @@
 from dasbus.connection import SystemMessageBus
 from dasbus.error import DBusError, ErrorMapper, get_error_decorator
 from dasbus.identifier import DBusServiceIdentifier
-from dasbus.structure import DBusData
+from dasbus.structure import DBusData, DBusFieldFactory, DBUS_FIELDS_ATTRIBUTE, DBusStructureError
 from dasbus.typing import Str, Int
 
+from ..wire import WireBuild
 
 # Define the error mapper.
 ERROR_MAPPER = ErrorMapper()
@@ -44,35 +45,167 @@ REGISTER = DBusServiceIdentifier(
 # The decorator for DBus errors.
 dbus_error = get_error_decorator(ERROR_MAPPER)
 
+TYPES_MAP = {
+    str: Str,
+    int: Int,
+}
 
 # Define errors.
-@dbus_error("InvalidUserError", namespace=REGISTER_NAMESPACE)
-class InvalidUser(DBusError):
-    """The user is invalid."""
+@dbus_error("ErrorNoRunningBuild", namespace=REGISTER_NAMESPACE)
+class ErrorNoRunningBuild(DBusError):
     pass
 
+
 # Define structures.
-class DbusBuild(DBusData):
+class DbusBuild(DBusData, WireBuild):
     """The user data."""
 
-    def __init__(self, id, path):
-        self._id = id
-        self._path = path
+    def __init__(self):
+        self._id = None
+        self._state = None
+        self._place = None
+        self._source = None
+        self._user = None
+        self._email = None
+        self._instance = None
+        self._distribution = None
+        self._environment = None
+        self._format = None
+        self._artefact = None
+        self._submission = None
+        self._message = None
 
+    # id
     @property
     def id(self) -> Str:
-        """Id of the build."""
         return self._id
 
     @id.setter
     def id(self, value: Str):
         self._id = value
 
+    # state
     @property
-    def path(self) -> Str:
-        """Path to the build."""
-        return self._path
+    def state(self) -> Str:
+        return self._state
 
-    @path.setter
-    def path(self, value: Str):
-        self._path = value
+    @state.setter
+    def state(self, value: Str):
+        self._state = value
+
+    # place
+    @property
+    def place(self) -> Str:
+        return self._place
+
+    @place.setter
+    def place(self, value: Str):
+        self._place = value
+
+    # source
+    @property
+    def source(self) -> Str:
+        return self._source
+
+    @source.setter
+    def source(self, value: Str):
+        self._source = value
+
+    # user
+    @property
+    def user(self) -> Str:
+        return self._user
+
+    @user.setter
+    def user(self, value: Str):
+        self._user = value
+
+    # email
+    @property
+    def email(self) -> Str:
+        return self._email
+
+    @email.setter
+    def email(self, value: Str):
+        self._email = value
+
+    # instance
+    @property
+    def instance(self) -> Str:
+        return self._instance
+
+    @instance.setter
+    def instance(self, value: Str):
+        self._instance = value
+
+    # distribution
+    @property
+    def distribution(self) -> Str:
+        return self._distribution
+
+    @distribution.setter
+    def distribution(self, value: Str):
+        self._distribution = value
+
+    # environment
+    @property
+    def environment(self) -> Str:
+        return self._environment
+
+    @environment.setter
+    def environment(self, value: Str):
+        self._environment = value
+
+    # format
+    @property
+    def format(self) -> Str:
+        return self._format
+
+    @format.setter
+    def format(self, value: Str):
+        self._format = value
+
+    # artefact
+    @property
+    def artefact(self) -> Str:
+        return self._artefact
+
+    @artefact.setter
+    def artefact(self, value: Str):
+        self._artefact = value
+
+    # submission
+    @property
+    def submission(self) -> Int:
+        return self._submission
+
+    @submission.setter
+    def submission(self, value: Int):
+        self._submission = value
+
+    # message
+    @property
+    def message(self) -> Str:
+        return self._message
+
+    @message.setter
+    def message(self, value: Str):
+        self._message = value
+
+    @classmethod
+    def load_from_build(cls, build):
+        _obj = cls()
+        _obj.id = build.id
+        _obj.state = build.state
+        _obj.place = build.place
+        _obj.source = build.source
+        _obj.user = build.user
+        _obj.email = build.email
+        _obj.instance = build.instance
+        _obj.distribution = build.distribution
+        _obj.environment = build.environment
+        _obj.format = build.format
+        _obj.artefact = build.artefact
+        _obj.submission = int(build.submission.timestamp())
+        _obj.message = build.message
+        return _obj

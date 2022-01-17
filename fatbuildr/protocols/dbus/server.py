@@ -25,7 +25,7 @@ from dasbus.signal import Signal
 from dasbus.typing import Structure, List, Str
 from dasbus.xml import XMLGenerator
 
-from . import REGISTER, BUS, DbusBuild
+from . import REGISTER, BUS, DbusBuild, ErrorNoRunningBuild
 
 
 @dbus_interface(REGISTER.interface_name)
@@ -35,7 +35,12 @@ class FatbuildrInterface(InterfaceTemplate):
     @property
     def Queue(self) -> List[Structure]:
         """The list of builds in queue."""
-        return BuildDesc.to_structure_list(self.implementation.queue)
+        return DbusBuild.to_structure_list(self.implementation.queue)
+
+    @property
+    def Running(self) -> Structure:
+        """The currently running build"""
+        return DbusBuild.to_structure(self.implementation.running)
 
     def Submit(self, input: Str) -> Str:
         """Submit a new build."""
@@ -51,9 +56,15 @@ class FatbuildrMultiplexer(object):
     @property
     def queue(self):
         """The list of builds in queue."""
-        return [DbusBuild(_build.id,
-                          _build.place)
-                for _build in self.mgr.queue()]
+        return [DbusBuild.load_from_build(_build)
+                for _build in self.mgr.queue.dump()]
+
+    @property
+    def running(self):
+        """The list of builds in queue."""
+        if not self.mgr.running:
+            raise ErrorNoRunningBuild()
+        return DbusBuild.load_from_build(self.mgr.running)
 
     def submit(self, input: Str):
         """Submit a new build."""

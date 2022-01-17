@@ -17,21 +17,20 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from . import REGISTER, DbusBuild, ErrorNoRunningBuild
+from datetime import datetime
 
+class WireBuild:
 
-class DbusClient(object):
-    def __init__(self):
-        self.proxy = REGISTER.get_proxy()
-
-    def submit(self, place):
-        return self.proxy.Submit(place)
-
-    def queue(self):
-        return DbusBuild.from_structure_list(self.proxy.Queue)
-
-    def running(self):
-        try:
-            return DbusBuild.from_structure(self.proxy.Running)
-        except ErrorNoRunningBuild:
-            return None
+    def report(self):
+        print("- id: %s" % (self.id))
+        print("  state: %s" % (self.state))
+        print("  source: %s" % (self.source))
+        print("  user: %s" % (self.user))
+        print("  email: %s" % (self.email))
+        print("  instance: %s" % (self.instance))
+        print("  distribution: %s" % (self.distribution))
+        print("  environment: %s" % (self.environment))
+        print("  format: %s" % (self.format))
+        print("  artefact: %s" % (self.artefact))
+        print("  submission: %s" % (datetime.fromtimestamp(self.submission).isoformat(sep=' ',timespec='seconds')))
+        print("  message: %s" % (self.message))
