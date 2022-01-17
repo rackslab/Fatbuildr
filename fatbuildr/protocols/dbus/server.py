@@ -50,38 +50,42 @@ class FatbuildrInterface(InterfaceTemplate):
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
 
-    def __init__(self, mgr):
+    def __init__(self, mgr, timer):
         self.mgr = mgr
+        self.timer = timer
 
     @property
     def queue(self):
         """The list of builds in queue."""
+        self.timer.reset()
         return [DbusBuild.load_from_build(_build)
                 for _build in self.mgr.queue.dump()]
 
     @property
     def running(self):
         """The list of builds in queue."""
+        self.timer.reset()
         if not self.mgr.running:
             raise ErrorNoRunningBuild()
         return DbusBuild.load_from_build(self.mgr.running)
 
     def submit(self, input: Str):
         """Submit a new build."""
+        self.timer.reset()
         submission = self.mgr.submit(input)
         return submission.id
 
 
 class DbusServer(object):
 
-    def run(self, mgr):
+    def run(self, mgr, timer):
 
         # Print the generated XML specification.
         print(XMLGenerator.prettify_xml(FatbuildrInterface.__dbus_xml__))
 
         try:
             # Create the Fatbuildr multiplexer.
-            multiplexer = FatbuildrMultiplexer(mgr)
+            multiplexer = FatbuildrMultiplexer(mgr, timer)
 
             # Publish the register at /org/rackslab/Fatbuildr/Builds.
             BUS.publish_object(
@@ -95,8 +99,11 @@ class DbusServer(object):
             )
 
            # Start the event loop.
-            loop = EventLoop()
-            loop.run()
+            self.loop = EventLoop()
+            self.loop.run()
         finally:
             # Unregister the DBus service and objects.
             BUS.disconnect()
+
+    def quit(self):
+        self.loop.quit()

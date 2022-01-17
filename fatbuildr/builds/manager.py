@@ -47,9 +47,10 @@ class QueueManager:
         self._queue.append(submission)
         self._count.release()
 
-    def get(self):
-        self._count.acquire(True, None)
-        return self._queue.popleft()
+    def get(self, timeout):
+        if not self._count.acquire(True, timeout):
+            return None
+        self._queue.popleft()
 
 
 class ServerBuildsManager:
@@ -88,9 +89,13 @@ class ServerBuildsManager:
         logger.info("Build %s submitted in queue" % (submission.id))
         return submission
 
-    def pick(self):
+    def pick(self, timeout):
 
-        submission = self.queue.get()
+        logger.debug("Tyring to get build submission for %f seconds" % (timeout))
+        submission = self.queue.get(timeout)
+        if not submission:
+            return None
+
         logger.info("Picking up build submission %s from queue" % (submission.id))
         # transition the request to an artefact build
         build = None

@@ -27,6 +27,8 @@ from ..version import __version__
 from ..conf import RuntimeConfd
 from ..builds.manager import ServerBuildsManager
 from ..protocols import ServerFactory
+from ..timer import ServerTimer
+from ..services import ServiceManager
 
 logger = logging.getLogger(__name__)
 
@@ -62,8 +64,12 @@ class Fatbuildrd(FatbuildrCliRun):
         self.conf.dump()
 
     def _run(self):
+
         logger.debug("Running fatbuildrd")
         self.mgr = ServerBuildsManager(self.conf)
+        self.server = None
+        self.sm = ServiceManager()
+        self.timer = ServerTimer()
 
         builder_thread = threading.Thread(target=self._builder)
         builder_thread.start()
@@ -71,26 +77,44 @@ class Fatbuildrd(FatbuildrCliRun):
         server_thread = threading.Thread(target=self._server)
         server_thread.start()
 
+        timer_thread = threading.Thread(target=self._timer)
+        timer_thread.start()
+
         builder_thread.join()
         server_thread.join()
+        timer_thread.join()
+
+        logger.debug("All threads are properly stopped")
+        self.sm.notify_stop()
 
     def _builder(self):
         """Thread handling build loop."""
         logger.info("Starting builder thread")
         self.mgr.clear_orphaned()
 
-        while True:
+        while not self.timer.over:
             try:
                 # pick the first request in queue
-                build = self.mgr.pick()
+                build = self.mgr.pick(self.timer.remaining)
                 if build:
                     build.run()
                     self.mgr.archive(build)
             except RuntimeError as err:
                 logger.error("Error while processing build: %s" % (err))
+        logger.info("Stopping builder thread as timer is over")
 
     def _server(self):
         """Thread handling requests from clients."""
         logger.info("Starting server thread")
-        server = ServerFactory.get()
-        server.run(self.mgr)
+        self.server = ServerFactory.get()
+        self.server.run(self.mgr, self.timer)
+
+    def _timer(self):
+        logger.info("Starting timer thread")
+        while not self.timer.over:
+            self.sm.notify_watchdog()
+            logger.info("Waiting for %f" % (self.timer.remaining))
+            self.timer.wait()
+
+        logger.info("Timer is over, stopping server thread")
+        self.server.quit()
