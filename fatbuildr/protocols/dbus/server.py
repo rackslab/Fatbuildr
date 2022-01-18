@@ -83,27 +83,23 @@ class DbusServer(object):
         # Print the generated XML specification.
         print(XMLGenerator.prettify_xml(FatbuildrInterface.__dbus_xml__))
 
-        try:
-            # Create the Fatbuildr multiplexer.
-            multiplexer = FatbuildrMultiplexer(mgr, timer)
+        # Create the Fatbuildr multiplexer.
+        multiplexer = FatbuildrMultiplexer(mgr, timer)
 
-            # Publish the register at /org/rackslab/Fatbuildr/Builds.
-            BUS.publish_object(
-                REGISTER.object_path,
-                FatbuildrInterface(multiplexer)
-            )
+        # Publish the register at /org/rackslab/Fatbuildr/Builds.
+        BUS.publish_object(
+            REGISTER.object_path,
+            FatbuildrInterface(multiplexer)
+        )
 
-            # Register the service name org.rackslab.Fatbuildr.Builds.
-            BUS.register_service(
-                REGISTER.service_name
-            )
+        # Register the service name org.rackslab.Fatbuildr.Builds.
+        BUS.register_service(
+            REGISTER.service_name
+        )
 
-           # Start the event loop.
-            self.loop = EventLoop()
-            self.loop.run()
-        finally:
-            # Unregister the DBus service and objects.
-            BUS.disconnect()
+        # Start the event loop.
+        self.loop = EventLoop()
+        self.loop.run()
 
     def quit(self):
         self.loop.quit()
