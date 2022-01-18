@@ -206,7 +206,6 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_list(self):
         logger.debug("running list")
-        mgr = ClientBuildsManager(self.conf)
         connection = ClientFactory.get()
         try:
             _running = connection.running()
