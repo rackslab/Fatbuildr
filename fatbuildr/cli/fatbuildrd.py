@@ -126,7 +126,7 @@ class Fatbuildrd(FatbuildrCliRun):
         logger.info("Starting timer thread")
         while not self.timer.over:
             self.sm.notify_watchdog()
-            logger.info("Waiting for %f" % (self.timer.remaining))
+            logger.debug("Waiting for %f seconds" % (self.timer.remaining))
             self.timer.wait()
 
         logger.info("Timer is over, stopping server thread")
