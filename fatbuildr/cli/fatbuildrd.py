@@ -31,6 +31,7 @@ from ..services import ServiceManager
 
 logger = logging.getLogger(__name__)
 
+
 class Fatbuildrd(FatbuildrCliRun):
 
     def __init__(self):
@@ -47,7 +48,14 @@ class Fatbuildrd(FatbuildrCliRun):
             logging_level = logging.DEBUG
         else:
             logging_level = logging.INFO
-        logging.basicConfig(level=logging_level)
+
+        _root_logger = logging.getLogger()
+        _root_logger.setLevel(logging_level)
+        handler = logging.StreamHandler()
+        handler.setLevel(logging_level)
+        formatter = logging.Formatter('%(threadName)s: [%(levelname)s] %(message)s')
+        handler.setFormatter(formatter)
+        _root_logger.addHandler(handler)
 
         self.conf = RuntimeConfd()
         self.load()
@@ -58,7 +66,10 @@ class Fatbuildrd(FatbuildrCliRun):
 
         # set debug level on root logger if set in conf file
         if self.conf.run.debug:
-            logging.getLogger().setLevel(level=logging.DEBUG)
+            _root_logger = logging.getLogger()
+            _root_logger.setLevel(level=logging.DEBUG)
+            for handler in _root_logger.handlers:
+                handler.setLevel(logging.DEBUG)
 
         self.conf.dump()
 
@@ -78,6 +89,8 @@ class Fatbuildrd(FatbuildrCliRun):
 
         timer_thread = threading.Thread(target=self._timer, name='timer')
         timer_thread.start()
+
+        logger.debug("All threads are started")
 
         builder_thread.join()
         server_thread.join()
@@ -107,6 +120,7 @@ class Fatbuildrd(FatbuildrCliRun):
         logger.info("Starting server thread")
         self.server = ServerFactory.get()
         self.server.run(self.mgr, self.timer)
+        logger.info("Stopping server thread")
 
     def _timer(self):
         logger.info("Starting timer thread")
