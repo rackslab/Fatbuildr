@@ -70,13 +70,13 @@ class Fatbuildrd(FatbuildrCliRun):
         self.sm = ServiceManager()
         self.timer = ServerTimer()
 
-        builder_thread = threading.Thread(target=self._builder)
+        builder_thread = threading.Thread(target=self._builder, name='builder')
         builder_thread.start()
 
-        server_thread = threading.Thread(target=self._server)
+        server_thread = threading.Thread(target=self._server, name='server')
         server_thread.start()
 
-        timer_thread = threading.Thread(target=self._timer)
+        timer_thread = threading.Thread(target=self._timer, name='timer')
         timer_thread.start()
 
         builder_thread.join()
