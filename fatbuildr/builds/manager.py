@@ -91,7 +91,7 @@ class ServerBuildsManager:
 
     def pick(self, timeout):
 
-        logger.debug("Tyring to get build submission for %f seconds" % (timeout))
+        logger.debug("Trying to get build submission for %f seconds" % (timeout))
         submission = self.queue.get(timeout)
         if not submission:
             return None
