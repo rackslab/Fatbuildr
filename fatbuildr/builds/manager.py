@@ -39,9 +39,11 @@ class QueueManager:
     def __init__(self):
         self._queue = deque()
         self._count = threading.Semaphore(0)
+        self._state_lock = threading.Lock()
 
     def dump(self):
-        return list(self._queue)
+        with self._state_lock:
+            return list(self._queue)
 
     def put(self, submission):
         self._queue.append(submission)
@@ -50,7 +52,11 @@ class QueueManager:
     def get(self, timeout):
         if not self._count.acquire(True, timeout):
             return None
-        self._queue.popleft()
+        self._state_lock.acquire()
+        return self._queue.popleft()
+
+    def release(self):
+        self._state_lock.release()
 
 
 class ServerBuildsManager:
@@ -105,8 +111,10 @@ class ServerBuildsManager:
         except RuntimeError as err:
             logger.error("unable to generate build from submission %s: %s" % (submission.id, err))
         finally:
-            # remove submission from queue
-            self._remove(submission)
+            self.queue.release()
+            logger.info("Build submission %s removed from queue" % (submission.id))
+            # cleanup submission directory
+            self._cleanup(submission)
         return build
 
     def archive(self, build):
@@ -116,11 +124,10 @@ class ServerBuildsManager:
         logger.info("Moving build directory %s to archives directory %s" % (build.place, dest))
         shutil.move(build.place, dest)
 
-    def _remove(self, submission):
-        """Remove submission from queue."""
+    def _cleanup(self, submission):
+        """Remove submission temporary directory."""
         logger.debug("Deleting submission directory %s" % (submission.place))
         shutil.rmtree(submission.place)
-        logger.info("Build submission %s removed from queue" % (submission.id))
 
 class ClientBuildsManager:
 
