@@ -24,8 +24,6 @@ from datetime import datetime
 import yaml
 
 from ..log import logr
-from ..pipelines import PipelinesDefs
-from ..cleanup import CleanupRegistry
 
 logger = logr(__name__)
 
