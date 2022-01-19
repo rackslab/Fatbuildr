@@ -75,6 +75,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_build.add_argument('-a', '--artefact', help='Artefact name', required=True)
         parser_build.add_argument('-d', '--distribution', help='Distribution name', required=True)
         parser_build.add_argument('-b', '--basedir', help='Artefacts definitions directory', required=True)
+        parser_build.add_argument('-s', '--subdir', help='Artefact subdirectory')
         parser_build.add_argument('-n', '--name', help='Maintainer name', required=True)
         parser_build.add_argument('-e', '--email', help='Maintainer email', required=True)
         parser_build.add_argument('-m', '--msg', help='Build log message')
@@ -155,6 +156,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             self.conf.run.artefact = args.artefact
             self.conf.run.distribution = args.distribution
             self.conf.run.basedir = args.basedir
+            if args.subdir:
+                self.conf.run.subdir = args.subdir
+            else:
+                self.conf.run.subdir = self.conf.run.artefact
             self.conf.run.user_name = args.name
             self.conf.run.user_email = args.email
             self.conf.run.build_msg = args.msg

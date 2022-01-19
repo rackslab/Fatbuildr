@@ -121,9 +121,9 @@ class BuildRequest(AbstractBuild):
         else:
             self.form = BuildForm(*args)
 
-    def prepare_tarball(self, basedir, dest):
+    def prepare_tarball(self, basedir, subdir, dest):
         # create an archive of artefact subdirectory
-        artefact_def_path = os.path.join(basedir, self.artefact)
+        artefact_def_path = os.path.join(basedir, subdir)
         if not os.path.exists(artefact_def_path):
             raise RuntimeError("artefact definition directory %s does not exist" % (artefact_def_path))
 

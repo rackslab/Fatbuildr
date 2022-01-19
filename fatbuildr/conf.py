@@ -233,6 +233,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         # parameters for build action
         self.package = None
         self.basedir = None
+        self.subdir = None
         self.user_name = None
         self.user_email = None
         self.build_msg = None
@@ -252,6 +253,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         logger.debug("  package: %s" % (self.package))
         logger.debug("  build: %s" % (self.build))
         logger.debug("  basedir: %s" % (self.basedir))
+        logger.debug("  subdir: %s" % (self.subdir))
         logger.debug("  user_name: %s" % (self.user_name))
         logger.debug("  user_email: %s" % (self.user_email))
         logger.debug("  build_msg: %s" % (self.build_msg))

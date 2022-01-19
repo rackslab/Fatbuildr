@@ -176,7 +176,7 @@ class ClientBuildsManager:
         request.form.save(tmpdir)
 
         # prepare artefact tarball
-        request.prepare_tarball(self.conf.run.basedir, tmpdir)
+        request.prepare_tarball(self.conf.run.basedir, self.conf.run.subdir, tmpdir)
         return request.place
 
     def get(self, build_id):
