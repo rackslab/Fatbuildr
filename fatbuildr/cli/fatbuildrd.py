@@ -55,6 +55,8 @@ class Fatbuildrd(FatbuildrCliRun):
         handler.setLevel(logging_level)
         formatter = logging.Formatter('%(threadName)s: [%(levelname)s] %(message)s')
         handler.setFormatter(formatter)
+        _filter = logging.Filter('fatbuildr')
+        handler.addFilter(_filter)
         _root_logger.addHandler(handler)
 
         self.conf = RuntimeConfd()
