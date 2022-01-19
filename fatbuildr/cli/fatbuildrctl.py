@@ -195,7 +195,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             mgr.show()
 
     def _run_build(self):
-        logger.debug("running build for package: %s instance: %s" % (self.conf.run.artefact, self.instance))
+        logger.debug("running build for artefact: %s instance: %s" % (self.conf.run.artefact, self.instance))
         mgr = ClientBuildsManager(self.conf)
         connection = ClientFactory.get()
         try:
