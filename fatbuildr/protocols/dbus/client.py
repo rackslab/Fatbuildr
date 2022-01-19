@@ -17,7 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from . import REGISTER, DbusBuild, ErrorNoRunningBuild
+import subprocess
+
+from . import REGISTER, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, ErrorNoRunningBuild
 
 
 class DbusClient(object):
@@ -28,10 +30,42 @@ class DbusClient(object):
         return self.proxy.Submit(place)
 
     def queue(self):
-        return DbusBuild.from_structure_list(self.proxy.Queue)
+        return DbusSubmittedBuild.from_structure_list(self.proxy.Queue)
 
     def running(self):
         try:
-            return DbusBuild.from_structure(self.proxy.Running)
+            return DbusRunningBuild.from_structure(self.proxy.Running)
         except ErrorNoRunningBuild:
             return None
+
+    def archives(self):
+        return DbusArchivedBuild.from_structure_list(self.proxy.Archives)
+
+    def get(self, build_id):
+        for _build in self.queue():
+            if _build.id == build_id:
+                return _build
+        _running = self.running()
+        if _running and _running.id == build_id:
+            return _running
+        for _build in self.archives():
+            if _build.id == build_id:
+                return _build
+        raise RuntimeError("Unable to find build %s on server" % (build_id))
+
+    def watch(self, build):
+        """Dbus clients run on the same host as the server, they access the
+           builds log files directly."""
+        assert hasattr(build, 'logfile')
+        if build.state == 'running':
+            # Follow the log file. It has been choosen to exec `tail -f`
+            # because python lacks well maintained and common inotify library.
+            # This tail command is in coreutils and it is installed basically
+            # everywhere.
+            cmd = ['tail', '--follow', build.logfile]
+            subprocess.run(cmd)
+        else:
+            # dump full build log
+            with open(build.logfile, 'r') as fh:
+                 while chunk := fh.read(8192):
+                    print(chunk, end='')

@@ -25,7 +25,7 @@ from dasbus.signal import Signal
 from dasbus.typing import Structure, List, Str
 from dasbus.xml import XMLGenerator
 
-from . import REGISTER, BUS, DbusBuild, ErrorNoRunningBuild
+from . import REGISTER, BUS, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, ErrorNoRunningBuild
 from ...log import logr
 
 logger = logr(__name__)
@@ -38,12 +38,17 @@ class FatbuildrInterface(InterfaceTemplate):
     @property
     def Queue(self) -> List[Structure]:
         """The list of builds in queue."""
-        return DbusBuild.to_structure_list(self.implementation.queue)
+        return DbusSubmittedBuild.to_structure_list(self.implementation.queue)
 
     @property
     def Running(self) -> Structure:
         """The currently running build"""
-        return DbusBuild.to_structure(self.implementation.running)
+        return DbusRunningBuild.to_structure(self.implementation.running)
+
+    @property
+    def Archives(self) -> List[Structure]:
+        """The list of builds in queue."""
+        return DbusArchivedBuild.to_structure_list(self.implementation.archives)
 
     def Submit(self, input: Str) -> Str:
         """Submit a new build."""
@@ -61,7 +66,7 @@ class FatbuildrMultiplexer(object):
     def queue(self):
         """The list of builds in queue."""
         self.timer.reset()
-        return [DbusBuild.load_from_build(_build)
+        return [DbusSubmittedBuild.load_from_build(_build)
                 for _build in self.mgr.queue.dump()]
 
     @property
@@ -70,7 +75,14 @@ class FatbuildrMultiplexer(object):
         self.timer.reset()
         if not self.mgr.running:
             raise ErrorNoRunningBuild()
-        return DbusBuild.load_from_build(self.mgr.running)
+        return DbusRunningBuild.load_from_build(self.mgr.running)
+
+    @property
+    def archives(self):
+        """The list of archived builds."""
+        self.timer.reset()
+        return [DbusArchivedBuild.load_from_build(_build)
+                for _build in self.mgr.archives()]
 
     def submit(self, input: Str):
         """Submit a new build."""

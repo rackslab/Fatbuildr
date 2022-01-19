@@ -44,9 +44,6 @@ class AbstractBuild():
         self.id = build_id
         self.place = place
 
-    def watch(self):
-        raise NotImplementedError()
-
     @property
     def state(self):
         if isinstance(self, BuildArchive):
@@ -60,7 +57,7 @@ class AbstractBuild():
 
     @property
     def logfile(self):
-        if self.place is None:
+        if self.place is None or self.state not in ['running', 'finished']:
             return None
         return os.path.join(self.place, 'build.log')
 
@@ -77,18 +74,6 @@ class BuildArchive(AbstractBuild):
     def __init__(self, place, build_id):
         super().__init__(place, build_id)
         self.form = BuildForm.load(place)
-
-    def watch(self):
-        # dump full build log
-        log_path = os.path.join(self.logfile)
-        with open(self.logfile, 'r') as fh:
-             while chunk := fh.read(8192):
-                try:
-                    print(chunk, end='')
-                except BrokenPipeError:
-                    # Stop here if hit a broken pipe. It could happen when
-                    # watch is given to head for example.
-                    break
 
 
 class BuildSubmission(AbstractBuild):
@@ -197,19 +182,6 @@ class ArtefactBuild(AbstractBuild):
             logger.info("Build succeeded")
 
         logger.del_file()
-
-    def watch(self):
-        """Watch running build log file."""
-        # Follow the log file. It has been choosen to exec `tail -f`
-        # because python lacks well maintained and common inotify library.
-        # This tail command is in coreutils and it is installed basically
-        # everywhere.
-        cmd = ['tail', '--follow', self.logfile]
-        try:
-            subprocess.run(cmd)
-        except KeyboardInterrupt:
-            # Leave gracefully after a keyboard interrupt (eg. ^c)
-            logger.debug("Received keyboard interrupt, leaving.")
 
     def init_from_submission(self, submission):
 

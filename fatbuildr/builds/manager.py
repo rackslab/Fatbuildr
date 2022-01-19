@@ -129,6 +129,17 @@ class ServerBuildsManager:
         logger.debug("Deleting submission directory %s" % (submission.place))
         shutil.rmtree(submission.place)
 
+    def archives(self):
+        """Returns all BuildArchive found in archives directory."""
+        _archives = []
+        for build_id in os.listdir(self.conf.dirs.archives):
+            try:
+                _archives.append(BuildArchive(os.path.join(self.conf.dirs.archives, build_id), build_id))
+            except FileNotFoundError as err:
+                logger.error("Unable to load malformed build archive %s: %s" % (build_id, err))
+        return _archives
+
+
 class ClientBuildsManager:
 
     def __init__(self, conf):

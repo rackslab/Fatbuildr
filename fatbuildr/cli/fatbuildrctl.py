@@ -187,8 +187,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)
         logger.info("Build %s submitted" % (build_id))
-        #if self.conf.run.watch:
-        #    self._watch_build(build_id)
+        if self.conf.run.watch:
+            self._watch_build(build_id)
 
     def _run_list(self):
         logger.debug("running list")
@@ -212,10 +212,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             sys.exit(1)
 
     def _watch_build(self, build_id):
-        mgr = ClientBuildsManager(self.conf)
-
+        connection = ClientFactory.get()
         try:
-            build = mgr.get(build_id)
+            build = connection.get(build_id)
         except RuntimeError as err:
             logger.error(err)
             sys.exit(1)
@@ -228,9 +227,16 @@ class Fatbuildrctl(FatbuildrCliRun):
                 warned_pending = True
             time.sleep(1)
             # poll build state again
-            build = mgr.get(build_id)
-
-        build.watch()
+            build = connection.get(build_id)
+        try:
+            connection.watch(build)
+        except KeyboardInterrupt:
+            # Leave gracefully after a keyboard interrupt (eg. ^c)
+            logger.debug("Received keyboard interrupt, leaving.")
+        except BrokenPipeError:
+            # Stop if hit a broken pipe. It could happen when watch is given to
+            # `head` for example.
+            pass
 
     def _run_watch(self):
         self._watch_build(self.conf.run.build)

@@ -192,20 +192,27 @@ class DbusBuild(DBusData, WireBuild):
     def message(self, value: Str):
         self._message = value
 
-    @classmethod
-    def load_from_build(cls, build):
-        _obj = cls()
-        _obj.id = build.id
-        _obj.state = build.state
-        _obj.place = build.place
-        _obj.source = build.source
-        _obj.user = build.user
-        _obj.email = build.email
-        _obj.instance = build.instance
-        _obj.distribution = build.distribution
-        _obj.environment = build.environment
-        _obj.format = build.format
-        _obj.artefact = build.artefact
-        _obj.submission = int(build.submission.timestamp())
-        _obj.message = build.message
-        return _obj
+
+class DbusSubmittedBuild(DbusBuild):
+    pass
+
+
+class DbusStartedBuild(DbusBuild):
+
+    def __init__(self):
+        self._logfile = None
+
+    # logfile
+    @property
+    def logfile(self) -> Str:
+        return self._logfile
+
+    @logfile.setter
+    def logfile(self, value: Str):
+        self._logfile = value
+
+class DbusRunningBuild(DbusStartedBuild):
+    pass
+
+class DbusArchivedBuild(DbusStartedBuild):
+    pass
