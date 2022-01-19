@@ -19,11 +19,11 @@
 
 import os
 import yaml
-import logging
 
 from .templates import Templeter
+from .log import logr
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class PipelinesDefs(object):

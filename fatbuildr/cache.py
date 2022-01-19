@@ -18,9 +18,10 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import logging
 
-logger = logging.getLogger(__name__)
+from .log import logr
+
+logger = logr(__name__)
 
 
 class CacheArtefact(object):

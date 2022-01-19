@@ -21,12 +21,12 @@ import os
 import mimetypes
 import tarfile
 import shutil
-import logging
 
 from .. import ArtefactBuild
 from ...registry import RegistryDeb
+from ...log import logr
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class ArtefactBuildDeb(ArtefactBuild):

@@ -18,11 +18,12 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import logging
 
 import jinja2
 
-logger = logging.getLogger(__name__)
+from .log import logr
+
+logger = logr(__name__)
 
 
 class Templeter(object):

@@ -19,11 +19,11 @@
 
 import sys
 import atexit
-import logging
 
 from ..cleanup import CleanupRegistry
+from ..log import logr
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class FatbuildrCliRun(object):

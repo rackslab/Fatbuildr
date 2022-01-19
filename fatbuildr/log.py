@@ -68,3 +68,77 @@ class TTYFormatter(logging.Formatter):
             prefix = "{level} ⸬ ".format(level=record.levelname)
 
         return style.start + prefix + _msg + style.end
+
+
+class DaemonFormatter(logging.Formatter):
+
+    def __init__(self, debug=True):
+        if debug:
+            _fmt = '%(threadName)s: [%(levelname)s] %(name)s %(message)s'
+        else:
+            _fmt = '%(threadName)s: [%(levelname)s] %(message)s'
+        super().__init__(_fmt)
+
+
+class Log(logging.Logger):
+
+    def __init__(self, name):
+        super().__init__(name)
+        self._file_handler = None  # used for file duplication
+
+    def has_debug(self):
+        return self.isEnabledFor(logging.DEBUG)
+
+    def formatter(self, debug):
+        if self.name == 'fatbuildr.cli.fatbuildrd':
+            return DaemonFormatter(debug)
+        elif self.name == 'fatbuildr.cli.fatbuildrctl':
+            return TTYFormatter(debug)
+        else:
+            raise RuntimeError("Unable to define log formatter for module %s"
+                               % (self.name))
+
+    def setup(self, debug: bool):
+        if debug:
+            logging_level = logging.DEBUG
+        else:
+            logging_level = logging.INFO
+
+        _root_logger = logging.getLogger()
+        _root_logger.setLevel(logging_level)
+        _handler = logging.StreamHandler()
+        _handler.setLevel(logging_level)
+        _formatter = self.formatter(debug)
+        _handler.setFormatter(_formatter)
+        _filter = logging.Filter('fatbuildr')  # filter out all libs logs
+        _handler.addFilter(_filter)
+        _root_logger.addHandler(_handler)
+
+    def ensure_debug(self):
+        _root_logger = logging.getLogger()
+        # do nothing if already at debug
+        if _root_logger.isEnabledFor(logging.DEBUG):
+            return
+        _root_logger.setLevel(level=logging.DEBUG)
+        _formatter = self.formatter(debug=True)
+        # set formatter and log level for all handlers
+        for handler in _root_logger.handlers:
+            handler.setLevel(logging.DEBUG)
+            handler.setFormatter(_formatter)
+
+    def add_file(self, path):
+        self._file_handler = logging.FileHandler(path)
+        logging.getLogger().addHandler(self._file_handler)
+
+    def del_file(self):
+        assert self._file_handler is not None
+        logging.getLogger().removeHandler(self._file_handler)
+        self._file_handler = None
+
+
+def logr(name):
+    """Instanciate Log by setting logging.setLoggerClass using
+       logging.getLogger() so Python logging module can do all its Loggers
+       registration. """
+    logging.setLoggerClass(Log)
+    return logging.getLogger(name)

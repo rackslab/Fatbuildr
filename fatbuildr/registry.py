@@ -21,12 +21,12 @@ import os
 import subprocess
 import glob
 import shutil
-import logging
 
 from .keyring import KeyringManager
 from .templates import Templeter
+from .log import logr
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class Registry(object):

@@ -24,13 +24,13 @@ import secrets
 import sys
 from datetime import datetime
 import subprocess
-import logging
 
 import gpg
 
 from .pipelines import PipelinesDefs
+from .log import logr
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class KeyringKey(object):

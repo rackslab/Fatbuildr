@@ -19,14 +19,14 @@
 
 import os
 import glob
-import logging
 
 from .. import ArtefactBuild
 from ...registry import RegistryRpm
 from ...keyring import KeyringManager
 from ...templates import Templeter
+from ...log import logr
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class ArtefactBuildRpm(ArtefactBuild):

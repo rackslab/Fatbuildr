@@ -20,13 +20,13 @@
 import os
 import sys
 import subprocess
-import logging
 
 from .containers import ContainerRunner
 from .pipelines import PipelinesDefs
 from .templates import Templeter
+from .log import logr
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class Image(object):
@@ -142,7 +142,7 @@ class ImagesManager(object):
             logger.error("Unable to find base directory %s" % (self.conf.run.basedir))
             sys.exit(1)
 
-        logging.info("Creating build environments")
+        logger.info("Creating build environments")
         # Load build environments declared in the basedir
         pipelines = PipelinesDefs(self.conf.run.basedir)
 
@@ -154,7 +154,7 @@ class ImagesManager(object):
 
     def update_envs(self):
 
-        logging.info("Updating build environments")
+        logger.info("Updating build environments")
         # Load build environments declared in the basedir
         pipelines = PipelinesDefs(self.conf.run.basedir)
 

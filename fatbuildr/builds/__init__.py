@@ -23,7 +23,6 @@ import hashlib
 import shutil
 import subprocess
 import tarfile
-import logging
 
 import requests
 
@@ -32,9 +31,10 @@ from ..pipelines import ArtefactDefs
 from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
+from ..log import logr
 from .form import BuildForm
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class AbstractBuild():
@@ -183,9 +183,8 @@ class ArtefactBuild(AbstractBuild):
         """Run the build! This is the entry point for fatbuildrd."""
         logger.info("Running build %s" % (self.id))
 
-        # setup logger to use logfile
-        handler = logging.FileHandler(self.logfile)
-        logging.getLogger().addHandler(handler)
+        # setup logger to duplicate logs in logfile
+        logger.add_file(self.logfile)
 
         try:
             self.prepare()
@@ -197,7 +196,7 @@ class ArtefactBuild(AbstractBuild):
         else:
             logger.info("Build succeeded")
 
-        logging.getLogger().removeHandler(handler)
+        logger.del_file()
 
     def watch(self):
         """Watch running build log file."""

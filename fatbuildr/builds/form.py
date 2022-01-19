@@ -20,14 +20,15 @@
 import os
 import shutil
 from datetime import datetime
-import logging
 
 import yaml
 
+from ..log import logr
 from ..pipelines import PipelinesDefs
 from ..cleanup import CleanupRegistry
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
+
 
 class BuildForm(object):
 

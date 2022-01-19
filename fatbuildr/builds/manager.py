@@ -24,14 +24,14 @@ import shutil
 import threading
 from datetime import datetime
 from collections import deque
-import logging
 
 from ..pipelines import PipelinesDefs
 from ..cleanup import CleanupRegistry
+from ..log import logr
 from . import BuildSubmission, BuildRequest, BuildArchive
 from .factory import BuildFactory
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class QueueManager:

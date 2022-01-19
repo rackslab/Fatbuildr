@@ -19,7 +19,6 @@
 
 import argparse
 import threading
-import logging
 
 from . import FatbuildrCliRun
 from ..version import __version__
@@ -28,8 +27,9 @@ from ..builds.manager import ServerBuildsManager
 from ..protocols import ServerFactory
 from ..timer import ServerTimer
 from ..services import ServiceManager
+from ..log import logr
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
 
 
 class Fatbuildrd(FatbuildrCliRun):
@@ -43,21 +43,7 @@ class Fatbuildrd(FatbuildrCliRun):
 
         args = parser.parse_args()
 
-        # setup logger according to args
-        if args.debug:
-            logging_level = logging.DEBUG
-        else:
-            logging_level = logging.INFO
-
-        _root_logger = logging.getLogger()
-        _root_logger.setLevel(logging_level)
-        handler = logging.StreamHandler()
-        handler.setLevel(logging_level)
-        formatter = logging.Formatter('%(threadName)s: [%(levelname)s] %(message)s')
-        handler.setFormatter(formatter)
-        _filter = logging.Filter('fatbuildr')
-        handler.addFilter(_filter)
-        _root_logger.addHandler(handler)
+        logger.setup(args.debug)
 
         self.conf = RuntimeConfd()
         self.load()
@@ -68,10 +54,7 @@ class Fatbuildrd(FatbuildrCliRun):
 
         # set debug level on root logger if set in conf file
         if self.conf.run.debug:
-            _root_logger = logging.getLogger()
-            _root_logger.setLevel(level=logging.DEBUG)
-            for handler in _root_logger.handlers:
-                handler.setLevel(logging.DEBUG)
+            logger.ensure_debug()
 
         self.conf.dump()
 

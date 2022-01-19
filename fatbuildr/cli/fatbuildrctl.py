@@ -21,7 +21,6 @@ import argparse
 import sys
 import os
 import time
-import logging
 
 from . import FatbuildrCliRun
 from ..version import __version__
@@ -29,10 +28,11 @@ from ..conf import RuntimeConfCtl
 from ..images import ImagesManager
 from ..keyring import KeyringManager
 from ..builds.manager import ClientBuildsManager
-from ..log import TTYFormatter
+from ..log import logr
 from ..protocols import ClientFactory
 
-logger = logging.getLogger(__name__)
+logger = logr(__name__)
+
 
 def progname():
     """Return the name of the program."""
@@ -92,27 +92,13 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         args = parser.parse_args()
 
-        Fatbuildrctl.setup_logger(args.debug)
+        logger.setup(args.debug)
 
         self.conf = RuntimeConfCtl()
         self.load(args)
 
         # run the method corresponding to the provided action
         args.func()
-
-    @staticmethod
-    def setup_logger(debug):
-        if debug:
-            logging_level = logging.DEBUG
-        else:
-            logging_level = logging.INFO
-        _root_logger = logging.getLogger()
-        _root_logger.setLevel(logging_level)
-        handler = logging.StreamHandler()
-        handler.setLevel(logging_level)
-        formatter = TTYFormatter(debug)
-        handler.setFormatter(formatter)
-        _root_logger.addHandler(handler)
 
     def load(self, args):
         super().load()
@@ -200,7 +186,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)
-        logging.info("Build %s submitted" % (build_id))
+        logger.info("Build %s submitted" % (build_id))
         #if self.conf.run.watch:
         #    self._watch_build(build_id)
 

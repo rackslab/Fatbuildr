@@ -19,9 +19,10 @@
 
 import configparser
 import re
-import logging
 
-logger = logging.getLogger(__name__)
+from .log import logr
+
+logger = logr(__name__)
 
 
 class RuntimeSubConfDirs(object):
@@ -308,7 +309,7 @@ class RuntimeConf(object):
 
     def dump(self):
         """Dump all runtime configuration parameters when in debug mode."""
-        if not logger.isEnabledFor(logging.DEBUG):
+        if not logger.has_debug():
             return
         self.run.dump()
         self.dirs.dump()
