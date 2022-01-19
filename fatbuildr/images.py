@@ -105,12 +105,18 @@ class ImagesManager(object):
         self.conf = conf
         self.instance = instance
 
+    @property
+    def selected_formats(self):
+        if self.conf.run.format == 'all':
+            return self.conf.images.formats
+        return [self.conf.run.format]
+
     def create(self):
         if not os.path.exists(self.conf.images.storage):
             logger.debug("Creating missing images directory %s" % (self.conf.images.storage))
             os.mkdir(self.conf.images.storage)
 
-        for _format in self.conf.images.formats:
+        for _format in self.selected_formats:
 
             img = Image(self.conf, self.instance, _format)
 
@@ -129,7 +135,7 @@ class ImagesManager(object):
 
     def update(self):
 
-        for _format in self.conf.images.formats:
+        for _format in self.selected_formats:
             img = Image(self.conf, self.instance, _format)
             if not img.exists:
                 logger.warning("Image %s does not exist, create it first" % (img.path))
@@ -146,7 +152,7 @@ class ImagesManager(object):
         # Load build environments declared in the basedir
         pipelines = PipelinesDefs(self.conf.run.basedir)
 
-        for _format in self.conf.images.formats:
+        for _format in self.selected_formats:
             img = Image(self.conf, self.instance, _format)
             for _dist in pipelines.format_dists(_format):
                 env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
@@ -158,9 +164,8 @@ class ImagesManager(object):
         # Load build environments declared in the basedir
         pipelines = PipelinesDefs(self.conf.run.basedir)
 
-        for _format in self.conf.images.formats:
+        for _format in self.selected_formats:
             img = Image(self.conf, self.instance, _format)
             for _dist in pipelines.format_dists(_format):
                 env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
-
                 env.update()

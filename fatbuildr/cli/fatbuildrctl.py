@@ -57,6 +57,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_images = subparsers.add_parser('images', help='Manage build images')
         parser_images.add_argument('--create', action='store_true', help='Create the images')
         parser_images.add_argument('--update', action='store_true', help='Update the images')
+        parser_images.add_argument('--format', help='Manage image and build environment for this format')
         parser_images.add_argument('--force', action='store_true', help='Force creation of images even they already exist')
         parser_images.add_argument('--create-envs', action='store_true', help='Create the build environments in the images')
         parser_images.add_argument('--update-envs', action='store_true', help='Update the build environments in the images')
@@ -133,6 +134,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             else:
                 print("An operation on the images must be specified, type '%s images --help' for details" % (progname()))
                 sys.exit(1)
+            if args.format:
+                self.conf.run.format = args.format
+            else:
+                self.conf.run.format = 'all'
             self.conf.run.force = args.force
             if self.conf.run.operation in ['create_envs', 'update_envs'] and args.basedir is None:
                 print("The base directory must be specified to operate on build environments, type '%s images --help' for details" % (progname()))

@@ -229,6 +229,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         self.action = None
         # parameters for image action
         self.operation = None
+        self.format = None
         self.force = None
         # parameters for build action
         self.package = None
@@ -249,6 +250,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         logger.debug("  default_instance: %s" % (self.default_instance))
         logger.debug("  action: %s" % (self.action))
         logger.debug("  operation: %s" % (self.operation))
+        logger.debug("  format: %s" % (self.format))
         logger.debug("  force: %s" % (self.force))
         logger.debug("  package: %s" % (self.package))
         logger.debug("  build: %s" % (self.build))
