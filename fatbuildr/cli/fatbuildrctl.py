@@ -90,6 +90,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_watch.add_argument('-b', '--build', help='ID of build to watch')
         parser_watch.set_defaults(func=self._run_watch)
 
+        parser_archives = subparsers.add_parser('archives', help='List archives')
+        parser_archives.set_defaults(func=self._run_archives)
+
         args = parser.parse_args()
 
         logger.setup(args.debug)
@@ -240,3 +243,13 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_watch(self):
         self._watch_build(self.conf.run.build)
+
+    def _run_archives(self):
+        connection = ClientFactory.get()
+        archives = connection.archives()
+        if not archives:
+            print("No archive found")
+            return
+        print("Build archives:")
+        for archive in archives:
+            archive.report()

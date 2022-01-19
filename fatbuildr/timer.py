@@ -32,7 +32,7 @@ class ServerTimer:
         self.event = threading.Event()
 
     def reset(self):
-        logger.info("Reseting timer")
+        logger.debug("Reseting timer")
         self.start = datetime.now().timestamp()
 
     @property
