@@ -30,6 +30,7 @@ from ..keyring import KeyringManager
 from ..builds.manager import ClientBuildsManager
 from ..log import logr
 from ..protocols import ClientFactory
+from ..pipelines import PipelinesDefs
 
 logger = logr(__name__)
 
@@ -73,7 +74,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_build = subparsers.add_parser('build', help='Submit new build')
         parser_build.add_argument('-a', '--artefact', help='Artefact name', required=True)
         parser_build.add_argument('-d', '--distribution', help='Distribution name', required=True)
-        parser_build.add_argument('-b', '--basedir', help='Artefacts repository directory', required=True)
+        parser_build.add_argument('-b', '--basedir', help='Artefacts definitions directory', required=True)
         parser_build.add_argument('-n', '--name', help='Maintainer name', required=True)
         parser_build.add_argument('-e', '--email', help='Maintainer email', required=True)
         parser_build.add_argument('-m', '--msg', help='Build log message')
@@ -92,6 +93,11 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         parser_archives = subparsers.add_parser('archives', help='List archives')
         parser_archives.set_defaults(func=self._run_archives)
+
+        parser_registry = subparsers.add_parser('registry', help='Manage artefact registries')
+        parser_registry.add_argument('-b', '--basedir', help='Artefacts definitions directory', required=True)
+        parser_registry.add_argument('-d', '--distribution', help='Distribution name', required=True)
+        parser_registry.set_defaults(func=self._run_registry)
 
         args = parser.parse_args()
 
@@ -156,6 +162,10 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         elif args.action == 'watch':
             self.conf.run.build = args.build
+
+        elif args.action == 'registry':
+            self.conf.run.basedir = args.basedir
+            self.conf.run.distribution = args.distribution
 
         self.conf.dump()
 
@@ -253,3 +263,17 @@ class Fatbuildrctl(FatbuildrCliRun):
         print("Build archives:")
         for archive in archives:
             archive.report()
+
+    def _run_registry(self):
+        connection = ClientFactory.get()
+        pipelines = PipelinesDefs(self.conf.run.basedir)
+        _fmt = pipelines.dist_format(self.conf.run.distribution)
+        artefacts = connection.registry_distribution(self.instance, _fmt, self.conf.run.distribution)
+        if not artefacts:
+            print("No artefact found in %s distribution %s"
+                  % (_fmt, self.conf.run.distribution))
+            return
+        print("Artefacts found for %s distribution %s:"
+              % (_fmt, self.conf.run.distribution))
+        for artefact in artefacts:
+            artefact.report()

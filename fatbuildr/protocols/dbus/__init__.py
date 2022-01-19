@@ -23,7 +23,7 @@ from dasbus.identifier import DBusServiceIdentifier
 from dasbus.structure import DBusData, DBusFieldFactory, DBUS_FIELDS_ATTRIBUTE, DBusStructureError
 from dasbus.typing import Str, Int
 
-from ..wire import WireBuild
+from ..wire import WireBuild, WireArtefact
 
 # Define the error mapper.
 ERROR_MAPPER = ErrorMapper()
@@ -216,3 +216,38 @@ class DbusRunningBuild(DbusStartedBuild):
 
 class DbusArchivedBuild(DbusStartedBuild):
     pass
+
+class DbusArtefact(DBusData, WireArtefact):
+    """The user data."""
+
+    def __init__(self):
+        self._name = None
+        self._architecture = None
+        self._version = None
+
+    # name
+    @property
+    def name(self) -> Str:
+        return self._name
+
+    @name.setter
+    def name(self, value: Str):
+        self._name = value
+
+    # architecture
+    @property
+    def architecture(self) -> Str:
+        return self._architecture
+
+    @architecture.setter
+    def architecture(self, value: Str):
+        self._architecture = value
+
+    # version
+    @property
+    def version(self) -> Str:
+        return self._version
+
+    @version.setter
+    def version(self, value: Str):
+        self._version = value

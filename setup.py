@@ -33,7 +33,8 @@ setup(name='Fatbuildr',
       install_requires=['jinja2',
                         'gpg',
                         'requests',
-                        'yaml' ],
+                        'yaml',
+                        'createrepo-c' ],
       entry_points = {
           'console_scripts': [
               'fatbuildrd=fatbuildr.cli.fatbuildrd:Fatbuildrd.run',

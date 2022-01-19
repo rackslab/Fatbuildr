@@ -19,7 +19,7 @@
 
 import subprocess
 
-from . import REGISTER, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, ErrorNoRunningBuild
+from . import REGISTER, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, DbusArtefact, ErrorNoRunningBuild
 
 
 class DbusClient(object):
@@ -69,3 +69,6 @@ class DbusClient(object):
             with open(build.logfile, 'r') as fh:
                  while chunk := fh.read(8192):
                     print(chunk, end='')
+
+    def registry_distribution(self, instance, fmt, distribution):
+        return DbusArtefact.from_structure_list(self.proxy.RegistryDistribution(instance, fmt, distribution))

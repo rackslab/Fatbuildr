@@ -61,3 +61,18 @@ class WireBuild:
         _obj.submission = int(build.submission.timestamp())
         _obj.message = build.message
         return _obj
+
+
+class WireArtefact:
+    def report(self):
+        print("- name: %s" % (self.name))
+        print("  architecture: %s" % (self.architecture))
+        print("  version: %s" % (self.version))
+
+    @classmethod
+    def load_from_artefact(cls, artefact):
+        _obj = cls()
+        _obj.name = artefact.name
+        _obj.architecture = artefact.architecture
+        _obj.version = artefact.version
+        return _obj

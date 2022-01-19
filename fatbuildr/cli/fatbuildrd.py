@@ -27,6 +27,7 @@ from ..builds.manager import ServerBuildsManager
 from ..protocols import ServerFactory
 from ..timer import ServerTimer
 from ..services import ServiceManager
+from ..registry import RegistryFactory
 from ..log import logr
 
 logger = logr(__name__)
@@ -104,7 +105,7 @@ class Fatbuildrd(FatbuildrCliRun):
         """Thread handling requests from clients."""
         logger.info("Starting server thread")
         self.server = ServerFactory.get()
-        self.server.run(self.mgr, self.timer)
+        self.server.run(self.conf, self.mgr, RegistryFactory, self.timer)
         logger.info("Stopping server thread")
 
     def _timer(self):

@@ -25,7 +25,7 @@ from dasbus.signal import Signal
 from dasbus.typing import Structure, List, Str
 from dasbus.xml import XMLGenerator
 
-from . import REGISTER, BUS, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, ErrorNoRunningBuild
+from . import REGISTER, BUS, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, DbusArtefact, ErrorNoRunningBuild
 from ...log import logr
 
 logger = logr(__name__)
@@ -54,12 +54,18 @@ class FatbuildrInterface(InterfaceTemplate):
         """Submit a new build."""
         return self.implementation.submit(input)
 
+    def RegistryDistribution(self, instance: Str, fmt: Str, distribution: Str) -> List[Structure]:
+        """The artefacts in this distribution registry."""
+        return DbusArtefact.to_structure_list(self.implementation.registry_distribution(instance, fmt, distribution))
+
 
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
 
-    def __init__(self, mgr, timer):
+    def __init__(self, conf, mgr, registry_factory, timer):
+        self.conf = conf
         self.mgr = mgr
+        self.registry_factory = registry_factory
         self.timer = timer
 
     @property
@@ -90,17 +96,24 @@ class FatbuildrMultiplexer(object):
         submission = self.mgr.submit(input)
         return submission.id
 
+    def registry_distribution(self, instance: Str, fmt: Str, distribution: Str):
+        """Get all artefacts in this distribution registry."""
+        self.timer.reset()
+        registry = self.registry_factory.get(fmt, self.conf, instance, distribution)
+        return [DbusArtefact.load_from_artefact(artefact)
+                for artefact in registry.artefacts()]
+
 
 class DbusServer(object):
 
-    def run(self, mgr, timer):
+    def run(self, conf, mgr, registry_factory, timer):
 
         # Print the generated XML specification.
         logger.debug("Dbus service interface generated:\n %s",
                      XMLGenerator.prettify_xml(FatbuildrInterface.__dbus_xml__))
 
         # Create the Fatbuildr multiplexer.
-        multiplexer = FatbuildrMultiplexer(mgr, timer)
+        multiplexer = FatbuildrMultiplexer(conf, mgr, registry_factory, timer)
 
         # Publish the register at /org/rackslab/Fatbuildr/Builds.
         BUS.publish_object(

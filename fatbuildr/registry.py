@@ -22,6 +22,8 @@ import subprocess
 import glob
 import shutil
 
+import createrepo_c as cr
+
 from .keyring import KeyringManager
 from .templates import Templeter
 from .log import logr
@@ -108,6 +110,19 @@ class RegistryDeb(Registry):
                    'include', build.distribution, changes_path ]
             build.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})
 
+    def artefacts(self):
+        """Returns the list of artefacts in deb repository."""
+        artefacts = []
+        cmd = ['reprepro', '--basedir', self.path,
+               '--list-format', '${package}|${$architecture}|${version}\n',
+               'list', self.distribution ]
+        repo_list_proc = subprocess.run(cmd, capture_output=True)
+        lines = repo_list_proc.stdout.decode().strip().split('\n')
+        for line in lines:
+            (name, arch, version) = line.split('|')
+            artefacts.append(RegistryArtefact(name, arch, version))
+        return artefacts
+
 
 class RegistryRpm(Registry):
     """Registry for Rpm format (aka. yum/dnf repository)."""
@@ -147,3 +162,35 @@ class RegistryRpm(Registry):
         logger.debug("Updating metadata of RPM repository %s" % (self.path))
         cmd = [ 'createrepo_c', '--update', self.path ]
         build.runcmd(cmd)
+
+    def artefacts(self):
+        """Returns the list of artefacts in rpm repository."""
+        artefacts = []
+        md = cr.Metadata()
+        md.locate_and_load_xml(self.path)
+        for key in md.keys():
+            pkg = md.get(key)
+            artefacts.append(RegistryArtefact(pkg.name, pkg.arch,
+                                              pkg.version+pkg.release))
+        return artefacts
+
+
+class RegistryArtefact:
+    def __init__(self, name, architecture, version):
+        self.name = name
+        self.architecture = architecture
+        self.version = version
+
+
+class RegistryFactory():
+    _formats = {
+        'deb': RegistryDeb,
+        'rpm': RegistryRpm,
+    }
+
+    @staticmethod
+    def get(fmt, conf, instance, distribution):
+        """Instanciate the appropriate Registry for the given format."""
+        if not fmt in RegistryFactory._formats:
+            raise RuntimeError("format %s unsupported by registries" % (fmt))
+        return RegistryFactory._formats[fmt](conf, instance, distribution)
