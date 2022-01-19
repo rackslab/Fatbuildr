@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import logging
+
 from dasbus.loop import EventLoop
 from dasbus.server.interface import dbus_interface
 from dasbus.server.property import emits_properties_changed
@@ -26,6 +28,8 @@ from dasbus.typing import Structure, List, Str
 from dasbus.xml import XMLGenerator
 
 from . import REGISTER, BUS, DbusBuild, ErrorNoRunningBuild
+
+logger = logging.getLogger(__name__)
 
 
 @dbus_interface(REGISTER.interface_name)
@@ -81,7 +85,8 @@ class DbusServer(object):
     def run(self, mgr, timer):
 
         # Print the generated XML specification.
-        print(XMLGenerator.prettify_xml(FatbuildrInterface.__dbus_xml__))
+        logger.debug("Dbus service interface generated:\n %s",
+                     XMLGenerator.prettify_xml(FatbuildrInterface.__dbus_xml__))
 
         # Create the Fatbuildr multiplexer.
         multiplexer = FatbuildrMultiplexer(mgr, timer)
