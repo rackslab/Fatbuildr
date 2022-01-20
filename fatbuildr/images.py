@@ -154,7 +154,11 @@ class ImagesManager(object):
 
         for _format in self.selected_formats:
             img = Image(self.conf, self.instance, _format)
-            for _dist in pipelines.format_dists(_format):
+            distributions = pipelines.format_dists(_format)
+            if not distributions:
+                logger.info("No distribution defined for %s image"
+                            % (_format))
+            for _dist in distributions:
                 env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
                 env.create()
 
