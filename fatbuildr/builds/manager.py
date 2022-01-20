@@ -178,20 +178,3 @@ class ClientBuildsManager:
         # prepare artefact tarball
         request.prepare_tarball(self.conf.run.basedir, self.conf.run.subdir, tmpdir)
         return request.place
-
-    def get(self, build_id):
-        """Return the BuildSubmission, BuildFactory or the BuildArchive with
-           the build_id in argument, looking both in the queue and in the
-           archives."""
-
-        if build_id in os.listdir(self.conf.dirs.queue):
-            logger.debug("Found build %s in queue" % (build_id))
-            return BuildSubmission.load(os.path.join(self.conf.dirs.queue, build_id), build_id)
-        elif build_id in os.listdir(self.conf.dirs.build):
-            logger.debug("Found running build %s" % (build_id))
-            return BuildFactory.load(self.conf, os.path.join(self.conf.dirs.build, build_id), build_id)
-        elif build_id in os.listdir(self.conf.dirs.archives):
-            logger.debug("Found build %s in archives" % (build_id))
-            return BuildArchive(os.path.join(self.conf.dirs.archives, build_id), build_id)
-        else:
-            raise RuntimeError("Unable to find build %s" % (build_id))
