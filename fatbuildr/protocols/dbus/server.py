@@ -115,13 +115,13 @@ class DbusServer(object):
         # Create the Fatbuildr multiplexer.
         multiplexer = FatbuildrMultiplexer(conf, mgr, registry_factory, timer)
 
-        # Publish the register at /org/rackslab/Fatbuildr/Builds.
+        # Publish the register at /org/rackslab/Fatbuildr.
         BUS.publish_object(
             REGISTER.object_path,
             FatbuildrInterface(multiplexer)
         )
 
-        # Register the service name org.rackslab.Fatbuildr.Builds.
+        # Register the service name org.rackslab.Fatbuildr.
         BUS.register_service(
             REGISTER.service_name
         )
