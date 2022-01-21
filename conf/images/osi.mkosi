@@ -1,0 +1,11 @@
+[Distribution]
+Distribution=fedora
+Release=35
+
+[Output]
+Format=directory
+
+[Content]
+# Docs are useful to get examples from packages and manpages when digging
+WithDocs=yes
+Packages=rpm,dnf,mkosi,debootstrap,systemd-container

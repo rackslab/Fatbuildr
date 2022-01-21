@@ -102,6 +102,10 @@ class ArtefactDefs(object):
         return self.meta['checksums'][self.version][self.checksum_format]
 
     @property
+    def has_tarball(self):
+        return 'tarball' in self.meta
+
+    @property
     def tarball(self):
         return Templeter.srender(self.meta['tarball'], pkg=self)
 

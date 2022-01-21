@@ -220,15 +220,20 @@ class ArtefactBuild(AbstractBuild):
         """Download the package upstream tarball and verify checksum if not
            present in cache."""
 
+        # ensure artefact cache directory exists
+        self.cache.ensure()
+
         # load defs
         self.defs = ArtefactDefs(self.place)
 
-        if self.cache.has_tarball:
-            # nothing to do here
+        if not self.defs.has_tarball:
+            # This artefact does not need upstream tarball, nothing more to do
+            # here
             return
 
-        # ensure artefact cache directory exists
-        self.cache.ensure()
+        if self.cache.has_tarball:
+            # The upstream tarball if already in cache, nothing more to do here
+            return
 
         # actual download and write in cache
         dl = requests.get(self.tarball, allow_redirects=True)

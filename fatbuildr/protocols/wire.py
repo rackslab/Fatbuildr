@@ -54,8 +54,14 @@ class WireBuild:
         _obj.user = build.user
         _obj.email = build.email
         _obj.instance = build.instance
-        _obj.distribution = build.distribution
-        _obj.environment = build.environment
+        if build.distribution is None:
+           _obj.distribution = 'none'
+        else:
+            _obj.distribution = build.distribution
+        if build.environment is None:
+           _obj.environment = 'none'
+        else:
+            _obj.environment = build.environment
         _obj.format = build.format
         _obj.artefact = build.artefact
         _obj.submission = int(build.submission.timestamp())

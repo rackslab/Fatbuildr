@@ -21,6 +21,7 @@ import os
 
 from .formats.deb import ArtefactBuildDeb
 from .formats.rpm import ArtefactBuildRpm
+from .formats.osi import ArtefactBuildOsi
 from .form import BuildForm
 
 class BuildFactory(object):
@@ -28,6 +29,7 @@ class BuildFactory(object):
     _formats = {
         'deb': ArtefactBuildDeb,
         'rpm': ArtefactBuildRpm,
+        'osi': ArtefactBuildOsi,
     }
 
     @staticmethod

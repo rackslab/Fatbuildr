@@ -175,6 +175,52 @@ class RegistryRpm(Registry):
         return artefacts
 
 
+class RegistryOsi(Registry):
+    """Registry for Osi format (aka. OS images)."""
+
+    def __init__(self, conf, instance, distribution):
+        super().__init__(conf, instance, distribution)
+
+    @property
+    def path(self):
+        return os.path.join(self.instance_dir, 'osi', self.distribution)
+
+    def publish(self, build):
+        """Publish OSI images."""
+
+        logger.info("Publishing OSI images for %s" % (build.name))
+
+        # ensure osi directory exists
+        parent = os.path.dirname(self.path)
+        if not os.path.exists(parent):
+            logger.debug("Creating directory %s" % (parent))
+            os.mkdir(parent)
+            os.chmod(parent, 0o755)
+
+        # ensure distribution directory exists
+        if not os.path.exists(self.path):
+            logger.debug("Creating directory %s" % (self.path))
+            os.mkdir(self.path)
+            os.chmod(self.path, 0o755)
+
+        built_files = ['SHA256SUMS', 'SHA256SUMS.gpg']
+        images_files_path = os.path.join(build.place, '*.tar.*')
+        built_files.extend([os.path.basename(_path)
+                            for _path in glob.glob(images_files_path)])
+        logger.debug("Found files: %s" % (' '.join(built_files)))
+
+        for _fpath in built_files:
+            src = os.path.join(build.place, _fpath)
+            dst = os.path.join(self.path, _fpath)
+            logger.debug("Copying file %s to %s" % (src, dst))
+            shutil.copyfile(src, dst)
+
+    def artefacts(self):
+        """Returns the list of artefacts in rpm repository."""
+        artefacts = []
+        return artefacts
+
+
 class RegistryArtefact:
     def __init__(self, name, architecture, version):
         self.name = name
@@ -186,6 +232,7 @@ class RegistryFactory():
     _formats = {
         'deb': RegistryDeb,
         'rpm': RegistryRpm,
+        'osi': RegistryOsi,
     }
 
     @staticmethod
