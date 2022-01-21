@@ -105,6 +105,11 @@ class ArtefactDefs(object):
     def tarball(self):
         return Templeter.srender(self.meta['tarball'], pkg=self)
 
+    @property
+    def supported_formats(self):
+        return [key for key in self.meta.keys()
+                if key not in ['version', 'tarball', 'checksums']]
+
     def release(self, fmt):
         return str(self.meta[fmt]['release'])
 

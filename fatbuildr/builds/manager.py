@@ -25,7 +25,6 @@ import threading
 from datetime import datetime
 from collections import deque
 
-from ..pipelines import PipelinesDefs
 from ..cleanup import CleanupRegistry
 from ..log import logr
 from . import BuildSubmission, BuildRequest, BuildArchive
@@ -145,29 +144,20 @@ class ClientBuildsManager:
     def __init__(self, conf):
         self.conf = conf
 
-    def request(self, instance):
+    def request(self, instance, reponame, distribution, env, fmt, msg):
         # create tmp submission directory
         tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
         logger.debug("Created request temporary directory %s" % (tmpdir))
 
-        # load pipelines defs to get dist→format/env mapping
-        pipelines = PipelinesDefs(self.conf.run.basedir)
-
-        # If the user did not provide a build  message, load the default
-        # message from the pipelines definition.
-        msg = self.conf.run.build_msg
-        if msg is None:
-            msg = pipelines.msg
-
         # create build request
         request = BuildRequest(tmpdir,
-                               pipelines.name,
+                               reponame,
                                self.conf.run.user_name,
                                self.conf.run.user_email,
                                instance,
-                               self.conf.run.distribution,
-                               pipelines.dist_env(self.conf.run.distribution),
-                               pipelines.dist_format(self.conf.run.distribution),
+                               distribution,
+                               env,
+                               fmt,
                                self.conf.run.artefact,
                                datetime.now(),
                                msg)

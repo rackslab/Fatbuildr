@@ -30,7 +30,7 @@ from ..keyring import KeyringManager
 from ..builds.manager import ClientBuildsManager
 from ..log import logr
 from ..protocols import ClientFactory
-from ..pipelines import PipelinesDefs
+from ..pipelines import PipelinesDefs, ArtefactDefs
 
 logger = logr(__name__)
 
@@ -74,7 +74,8 @@ class Fatbuildrctl(FatbuildrCliRun):
         # create the parser for the build command
         parser_build = subparsers.add_parser('build', help='Submit new build')
         parser_build.add_argument('-a', '--artefact', help='Artefact name', required=True)
-        parser_build.add_argument('-d', '--distribution', help='Distribution name', required=True)
+        parser_build.add_argument('-d', '--distribution', help='Distribution name')
+        parser_build.add_argument('-f', '--format', help='Format of the artefact')
         parser_build.add_argument('-b', '--basedir', help='Artefacts definitions directory', required=True)
         parser_build.add_argument('-s', '--subdir', help='Artefact subdirectory')
         parser_build.add_argument('-n', '--name', help='Maintainer name', required=True)
@@ -159,7 +160,10 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         elif args.action == 'build':
             self.conf.run.artefact = args.artefact
-            self.conf.run.distribution = args.distribution
+            if args.distribution:
+                self.conf.run.distribution = args.distribution
+            if args.format:
+                self.conf.run.format = args.format
             self.conf.run.basedir = args.basedir
             if args.subdir:
                 self.conf.run.subdir = args.subdir
@@ -201,10 +205,73 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_build(self):
         logger.debug("running build for artefact: %s instance: %s" % (self.conf.run.artefact, self.instance))
+
+        # load pipelines defs to get dist→format/env mapping
+        pipelines = PipelinesDefs(self.conf.run.basedir)
+
+        # If the user did not provide a build message, load the default
+        # message from the pipelines definition.
+        msg = self.conf.run.build_msg
+        if msg is None:
+            msg = pipelines.msg
+
+        if self.conf.run.distribution:
+            fmt = pipelines.dist_format(self.conf.run.distribution)
+            # if format is also given, check it matches
+            if self.conf.run.format and self.conf.run.format != fmt:
+                logger.error("Specified format %s does not match the format "
+                             "of the specified distribution %s"
+                             % (self.conf.run.format,
+                                self.conf.run.distribution))
+                sys.exit(1)
+            self.conf.run.format = fmt
+        elif not self.conf.run.format:
+            # distribution and format have not been specified, check format
+            # supported by the artefact.
+            path = os.path.join(self.conf.run.basedir, self.conf.run.subdir)
+            defs = ArtefactDefs(path)
+            fmts = defs.supported_formats
+            # check if there is not more than one supported format for this
+            # artefact
+            if len(fmts) > 1:
+                logger.error("There is more than one supported format for "
+                             "artefact %s, at least the format must be "
+                             "specified" % (self.conf.run.artefact))
+                sys.exit(1)
+            if fmts:
+                self.conf.run.format = fmts[0]
+                logger.debug("Format %s has been selected for artefact %s"
+                             % (self.conf.run.format,
+                                self.conf.run.artefact))
+
+        if not self.conf.run.format:
+            logger.error("Unable to define format of artefact %s, either the "
+                         "distribution or the format must be specified"
+                         % (self.conf.run.artefact))
+            sys.exit(1)
+        elif not self.conf.run.distribution:
+            dists = pipelines.format_dists(self.conf.run.format)
+            # check if there is not more than one distribution for this format
+            if len(dists) > 1:
+                logger.error("There is more than one distribution for the "
+                             "format %s in pipelines definition, the "
+                             "distribution must be specified"
+                             % (self.conf.run.format))
+                sys.exit(1)
+            self.conf.run.distribution = dists[0]
+            logger.debug("Distribution %s has been selected for format %s"
+                         % (self.conf.run.distribution,
+                            self.conf.run.format))
+
+        env = pipelines.dist_env(self.conf.run.distribution)
+
         mgr = ClientBuildsManager(self.conf)
         connection = ClientFactory.get()
+
         try:
-            place = mgr.request(self.instance)
+            place = mgr.request(self.instance, pipelines.name,
+                                self.conf.run.distribution,
+                                env, self.conf.run.format, msg)
             build_id = connection.submit(place)
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
