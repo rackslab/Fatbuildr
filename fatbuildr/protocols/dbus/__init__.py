@@ -45,11 +45,6 @@ REGISTER = DBusServiceIdentifier(
 # The decorator for DBus errors.
 dbus_error = get_error_decorator(ERROR_MAPPER)
 
-TYPES_MAP = {
-    str: Str,
-    int: Int,
-}
-
 # Define errors.
 @dbus_error("ErrorNoRunningBuild", namespace=REGISTER_NAMESPACE)
 class ErrorNoRunningBuild(DBusError):
