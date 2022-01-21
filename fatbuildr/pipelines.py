@@ -72,7 +72,7 @@ class PipelinesDefs(object):
 
     def format_dists(self, format):
         """Return the list of distributions for the given format."""
-        return self.defs['formats'][format].keys()
+        return list(self.defs['formats'][format].keys())
 
 
 class ArtefactDefs(object):
