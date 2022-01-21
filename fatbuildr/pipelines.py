@@ -78,9 +78,7 @@ class PipelinesDefs(object):
 class ArtefactDefs(object):
     """Class to manipulate an artefact metadata definitions."""
 
-    def __init__(self, path, name, fmt):
-        self.name = name
-        self.format = fmt
+    def __init__(self, path):
         meta_yml_f = os.path.join(path, 'meta.yml')
         logger.debug("Loading artefact definitions from %s" % (meta_yml_f))
         with open(meta_yml_f) as fh:
@@ -89,10 +87,6 @@ class ArtefactDefs(object):
     @property
     def version(self):
         return str(self.meta['version'])
-
-    @property
-    def release(self):
-        return str(self.meta[self.format]['release'])
 
     @property
     def fullversion(self):
@@ -110,10 +104,11 @@ class ArtefactDefs(object):
     def tarball(self):
         return Templeter.srender(self.meta['tarball'], pkg=self)
 
-    @property
-    def has_buildargs(self):
-        return 'buildargs' in self.meta[self.format]
+    def release(self, fmt):
+        return str(self.meta[fmt]['release'])
 
-    @property
-    def buildargs(self):
-        return self.meta[self.format]['buildargs'].split(' ')
+    def has_buildargs(self, fmt):
+        return 'buildargs' in self.meta[fmt]
+
+    def buildargs(self, fmt):
+        return self.meta[fmt]['buildargs'].split(' ')

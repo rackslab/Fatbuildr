@@ -164,6 +164,18 @@ class ArtefactBuild(AbstractBuild):
             except AttributeError:
                 raise AttributeError("%s does not have %s attribute" % (self.__class__.__name__, name))
 
+    @property
+    def release(self):
+        return self.defs.release(self.format)
+
+    @property
+    def has_buildargs(self):
+        return self.defs.has_buildargs(self.format)
+
+    @property
+    def buildargs(self):
+        return self.defs.buildargs(self.format)
+
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""
         logger.info("Running build %s" % (self.id))
@@ -209,7 +221,7 @@ class ArtefactBuild(AbstractBuild):
            present in cache."""
 
         # load defs
-        self.defs = ArtefactDefs(self.place, self.name, self.format)
+        self.defs = ArtefactDefs(self.place)
 
         if self.cache.has_tarball:
             # nothing to do here
