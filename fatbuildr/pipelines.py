@@ -53,8 +53,8 @@ class PipelinesDefs(object):
         return self.defs['gpg']['email']
 
     def dist_format(self, distribution):
-        """Which format (ex: RPM) for this distribution? Returns None if
-           distribution has not been found."""
+        """Which format (ex: RPM) for this distribution? Raise RuntimeError if
+           the format has not been found."""
         for format, dists in self.defs['formats'].items():
             if distribution in dists.keys():
                 return format
@@ -63,7 +63,8 @@ class PipelinesDefs(object):
 
     def dist_env(self, distribution):
         """Return the name of the build environment for the given
-           distribution."""
+           distribution. Raise RuntimeError is the environment has not been
+           found."""
         for format, dists in self.defs['formats'].items():
             if distribution in dists.keys():
                 return dists[distribution]
