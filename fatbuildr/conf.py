@@ -232,7 +232,8 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         self.format = None
         self.force = None
         # parameters for build action
-        self.package = None
+        self.artefact = None
+        self.distribution = None
         self.basedir = None
         self.subdir = None
         self.user_name = None
@@ -251,8 +252,9 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         logger.debug("  action: %s" % (self.action))
         logger.debug("  operation: %s" % (self.operation))
         logger.debug("  format: %s" % (self.format))
+        logger.debug("  distribution: %s" % (self.distribution))
         logger.debug("  force: %s" % (self.force))
-        logger.debug("  package: %s" % (self.package))
+        logger.debug("  artefact: %s" % (self.artefact))
         logger.debug("  build: %s" % (self.build))
         logger.debug("  basedir: %s" % (self.basedir))
         logger.debug("  subdir: %s" % (self.subdir))
