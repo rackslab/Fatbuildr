@@ -245,17 +245,25 @@ class KeyringManager(object):
         if os.path.exists(gpgagent_sock_path):
             cmd = ['gpgconf', '--kill',
                    '--homedir', self.homedir, 'gpg-agent' ]
-            subprocess.run(cmd)
+            KeyringManager.runcmd(cmd)
 
         # Start agent with --allow-preset-passphrase so the key can be loaded
         # non-interactively.
         cmd = ['gpg-agent', '--homedir', self.homedir,
                '--allow-preset-passphrase', '--daemon' ]
-        subprocess.run(cmd)
+        KeyringManager.runcmd(cmd)
 
         # Load GPG in agent using the passphrase
         cmd = ['/usr/lib/gnupg/gpg-preset-passphrase',
                '--preset', self.masterkey.subkey.keygrip ]
-        subprocess.run(cmd,
-                       env={'GNUPGHOME': self.homedir},
-                       input=self.passphrase.encode())
+        KeyringManager.runcmd(cmd,
+                              env={'GNUPGHOME': self.homedir},
+                              input=self.passphrase.encode())
+
+    @staticmethod
+    def runcmd(cmd, env=None, input=None):
+        logger.debug("Running command: %s" % (' '.join(cmd)))
+        proc = subprocess.run(cmd, env=env, input=input, capture_output=True)
+        if proc.returncode:
+            raise RuntimeError("Command %s failed: %s"
+                               % (' '.join(cmd), proc.stderr.decode()))
