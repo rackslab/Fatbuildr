@@ -80,6 +80,14 @@ class DaemonFormatter(logging.Formatter):
         super().__init__(_fmt)
 
 
+class BuildlogFilter(logging.Filter):
+
+    def filter(self, record):
+        if record.threadName == 'builder':
+            return 1
+        return 0
+
+
 class Log(logging.Logger):
 
     def __init__(self, name):
@@ -128,6 +136,8 @@ class Log(logging.Logger):
 
     def add_file(self, path):
         self._file_handler = logging.FileHandler(path)
+        _filter = BuildlogFilter()
+        self._file_handler.addFilter(_filter)
         logging.getLogger().addHandler(self._file_handler)
 
     def del_file(self):
