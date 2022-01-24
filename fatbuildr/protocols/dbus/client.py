@@ -29,6 +29,9 @@ class DbusClient(object):
     def instances(self):
         return self.proxy.Instances
 
+    def formats(self, instance):
+        return self.proxy.Formats(instance)
+
     def submit(self, place):
         return self.proxy.Submit(place)
 

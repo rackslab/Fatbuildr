@@ -272,3 +272,6 @@ class RegistryManager:
     @property
     def instances(self):
         return os.listdir(self.conf.dirs.repos)
+
+    def formats(self, instance):
+        return os.listdir(os.path.join(self.conf.dirs.repos, instance))

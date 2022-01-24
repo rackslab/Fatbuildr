@@ -55,6 +55,10 @@ class FatbuildrInterface(InterfaceTemplate):
         """The list of builds in queue."""
         return DbusArchivedBuild.to_structure_list(self.implementation.archives)
 
+    def Formats(self, instance: Str) -> List[Str]:
+        """The list of available formats in an instance registries."""
+        return self.implementation.formats(instance)
+
     def Submit(self, input: Str) -> Str:
         """Submit a new build."""
         return self.implementation.submit(input)
@@ -98,6 +102,9 @@ class FatbuildrMultiplexer(object):
         self.timer.reset()
         return [DbusArchivedBuild.load_from_build(_build)
                 for _build in self.build_mgr.archives()]
+
+    def formats(self, instance: Str):
+        return self.registry_mgr.formats(instance)
 
     def submit(self, input: Str):
         """Submit a new build."""
