@@ -21,6 +21,7 @@ import os
 import subprocess
 import glob
 import shutil
+import re
 
 import createrepo_c as cr
 
@@ -178,6 +179,8 @@ class RegistryRpm(Registry):
 class RegistryOsi(Registry):
     """Registry for Osi format (aka. OS images)."""
 
+    CHECKSUMS_FILES =  ['SHA256SUMS', 'SHA256SUMS.gpg']
+
     def __init__(self, conf, instance, distribution):
         super().__init__(conf, instance, distribution)
 
@@ -203,7 +206,7 @@ class RegistryOsi(Registry):
             os.mkdir(self.path)
             os.chmod(self.path, 0o755)
 
-        built_files = ['SHA256SUMS', 'SHA256SUMS.gpg']
+        built_files = RegistryOsi.CHECKSUMS_FILES
         images_files_path = os.path.join(build.place, '*.tar.*')
         built_files.extend([os.path.basename(_path)
                             for _path in glob.glob(images_files_path)])
@@ -218,6 +221,22 @@ class RegistryOsi(Registry):
     def artefacts(self):
         """Returns the list of artefacts in rpm repository."""
         artefacts = []
+        for _path in os.listdir(self.path):
+            if _path in RegistryOsi.CHECKSUMS_FILES:
+                continue
+            if _path.endswith('.manifest'):
+                continue
+            f_re = re.match(r'(?P<name>.+)_(?P<version>\d+)\.(?P<arch>.+)',
+                            _path)
+            if not f_re:
+                logger.warning("File %s does not match OSI artefact regular "
+                               "expression" % (_path))
+                continue
+
+            artefacts.append(RegistryArtefact(f_re.group('name'),
+                                              f_re.group('arch'),
+                                              f_re.group('version')))
+
         return artefacts
 
 
