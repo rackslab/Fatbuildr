@@ -42,4 +42,4 @@ class FatbuildrWeb(FatbuildrCliRun):
         self.conf = RuntimeConfWeb()
         self.load()
 
-        app.run(debug=args.debug)
+        app.run(host='0.0.0.0', debug=args.debug)

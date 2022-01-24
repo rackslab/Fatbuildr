@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Fatbuildr: instances</title>
+  </head>
+  <body>
+    <h1>Available instances:</h1>
+    <ul>
+{% for instance in instances %}
+      <li>{{ instance }}</li>
+{% endfor %}
+    </ul>
+  </body>
+</html>

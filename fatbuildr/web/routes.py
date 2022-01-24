@@ -17,12 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import Flask, jsonify
+from flask import Flask, request, jsonify, render_template
 
 from ..version import __version__
 from ..protocols import ClientFactory
+from ..log import logr
 
-app = Flask(__name__)
+logger = logr(__name__)
+
+app = Flask(__name__, template_folder='/usr/lib/fatbuildr/web/templates')
 
 @app.route("/version")
 def version():
@@ -32,7 +35,11 @@ def version():
 def instances():
     connection = ClientFactory.get()
     instances = connection.instances()
-    return jsonify(instances)
+    for mimetype in request.accept_mimetypes:
+        if mimetype[0] == 'text/html':
+            return render_template('index.html.j2', instances=instances)
+        else:
+            return jsonify(instances)
 
 @app.route('/queue')
 def queue():
