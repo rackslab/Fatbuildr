@@ -47,9 +47,24 @@ def instance(instance):
     formats = connection.formats(instance)
     for mimetype in request.accept_mimetypes:
         if mimetype[0] == 'text/html':
-            return render_template('instance.html.j2', instance=instance, formats=formats)
+            return render_template('instance.html.j2',
+                                   instance=instance,
+                                   formats=formats)
         else:
             return jsonify(formats)
+
+@app.route("/<string:instance>/<string:fmt>/")
+def distributions(instance, fmt):
+    connection = ClientFactory.get()
+    distributions = connection.distributions(instance, fmt)
+    for mimetype in request.accept_mimetypes:
+        if mimetype[0] == 'text/html':
+            return render_template('format.html.j2',
+                                   instance=instance,
+                                   format=fmt,
+                                   distributions=distributions)
+        else:
+            return jsonify(distributions)
 
 @app.route('/queue')
 def queue():

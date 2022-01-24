@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Fatbuildr: instance {{ instance }} format {{ format }}</title>
+  </head>
+  <body>
+    <h1>Distribution available in instance {{ instance }} for format {{ format }}:</h1>
+    <ul>
+{% for distribution in distributions %}
+      <li><a href="{{ distribution }}/">{{ distribution }}<a></li>
+{% endfor %}
+    </ul>
+  </body>
+</html>
