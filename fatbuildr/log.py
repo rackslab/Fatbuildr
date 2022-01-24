@@ -100,6 +100,8 @@ class Log(logging.Logger):
     def formatter(self, debug):
         if self.name == 'fatbuildr.cli.fatbuildrd':
             return DaemonFormatter(debug)
+        if self.name == 'fatbuildr.cli.fatbuildrweb':
+            return DaemonFormatter(debug)
         elif self.name == 'fatbuildr.cli.fatbuildrctl':
             return TTYFormatter(debug)
         else:

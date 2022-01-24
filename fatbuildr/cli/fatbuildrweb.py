@@ -1,0 +1,45 @@
+#!/usr/bin/env python3
+#
+# Copyright (C) 2021 Rackslab
+#
+# This file is part of Fatbuildr.
+#
+# Fatbuildr is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Fatbuildr is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
+
+import argparse
+
+from . import FatbuildrCliRun
+from ..conf import RuntimeConfWeb
+from ..version import __version__
+from ..web.routes import app
+from ..log import logr
+
+logger = logr(__name__)
+
+
+class FatbuildrWeb(FatbuildrCliRun):
+
+    def __init__(self):
+        super().__init__()
+        parser = argparse.ArgumentParser(description='Fatbuilrdr web interface.')
+        parser.add_argument('-v', '--version', dest='version', action='version', version='%(prog)s ' + __version__)
+        parser.add_argument('--debug', dest='debug', action='store_true', help="Enable debug mode")
+        args = parser.parse_args()
+
+        logger.setup(args.debug)
+
+        self.conf = RuntimeConfWeb()
+        self.load()
+
+        app.run(debug=args.debug)

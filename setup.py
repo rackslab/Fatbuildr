@@ -34,10 +34,12 @@ setup(name='Fatbuildr',
                         'gpg',
                         'requests',
                         'yaml',
-                        'createrepo-c' ],
+                        'createrepo-c',
+                        'Flask' ],
       entry_points = {
           'console_scripts': [
               'fatbuildrd=fatbuildr.cli.fatbuildrd:Fatbuildrd.run',
-              'fatbuildrctl=fatbuildr.cli.fatbuildrctl:Fatbuildrctl.run'
+              'fatbuildrctl=fatbuildr.cli.fatbuildrctl:Fatbuildrctl.run',
+              'fatbuildrweb=fatbuildr.cli.fatbuildrweb:FatbuildrWeb.run'
           ],
       })

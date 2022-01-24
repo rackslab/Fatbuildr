@@ -279,6 +279,21 @@ class RuntimeSubConfd(RuntimeConfApp):
         logger.debug("  debug: %s" % (self.debug))
 
 
+class RuntimeSubConfWeb(RuntimeConfApp):
+    """Runtime sub-configuration class to fatbuildrWeb parameters."""
+
+    def __init__(self):
+        super().__init__()
+        self.debug = None
+
+    def load(self, config):
+        self.debug = config.getboolean('daemon', 'debug')
+
+    def dump(self):
+        logger.debug("[daemon]")
+        logger.debug("  debug: %s" % (self.debug))
+
+
 class RuntimeConf(object):
     """Runtime configuration class common to all Fatbuildr applications."""
 
@@ -339,3 +354,9 @@ class RuntimeConfd(RuntimeConf):
 
     def __init__(self):
         super().__init__(RuntimeSubConfd())
+
+class RuntimeConfWeb(RuntimeConf):
+    """Runtime configuration class for FatbuildrWeb application."""
+
+    def __init__(self):
+        super().__init__(RuntimeSubConfWeb())
