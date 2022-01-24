@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import Flask,jsonify
+from flask import Flask, jsonify
 
 from ..version import __version__
 from ..protocols import ClientFactory
@@ -28,19 +28,25 @@ app = Flask(__name__)
 def version():
     return f"Fatbuildr v{__version__}"
 
+@app.route("/")
+def instances():
+    connection = ClientFactory.get()
+    instances = connection.instances()
+    return jsonify(instances)
+
 @app.route('/queue')
 def queue():
-        connection = ClientFactory.get()
-        running = connection.running()
-        if running:
-            builds = [running]
-        else:
-            builds = []
-        builds.extend(connection.queue())
-        return jsonify([ vars(build) for build in builds ])
+    connection = ClientFactory.get()
+    running = connection.running()
+    if running:
+        builds = [running]
+    else:
+        builds = []
+    builds.extend(connection.queue())
+    return jsonify([vars(build) for build in builds])
 
 @app.route('/<string:instance>/registry/<string:fmt>/<string:distribution>')
 def registry(instance, fmt, distribution):
-        connection = ClientFactory.get()
-        artefacts = connection.registry_distribution(instance, fmt, distribution)
-        return jsonify([ vars(artefact) for artefact in artefacts])
+    connection = ClientFactory.get()
+    artefacts = connection.registry_distribution(instance, fmt, distribution)
+    return jsonify([vars(artefact) for artefact in artefacts])
