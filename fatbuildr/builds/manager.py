@@ -40,6 +40,9 @@ class QueueManager:
         self._count = threading.Semaphore(0)
         self._state_lock = threading.Lock()
 
+    def empty(self):
+        return len(self._queue) == 0
+
     def dump(self):
         with self._state_lock:
             return list(self._queue)

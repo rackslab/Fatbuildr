@@ -30,6 +30,7 @@ class ServerTimer:
         self.start = datetime.now().timestamp()
         self.timeout = timeout
         self.event = threading.Event()
+        self._lock = threading.Lock()
 
     def reset(self):
         logger.debug("Reseting timer")
@@ -41,7 +42,21 @@ class ServerTimer:
 
     @property
     def over(self):
-        return self.remaining == 0
+        return not self._lock.locked() and self.remaining == 0
 
-    def wait(self):
-        self.event.wait(timeout=self.remaining)
+    def lock(self):
+        if not self._lock.locked():
+            self._lock.acquire()
+
+    def release(self):
+        if self._lock.locked():
+            self._lock.release()
+
+    def wait(self, timeout):
+        logger.debug("Waiting for timer lock for %f seconds" % (timeout))
+        acquired = self._lock.acquire(timeout=timeout)
+        if acquired:
+            self._lock.release()  # release is instantly
+            if self.remaining:
+                logger.debug("Waiting for %f seconds" % (self.remaining))
+                self.event.wait(timeout=self.remaining)

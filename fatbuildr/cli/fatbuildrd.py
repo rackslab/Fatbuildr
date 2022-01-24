@@ -90,16 +90,22 @@ class Fatbuildrd(FatbuildrCliRun):
         logger.info("Starting builder thread")
         self.mgr.clear_orphaned()
 
-        while not self.timer.over:
+        while True:
             try:
                 # pick the first request in queue
                 build = self.mgr.pick(self.timer.remaining)
                 if build:
+                    self.timer.lock()  # lock the timer while builds are in the queue
                     build.run()
                     self.mgr.archive(build)
             except RuntimeError as err:
                 logger.error("Error while processing build: %s" % (err))
-        logger.info("Stopping builder thread as timer is over")
+            if self.mgr.queue.empty():
+                self.timer.release()  # allow threads to leave
+            if self.timer.over:
+                break
+        logger.info("Stopping builder thread as timer is over and build queue "
+                    "is empty")
 
     def _server(self):
         """Thread handling requests from clients."""
@@ -111,9 +117,9 @@ class Fatbuildrd(FatbuildrCliRun):
     def _timer(self):
         logger.info("Starting timer thread")
         while not self.timer.over:
+            # notify service manager watchdog fatbuildrd is alive
             self.sm.notify_watchdog()
-            logger.debug("Waiting for %f seconds" % (self.timer.remaining))
-            self.timer.wait()
+            self.timer.wait(timeout=10)
 
-        logger.info("Timer is over, stopping server thread")
+        logger.info("Timer is over, stopping timer thread")
         self.server.quit()
