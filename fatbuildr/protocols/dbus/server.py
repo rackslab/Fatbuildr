@@ -59,6 +59,10 @@ class FatbuildrInterface(InterfaceTemplate):
         """The list of available formats in an instance registries."""
         return self.implementation.formats(instance)
 
+    def Distributions(self, instance: Str, fmt: Str) -> List[Str]:
+        """The list of available distributions for a format in an instance registries."""
+        return self.implementation.distributions(instance, fmt)
+
     def Submit(self, input: Str) -> Str:
         """Submit a new build."""
         return self.implementation.submit(input)
@@ -105,6 +109,9 @@ class FatbuildrMultiplexer(object):
 
     def formats(self, instance: Str):
         return self.registry_mgr.formats(instance)
+
+    def distributions(self, instance: Str, fmt: Str):
+        return self.registry_mgr.distributions(instance, fmt)
 
     def submit(self, input: Str):
         """Submit a new build."""

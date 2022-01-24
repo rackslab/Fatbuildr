@@ -32,6 +32,9 @@ class DbusClient(object):
     def formats(self, instance):
         return self.proxy.Formats(instance)
 
+    def distributions(self, instance, fmt):
+        return self.proxy.Distributions(instance, fmt)
+
     def submit(self, place):
         return self.proxy.Submit(place)
 

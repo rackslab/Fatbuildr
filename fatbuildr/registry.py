@@ -39,7 +39,14 @@ class Registry(object):
         self.conf = conf
         self.instance_dir = os.path.join(conf.dirs.repos, instance)
 
+    @property
+    def distributions(self):
+        raise NotImplementedError
+
     def publish(self, build):
+        raise NotImplementedError
+
+    def artefact(self, distributions):
         raise NotImplementedError
 
 
@@ -54,6 +61,10 @@ class RegistryDeb(Registry):
     @property
     def path(self):
         return os.path.join(self.instance_dir, 'deb')
+
+    @property
+    def distributions(self):
+        return os.listdir(os.path.join(self.path, 'dists'))
 
     def publish(self, build):
         """Publish both source and binary package in APT repository."""
@@ -130,6 +141,10 @@ class RegistryRpm(Registry):
     def __init__(self, conf, instance):
         super().__init__(conf, instance)
 
+    @property
+    def distributions(self):
+        return os.listdir(os.path.join(self.instance_dir, 'rpm'))
+
     def distribution_path(self, distribution):
         return os.path.join(self.instance_dir, 'rpm', distribution)
 
@@ -183,6 +198,10 @@ class RegistryOsi(Registry):
 
     def __init__(self, conf, instance):
         super().__init__(conf, instance)
+
+    @property
+    def distributions(self):
+        return os.listdir(os.path.join(self.instance_dir, 'osi'))
 
     def distribution_path(self, distribution):
         return os.path.join(self.instance_dir, 'osi', distribution)
@@ -276,3 +295,7 @@ class RegistryManager:
 
     def formats(self, instance):
         return os.listdir(os.path.join(self.conf.dirs.repos, instance))
+
+    def distributions(self, instance, fmt):
+        registry = RegistryFactory.get(fmt, self.conf, instance)
+        return registry.distributions
