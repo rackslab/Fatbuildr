@@ -247,7 +247,7 @@ class RegistryArtefact:
         self.version = version
 
 
-class RegistryFactory():
+class RegistryFactory:
     _formats = {
         'deb': RegistryDeb,
         'rpm': RegistryRpm,
@@ -260,3 +260,15 @@ class RegistryFactory():
         if not fmt in RegistryFactory._formats:
             raise RuntimeError("format %s unsupported by registries" % (fmt))
         return RegistryFactory._formats[fmt](conf, instance, distribution)
+
+
+class RegistryManager:
+
+    FACTORY = RegistryFactory
+
+    def __init__(self, conf):
+        self.conf = conf
+
+    @property
+    def instances(self):
+        return os.listdir(self.conf.dirs.repos)

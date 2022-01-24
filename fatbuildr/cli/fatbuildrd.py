@@ -27,7 +27,7 @@ from ..builds.manager import ServerBuildsManager
 from ..protocols import ServerFactory
 from ..timer import ServerTimer
 from ..services import ServiceManager
-from ..registry import RegistryFactory
+from ..registry import RegistryManager
 from ..log import logr
 
 logger = logr(__name__)
@@ -62,7 +62,8 @@ class Fatbuildrd(FatbuildrCliRun):
     def _run(self):
 
         logger.debug("Running fatbuildrd")
-        self.mgr = ServerBuildsManager(self.conf)
+        self.build_mgr = ServerBuildsManager(self.conf)
+        self.registry_mgr = RegistryManager(self.conf)
         self.server = None
         self.sm = ServiceManager()
         self.timer = ServerTimer()
@@ -88,19 +89,19 @@ class Fatbuildrd(FatbuildrCliRun):
     def _builder(self):
         """Thread handling build loop."""
         logger.info("Starting builder thread")
-        self.mgr.clear_orphaned()
+        self.build_mgr.clear_orphaned()
 
         while True:
             try:
                 # pick the first request in queue
-                build = self.mgr.pick(self.timer.remaining)
+                build = self.build_mgr.pick(self.timer.remaining)
                 if build:
                     self.timer.lock()  # lock the timer while builds are in the queue
                     build.run()
-                    self.mgr.archive(build)
+                    self.build_mgr.archive(build)
             except RuntimeError as err:
                 logger.error("Error while processing build: %s" % (err))
-            if self.mgr.queue.empty():
+            if self.build_mgr.queue.empty():
                 self.timer.release()  # allow threads to leave
             if self.timer.over:
                 break
@@ -111,7 +112,7 @@ class Fatbuildrd(FatbuildrCliRun):
         """Thread handling requests from clients."""
         logger.info("Starting server thread")
         self.server = ServerFactory.get()
-        self.server.run(self.conf, self.mgr, RegistryFactory, self.timer)
+        self.server.run(self.conf, self.build_mgr, self.registry_mgr, self.timer)
         logger.info("Stopping server thread")
 
     def _timer(self):

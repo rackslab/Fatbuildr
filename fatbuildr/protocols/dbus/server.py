@@ -36,6 +36,11 @@ class FatbuildrInterface(InterfaceTemplate):
     """The DBus interface of Fatbuildr."""
 
     @property
+    def Instances(self) -> List[Str]:
+        """The list of available instances."""
+        return self.implementation.instances
+
+    @property
     def Queue(self) -> List[Structure]:
         """The list of builds in queue."""
         return DbusSubmittedBuild.to_structure_list(self.implementation.queue)
@@ -62,58 +67,62 @@ class FatbuildrInterface(InterfaceTemplate):
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
 
-    def __init__(self, conf, mgr, registry_factory, timer):
+    def __init__(self, conf, build_mgr, registry_mgr, timer):
         self.conf = conf
-        self.mgr = mgr
-        self.registry_factory = registry_factory
+        self.build_mgr = build_mgr
+        self.registry_mgr = registry_mgr
         self.timer = timer
+
+    @property
+    def instances(self):
+        return self.registry_mgr.instances
 
     @property
     def queue(self):
         """The list of builds in queue."""
         self.timer.reset()
         return [DbusSubmittedBuild.load_from_build(_build)
-                for _build in self.mgr.queue.dump()]
+                for _build in self.build_mgr.queue.dump()]
 
     @property
     def running(self):
         """The list of builds in queue."""
         self.timer.reset()
-        if not self.mgr.running:
+        if not self.build_mgr.running:
             raise ErrorNoRunningBuild()
-        return DbusRunningBuild.load_from_build(self.mgr.running)
+        return DbusRunningBuild.load_from_build(self.build_mgr.running)
 
     @property
     def archives(self):
         """The list of archived builds."""
         self.timer.reset()
         return [DbusArchivedBuild.load_from_build(_build)
-                for _build in self.mgr.archives()]
+                for _build in self.build_mgr.archives()]
 
     def submit(self, input: Str):
         """Submit a new build."""
         self.timer.reset()
-        submission = self.mgr.submit(input)
+        submission = self.build_mgr.submit(input)
         return submission.id
 
     def registry_distribution(self, instance: Str, fmt: Str, distribution: Str):
         """Get all artefacts in this distribution registry."""
         self.timer.reset()
-        registry = self.registry_factory.get(fmt, self.conf, instance, distribution)
+        registry = self.registry_mgr.FACTORY.get(fmt, self.conf, instance, distribution)
         return [DbusArtefact.load_from_artefact(artefact)
                 for artefact in registry.artefacts()]
 
 
 class DbusServer(object):
 
-    def run(self, conf, mgr, registry_factory, timer):
+    def run(self, conf, build_mgr, registry_mgr, timer):
 
         # Print the generated XML specification.
         logger.debug("Dbus service interface generated:\n %s",
                      XMLGenerator.prettify_xml(FatbuildrInterface.__dbus_xml__))
 
         # Create the Fatbuildr multiplexer.
-        multiplexer = FatbuildrMultiplexer(conf, mgr, registry_factory, timer)
+        multiplexer = FatbuildrMultiplexer(conf, build_mgr, registry_mgr, timer)
 
         # Publish the register at /org/rackslab/Fatbuildr.
         BUS.publish_object(

@@ -26,6 +26,9 @@ class DbusClient(object):
     def __init__(self):
         self.proxy = REGISTER.get_proxy()
 
+    def instances(self):
+        return self.proxy.Instances
+
     def submit(self, place):
         return self.proxy.Submit(place)
 
