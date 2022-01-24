@@ -32,7 +32,7 @@ def version():
     return f"Fatbuildr v{__version__}"
 
 @app.route("/")
-def instances():
+def index():
     connection = ClientFactory.get()
     instances = connection.instances()
     for mimetype in request.accept_mimetypes:
@@ -40,6 +40,16 @@ def instances():
             return render_template('index.html.j2', instances=instances)
         else:
             return jsonify(instances)
+
+@app.route("/<string:instance>/")
+def instance(instance):
+    connection = ClientFactory.get()
+    formats = connection.formats(instance)
+    for mimetype in request.accept_mimetypes:
+        if mimetype[0] == 'text/html':
+            return render_template('instance.html.j2', instance=instance, formats=formats)
+        else:
+            return jsonify(formats)
 
 @app.route('/queue')
 def queue():
