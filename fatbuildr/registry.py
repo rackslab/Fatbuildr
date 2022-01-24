@@ -35,10 +35,9 @@ logger = logr(__name__)
 class Registry(object):
     """Abstract Registry class, parent of all specific Registry classes."""
 
-    def __init__(self, conf, instance, distribution):
+    def __init__(self, conf, instance):
         self.conf = conf
         self.instance_dir = os.path.join(conf.dirs.repos, instance)
-        self.distribution = distribution
 
     def publish(self, build):
         raise NotImplementedError
@@ -47,8 +46,8 @@ class Registry(object):
 class RegistryDeb(Registry):
     """Registry for Deb format (aka. APT repository)."""
 
-    def __init__(self, conf, instance, distribution):
-        super().__init__(conf, instance, distribution)
+    def __init__(self, conf, instance):
+        super().__init__(conf, instance)
         self.keyring = KeyringManager(conf, instance)
         self.keyring.load()
 
@@ -111,12 +110,12 @@ class RegistryDeb(Registry):
                    'include', build.distribution, changes_path ]
             build.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})
 
-    def artefacts(self):
+    def artefacts(self, distribution):
         """Returns the list of artefacts in deb repository."""
         artefacts = []
         cmd = ['reprepro', '--basedir', self.path,
                '--list-format', '${package}|${$architecture}|${version}\n',
-               'list', self.distribution ]
+               'list', distribution ]
         repo_list_proc = subprocess.run(cmd, capture_output=True)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
@@ -128,24 +127,22 @@ class RegistryDeb(Registry):
 class RegistryRpm(Registry):
     """Registry for Rpm format (aka. yum/dnf repository)."""
 
-    def __init__(self, conf, instance, distribution):
-        super().__init__(conf, instance, distribution)
+    def __init__(self, conf, instance):
+        super().__init__(conf, instance)
 
-    @property
-    def path(self):
-        return os.path.join(self.instance_dir, 'rpm', self.distribution)
+    def distribution_path(self, distribution):
+        return os.path.join(self.instance_dir, 'rpm', distribution)
 
-    @property
-    def pkg_dir(self):
-        return os.path.join(self.path, 'Packages')
+    def pkg_dir(self, distribution):
+        return os.path.join(self.distribution_path(distribution), 'Packages')
 
-    def _mk_missing_repo_dirs(self):
+    def _mk_missing_repo_dirs(self, distribution):
         """Create pkg_dir if it does not exists, considering pkg_dir is a
            subdirectory of repo_dir."""
-        if not os.path.exists(self.pkg_dir):
-            logger.info("Creating missing package directory %s" \
-                        % (self.pkg_dir))
-            os.makedirs(self.pkg_dir)
+        pkg_dir = self.pkg_dir(distribution)
+        if not os.path.exists(pkg_dir):
+            logger.info("Creating missing package directory %s" % (pkg_dir))
+            os.makedirs(pkg_dir)
 
     def publish(self, build):
         """Publish RPM (including SRPM) in yum/dnf repository."""
@@ -153,22 +150,25 @@ class RegistryRpm(Registry):
         logger.info("Publishing RPM packages for %s in distribution %s" \
                     % (build.name, build.distribution))
 
-        self._mk_missing_repo_dirs()
+        dist_path = self.distribution_path(distribution)
+        pkg_dir = self.pkg_dir(distribution)
+
+        self._mk_missing_repo_dirs(build.distribution)
 
         rpm_glob = os.path.join(build.place, '*.rpm')
         for rpm_path in glob.glob(rpm_glob):
-            logger.debug("Copying RPM %s to %s" % (rpm_path, self.pkg_dir))
-            shutil.copy(rpm_path, self.pkg_dir)
+            logger.debug("Copying RPM %s to %s" % (rpm_path, pkg_dir))
+            shutil.copy(rpm_path, pkg_dir)
 
-        logger.debug("Updating metadata of RPM repository %s" % (self.path))
-        cmd = [ 'createrepo_c', '--update', self.path ]
+        logger.debug("Updating metadata of RPM repository %s" % (dist_path))
+        cmd = ['createrepo_c', '--update', dist_path]
         build.runcmd(cmd)
 
-    def artefacts(self):
+    def artefacts(self, distribution):
         """Returns the list of artefacts in rpm repository."""
         artefacts = []
         md = cr.Metadata()
-        md.locate_and_load_xml(self.path)
+        md.locate_and_load_xml(self.distribution_path(distribution))
         for key in md.keys():
             pkg = md.get(key)
             artefacts.append(RegistryArtefact(pkg.name, pkg.arch,
@@ -181,30 +181,31 @@ class RegistryOsi(Registry):
 
     CHECKSUMS_FILES =  ['SHA256SUMS', 'SHA256SUMS.gpg']
 
-    def __init__(self, conf, instance, distribution):
-        super().__init__(conf, instance, distribution)
+    def __init__(self, conf, instance):
+        super().__init__(conf, instance)
 
-    @property
-    def path(self):
-        return os.path.join(self.instance_dir, 'osi', self.distribution)
+    def distribution_path(self, distribution):
+        return os.path.join(self.instance_dir, 'osi', distribution)
 
     def publish(self, build):
         """Publish OSI images."""
 
         logger.info("Publishing OSI images for %s" % (build.name))
 
+        dist_path = self.distribution_path(build.distribution)
+
         # ensure osi directory exists
-        parent = os.path.dirname(self.path)
+        parent = os.path.dirname(dist_path)
         if not os.path.exists(parent):
             logger.debug("Creating directory %s" % (parent))
             os.mkdir(parent)
             os.chmod(parent, 0o755)
 
         # ensure distribution directory exists
-        if not os.path.exists(self.path):
-            logger.debug("Creating directory %s" % (self.path))
-            os.mkdir(self.path)
-            os.chmod(self.path, 0o755)
+        if not os.path.exists(dist_path):
+            logger.debug("Creating directory %s" % (dist_path))
+            os.mkdir(dist_path)
+            os.chmod(dist_path, 0o755)
 
         built_files = RegistryOsi.CHECKSUMS_FILES
         images_files_path = os.path.join(build.place, '*.tar.*')
@@ -212,16 +213,16 @@ class RegistryOsi(Registry):
                             for _path in glob.glob(images_files_path)])
         logger.debug("Found files: %s" % (' '.join(built_files)))
 
-        for _fpath in built_files:
-            src = os.path.join(build.place, _fpath)
-            dst = os.path.join(self.path, _fpath)
+        for fpath in built_files:
+            src = os.path.join(build.place, fpath)
+            dst = os.path.join(dist_path, fpath)
             logger.debug("Copying file %s to %s" % (src, dst))
             shutil.copyfile(src, dst)
 
-    def artefacts(self):
+    def artefacts(self,  distribution):
         """Returns the list of artefacts in rpm repository."""
         artefacts = []
-        for _path in os.listdir(self.path):
+        for _path in os.listdir(self.distribution_path(distribution)):
             if _path in RegistryOsi.CHECKSUMS_FILES:
                 continue
             if _path.endswith('.manifest'):
@@ -255,11 +256,11 @@ class RegistryFactory:
     }
 
     @staticmethod
-    def get(fmt, conf, instance, distribution):
+    def get(fmt, conf, instance):
         """Instanciate the appropriate Registry for the given format."""
         if not fmt in RegistryFactory._formats:
             raise RuntimeError("format %s unsupported by registries" % (fmt))
-        return RegistryFactory._formats[fmt](conf, instance, distribution)
+        return RegistryFactory._formats[fmt](conf, instance)
 
 
 class RegistryManager:

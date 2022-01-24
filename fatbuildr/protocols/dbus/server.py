@@ -115,9 +115,9 @@ class FatbuildrMultiplexer(object):
     def registry_distribution(self, instance: Str, fmt: Str, distribution: Str):
         """Get all artefacts in this distribution registry."""
         self.timer.reset()
-        registry = self.registry_mgr.FACTORY.get(fmt, self.conf, instance, distribution)
+        registry = self.registry_mgr.FACTORY.get(fmt, self.conf, instance)
         return [DbusArtefact.load_from_artefact(artefact)
-                for artefact in registry.artefacts()]
+                for artefact in registry.artefacts(distribution)]
 
 
 class DbusServer(object):
