@@ -345,7 +345,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         connection = ClientFactory.get()
         pipelines = PipelinesDefs(self.conf.run.basedir)
         _fmt = pipelines.dist_format(self.conf.run.distribution)
-        artefacts = connection.registry_distribution(self.instance, _fmt, self.conf.run.distribution)
+        artefacts = connection.artefacts(self.instance, _fmt, self.conf.run.distribution)
         if not artefacts:
             print("No artefact found in %s distribution %s"
                   % (_fmt, self.conf.run.distribution))

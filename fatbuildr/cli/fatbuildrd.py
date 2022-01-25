@@ -112,7 +112,7 @@ class Fatbuildrd(FatbuildrCliRun):
         """Thread handling requests from clients."""
         logger.info("Starting server thread")
         self.server = ServerFactory.get()
-        self.server.run(self.conf, self.build_mgr, self.registry_mgr, self.timer)
+        self.server.run(self.build_mgr, self.registry_mgr, self.timer)
         logger.info("Stopping server thread")
 
     def _timer(self):

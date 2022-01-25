@@ -299,3 +299,7 @@ class RegistryManager:
     def distributions(self, instance, fmt):
         registry = RegistryFactory.get(fmt, self.conf, instance)
         return registry.distributions
+
+    def artefacts(self, instance, fmt, distribution):
+        registry = RegistryFactory.get(fmt, self.conf, instance)
+        return registry.artefacts(distribution)

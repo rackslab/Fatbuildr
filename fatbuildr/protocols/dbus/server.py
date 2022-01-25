@@ -63,20 +63,19 @@ class FatbuildrInterface(InterfaceTemplate):
         """The list of available distributions for a format in an instance registries."""
         return self.implementation.distributions(instance, fmt)
 
+    def Artefacts(self, instance: Str, fmt: Str, distribution: Str) -> List[Structure]:
+        """The artefacts in this distribution registry."""
+        return DbusArtefact.to_structure_list(self.implementation.artefacts(instance, fmt, distribution))
+
     def Submit(self, input: Str) -> Str:
         """Submit a new build."""
         return self.implementation.submit(input)
-
-    def RegistryDistribution(self, instance: Str, fmt: Str, distribution: Str) -> List[Structure]:
-        """The artefacts in this distribution registry."""
-        return DbusArtefact.to_structure_list(self.implementation.registry_distribution(instance, fmt, distribution))
 
 
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
 
-    def __init__(self, conf, build_mgr, registry_mgr, timer):
-        self.conf = conf
+    def __init__(self, build_mgr, registry_mgr, timer):
         self.build_mgr = build_mgr
         self.registry_mgr = registry_mgr
         self.timer = timer
@@ -113,30 +112,30 @@ class FatbuildrMultiplexer(object):
     def distributions(self, instance: Str, fmt: Str):
         return self.registry_mgr.distributions(instance, fmt)
 
+    def artefacts(self, instance: Str, fmt: Str, distribution: Str):
+        """Get all artefacts in this distribution registry."""
+        self.timer.reset()
+        artefacts = self.registry_mgr.artefacts(instance, fmt, distribution)
+        return [DbusArtefact.load_from_artefact(artefact)
+                for artefact in artefacts]
+
     def submit(self, input: Str):
         """Submit a new build."""
         self.timer.reset()
         submission = self.build_mgr.submit(input)
         return submission.id
 
-    def registry_distribution(self, instance: Str, fmt: Str, distribution: Str):
-        """Get all artefacts in this distribution registry."""
-        self.timer.reset()
-        registry = self.registry_mgr.FACTORY.get(fmt, self.conf, instance)
-        return [DbusArtefact.load_from_artefact(artefact)
-                for artefact in registry.artefacts(distribution)]
-
 
 class DbusServer(object):
 
-    def run(self, conf, build_mgr, registry_mgr, timer):
+    def run(self, build_mgr, registry_mgr, timer):
 
         # Print the generated XML specification.
         logger.debug("Dbus service interface generated:\n %s",
                      XMLGenerator.prettify_xml(FatbuildrInterface.__dbus_xml__))
 
         # Create the Fatbuildr multiplexer.
-        multiplexer = FatbuildrMultiplexer(conf, build_mgr, registry_mgr, timer)
+        multiplexer = FatbuildrMultiplexer(build_mgr, registry_mgr, timer)
 
         # Publish the register at /org/rackslab/Fatbuildr.
         BUS.publish_object(

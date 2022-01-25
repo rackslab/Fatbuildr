@@ -38,6 +38,9 @@ class DbusClient(object):
     def submit(self, place):
         return self.proxy.Submit(place)
 
+    def artefacts(self, instance, fmt, distribution):
+        return DbusArtefact.from_structure_list(self.proxy.Artefacts(instance, fmt, distribution))
+
     def queue(self):
         return DbusSubmittedBuild.from_structure_list(self.proxy.Queue)
 
@@ -78,6 +81,3 @@ class DbusClient(object):
             with open(build.logfile, 'r') as fh:
                  while chunk := fh.read(8192):
                     print(chunk, end='')
-
-    def registry_distribution(self, instance, fmt, distribution):
-        return DbusArtefact.from_structure_list(self.proxy.RegistryDistribution(instance, fmt, distribution))
