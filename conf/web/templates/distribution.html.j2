@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Fatbuildr: instance {{ instance }} format {{ format }} distribution {{ distribution }}</title>
+  </head>
+  <body>
+    <h1>Artefacts available in instance {{ instance }} for format {{ format }} in distribution {{ distribution }}:</h1>
+    <ul>
+{% for artefact in artefacts %}
+      <li><a href="/artefacts/{{ artefact.name }}">{{ artefact.name }}<a></li>
+{% endfor %}
+    </ul>
+  </body>
+</html>

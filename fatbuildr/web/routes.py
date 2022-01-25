@@ -66,6 +66,20 @@ def distributions(instance, fmt):
         else:
             return jsonify(distributions)
 
+@app.route('/<string:instance>/<string:fmt>/<string:distribution>/')
+def registry(instance, fmt, distribution):
+    connection = ClientFactory.get()
+    artefacts = connection.artefacts(instance, fmt, distribution)
+    for mimetype in request.accept_mimetypes:
+        if mimetype[0] == 'text/html':
+            return render_template('distribution.html.j2',
+                                   instance=instance,
+                                   format=fmt,
+                                   distribution=distribution,
+                                   artefacts=artefacts)
+        else:
+            return jsonify([vars(artefact) for artefact in artefacts])
+
 @app.route('/queue')
 def queue():
     connection = ClientFactory.get()
@@ -76,9 +90,3 @@ def queue():
         builds = []
     builds.extend(connection.queue())
     return jsonify([vars(build) for build in builds])
-
-@app.route('/<string:instance>/registry/<string:fmt>/<string:distribution>')
-def registry(instance, fmt, distribution):
-    connection = ClientFactory.get()
-    artefacts = connection.registry_distribution(instance, fmt, distribution)
-    return jsonify([vars(artefact) for artefact in artefacts])
