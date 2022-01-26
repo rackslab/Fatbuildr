@@ -287,10 +287,10 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         self.debug = None
 
     def load(self, config):
-        self.debug = config.getboolean('daemon', 'debug')
+        self.debug = config.getboolean('web', 'debug')
 
     def dump(self):
-        logger.debug("[daemon]")
+        logger.debug("[web]")
         logger.debug("  debug: %s" % (self.debug))
 
 
