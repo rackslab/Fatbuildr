@@ -187,7 +187,7 @@ class RegistryRpm(Registry):
         for key in md.keys():
             pkg = md.get(key)
             artefacts.append(RegistryArtefact(pkg.name, pkg.arch,
-                                              pkg.version+pkg.release))
+                                              pkg.version+'-'+pkg.release))
         return artefacts
 
 
