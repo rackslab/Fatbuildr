@@ -36,7 +36,15 @@ class DbusClient(object):
         return self.proxy.Distributions(instance, fmt)
 
     def artefacts(self, instance, fmt, distribution):
-        return DbusArtefact.from_structure_list(self.proxy.Artefacts(instance, fmt, distribution))
+        return DbusArtefact.from_structure_list(
+            self.proxy.Artefacts(instance, fmt, distribution))
+
+    def artefact_bins(self, instance, fmt, distribution, artefact):
+        return DbusArtefact.from_structure_list(
+            self.proxy.ArtefactBinaries(instance,
+                                        fmt,
+                                        distribution,
+                                        artefact))
 
     def submit(self, place):
         return self.proxy.Submit(place)
