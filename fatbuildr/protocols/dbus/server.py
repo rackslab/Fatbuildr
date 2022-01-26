@@ -114,6 +114,7 @@ class FatbuildrMultiplexer(object):
 
     @property
     def instances(self):
+        self.timer.reset()
         return self.registry_mgr.instances
 
     @property
@@ -139,9 +140,11 @@ class FatbuildrMultiplexer(object):
                 for _build in self.build_mgr.archives()]
 
     def formats(self, instance: Str):
+        self.timer.reset()
         return self.registry_mgr.formats(instance)
 
     def distributions(self, instance: Str, fmt: Str):
+        self.timer.reset()
         return self.registry_mgr.distributions(instance, fmt)
 
     def artefacts(self, instance: Str, fmt: Str, distribution: Str):
