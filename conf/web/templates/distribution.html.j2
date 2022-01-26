@@ -7,7 +7,7 @@
     <h1>Artefacts available in instance {{ instance }} for format {{ format }} in distribution {{ distribution }}:</h1>
     <ul>
 {% for artefact in artefacts %}
-      <li><a href="/artefacts/{{ artefact.name }}">{{ artefact.name }}<a></li>
+      <li><a href="/{{ instance }}/artefacts/{{ artefact.name }}">{{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}<a></li>
 {% endfor %}
     </ul>
   </body>

@@ -41,7 +41,7 @@ def index():
         else:
             return jsonify(instances)
 
-@app.route("/<string:instance>/")
+@app.route("/<string:instance>/registry/")
 def instance(instance):
     connection = ClientFactory.get()
     formats = connection.formats(instance)
@@ -53,7 +53,7 @@ def instance(instance):
         else:
             return jsonify(formats)
 
-@app.route("/<string:instance>/<string:fmt>/")
+@app.route("/<string:instance>/registry/<string:fmt>/")
 def distributions(instance, fmt):
     connection = ClientFactory.get()
     distributions = connection.distributions(instance, fmt)
@@ -66,7 +66,7 @@ def distributions(instance, fmt):
         else:
             return jsonify(distributions)
 
-@app.route('/<string:instance>/<string:fmt>/<string:distribution>/')
+@app.route('/<string:instance>/registry/<string:fmt>/<string:distribution>/')
 def registry(instance, fmt, distribution):
     connection = ClientFactory.get()
     artefacts = connection.artefacts(instance, fmt, distribution)
@@ -79,6 +79,33 @@ def registry(instance, fmt, distribution):
                                    artefacts=artefacts)
         else:
             return jsonify([vars(artefact) for artefact in artefacts])
+
+@app.route('/<string:instance>/artefacts/<string:artefact>')
+def artefact(instance, artefact):
+    connection = ClientFactory.get()
+    formats = connection.formats(instance)
+    results = {}
+
+    for fmt in formats:
+        distributions = connection.distributions(instance, fmt)
+        for distribution in distributions:
+            artefacts = connection.artefacts(instance, fmt, distribution)
+            for _artefact in artefacts:
+                if artefact == _artefact.name:
+                    if fmt not in results:
+                        results[fmt] = {}
+                    if distribution not in results[fmt]:
+                        results[fmt][distribution] = []
+                    results[fmt][distribution].append(_artefact)
+
+    for mimetype in request.accept_mimetypes:
+        if mimetype[0] == 'text/html':
+            return render_template('artefact.html.j2',
+                                   instance=instance,
+                                   artefact=artefact,
+                                   results=results)
+        else:
+            return jsonify(results)
 
 @app.route('/queue')
 def queue():
