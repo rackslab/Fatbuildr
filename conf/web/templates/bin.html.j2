@@ -1,11 +1,7 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Fatbuildr: instance {{ instance }} format {{ format }} distribution {{ distribution }} binary artefact {{ binary }}</title>
-  </head>
-  <body>
-    <h1>Binary artefact {{ binary }} in instance {{ instance }} for format {{ format }} in distribution {{ distribution }}:</h1>
-    Source artefact:
-    <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/src/{{ source.name }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }}
-  </body>
-</html>
+{% extends "layout/base.html.j2" %}
+{% block title %}{{ instance }} > {{ format }} > {{ distribution }} > {{ binary }} binary artefact{% endblock %}
+{% block content %}
+<h1>{{ instance }} > {{ format }} > {{ distribution }} > {{ binary }} binary artefact</h1>
+Source artefact:
+<a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/src/{{ source.name }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }}
+{% endblock %}

@@ -1,22 +1,18 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Fatbuildr: instance {{ instance }} format {{ format }} distribution {{ distribution }}</title>
-  </head>
-  <body>
-    <h1>Artefacts available in instance {{ instance }} for format {{ format }} in distribution {{ distribution }}:</h1>
-    <ul>
+{% extends "layout/base.html.j2" %}
+{% block title %}{{ instance }} > {{ format }} > {{ distribution }}{% endblock %}
+{% block content %}
+<h1>{{ instance }} > {{ format }} > {{ distribution }} > artefacts </h1>
+<ul>
 {% for artefact in artefacts %}
-      <li>
-        {% if artefact.architecture == 'src' %}
-        <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/src/{{ artefact.name }}">
-        {% else %}
-        <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/bin/{{ artefact.name }}">
-        {% endif %}
-        {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
-        <a>
-      </li>
+  <li>
+    {% if artefact.architecture == 'src' %}
+    <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/src/{{ artefact.name }}">
+    {% else %}
+    <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/bin/{{ artefact.name }}">
+    {% endif %}
+      {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
+    </a>
+  </li>
 {% endfor %}
-    </ul>
-  </body>
-</html>
+</ul>
+{% endblock %}

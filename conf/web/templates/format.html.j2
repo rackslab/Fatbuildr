@@ -1,14 +1,10 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Fatbuildr: instance {{ instance }} format {{ format }}</title>
-  </head>
-  <body>
-    <h1>Distribution available in instance {{ instance }} for format {{ format }}:</h1>
-    <ul>
+{% extends "layout/base.html.j2" %}
+{% block title %}{{ instance }} > {{ format }}{% endblock %}
+{% block content %}
+<h1>{{ instance }} > {{ format }} > distributions</h1>
+<ul>
 {% for distribution in distributions %}
-      <li><a href="{{ distribution }}/">{{ distribution }}<a></li>
+  <li><a href="{{ distribution }}/">{{ distribution }}<a></li>
 {% endfor %}
-    </ul>
-  </body>
-</html>
+</ul>
+{% endblock %}

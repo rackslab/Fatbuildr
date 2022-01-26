@@ -1,10 +1,7 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Fatbuildr: instance {{ instance }} artefact {{ artefact }}</title>
-  </head>
-  <body>
-    <h1>Artefact {{ artefact }} in instance {{ instance }}:</h1>
+{% extends "layout/base.html.j2" %}
+{% block title %}{{ instance }} > {{ artefact }} artefact{% endblock %}
+{% block content %}
+<h1>{{ instance }} > {{ artefact }} artefact</h1>
 {% for format, distributions in results.items() %}
       <h2><a href="/{{ instance }}/registry/{{ format }}">{{ format }}</a></h2>
     {% for distribution, artefacts in distributions.items() %}
@@ -16,5 +13,4 @@
         </ul>
     {% endfor %}
 {% endfor %}
-  </body>
-</html>
+{% endblock %}

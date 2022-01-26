@@ -1,14 +1,10 @@
-<!doctype html>
-<html>
-  <head>
-    <title>Fatbuildr: instance {{ instance }}</title>
-  </head>
-  <body>
-    <h1>Formats available in instance {{ instance }}:</h1>
-    <ul>
+{% extends "layout/base.html.j2" %}
+{% block title %}{{ instance }}{% endblock %}
+{% block content %}
+<h1>{{ instance }} > formats</h1>
+<ul>
 {% for _format in formats %}
-      <li><a href="{{ _format}}/">{{ _format }}<a></li>
+  <li><a href="{{ _format}}/">{{ _format }}<a></li>
 {% endfor %}
-    </ul>
-  </body>
-</html>
+</ul>
+{% endblock %}
