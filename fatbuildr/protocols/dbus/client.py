@@ -35,11 +35,11 @@ class DbusClient(object):
     def distributions(self, instance, fmt):
         return self.proxy.Distributions(instance, fmt)
 
-    def submit(self, place):
-        return self.proxy.Submit(place)
-
     def artefacts(self, instance, fmt, distribution):
         return DbusArtefact.from_structure_list(self.proxy.Artefacts(instance, fmt, distribution))
+
+    def submit(self, place):
+        return self.proxy.Submit(place)
 
     def queue(self):
         return DbusSubmittedBuild.from_structure_list(self.proxy.Queue)
