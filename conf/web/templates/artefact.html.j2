@@ -3,14 +3,22 @@
 {% block content %}
 <h1>{{ instance }} > {{ artefact }} artefact</h1>
 {% for format, distributions in results.items() %}
-      <h2><a href="/{{ instance }}/registry/{{ format }}">{{ format }}</a></h2>
-    {% for distribution, artefacts in distributions.items() %}
-        <h3><a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}">{{ distribution }}</a></h3>
-        <ul>
-        {% for artefact in artefacts %}
-            <li>{{ artefact.name }} {{ artefact.architecture }} {{ artefact.version}}</li>
-        {% endfor %}
-        </ul>
+  <h2><a href="/{{ instance }}/registry/{{ format }}">{{ format }}</a></h2>
+  {% for distribution, artefacts in distributions.items() %}
+    <h3><a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}">{{ distribution }}</a></h3>
+    <ul>
+    {% for artefact in artefacts %}
+      <li>
+      {% if artefact.architecture == 'src' %}
+        <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/src/{{ artefact.name }}">
+      {% else %}
+        <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/bin/{{ artefact.name }}">
+      {% endif %}
+        {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
+        </a>
+      </li>
     {% endfor %}
+    </ul>
+  {% endfor %}
 {% endfor %}
 {% endblock %}
