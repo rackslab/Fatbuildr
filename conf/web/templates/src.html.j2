@@ -1,0 +1,14 @@
+<!doctype html>
+<html>
+  <head>
+    <title>Fatbuildr: instance {{ instance }} format {{ format }} distribution {{ distribution }} source artefact {{ source }}</title>
+  </head>
+  <body>
+    <h1>Source artefact {{ source }} in instance {{ instance }} for format {{ format }} in distribution {{ distribution }}:</h1>
+    <ul>
+{% for artefact in binaries %}
+      <li><a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/bin/{{ artefact.name }}">{{ artefact.name }}</a> {{ artefact.architecture }} {{ artefact.version }}</li>
+{% endfor %}
+    </ul>
+  </body>
+</html>

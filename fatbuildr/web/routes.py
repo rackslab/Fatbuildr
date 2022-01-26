@@ -80,6 +80,38 @@ def registry(instance, fmt, distribution):
         else:
             return jsonify([vars(artefact) for artefact in artefacts])
 
+@app.route('/<string:instance>/registry/<string:fmt>/<string:distribution>/src/<string:artefact>')
+def source_artefact(instance, fmt, distribution, artefact):
+    connection = ClientFactory.get()
+    artefact_bins = connection.artefact_bins(instance, fmt, distribution, artefact)
+
+    for mimetype in request.accept_mimetypes:
+        if mimetype[0] == 'text/html':
+            return render_template('src.html.j2',
+                                   instance=instance,
+                                   format=fmt,
+                                   distribution=distribution,
+                                   source=artefact,
+                                   binaries=artefact_bins)
+        else:
+            return jsonify(artefact_bins)
+
+@app.route('/<string:instance>/registry/<string:fmt>/<string:distribution>/bin/<string:artefact>')
+def binary_artefact(instance, fmt, distribution, artefact):
+    connection = ClientFactory.get()
+    artefact_src = connection.artefact_src(instance, fmt, distribution, artefact)
+
+    for mimetype in request.accept_mimetypes:
+        if mimetype[0] == 'text/html':
+            return render_template('bin.html.j2',
+                                   instance=instance,
+                                   format=fmt,
+                                   distribution=distribution,
+                                   binary=artefact,
+                                   source=artefact_src)
+        else:
+            return jsonify(artefact_src)
+
 @app.route('/<string:instance>/artefacts/<string:artefact>')
 def artefact(instance, artefact):
     connection = ClientFactory.get()
