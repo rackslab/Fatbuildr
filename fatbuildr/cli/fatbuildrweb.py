@@ -22,7 +22,7 @@ import argparse
 from . import FatbuildrCliRun
 from ..conf import RuntimeConfWeb
 from ..version import __version__
-from ..web.routes import app
+from ..web import WebApp
 from ..log import logr
 
 logger = logr(__name__)
@@ -40,6 +40,12 @@ class FatbuildrWeb(FatbuildrCliRun):
         logger.setup(args.debug)
 
         self.conf = RuntimeConfWeb()
-        self.load()
+        self.load(args)
+        self.app = WebApp(self.conf)
+        self.app.run()
 
-        app.run(host='0.0.0.0', debug=args.debug)
+    def load(self, args):
+        super().load()
+
+        if args.debug:
+            self.conf.run.debug = True

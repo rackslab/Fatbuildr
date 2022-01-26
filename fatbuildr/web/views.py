@@ -17,21 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from flask import Flask, request, jsonify, render_template
+from flask import request, jsonify, render_template
 
 from ..version import __version__
 from ..protocols import ClientFactory
-from ..log import logr
 
-logger = logr(__name__)
 
-app = Flask(__name__, template_folder='/usr/lib/fatbuildr/web/templates')
-
-@app.route("/version")
 def version():
     return f"Fatbuildr v{__version__}"
 
-@app.route("/")
 def index():
     connection = ClientFactory.get()
     instances = connection.instances()
@@ -41,7 +35,6 @@ def index():
         else:
             return jsonify(instances)
 
-@app.route("/<string:instance>/registry/")
 def instance(instance):
     connection = ClientFactory.get()
     formats = connection.formats(instance)
@@ -53,7 +46,6 @@ def instance(instance):
         else:
             return jsonify(formats)
 
-@app.route("/<string:instance>/registry/<string:fmt>/")
 def distributions(instance, fmt):
     connection = ClientFactory.get()
     distributions = connection.distributions(instance, fmt)
@@ -66,7 +58,6 @@ def distributions(instance, fmt):
         else:
             return jsonify(distributions)
 
-@app.route('/<string:instance>/registry/<string:fmt>/<string:distribution>/')
 def registry(instance, fmt, distribution):
     connection = ClientFactory.get()
     artefacts = connection.artefacts(instance, fmt, distribution)
@@ -80,7 +71,6 @@ def registry(instance, fmt, distribution):
         else:
             return jsonify([vars(artefact) for artefact in artefacts])
 
-@app.route('/<string:instance>/registry/<string:fmt>/<string:distribution>/src/<string:artefact>')
 def source_artefact(instance, fmt, distribution, artefact):
     connection = ClientFactory.get()
     artefact_bins = connection.artefact_bins(instance, fmt, distribution, artefact)
@@ -96,7 +86,6 @@ def source_artefact(instance, fmt, distribution, artefact):
         else:
             return jsonify(artefact_bins)
 
-@app.route('/<string:instance>/registry/<string:fmt>/<string:distribution>/bin/<string:artefact>')
 def binary_artefact(instance, fmt, distribution, artefact):
     connection = ClientFactory.get()
     artefact_src = connection.artefact_src(instance, fmt, distribution, artefact)
@@ -112,7 +101,6 @@ def binary_artefact(instance, fmt, distribution, artefact):
         else:
             return jsonify(artefact_src)
 
-@app.route('/<string:instance>/artefacts/<string:artefact>')
 def artefact(instance, artefact):
     connection = ClientFactory.get()
     formats = connection.formats(instance)
@@ -139,7 +127,6 @@ def artefact(instance, artefact):
         else:
             return jsonify(results)
 
-@app.route('/queue')
 def queue():
     connection = ClientFactory.get()
     running = connection.running()
