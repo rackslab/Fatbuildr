@@ -49,3 +49,5 @@ class FatbuildrWeb(FatbuildrCliRun):
 
         if args.debug:
             self.conf.run.debug = True
+
+        self.conf.dump()
