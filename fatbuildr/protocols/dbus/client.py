@@ -46,6 +46,13 @@ class DbusClient(object):
                                         distribution,
                                         artefact))
 
+    def artefact_src(self, instance, fmt, distribution, artefact):
+        return DbusArtefact.from_structure(
+            self.proxy.ArtefactSource(instance,
+                                      fmt,
+                                      distribution,
+                                      artefact))
+
     def submit(self, place):
         return self.proxy.Submit(place)
 
