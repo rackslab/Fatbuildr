@@ -21,7 +21,6 @@ import os
 import glob
 
 from .. import ArtefactBuild
-from ...registry import RegistryRpm
 from ...keyring import KeyringManager
 from ...templates import Templeter
 from ...log import logr
@@ -33,7 +32,7 @@ class ArtefactBuildRpm(ArtefactBuild):
     """Class to manipulation package in RPM format."""
 
     def __init__(self, conf, build_id, form):
-        super().__init__(conf, build_id, form, RegistryRpm)
+        super().__init__(conf, build_id, form)
         self.format = 'rpm'
         self.keyring = KeyringManager(conf, self.instance)
         self.keyring.load()

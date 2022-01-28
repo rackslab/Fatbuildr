@@ -21,7 +21,6 @@ import os
 import glob
 
 from .. import ArtefactBuild
-from ...registry import RegistryOsi
 from ...keyring import KeyringManager
 from ...templates import Templeter
 from ...log import logr
@@ -33,7 +32,7 @@ class ArtefactBuildOsi(ArtefactBuild):
     """Class to manipulate builds of OS images."""
 
     def __init__(self, conf, build_id, form):
-        super().__init__(conf, build_id, form, RegistryOsi)
+        super().__init__(conf, build_id, form)
         self.format = 'osi'
         self.keyring = KeyringManager(conf, self.instance)
         self.keyring.load()

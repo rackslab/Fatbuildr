@@ -23,7 +23,6 @@ import tarfile
 import shutil
 
 from .. import ArtefactBuild
-from ...registry import RegistryDeb
 from ...log import logr
 
 logger = logr(__name__)
@@ -33,7 +32,7 @@ class ArtefactBuildDeb(ArtefactBuild):
     """Class to manipulation build of package in Deb format."""
 
     def __init__(self, conf, build_id, form):
-        super().__init__(conf, build_id, form, RegistryDeb)
+        super().__init__(conf, build_id, form)
         self.format = 'deb'
 
     @property

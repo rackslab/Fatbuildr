@@ -28,6 +28,7 @@ import requests
 
 from ..cleanup import CleanupRegistry
 from ..pipelines import ArtefactDefs
+from ..registry import RegistryManager
 from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
@@ -141,14 +142,14 @@ class BuildRequest(AbstractBuild):
 class ArtefactBuild(AbstractBuild):
     """Generic parent class of all ArtefactBuild formats."""
 
-    def __init__(self, conf, build_id, form, registry):
+    def __init__(self, conf, build_id, form):
         self.conf = conf
         self.form = form
         self.name = form.artefact
         self.id = build_id
         self.place = os.path.join(self.conf.dirs.build, self.id)
         self.cache = CacheArtefact(conf, self.instance, self)
-        self.registry = registry(conf, self.instance)
+        self.registry = RegistryManager.factory(self.format, conf, self.instance)
         self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, self.instance, self.format)
         self.env = BuildEnv(conf, self.image, self.environment)
