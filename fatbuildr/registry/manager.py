@@ -58,6 +58,10 @@ class RegistryManager:
         registry = RegistryManager.factory(fmt, self.conf, instance)
         return registry.artefact_src(distribution, bin_artefact)
 
+    def changelog(self, instance, fmt, distribution, architecture, artefact):
+        registry = RegistryManager.factory(fmt, self.conf, instance)
+        return registry.changelog(distribution, architecture, artefact)
+
     @staticmethod
     def factory(fmt, conf, instance):
         """Instanciate the appropriate Registry for the given format."""

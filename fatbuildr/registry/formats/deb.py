@@ -20,8 +20,12 @@
 import os
 import subprocess
 import glob
+import tarfile
+import email
 
-from . import Registry, RegistryArtefact
+from debian import deb822, changelog, debfile
+
+from . import Registry, RegistryArtefact, ChangelogEntry
 from ...keyring import KeyringManager
 from ...templates import Templeter
 from ...log import logr
@@ -151,3 +155,117 @@ class RegistryDeb(Registry):
             if arch == 'source':  # skip source package
                 continue
             return RegistryArtefact(source, 'src', version)
+
+    def _package_dsc_path(self, distribution, src_artefact):
+        """Returns the path to the dsc file of the given deb source package."""
+        cmd = ['reprepro', '--basedir', self.path,
+               '--list-format',
+               '${$architecture}|${$fullfilename}\n',
+               'list', distribution, src_artefact ]
+        repo_list_proc = subprocess.run(cmd, capture_output=True)
+        lines = repo_list_proc.stdout.decode().strip().split('\n')
+        for line in lines:
+            (arch, pkg_path) = line.split('|')
+            if arch != 'source':  # skip binary package
+                continue
+            return pkg_path
+        raise RuntimeError("Unable to find dsc path for deb source package "
+                           f"{src_artefact}")
+
+    def _package_deb_path(self, distribution, architecture, bin_artefact):
+        """Returns the path to the deb file of the given deb binary package."""
+        cmd = ['reprepro', '--basedir', self.path,
+               '--list-format',
+               '${$architecture}|${$fullfilename}\n',
+               'list', distribution, bin_artefact ]
+        repo_list_proc = subprocess.run(cmd, capture_output=True)
+        lines = repo_list_proc.stdout.decode().strip().split('\n')
+        for line in lines:
+            (arch, pkg_path) = line.split('|')
+            if arch != architecture:  # skip binary package
+                continue
+            return pkg_path
+        raise RuntimeError("Unable to find deb path for deb binary package "
+                           f"{bin_artefact}")
+
+    def _debian_archive_path(self, dsc_path):
+        """Parses the given dsc file and returns the path of the archive
+           containing the debian packaging code."""
+        with open(dsc_path) as dsc_fh:
+            dsc = deb822.Dsc(dsc_fh)
+        for arch in dsc['Files']:
+            if '.orig.' in arch['name']:  # skip orig archive
+                continue
+            return os.path.join(os.path.dirname(dsc_path), arch['name'])
+        raise RuntimeError("Unable to define debian archive path in deb dsc "
+                           f"file {dsc_path}")
+
+    def _extract_archive_changelog(self, arch_path):
+        logger.debug("Extracting debian changelog from archive %s", arch_path)
+        try:
+            archive = tarfile.open(arch_path)
+        except tarfile.TarError as err:
+            raise RuntimeError(f"Unable to read archive {arch_path}: {err}")
+        logger.debug("Files in archives: %s", archive.getnames())
+        if 'debian/changelog' in archive.getnames():
+            fobj = archive.extractfile('debian/changelog')
+            return DebChangelog(fobj.read())
+        raise RuntimeError("Unable to find debian changelog file in archive "
+                           f"{arch_path}")
+
+    def _src_changelog(self, distribution, src_artefact):
+        """Returns the changelog of a deb source package."""
+        dsc_path = self._package_dsc_path(distribution, src_artefact)
+        arch_path = self._debian_archive_path(dsc_path)
+        return self._extract_archive_changelog(arch_path).entries()
+
+    def _bin_changelog(self, distribution, architecture, bin_artefact):
+        """Returns the changelog of a deb binary package."""
+        deb_path = self._package_deb_path(distribution, architecture,
+                                          bin_artefact)
+        return DebChangelog(debfile.DebFile(deb_path).changelog()).entries()
+
+    def changelog(self, distribution, architecture, artefact):
+        if architecture == 'src':
+            return self._src_changelog(distribution, artefact)
+        else:
+            return self._bin_changelog(distribution, architecture, artefact)
+
+
+class DebChangelog(changelog.Changelog):
+
+    def __init__(self, fileobjorchangelog):
+        if isinstance(fileobjorchangelog, changelog.Changelog):
+            super().__init__()  # initialize parent w/o parsing
+            self._blocks = fileobjorchangelog._blocks  # inject blocks in parent
+        else:
+            super().__init__(fileobjorchangelog)  # parse fileobj
+
+    def entries(self):
+        result = []
+        for entry in self:
+            # parse RFC2822 date to get int timestamps since epoch
+            try:
+                date = int(email.utils.parsedate_to_datetime(entry.date)
+                           .timestamp())
+            except ValueError as err:
+                logger.warning("Unable to parse debian changelog entry date "
+                               "%s", entry.date)
+                date = 0
+            # filter empty lines in entry changes
+            changes = [DebChangelog._sanitize_entry(change)
+                       for change in entry.changes()
+                       if change.strip() != ""]
+            result.append(ChangelogEntry(entry.version.full_version,
+                                         entry.author,
+                                         date,
+                                         changes))
+        return result
+
+    @staticmethod
+    def _sanitize_entry(entry):
+        entry = entry.strip()
+        # remove leading asterisk if present
+        if entry.startswith('* '):
+            entry = entry[2:]
+        return entry

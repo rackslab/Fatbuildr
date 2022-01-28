@@ -22,7 +22,7 @@ import glob
 
 import createrepo_c as cr
 
-from . import Registry, RegistryArtefact
+from . import Registry, RegistryArtefact, ChangelogEntry
 from ...log import logr
 
 logger = logr(__name__)
@@ -111,7 +111,7 @@ class RegistryRpm(Registry):
                 continue
             if pkg.arch == 'src':  # skip non-binary package
                 continue
-            # The createrepo_c library gives access to full the source RPM
+            # The createrepo_c library gives access to the full source RPM
             # filename, including its version and its extension. We must
             # extract the source package name out of this filename.
             srcrpm_components = pkg.rpm_sourcerpm.rsplit('-', 2)
@@ -120,3 +120,43 @@ class RegistryRpm(Registry):
             # .src.rpm suffix removed.
             src_version = srcrpm_components[1] + '-' + srcrpm_components[2][:-8]
             return RegistryArtefact(src_name, 'src',src_version)
+
+    def changelog(self, distribution, architecture, artefact):
+        """Returns the changelog of a RPM source package."""
+        md = cr.Metadata()
+        md.locate_and_load_xml(self.distribution_path(distribution))
+        for key in md.keys():
+            pkg = md.get(key)
+            if pkg.name != artefact:
+                continue
+            if pkg.arch != architecture:
+                continue
+            return RpmChangelog(pkg.changelogs).entries()
+
+
+class RpmChangelog:
+
+    def __init__(self, entries):
+        self._entries = entries
+
+    def entries(self):
+        result = []
+        # The createrepo_c library builds the entries list in ascending date
+        # order. We prefer to list the entries to other way, so we reverse.
+        for entry in reversed(self._entries):
+
+            (author, version) = entry[cr.CHANGELOG_ENTRY_AUTHOR].rsplit(' ', 1)
+            changes = [RpmChangelog._sanitize_entry(entry) for entry
+                       in entry[cr.CHANGELOG_ENTRY_CHANGELOG].split('\n')]
+            result.append(ChangelogEntry(version,
+                                         author,
+                                         entry[cr.CHANGELOG_ENTRY_DATE],
+                                         changes))
+        return result
+
+    @staticmethod
+    def _sanitize_entry(entry):
+        # remove leading dash if present
+        if entry.startswith('-'):
+            entry = entry[1:]
+        return entry.strip()

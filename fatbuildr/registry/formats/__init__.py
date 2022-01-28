@@ -45,3 +45,10 @@ class RegistryArtefact:
         self.architecture = architecture
         self.version = version
 
+
+class ChangelogEntry:
+    def __init__(self, version, author, date, changes):
+        self.version = version
+        self.author = author
+        self.date = date
+        self.changes = changes

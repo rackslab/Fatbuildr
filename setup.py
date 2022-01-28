@@ -35,7 +35,8 @@ setup(name='Fatbuildr',
                         'requests',
                         'yaml',
                         'createrepo-c',
-                        'Flask' ],
+                        'Flask',
+                        'python-debian' ],
       entry_points = {
           'console_scripts': [
               'fatbuildrd=fatbuildr.cli.fatbuildrd:Fatbuildrd.run',

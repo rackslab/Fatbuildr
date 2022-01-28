@@ -109,3 +109,7 @@ class RegistryOsi(Registry):
            return the artefact whose name is the given binary artefact."""
         return self._artefacts_filter(distribution,
                                       name_filter=bin_artefact)[0]
+
+    def changelog(self, distribution, architecture, artefact):
+        """Return empty array as there is notion of changelog with OSI."""
+        return []
