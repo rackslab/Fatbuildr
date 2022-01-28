@@ -5,3 +5,4 @@ var/lib/fatbuildr/build
 var/lib/fatbuildr/archives
 var/lib/fatbuildr/repos
 var/cache/fatbuildr
+etc/fatbuildr/web/templates
