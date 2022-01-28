@@ -357,24 +357,13 @@ class RegistryArtefact:
         self.version = version
 
 
-class RegistryFactory:
+class RegistryManager:
+
     _formats = {
         'deb': RegistryDeb,
         'rpm': RegistryRpm,
         'osi': RegistryOsi,
     }
-
-    @staticmethod
-    def get(fmt, conf, instance):
-        """Instanciate the appropriate Registry for the given format."""
-        if not fmt in RegistryFactory._formats:
-            raise RuntimeError("format %s unsupported by registries" % (fmt))
-        return RegistryFactory._formats[fmt](conf, instance)
-
-
-class RegistryManager:
-
-    FACTORY = RegistryFactory
 
     def __init__(self, conf):
         self.conf = conf
@@ -387,17 +376,24 @@ class RegistryManager:
         return os.listdir(os.path.join(self.conf.dirs.repos, instance))
 
     def distributions(self, instance, fmt):
-        registry = RegistryFactory.get(fmt, self.conf, instance)
+        registry = RegistryManager.factory(fmt, self.conf, instance)
         return registry.distributions
 
     def artefacts(self, instance, fmt, distribution):
-        registry = RegistryFactory.get(fmt, self.conf, instance)
+        registry = RegistryManager.factory(fmt, self.conf, instance)
         return registry.artefacts(distribution)
 
     def artefact_bins(self, instance, fmt, distribution, src_artefact):
-        registry = RegistryFactory.get(fmt, self.conf, instance)
+        registry = RegistryManager.factory(fmt, self.conf, instance)
         return registry.artefact_bins(distribution, src_artefact)
 
     def artefact_src(self, instance, fmt, distribution, bin_artefact):
-        registry = RegistryFactory.get(fmt, self.conf, instance)
+        registry = RegistryManager.factory(fmt, self.conf, instance)
         return registry.artefact_src(distribution, bin_artefact)
+
+    @staticmethod
+    def factory(fmt, conf, instance):
+        """Instanciate the appropriate Registry for the given format."""
+        if not fmt in RegistryManager._formats:
+            raise RuntimeError("format %s unsupported by registries" % (fmt))
+        return RegistryManager._formats[fmt](conf, instance)
