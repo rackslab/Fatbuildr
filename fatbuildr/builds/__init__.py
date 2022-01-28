@@ -28,7 +28,7 @@ import requests
 
 from ..cleanup import CleanupRegistry
 from ..pipelines import ArtefactDefs
-from ..registry import RegistryManager
+from ..registry.manager import RegistryManager
 from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv

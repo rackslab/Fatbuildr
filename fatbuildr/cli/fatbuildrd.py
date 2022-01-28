@@ -27,7 +27,7 @@ from ..builds.manager import ServerBuildsManager
 from ..protocols import ServerFactory
 from ..timer import ServerTimer
 from ..services import ServiceManager
-from ..registry import RegistryManager
+from ..registry.manager import RegistryManager
 from ..log import logr
 
 logger = logr(__name__)
