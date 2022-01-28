@@ -24,7 +24,7 @@ from . import views
 class WebApp(Flask):
     def __init__(self, conf):
         super().__init__('fatbuildr',
-                         template_folder='/usr/lib/fatbuildr/web/templates')
+                         template_folder=conf.run.templates)
         self.conf = conf
         self.add_url_rule('/version', view_func=views.version)
         self.add_url_rule('/', view_func=views.index)

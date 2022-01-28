@@ -285,13 +285,17 @@ class RuntimeSubConfWeb(RuntimeConfApp):
     def __init__(self):
         super().__init__()
         self.debug = None
+        self.templates = None
 
     def load(self, config):
-        self.debug = config.getboolean('web', 'debug')
+        section = 'web'
+        self.debug = config.getboolean(section, 'debug')
+        self.templates = config.get(section, 'templates')
 
     def dump(self):
         logger.debug("[web]")
         logger.debug("  debug: %s" % (self.debug))
+        logger.debug("  templates: %s" % (self.templates))
 
 
 class RuntimeConf(object):
