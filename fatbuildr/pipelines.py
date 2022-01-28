@@ -90,10 +90,6 @@ class ArtefactDefs(object):
         return str(self.meta['version'])
 
     @property
-    def fullversion(self):
-        return self.version + '-' + self.release
-
-    @property
     def checksum_format(self):
         return self.meta['checksums'][self.version].keys()  # pickup the first format
 
@@ -116,6 +112,9 @@ class ArtefactDefs(object):
 
     def release(self, fmt):
         return str(self.meta[fmt]['release'])
+
+    def fullversion(self, fmt):
+        return self.version + '-' + self.release(fmt)
 
     def has_buildargs(self, fmt):
         return 'buildargs' in self.meta[fmt]

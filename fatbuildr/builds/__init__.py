@@ -177,6 +177,10 @@ class ArtefactBuild(AbstractBuild):
     def buildargs(self):
         return self.defs.buildargs(self.format)
 
+    @property
+    def fullversion(self):
+        return self.defs.fullversion(self.format)
+
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""
         logger.info("Running build %s" % (self.id))
