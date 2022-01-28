@@ -83,9 +83,12 @@ class RegistryDeb(Registry):
 
         # generate reprepro distributions file
         logger.debug("Generating distribution file %s" % (dists_path))
+        # Combine existing distributions in repository with build distribution
+        # to define resulting list of distributions.
+        distributions = list(set(self.distributions + [build.distribution]]))
         with open(dists_path, 'w+') as fh:
             fh.write(Templeter.frender(dists_tpl_path,
-                       distributions=[build.distribution],
+                       distributions=distributions,
                        key=self.keyring.masterkey.subkey.fingerprint,
                        instance=build.source))
 
