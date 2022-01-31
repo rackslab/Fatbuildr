@@ -19,6 +19,7 @@
 
 import requests
 
+from ..wire import WireBuild
 from ...log import logr
 
 logger = logr(__name__)
@@ -42,3 +43,16 @@ class HttpClient:
         request.cleanup()
 
         return response.json()['build']
+
+    def queue(self):
+        url=f"{self.host}/queue.json"
+        response = requests.get(url)
+        return [WireBuild.load_from_json(build) for build in response.json()]
+
+    def running(self):
+        url=f"{self.host}/running.json"
+        response = requests.get(url)
+        json_build = response.json()
+        if json_build is None:
+            return None
+        return WireBuild.load_from_json(json_build)

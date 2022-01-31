@@ -145,12 +145,14 @@ def submit():
     build_id = connection.submit(build_request)
     return jsonify({'build': build_id})
 
-def queue():
+def running():
     connection = ClientFactory.get('local')
     running = connection.running()
     if running:
-        builds = [running]
-    else:
-        builds = []
-    builds.extend(connection.queue())
-    return jsonify([vars(build) for build in builds])
+        return jsonify(running.to_dict())
+    return jsonify(None)
+
+def queue():
+    connection = ClientFactory.get('local')
+    builds= connection.queue()
+    return jsonify([build.to_dict() for build in builds])
