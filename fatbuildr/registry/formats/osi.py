@@ -19,6 +19,7 @@
 
 import os
 import glob
+import shutil
 
 from . import Registry, RegistryArtefact
 from ...log import logr
