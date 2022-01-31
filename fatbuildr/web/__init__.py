@@ -61,7 +61,7 @@ class WebApp(Flask):
         self.config['UPLOAD_FOLDER'] = self.conf.dirs.tmp
 
     def run(self):
-        super().run(host='0.0.0.0', debug=self.conf.run.debug)
+        super().run(host=self.conf.run.host, debug=self.conf.run.debug)
 
     @locked_cached_property
     def jinja_loader(self):
