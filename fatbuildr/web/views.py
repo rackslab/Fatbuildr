@@ -135,7 +135,8 @@ def submit():
     secured_form = secure_filename(form.filename)
 
     # Create tmp directory to save the build request files
-    tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=current_app.config['UPLOAD_FOLDER'])
+    tmpdir = tempfile.mkdtemp(prefix='fatbuildr',
+                              dir=current_app.config['UPLOAD_FOLDER'])
     tarball.save(os.path.join(tmpdir, secured_tarball))
     form.save(os.path.join(tmpdir, secured_form))
 
@@ -156,3 +157,8 @@ def queue():
     connection = ClientFactory.get('local')
     builds= connection.queue()
     return jsonify([build.to_dict() for build in builds])
+
+def build(build_id):
+    connection = ClientFactory.get('local')
+    build = connection.get(build_id)
+    return jsonify(build.to_dict())

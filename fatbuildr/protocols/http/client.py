@@ -56,3 +56,11 @@ class HttpClient:
         if json_build is None:
             return None
         return WireBuild.load_from_json(json_build)
+
+    def get(self, build_id):
+        url=f"{self.host}/builds/{build_id}.json"
+        response = requests.get(url)
+        json_build = response.json()
+        if json_build is None:
+            return None
+        return WireBuild.load_from_json(json_build)

@@ -54,6 +54,8 @@ class WebApp(Flask):
         self.add_url_rule('/submit', view_func=views.submit, methods=['POST'])
         self.add_url_rule('/running.json', view_func=views.running)
         self.add_url_rule('/queue.json', view_func=views.queue)
+        self.add_url_rule('/builds/<string:build_id>.json', view_func=views.build)
+
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
         self.config['UPLOAD_FOLDER'] = self.conf.dirs.tmp
 
