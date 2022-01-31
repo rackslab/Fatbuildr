@@ -3,6 +3,6 @@ var/lib/fatbuildr/images
 var/lib/fatbuildr/queue
 var/lib/fatbuildr/build
 var/lib/fatbuildr/archives
-var/lib/fatbuildr/repos
+var/lib/fatbuildr/registry
 var/cache/fatbuildr
 etc/fatbuildr/web/templates
