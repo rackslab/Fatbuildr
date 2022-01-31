@@ -71,37 +71,33 @@ def registry(instance, fmt, distribution):
         else:
             return jsonify([vars(artefact) for artefact in artefacts])
 
-def source_artefact(instance, fmt, distribution, artefact):
+def artefact(instance, fmt, distribution, architecture, artefact):
     connection = ClientFactory.get()
-    artefact_bins = connection.artefact_bins(instance, fmt, distribution, artefact)
+    if architecture == 'src':
+        source = None
+        binaries = connection.artefact_bins(instance, fmt, distribution, artefact)
+        template = 'src.html.j2'
+    else:
+        source = connection.artefact_src(instance, fmt, distribution, artefact)
+        binaries = []
+        template = 'bin.html.j2'
+    changelog = connection.changelog(instance, fmt, distribution, architecture, artefact)
 
     for mimetype in request.accept_mimetypes:
         if mimetype[0] == 'text/html':
-            return render_template('src.html.j2',
+            return render_template(template,
                                    instance=instance,
                                    format=fmt,
                                    distribution=distribution,
-                                   source=artefact,
-                                   binaries=artefact_bins)
+                                   architecture=architecture,
+                                   artefact=artefact,
+                                   source=source,
+                                   binaries=binaries,
+                                   changelog=changelog)
         else:
-            return jsonify(artefact_bins)
+            return jsonify(artefact)
 
-def binary_artefact(instance, fmt, distribution, artefact):
-    connection = ClientFactory.get()
-    artefact_src = connection.artefact_src(instance, fmt, distribution, artefact)
-
-    for mimetype in request.accept_mimetypes:
-        if mimetype[0] == 'text/html':
-            return render_template('bin.html.j2',
-                                   instance=instance,
-                                   format=fmt,
-                                   distribution=distribution,
-                                   binary=artefact,
-                                   source=artefact_src)
-        else:
-            return jsonify(artefact_src)
-
-def artefact(instance, artefact):
+def artefacts(instance, artefact):
     connection = ClientFactory.get()
     formats = connection.formats(instance)
     results = {}
@@ -120,7 +116,7 @@ def artefact(instance, artefact):
 
     for mimetype in request.accept_mimetypes:
         if mimetype[0] == 'text/html':
-            return render_template('artefact.html.j2',
+            return render_template('artefacts.html.j2',
                                    instance=instance,
                                    artefact=artefact,
                                    results=results)

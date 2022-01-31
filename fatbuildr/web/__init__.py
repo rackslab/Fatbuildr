@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+from datetime import datetime
+
 from flask import Flask
 from flask.helpers import locked_cached_property
 from jinja2 import FileSystemLoader
@@ -25,6 +27,10 @@ from . import views
 from ..log import logr
 
 logger = logr(__name__)
+
+def timestamp_iso(value):
+    return datetime.fromtimestamp(value).isoformat(sep=' ',timespec='seconds')
+
 
 class WebApp(Flask):
     def __init__(self, conf):
@@ -40,14 +46,13 @@ class WebApp(Flask):
                           '<string:distribution>/',
                           view_func=views.registry)
         self.add_url_rule('/<string:instance>/registry/<string:fmt>/'
-                          '<string:distribution>/src/<string:artefact>',
-                          view_func=views.source_artefact)
-        self.add_url_rule('/<string:instance>/registry/<string:fmt>/'
-                          '<string:distribution>/bin/<string:artefact>',
-                          view_func=views.binary_artefact)
-        self.add_url_rule('/<string:instance>/artefacts/<string:artefact>',
+                          '<string:distribution>/<string:architecture>/'
+                          '<string:artefact>/',
                           view_func=views.artefact)
+        self.add_url_rule('/<string:instance>/artefacts/<string:artefact>',
+                          view_func=views.artefacts)
         self.add_url_rule('/queue', view_func=views.queue)
+        self.jinja_env.filters['timestamp_iso'] = timestamp_iso
 
     def run(self):
         super().run(host='0.0.0.0', debug=self.conf.run.debug)

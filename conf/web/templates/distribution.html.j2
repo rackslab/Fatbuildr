@@ -5,11 +5,7 @@
 <ul>
 {% for artefact in artefacts %}
   <li>
-    {% if artefact.architecture == 'src' %}
-    <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/src/{{ artefact.name }}">
-    {% else %}
-    <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/bin/{{ artefact.name }}">
-    {% endif %}
+    <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ artefact.architecture }}/{{ artefact.name }}">
       {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
     </a>
   </li>
