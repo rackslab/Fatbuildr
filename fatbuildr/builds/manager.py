@@ -170,4 +170,4 @@ class ClientBuildsManager:
 
         # prepare artefact tarball
         request.prepare_tarball(self.conf.run.basedir, self.conf.run.subdir, tmpdir)
-        return request.place
+        return request

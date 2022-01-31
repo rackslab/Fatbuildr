@@ -17,23 +17,28 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from .dbus.client import DbusClient
-from .http.client import HttpClient
+import requests
 
-from .dbus.server import DbusServer
+from ...log import logr
+
+logger = logr(__name__)
 
 
-class ClientFactory(object):
+class HttpClient:
 
-    @staticmethod
-    def get(host):
-        if host == 'local':
-            return DbusClient()
-        else:
-            return HttpClient(host)
+    def __init__(self, host):
+        self.host = host
 
-class ServerFactory(object):
+    def submit(self, request):
+        url=f"{self.host}/submit"
 
-    @staticmethod
-    def get():
-        return DbusServer()
+        files={'tarball': open(request.tarball,'rb'),
+               'form': open(request.formfile,'rb')}
+        logger.debug("Submitting build request to %s", url)
+        response = requests.post(url, files=files)
+
+        # Delete the request files and temporary directory as they are not
+        # consumed by the http server.
+        request.cleanup()
+
+        return response.json()['build']

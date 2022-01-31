@@ -51,8 +51,10 @@ class WebApp(Flask):
                           view_func=views.artefact)
         self.add_url_rule('/<string:instance>/artefacts/<string:artefact>',
                           view_func=views.artefacts)
+        self.add_url_rule('/submit', view_func=views.submit, methods=['POST'])
         self.add_url_rule('/queue', view_func=views.queue)
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
+        self.config['UPLOAD_FOLDER'] = self.conf.dirs.tmp
 
     def run(self):
         super().run(host='0.0.0.0', debug=self.conf.run.debug)

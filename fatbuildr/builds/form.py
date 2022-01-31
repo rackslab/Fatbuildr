@@ -44,6 +44,10 @@ class BuildForm(object):
         self.submission = submission
         self.message = message
 
+    @property
+    def filename(self):
+        return self.YML_FILE
+
     def todict(self):
         return {
             'source': self.source,

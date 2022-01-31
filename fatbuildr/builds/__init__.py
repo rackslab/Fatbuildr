@@ -122,6 +122,14 @@ class BuildRequest(AbstractBuild):
         else:
             self.form = BuildForm(*args)
 
+    @property
+    def tarball(self):
+        return os.path.join(self.place, BuildRequest.ARCHIVE_FILE)
+
+    @property
+    def formfile(self):
+        return os.path.join(self.place, self.form.filename)
+
     def prepare_tarball(self, basedir, subdir, dest):
         # create an archive of artefact subdirectory
         artefact_def_path = os.path.join(basedir, subdir)
@@ -133,6 +141,14 @@ class BuildRequest(AbstractBuild):
         tar = tarfile.open(tar_path, 'x:xz')
         tar.add(artefact_def_path, arcname='.', recursive=True)
         tar.close()
+
+    def cleanup(self):
+        if not os.path.exists(self.place):
+            logger.debug("Request directory %s has already been removed, "
+                         "nothing to clean up", self.place)
+            return
+        logger.debug("Removing request directory %s", self.place)
+        shutil.rmtree(self.place)
 
     @classmethod
     def load(cls, place):

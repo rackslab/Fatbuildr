@@ -50,6 +50,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser.add_argument('-v', '--version', dest='version', action='version', version='%(prog)s ' + __version__)
         parser.add_argument('--debug', dest='debug', action='store_true', help="Enable debug mode")
         parser.add_argument('-i', '--instance', dest='instance', help="Name of the instance")
+        parser.add_argument('--host', dest='host', help="Fatbuildr host", default='local')
 
         subparsers = parser.add_subparsers(help='Action to perform', dest='action', required=True)
 
@@ -116,6 +117,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         super().load()
 
         self.conf.run.action = args.action
+        self.conf.run.host = args.host
 
         # select the default instance from conf if not given in args
         if args.instance is None:
@@ -266,13 +268,13 @@ class Fatbuildrctl(FatbuildrCliRun):
         env = pipelines.dist_env(self.conf.run.distribution)
 
         mgr = ClientBuildsManager(self.conf)
-        connection = ClientFactory.get()
+        connection = ClientFactory.get(self.conf.run.host)
 
         try:
-            place = mgr.request(self.instance, pipelines.name,
-                                self.conf.run.distribution,
-                                env, self.conf.run.format, msg)
-            build_id = connection.submit(place)
+            request = mgr.request(self.instance, pipelines.name,
+                                  self.conf.run.distribution,
+                                  env, self.conf.run.format, msg)
+            build_id = connection.submit(request)
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)
@@ -282,7 +284,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_list(self):
         logger.debug("running list")
-        connection = ClientFactory.get()
+        connection = ClientFactory.get(self.conf.run.host)
         try:
             _running = connection.running()
             if _running:
@@ -302,7 +304,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             sys.exit(1)
 
     def _watch_build(self, build_id):
-        connection = ClientFactory.get()
+        connection = ClientFactory.get(self.conf.run.host)
         try:
             build = connection.get(build_id)
         except RuntimeError as err:
@@ -332,7 +334,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         self._watch_build(self.conf.run.build)
 
     def _run_archives(self):
-        connection = ClientFactory.get()
+        connection = ClientFactory.get(self.conf.run.host)
         archives = connection.archives()
         if not archives:
             print("No archive found")
@@ -342,7 +344,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             archive.report()
 
     def _run_registry(self):
-        connection = ClientFactory.get()
+        connection = ClientFactory.get(self.conf.run.host)
         pipelines = PipelinesDefs(self.conf.run.basedir)
         _fmt = pipelines.dist_format(self.conf.run.distribution)
         artefacts = connection.artefacts(self.instance, _fmt, self.conf.run.distribution)

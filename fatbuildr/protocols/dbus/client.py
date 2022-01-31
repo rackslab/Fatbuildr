@@ -61,8 +61,8 @@ class DbusClient(object):
                                  architecture,
                                  artefact))
 
-    def submit(self, place):
-        return self.proxy.Submit(place)
+    def submit(self, request):
+        return self.proxy.Submit(request.place)
 
     def queue(self):
         return DbusSubmittedBuild.from_structure_list(self.proxy.Queue)

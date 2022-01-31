@@ -226,6 +226,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
     def __init__(self):
         super().__init__()
         self.default_instance = None
+        self.host = None
         self.action = None
         # parameters for image action
         self.operation = None
@@ -249,6 +250,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
     def dump(self):
         logger.debug("[run]")
         logger.debug("  default_instance: %s" % (self.default_instance))
+        logger.debug("  host: %s" % (self.host))
         logger.debug("  action: %s" % (self.action))
         logger.debug("  operation: %s" % (self.operation))
         logger.debug("  format: %s" % (self.format))
