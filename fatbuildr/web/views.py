@@ -20,7 +20,7 @@
 import os
 import tempfile
 
-from flask import request, jsonify, render_template, current_app
+from flask import request, jsonify, render_template, current_app, send_from_directory
 from werkzeug.utils import secure_filename
 
 from ..version import __version__
@@ -169,3 +169,9 @@ def watch(build_id):
     build = connection.get(build_id)
     return current_app.response_class(connection.watch(build),
                                       mimetype='text/plain')
+
+def content(instance, filename):
+    return send_from_directory(
+        os.path.join(current_app.config['REGISTRY_FOLDER'], instance),
+        filename,
+    )

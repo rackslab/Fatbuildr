@@ -56,9 +56,11 @@ class WebApp(Flask):
         self.add_url_rule('/queue.json', view_func=views.queue)
         self.add_url_rule('/builds/<string:build_id>.json', view_func=views.build)
         self.add_url_rule('/watch/<string:build_id>.log', view_func=views.watch)
+        self.add_url_rule('/<string:instance>/<path:filename>', view_func=views.content)
 
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
         self.config['UPLOAD_FOLDER'] = self.conf.dirs.tmp
+        self.config['REGISTRY_FOLDER'] = self.conf.dirs.repos
 
     def run(self):
         super().run(host=self.conf.run.host, debug=self.conf.run.debug)
