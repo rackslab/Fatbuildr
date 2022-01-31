@@ -2,7 +2,7 @@
 <ul>
 {% for entry in changelog %}
   <li>
-  {{ entry.version }} : {{ entry.author }} @ {{ entry.date|timestamp_iso }}
+  {{ entry.version }} : {{ entry.author|escape }} @ {{ entry.date|timestamp_iso }}
   <ul>
   {% for change in entry.changes %}
     <li>{{ change }}</li>
