@@ -321,7 +321,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             # poll build state again
             build = connection.get(build_id)
         try:
-            connection.watch(build)
+            for line in connection.watch(build):
+                print(line, end='')
         except KeyboardInterrupt:
             # Leave gracefully after a keyboard interrupt (eg. ^c)
             logger.debug("Received keyboard interrupt, leaving.")

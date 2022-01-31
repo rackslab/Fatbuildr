@@ -92,15 +92,28 @@ class DbusClient(object):
         """Dbus clients run on the same host as the server, they access the
            builds log files directly."""
         assert hasattr(build, 'logfile')
+        proc = None
         if build.state == 'running':
             # Follow the log file. It has been choosen to exec `tail -f`
             # because python lacks well maintained and common inotify library.
             # This tail command is in coreutils and it is installed basically
             # everywhere.
             cmd = ['tail', '--follow', build.logfile]
-            subprocess.run(cmd)
+            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            fh = proc.stdout
         else:
             # dump full build log
-            with open(build.logfile, 'r') as fh:
-                 while chunk := fh.read(8192):
-                    print(chunk, end='')
+            fh = open(build.logfile, 'rb')
+
+        while True:
+            b_line = fh.readline()
+            if not b_line:
+                break
+            line = b_line.decode()
+            # terminate `tail` if launched and log end is reached
+            if (line.startswith("Build failed") or
+                line.startswith("Build succeeded")) and proc:
+                proc.terminate()
+            yield line
+
+        fh.close()
