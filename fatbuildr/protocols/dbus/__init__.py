@@ -21,9 +21,9 @@ from dasbus.connection import SystemMessageBus
 from dasbus.error import DBusError, ErrorMapper, get_error_decorator
 from dasbus.identifier import DBusServiceIdentifier
 from dasbus.structure import DBusData, DBusFieldFactory, DBUS_FIELDS_ATTRIBUTE, DBusStructureError
-from dasbus.typing import Str, Int
+from dasbus.typing import Str, Int, List
 
-from ..wire import WireBuild, WireArtefact
+from ..wire import WireBuild, WireArtefact, WireChangelogEntry
 
 # Define the error mapper.
 ERROR_MAPPER = ErrorMapper()
@@ -213,7 +213,6 @@ class DbusArchivedBuild(DbusStartedBuild):
     pass
 
 class DbusArtefact(DBusData, WireArtefact):
-    """The user data."""
 
     def __init__(self):
         self._name = None
@@ -246,3 +245,48 @@ class DbusArtefact(DBusData, WireArtefact):
     @version.setter
     def version(self, value: Str):
         self._version = value
+
+
+class DbusChangelogEntry(DBusData, WireChangelogEntry):
+
+    def __init__(self):
+        self._version = None
+        self._author = None
+        self._date = None
+        self._changes = None
+
+    # version
+    @property
+    def version(self) -> Str:
+        return self._version
+
+    @version.setter
+    def version(self, value: Str):
+        self._version = value
+
+    # author
+    @property
+    def author(self) -> Str:
+        return self._author
+
+    @author.setter
+    def author(self, value: Str):
+        self._author = value
+
+    # date
+    @property
+    def date(self) -> Int:
+        return self._date
+
+    @date.setter
+    def date(self, value: Str):
+        self._date = value
+
+    # changes
+    @property
+    def changes(self) -> List[Str]:
+        return self._changes
+
+    @changes.setter
+    def changes(self, value: Str):
+        self._changes = value

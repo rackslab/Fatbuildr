@@ -25,7 +25,7 @@ from dasbus.signal import Signal
 from dasbus.typing import Structure, List, Str
 from dasbus.xml import XMLGenerator
 
-from . import REGISTER, BUS, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, DbusArtefact, ErrorNoRunningBuild
+from . import REGISTER, BUS, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, DbusArtefact, DbusChangelogEntry, ErrorNoRunningBuild
 from ...log import logr
 
 logger = logr(__name__)
@@ -98,6 +98,21 @@ class FatbuildrInterface(InterfaceTemplate):
                                              fmt,
                                              distribution,
                                              bin_artefact))
+
+    def Changelog(self,
+                        instance: Str,
+                        fmt: Str,
+                        distribution: Str,
+                        architecture: Str,
+                        artefact: Str) -> List[Structure]:
+        """Return the list of changelog entries of the the given artefact and
+           architecture in this distribution registry."""
+        return DbusChangelogEntry.to_structure_list(
+            self.implementation.changelog(instance,
+                                          fmt,
+                                          distribution,
+                                          architecture,
+                                          artefact))
 
     def Submit(self, input: Str) -> Str:
         """Submit a new build."""
@@ -180,6 +195,22 @@ class FatbuildrMultiplexer(object):
                                                   distribution,
                                                   bin_artefact)
         return DbusArtefact.load_from_artefact(artefact)
+
+    def changelog(self,
+                  instance: Str,
+                  fmt: Str,
+                  distribution: Str,
+                  architecture: Str,
+                  artefact: Str):
+        """Get the changelog of the given artefact and architecture in this
+           distribution registry."""
+        self.timer.reset()
+        changelog = self.registry_mgr.changelog(instance, fmt,
+                                                distribution,
+                                                architecture,
+                                                artefact)
+        return [DbusChangelogEntry.load_from_entry(entry)
+                for entry in changelog]
 
     def submit(self, input: Str):
         """Submit a new build."""

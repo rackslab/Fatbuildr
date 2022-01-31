@@ -82,3 +82,14 @@ class WireArtefact:
         _obj.architecture = artefact.architecture
         _obj.version = artefact.version
         return _obj
+
+
+class WireChangelogEntry:
+    @classmethod
+    def load_from_entry(cls, entry):
+        _obj = cls()
+        _obj.version = entry.version
+        _obj.author = entry.author
+        _obj.date = entry.date
+        _obj.changes = entry.changes
+        return _obj

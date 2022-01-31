@@ -19,7 +19,7 @@
 
 import subprocess
 
-from . import REGISTER, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, DbusArtefact, ErrorNoRunningBuild
+from . import REGISTER, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, DbusArtefact, DbusChangelogEntry, ErrorNoRunningBuild
 
 
 class DbusClient(object):
@@ -52,6 +52,14 @@ class DbusClient(object):
                                       fmt,
                                       distribution,
                                       artefact))
+
+    def changelog(self, instance, fmt, distribution, architecture, artefact):
+        return DbusChangelogEntry.from_structure_list(
+            self.proxy.Changelog(instance,
+                                 fmt,
+                                 distribution,
+                                 architecture,
+                                 artefact))
 
     def submit(self, place):
         return self.proxy.Submit(place)
