@@ -162,3 +162,10 @@ def build(build_id):
     connection = ClientFactory.get('local')
     build = connection.get(build_id)
     return jsonify(build.to_dict())
+
+def watch(build_id):
+    """Stream lines obtained by DbusClient.watch() generator."""
+    connection = ClientFactory.get('local')
+    build = connection.get(build_id)
+    return current_app.response_class(connection.watch(build),
+                                      mimetype='text/plain')

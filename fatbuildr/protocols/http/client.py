@@ -64,3 +64,10 @@ class HttpClient:
         if json_build is None:
             return None
         return WireBuild.load_from_json(json_build)
+
+    def watch(self, build):
+        """Generate build log lines with a streaming request."""
+        url=f"{self.host}/watch/{build.id}.log"
+        response = requests.get(url, stream=True)
+        for line in response.iter_lines(decode_unicode=True, delimiter='\n'):
+            yield line+'\n'
