@@ -37,10 +37,10 @@ class RegistryManager:
 
     @property
     def instances(self):
-        return os.listdir(self.conf.dirs.repos)
+        return os.listdir(self.conf.dirs.registry)
 
     def formats(self, instance):
-        return os.listdir(os.path.join(self.conf.dirs.repos, instance))
+        return os.listdir(os.path.join(self.conf.dirs.registry, instance))
 
     def distributions(self, instance, fmt):
         registry = RegistryManager.factory(fmt, self.conf, instance)

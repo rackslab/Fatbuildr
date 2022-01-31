@@ -60,7 +60,7 @@ class WebApp(Flask):
 
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
         self.config['UPLOAD_FOLDER'] = self.conf.dirs.tmp
-        self.config['REGISTRY_FOLDER'] = self.conf.dirs.repos
+        self.config['REGISTRY_FOLDER'] = self.conf.dirs.registry
 
     def run(self):
         super().run(host=self.conf.run.host, debug=self.conf.run.debug)

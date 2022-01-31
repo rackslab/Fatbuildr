@@ -53,7 +53,7 @@ class ArtefactBuildOsi(ArtefactBuild):
                '--checksum']
         self.contruncmd(cmd)
 
-        # Load keyring in agent so repos are signed with new packages
+        # Load keyring in agent
         self.keyring.load_agent()
 
         # Sign checksum file. Note mkosi built-in signature feature (--sign) is

@@ -97,7 +97,7 @@ class RegistryOsi(Registry):
         return artefacts
 
     def artefacts(self,  distribution):
-        """Returns the list of artefacts in rpm repository."""
+        """Returns the list of artefacts in OSI registry."""
         return self._artefacts_filter(distribution)
 
     def artefact_bins(self, distribution, src_artefact):
