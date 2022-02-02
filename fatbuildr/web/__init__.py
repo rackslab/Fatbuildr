@@ -106,6 +106,9 @@ class WebApp(Flask):
         self.add_url_rule(
             '/<string:instance>/<path:filename>', view_func=views.content
         )
+        self.add_url_rule(
+            '/<string:instance>/keyring.asc', view_func=views.keyring
+        )
 
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
         self.config['UPLOAD_FOLDER'] = self.conf.dirs.tmp

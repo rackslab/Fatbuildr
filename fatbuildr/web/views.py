@@ -19,6 +19,7 @@
 
 import os
 import tempfile
+import io
 
 from flask import (
     request,
@@ -26,6 +27,7 @@ from flask import (
     render_template,
     current_app,
     send_from_directory,
+    send_file,
 )
 from werkzeug.utils import secure_filename
 
@@ -217,6 +219,19 @@ def watch(build_id):
     build = connection.get(build_id)
     return current_app.response_class(
         connection.watch(build), mimetype='text/plain'
+    )
+
+
+def keyring(instance):
+    connection = ClientFactory.get('local')
+    mem = io.BytesIO()
+    mem.write(connection.keyring_export(instance).encode())
+    mem.seek(0)
+    return send_file(
+        mem,
+        as_attachment=True,
+        attachment_filename='keyring.asc',
+        mimetype='text/plain',
     )
 
 
