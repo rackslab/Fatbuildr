@@ -125,3 +125,6 @@ class DbusClient(object):
             yield line
 
         fh.close()
+
+    def keyring_export(self, instance):
+        return self.proxy.KeyringExport(instance)
