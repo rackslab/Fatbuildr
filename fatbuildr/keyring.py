@@ -255,6 +255,18 @@ class KeyringManager(object):
         self.load()
         self.masterkey.show()
 
+    def export(self):
+        """Return string representation of armored public key of the keyring
+        masterkey."""
+        with gpg.Context(home_dir=self.homedir, armor=True) as ctx:
+            try:
+                self.masterkey.load_from_keyring(ctx)
+                return ctx.key_export(self.masterkey.fingerprint).decode()
+            except RuntimeError as err:
+                logger.error(
+                    "Error while loading keyring %s: %s", self.homedir, err
+                )
+
     def load_agent(self):
         """Load GPG signing subkey in gpg-agent so reprepro can use the key
         non-interactively."""

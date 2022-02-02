@@ -117,6 +117,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             '--show', action='store_true', help='Show keyring information'
         )
         parser_keyring.add_argument(
+            '--export', action='store_true', help='Export keyring'
+        )
+
+        parser_keyring.add_argument(
             '-b', '--basedir', help='Artefacts definitions directory'
         )
         parser_keyring.set_defaults(func=self._run_keyring)
@@ -243,6 +247,8 @@ class Fatbuildrctl(FatbuildrCliRun):
                 self.conf.run.operation = 'create'
             elif args.show is True:
                 self.conf.run.operation = 'show'
+            elif args.export is True:
+                self.conf.run.operation = 'export'
             else:
                 print(
                     "An operation on the keyring must be specified, type '%s keyring --help' for details"
@@ -303,6 +309,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             mgr.create()
         elif self.conf.run.operation == 'show':
             mgr.show()
+        elif self.conf.run.operation == 'export':
+            print(mgr.export())
 
     def _run_build(self):
         logger.debug(
