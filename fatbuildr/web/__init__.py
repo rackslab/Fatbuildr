@@ -40,11 +40,26 @@ class WebApp(Flask):
         self.add_url_rule('/version', view_func=views.version)
         self.add_url_rule('/', view_func=views.index)
         self.add_url_rule(
+            '/instances.json',
+            view_func=views.index,
+            defaults={'output': 'json'},
+        )
+        self.add_url_rule(
             '/<string:instance>/registry/', view_func=views.instance
+        )
+        self.add_url_rule(
+            '/<string:instance>/registry.json',
+            view_func=views.instance,
+            defaults={'output': 'json'},
         )
         self.add_url_rule(
             '/<string:instance>/registry/<string:fmt>/',
             view_func=views.distributions,
+        )
+        self.add_url_rule(
+            '/<string:instance>/registry/<string:fmt>.json',
+            view_func=views.distributions,
+            defaults={'output': 'json'},
         )
         self.add_url_rule(
             '/<string:instance>/registry/<string:fmt>/'
@@ -53,14 +68,34 @@ class WebApp(Flask):
         )
         self.add_url_rule(
             '/<string:instance>/registry/<string:fmt>/'
+            '<string:distribution>.json',
+            view_func=views.registry,
+            defaults={'output': 'json'},
+        )
+
+        self.add_url_rule(
+            '/<string:instance>/registry/<string:fmt>/'
             '<string:distribution>/<string:architecture>/'
             '<string:artefact>/',
             view_func=views.artefact,
         )
         self.add_url_rule(
+            '/<string:instance>/registry/<string:fmt>/'
+            '<string:distribution>/<string:architecture>/'
+            '<string:artefact>.json',
+            view_func=views.artefact,
+            defaults={'output': 'json'},
+        )
+        self.add_url_rule(
             '/<string:instance>/artefacts/<string:artefact>',
             view_func=views.artefacts,
         )
+        self.add_url_rule(
+            '/<string:instance>/artefacts/<string:artefact>.json',
+            view_func=views.artefacts,
+            defaults={'output': 'json'},
+        )
+
         self.add_url_rule('/submit', view_func=views.submit, methods=['POST'])
         self.add_url_rule('/running.json', view_func=views.running)
         self.add_url_rule('/queue.json', view_func=views.queue)

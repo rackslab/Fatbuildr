@@ -137,6 +137,13 @@ class WireArtefact:
         print("  architecture: %s" % (self.architecture))
         print("  version: %s" % (self.version))
 
+    def to_dict(self):
+        return {
+            'name': self.name,
+            'architecture': self.architecture,
+            'version': self.version,
+        }
+
     @classmethod
     def load_from_artefact(cls, artefact):
         _obj = cls()
@@ -147,6 +154,14 @@ class WireArtefact:
 
 
 class WireChangelogEntry:
+    def to_dict(self):
+        return {
+            'version': self.version,
+            'author': self.author,
+            'date': self.date,
+            'changes': self.changes,
+        }
+
     @classmethod
     def load_from_entry(cls, entry):
         _obj = cls()

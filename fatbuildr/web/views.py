@@ -38,60 +38,58 @@ def version():
     return f"Fatbuildr v{__version__}"
 
 
-def index():
+def index(output='html'):
     connection = ClientFactory.get('local')
     instances = connection.instances()
-    for mimetype in request.accept_mimetypes:
-        if mimetype[0] == 'text/html':
-            return render_template('index.html.j2', instances=instances)
-        else:
-            return jsonify(instances)
+    if output == 'json':
+        return jsonify(instances)
+    else:
+        return render_template('index.html.j2', instances=instances)
 
 
-def instance(instance):
+def instance(instance, output='html'):
     connection = ClientFactory.get('local')
     formats = connection.formats(instance)
-    for mimetype in request.accept_mimetypes:
-        if mimetype[0] == 'text/html':
-            return render_template(
-                'instance.html.j2', instance=instance, formats=formats
-            )
-        else:
-            return jsonify(formats)
+    if output == 'json':
+        return jsonify(formats)
+    else:
+        return render_template(
+            'instance.html.j2', instance=instance, formats=formats
+        )
 
 
-def distributions(instance, fmt):
+def distributions(instance, fmt, output='html'):
     connection = ClientFactory.get('local')
     distributions = connection.distributions(instance, fmt)
-    for mimetype in request.accept_mimetypes:
-        if mimetype[0] == 'text/html':
-            return render_template(
-                'format.html.j2',
-                instance=instance,
-                format=fmt,
-                distributions=distributions,
-            )
-        else:
-            return jsonify(distributions)
+    if output == 'json':
+        return jsonify(distributions)
+    else:
+        return render_template(
+            'format.html.j2',
+            instance=instance,
+            format=fmt,
+            distributions=distributions,
+        )
 
 
-def registry(instance, fmt, distribution):
+def registry(instance, fmt, distribution, output='html'):
     connection = ClientFactory.get('local')
     artefacts = connection.artefacts(instance, fmt, distribution)
-    for mimetype in request.accept_mimetypes:
-        if mimetype[0] == 'text/html':
-            return render_template(
-                'distribution.html.j2',
-                instance=instance,
-                format=fmt,
-                distribution=distribution,
-                artefacts=artefacts,
-            )
-        else:
-            return jsonify([vars(artefact) for artefact in artefacts])
+    if output == 'json':
+        return jsonify([vars(artefact) for artefact in artefacts])
+    else:
+        return render_template(
+            'distribution.html.j2',
+            instance=instance,
+            format=fmt,
+            distribution=distribution,
+            artefacts=artefacts,
+        )
 
 
-def artefact(instance, fmt, distribution, architecture, artefact):
+def artefact(
+    instance, fmt, distribution, architecture, artefact, output='html'
+):
     connection = ClientFactory.get('local')
     if architecture == 'src':
         source = None
@@ -107,24 +105,38 @@ def artefact(instance, fmt, distribution, architecture, artefact):
         instance, fmt, distribution, architecture, artefact
     )
 
-    for mimetype in request.accept_mimetypes:
-        if mimetype[0] == 'text/html':
-            return render_template(
-                template,
-                instance=instance,
-                format=fmt,
-                distribution=distribution,
-                architecture=architecture,
-                artefact=artefact,
-                source=source,
-                binaries=binaries,
-                changelog=changelog,
+    if output == 'json':
+        if source:
+            return jsonify(
+                {
+                    'artefact': artefact,
+                    'source': source.to_dict(),
+                    'changelog': [entry.to_dict() for entry in changelog],
+                }
             )
         else:
-            return jsonify(artefact)
+            return jsonify(
+                {
+                    'artefact': artefact,
+                    'binaries': [binary.to_dict() for binary in binaries],
+                    'changelog': [entry.to_dict() for entry in changelog],
+                }
+            )
+    else:
+        return render_template(
+            template,
+            instance=instance,
+            format=fmt,
+            distribution=distribution,
+            architecture=architecture,
+            artefact=artefact,
+            source=source,
+            binaries=binaries,
+            changelog=changelog,
+        )
 
 
-def artefacts(instance, artefact):
+def artefacts(instance, artefact, output='html'):
     connection = ClientFactory.get('local')
     formats = connection.formats(instance)
     results = {}
@@ -141,16 +153,22 @@ def artefacts(instance, artefact):
                         results[fmt][distribution] = []
                     results[fmt][distribution].append(_artefact)
 
-    for mimetype in request.accept_mimetypes:
-        if mimetype[0] == 'text/html':
-            return render_template(
-                'artefacts.html.j2',
-                instance=instance,
-                artefact=artefact,
-                results=results,
-            )
-        else:
-            return jsonify(results)
+    if output == 'json':
+        # Convert lists of WireArtefact into lists of dicts for JSON
+        # serialization
+        for fmt, distributions in results.items():
+            for distribution, artefacts in distributions.items():
+                results[fmt][distribution] = [
+                    _artefact.to_dict() for artefact in artefacts
+                ]
+        return jsonify(results)
+    else:
+        return render_template(
+            'artefacts.html.j2',
+            instance=instance,
+            artefact=artefact,
+            results=results,
+        )
 
 
 def submit():
