@@ -59,7 +59,9 @@ class Image(object):
         logger.info("Creating image for %s format" % (self.format))
         cmd = Templeter.srender(
             self.conf.images.create_cmd,
+            format=self.format,
             definition=self.def_path,
+            dirpath=os.path.dirname(self.path),
             path=self.path,
         ).split(' ')
         if self.conf.run.force:
