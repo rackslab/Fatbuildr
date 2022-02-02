@@ -5,4 +5,5 @@
 Source artefact:
 <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ source.architecture }}/{{ source.name }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }}
 {% include 'partials/changelog.html.j2' %}
+<a href="../{{ artefact }}.json">JSON</a>
 {% endblock %}
