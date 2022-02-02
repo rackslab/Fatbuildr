@@ -55,19 +55,21 @@ class Image(object):
             os.mkdir(_dirname)
             os.chmod(_dirname, 0o755)  # be umask agnostic
 
-        logger.info("Creating image for format %s" % (self.format))
+        logger.info("Creating image for %s format" % (self.format))
         cmd = Templeter.srender(self.conf.images.create_cmd,
                                 definition=self.def_path,
                                 path=self.path).split(' ')
         if self.conf.run.force:
             cmd.insert(1, '--force')
+
+        logger.debug("Running command: %s", ' '.join(cmd))
         proc = subprocess.run(cmd)
         if proc.returncode:
             raise RuntimeError("Command failed with exit code %d: %s" \
                                % (proc.returncode, ' '.join(cmd)))
 
     def update(self):
-        logger.info("Updating image for format %s" % (self.format))
+        logger.info("Updating image for %s format" % (self.format))
         cmds = [ _cmd.strip() for _cmd in
                  getattr(self.conf, self.format).img_update_cmds.split('&&') ]
         ctn = ContainerRunner(self.conf.containers)
