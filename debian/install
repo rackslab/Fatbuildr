@@ -1,4 +1,5 @@
 conf/etc/fatbuildr.ini etc/fatbuildr
+conf/formats etc/fatbuildr
 conf/vendor/fatbuildr.ini usr/lib/fatbuildr
 conf/registry usr/lib/fatbuildr
 conf/images usr/lib/fatbuildr
