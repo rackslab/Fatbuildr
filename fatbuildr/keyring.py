@@ -34,8 +34,8 @@ logger = logr(__name__)
 
 
 class KeyringKey(object):
-    def __init__(self, mgr):
-        self.mgr = mgr
+    def __init__(self, keyring):
+        self.keyring = keyring
         self._key = None
 
     @property
@@ -71,34 +71,34 @@ class KeyringKey(object):
 
 
 class KeyringSubKey(KeyringKey):
-    def __init__(self, mgr, masterkey):
-        super().__init__(mgr)
+    def __init__(self, keyring, masterkey):
+        super().__init__(keyring)
         self.masterkey = masterkey
 
     def create(self, ctx):
         """Create signing subkey in keyring context."""
         gen = ctx.create_subkey(
             key=self.masterkey._masterkey,
-            algorithm=self.mgr.algorithm,
-            expires=self.mgr.expires,
-            expires_in=self.mgr.expires_in,
+            algorithm=self.keyring.algorithm,
+            expires=self.keyring.expires,
+            expires_in=self.keyring.expires_in,
             sign=True,
-            passphrase=self.mgr.passphrase,
+            passphrase=self.keyring.passphrase,
         )
         # subkeys[0] is the masterkey, jump to subkey[1] to get the newly
         # created signing subkey.
         self._key = ctx.get_key(gen.fpr).subkeys[1]
 
     def load_from_keyring(self, _subkey):
-        logger.debug("Loading subkey from keyring %s" % (self.mgr.homedir))
+        logger.debug("Loading subkey from keyring %s" % (self.keyring.homedir))
         self._key = _subkey
 
 
 class KeyringMasterKey(KeyringKey):
-    def __init__(self, mgr):
-        super().__init__(mgr)
+    def __init__(self, keyring):
+        super().__init__(keyring)
         self._masterkey = None
-        self.subkey = KeyringSubKey(mgr, self)
+        self.subkey = KeyringSubKey(keyring, self)
 
     @property
     def userid(self):
@@ -121,11 +121,11 @@ class KeyringMasterKey(KeyringKey):
         """Create masterkey in keyring context and load it."""
         # load userid from pipelines definitions
         gen = ctx.create_key(
-            userid=self.mgr.pipelines_userid,
-            algorithm=self.mgr.algorithm,
-            expires=self.mgr.expires,
-            expires_in=self.mgr.expires_in,
-            passphrase=self.mgr.passphrase,
+            userid=self.keyring.pipelines_userid,
+            algorithm=self.keyring.algorithm,
+            expires=self.keyring.expires,
+            expires_in=self.keyring.expires_in,
+            passphrase=self.keyring.passphrase,
         )
         self._masterkey = ctx.get_key(gen.fpr)
         # all keys details are stored in first masterkey subkey
@@ -134,7 +134,7 @@ class KeyringMasterKey(KeyringKey):
     def load_from_keyring(self, ctx):
         """Load masterkey and its signing subkey from keyring context."""
 
-        logger.debug("Loading masterkey from keyring %s" % (self.mgr.homedir))
+        logger.debug("Loading masterkey from keyring %s", self.keyring.homedir)
 
         _keys_iter = ctx.keylist()
 
@@ -172,7 +172,7 @@ class KeyringMasterKey(KeyringKey):
         print("    creation: %s" % (self.subkey.creation))
 
 
-class KeyringManager(object):
+class InstanceKeyring:
     def __init__(self, conf, instance):
 
         self.conf = conf
@@ -298,6 +298,14 @@ class KeyringManager(object):
         KeyringManager.runcmd(
             cmd, env={'GNUPGHOME': self.homedir}, input=self.passphrase.encode()
         )
+
+
+class KeyringManager:
+    def __init__(self, conf):
+        self.conf = conf
+
+    def keyring(self, instance):
+        return InstanceKeyring(self.conf, instance)
 
     @staticmethod
     def runcmd(cmd, env=None, input=None):

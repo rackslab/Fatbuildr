@@ -38,7 +38,7 @@ class RegistryDeb(Registry):
 
     def __init__(self, conf, instance):
         super().__init__(conf, instance)
-        self.keyring = KeyringManager(conf, instance)
+        self.keyring = KeyringManager(conf).keyring(instance)
         self.keyring.load()
 
     @property

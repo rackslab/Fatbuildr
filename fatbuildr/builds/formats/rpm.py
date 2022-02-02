@@ -34,7 +34,7 @@ class ArtefactBuildRpm(ArtefactBuild):
     def __init__(self, conf, build_id, form):
         super().__init__(conf, build_id, form)
         self.format = 'rpm'
-        self.keyring = KeyringManager(conf, self.instance)
+        self.keyring = KeyringManager(conf).keyring(self.instance)
         self.keyring.load()
 
     @property

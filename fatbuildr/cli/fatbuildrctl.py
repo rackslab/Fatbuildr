@@ -304,13 +304,14 @@ class Fatbuildrctl(FatbuildrCliRun):
         logger.debug(
             "running keyring operation: %s" % (self.conf.run.operation)
         )
-        mgr = KeyringManager(self.conf, self.instance)
+        mgr = KeyringManager(self.conf)
+        keyring = mgr.keyring(self.instance)
         if self.conf.run.operation == 'create':
-            mgr.create()
+            keyring.create()
         elif self.conf.run.operation == 'show':
-            mgr.show()
+            keyring.show()
         elif self.conf.run.operation == 'export':
-            print(mgr.export())
+            print(keyring.export())
 
     def _run_build(self):
         logger.debug(
