@@ -161,6 +161,7 @@ class ImagesManager(object):
                 logger.error(
                     "Error while creating the image %s: %s" % (img.path, err)
                 )
+        logger.info("All images have been created")
 
     def update(self):
 
@@ -172,6 +173,8 @@ class ImagesManager(object):
                 )
                 continue
             img.update()
+
+        logger.info("All images have been updated")
 
     def create_envs(self):
 
@@ -194,6 +197,8 @@ class ImagesManager(object):
                 env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
                 env.create()
 
+        logger.info("All build environments have been created")
+
     def update_envs(self):
 
         logger.info("Updating build environments")
@@ -205,3 +210,5 @@ class ImagesManager(object):
             for _dist in pipelines.format_dists(_format):
                 env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
                 env.update()
+
+        logger.info("All build environment have been updated")
