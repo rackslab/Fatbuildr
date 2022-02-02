@@ -213,6 +213,23 @@ class RuntimeSubConfFormatRpm(object):
         logger.debug("  env_update_cmds: %s" % (self.env_update_cmds))
 
 
+class RuntimeSubConfFormatOsi(object):
+    """Runtime sub-configuration class to hold RPM format settings."""
+
+    def __init__(self):
+
+        self.init_cmd = None
+        self.img_update_cmds = None
+
+    def load(self, config):
+        section = 'format:osi'
+        self.img_update_cmds = config.get(section, 'img_update_cmds')
+
+    def dump(self):
+        logger.debug("[format:osi]")
+        logger.debug("  img_update_cmds: %s" % (self.img_update_cmds))
+
+
 class RuntimeConfApp(object):
     """Runtime sub-configuration class common to all Fatbuildr applications."""
 
@@ -318,6 +335,7 @@ class RuntimeConf(object):
         self.keyring = RuntimeSubConfKeyring()
         self.deb = RuntimeSubConfFormatDeb()
         self.rpm = RuntimeSubConfFormatRpm()
+        self.osi = RuntimeSubConfFormatOsi()
         self.config = None
 
     def load(self):
@@ -339,6 +357,7 @@ class RuntimeConf(object):
         self.keyring.load(self.config)
         self.deb.load(self.config)
         self.rpm.load(self.config)
+        self.osi.load(self.config)
 
     def dump(self):
         """Dump all runtime configuration parameters when in debug mode."""
@@ -352,6 +371,7 @@ class RuntimeConf(object):
         self.keyring.dump()
         self.deb.dump()
         self.rpm.dump()
+        self.osi.dump()
 
 
 class RuntimeConfCtl(RuntimeConf):
