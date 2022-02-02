@@ -9,4 +9,3 @@ Format=directory
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
 Packages=cowbuilder,devscripts,neovim,man-db,less
-ExtraTree=/usr/lib/fatbuildr/images/deb.extra/

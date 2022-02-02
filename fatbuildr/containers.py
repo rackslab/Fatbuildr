@@ -43,7 +43,15 @@ class ContainerRunner(object):
     ):
         """Generic fully featured method to run command in container using
         systemd-nspawn."""
-        cmd = ['systemd-nspawn', '--directory', image.path]
+        cmd = [
+            'systemd-nspawn',
+            '--directory',
+            image.path,
+            '--bind',
+            f"/etc/fatbuildr/formats/{image.format}",
+            '--bind',
+            f"/usr/lib/fatbuildr/images/{image.format}",
+        ]
         # add opts in args
         if opts is not None:
             cmd.extend(opts)

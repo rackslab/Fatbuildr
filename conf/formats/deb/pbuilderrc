@@ -1,1 +1,1 @@
-HOOKDIR=/usr/lib/fatbuildr/hooks
+HOOKDIR=/usr/lib/fatbuildr/images/deb/hooks

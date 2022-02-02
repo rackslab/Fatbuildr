@@ -133,7 +133,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             'cowbuilder',
             '--build',
             '--configfile',
-            '/etc/fatbuildr/pbuilderrc',
+            '/etc/fatbuildr/formats/deb/pbuilderrc',
             '--distribution',
             self.distribution,
             '--basepath',
