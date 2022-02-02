@@ -20,7 +20,12 @@
 from dasbus.connection import SystemMessageBus
 from dasbus.error import DBusError, ErrorMapper, get_error_decorator
 from dasbus.identifier import DBusServiceIdentifier
-from dasbus.structure import DBusData, DBusFieldFactory, DBUS_FIELDS_ATTRIBUTE, DBusStructureError
+from dasbus.structure import (
+    DBusData,
+    DBusFieldFactory,
+    DBUS_FIELDS_ATTRIBUTE,
+    DBusStructureError,
+)
 from dasbus.typing import Str, Int, List
 
 from ..wire import WireBuild, WireArtefact, WireChangelogEntry
@@ -29,18 +34,13 @@ from ..wire import WireBuild, WireArtefact, WireChangelogEntry
 ERROR_MAPPER = ErrorMapper()
 
 # Define the message bus.
-BUS = SystemMessageBus(
-    error_mapper=ERROR_MAPPER
-)
+BUS = SystemMessageBus(error_mapper=ERROR_MAPPER)
 
 # Define namespaces.
 REGISTER_NAMESPACE = ("org", "rackslab", "Fatbuildr")
 
 # Define services and objects.
-REGISTER = DBusServiceIdentifier(
-    namespace=REGISTER_NAMESPACE,
-    message_bus=BUS
-)
+REGISTER = DBusServiceIdentifier(namespace=REGISTER_NAMESPACE, message_bus=BUS)
 
 # The decorator for DBus errors.
 dbus_error = get_error_decorator(ERROR_MAPPER)
@@ -193,7 +193,6 @@ class DbusSubmittedBuild(DbusBuild):
 
 
 class DbusStartedBuild(DbusBuild):
-
     def __init__(self):
         self._logfile = None
 
@@ -206,14 +205,16 @@ class DbusStartedBuild(DbusBuild):
     def logfile(self, value: Str):
         self._logfile = value
 
+
 class DbusRunningBuild(DbusStartedBuild):
     pass
+
 
 class DbusArchivedBuild(DbusStartedBuild):
     pass
 
-class DbusArtefact(DBusData, WireArtefact):
 
+class DbusArtefact(DBusData, WireArtefact):
     def __init__(self):
         self._name = None
         self._architecture = None
@@ -248,7 +249,6 @@ class DbusArtefact(DBusData, WireArtefact):
 
 
 class DbusChangelogEntry(DBusData, WireChangelogEntry):
-
     def __init__(self):
         self._version = None
         self._author = None

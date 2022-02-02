@@ -34,7 +34,6 @@ logger = logr(__name__)
 
 
 class KeyringKey(object):
-
     def __init__(self, mgr):
         self.mgr = mgr
         self._key = None
@@ -60,27 +59,32 @@ class KeyringKey(object):
         expire = self._key.expires
         if expire == 0:
             return "never"
-        return datetime.fromtimestamp(expire).isoformat(sep=' ',timespec='seconds')
+        return datetime.fromtimestamp(expire).isoformat(
+            sep=' ', timespec='seconds'
+        )
 
     @property
     def creation(self):
-        return datetime.fromtimestamp(self._key.timestamp).isoformat(sep=' ',timespec='seconds')
+        return datetime.fromtimestamp(self._key.timestamp).isoformat(
+            sep=' ', timespec='seconds'
+        )
 
 
 class KeyringSubKey(KeyringKey):
-
     def __init__(self, mgr, masterkey):
-       super().__init__(mgr)
-       self.masterkey = masterkey
+        super().__init__(mgr)
+        self.masterkey = masterkey
 
     def create(self, ctx):
         """Create signing subkey in keyring context."""
-        gen = ctx.create_subkey(key=self.masterkey._masterkey,
-                                algorithm=self.mgr.algorithm,
-                                expires=self.mgr.expires,
-                                expires_in=self.mgr.expires_in,
-                                sign=True,
-                                passphrase=self.mgr.passphrase)
+        gen = ctx.create_subkey(
+            key=self.masterkey._masterkey,
+            algorithm=self.mgr.algorithm,
+            expires=self.mgr.expires,
+            expires_in=self.mgr.expires_in,
+            sign=True,
+            passphrase=self.mgr.passphrase,
+        )
         # subkeys[0] is the masterkey, jump to subkey[1] to get the newly
         # created signing subkey.
         self._key = ctx.get_key(gen.fpr).subkeys[1]
@@ -91,7 +95,6 @@ class KeyringSubKey(KeyringKey):
 
 
 class KeyringMasterKey(KeyringKey):
-
     def __init__(self, mgr):
         super().__init__(mgr)
         self._masterkey = None
@@ -100,7 +103,9 @@ class KeyringMasterKey(KeyringKey):
     @property
     def userid(self):
         if len(self._masterkey.uids) != 1:
-            raise ValueError("Multiple uids attached to key %s" % (self.fingerprint))
+            raise ValueError(
+                "Multiple uids attached to key %s" % (self.fingerprint)
+            )
         return self._masterkey.uids[0].uid
 
     @property
@@ -108,16 +113,20 @@ class KeyringMasterKey(KeyringKey):
         last_update = self._masterkey.last_update
         if last_update == 0:
             return "never"
-        return datetime.fromtimestamp(last_update).isoformat(sep=' ',timespec='seconds')
+        return datetime.fromtimestamp(last_update).isoformat(
+            sep=' ', timespec='seconds'
+        )
 
     def create(self, ctx):
         """Create masterkey in keyring context and load it."""
         # load userid from pipelines definitions
-        gen = ctx.create_key(userid=self.mgr.pipelines_userid,
-                             algorithm=self.mgr.algorithm,
-                             expires=self.mgr.expires,
-                             expires_in=self.mgr.expires_in,
-                             passphrase=self.mgr.passphrase)
+        gen = ctx.create_key(
+            userid=self.mgr.pipelines_userid,
+            algorithm=self.mgr.algorithm,
+            expires=self.mgr.expires,
+            expires_in=self.mgr.expires_in,
+            passphrase=self.mgr.passphrase,
+        )
         self._masterkey = ctx.get_key(gen.fpr)
         # all keys details are stored in first masterkey subkey
         self._key = self._masterkey.subkeys[0]
@@ -164,13 +173,12 @@ class KeyringMasterKey(KeyringKey):
 
 
 class KeyringManager(object):
-
     def __init__(self, conf, instance):
 
         self.conf = conf
         self.homedir = os.path.join(self.conf.keyring.storage, instance)
         self.passphrase_path = os.path.join(self.homedir, 'passphrase')
-        self.algorithm = self.conf.keyring.type+str(self.conf.keyring.size)
+        self.algorithm = self.conf.keyring.type + str(self.conf.keyring.size)
         if type(self.conf.keyring.expires) is bool:
             self.expires = self.conf.keyring.expires
             self.expires_in = 0
@@ -201,7 +209,10 @@ class KeyringManager(object):
         # check if key already exist
         with gpg.Context(home_dir=self.homedir) as ctx:
             if any(ctx.keylist()):
-                logger.error("Fatbuildr GPG key in %s already exists, leaving." % (self.homedir))
+                logger.error(
+                    "Fatbuildr GPG key in %s already exists, leaving."
+                    % (self.homedir)
+                )
                 sys.exit(1)
 
         # generate random passphrase and save it in file
@@ -210,25 +221,34 @@ class KeyringManager(object):
         passphrase = ''.join(secrets.choice(alphabet) for i in range(32))
         with open(self.passphrase_path, 'w+') as fh:
             fh.write(passphrase)
-        os.chmod(self.passphrase_path, 0o400)  # restrict access to root read-only
+        os.chmod(
+            self.passphrase_path, 0o400
+        )  # restrict access to root read-only
 
         # generate GPG key with its subkey
         logger.info("Generating GPG key in %s" % (self.homedir))
         with gpg.Context(home_dir=self.homedir) as ctx:
             self.masterkey.create(ctx)
-            logger.info("Key generated for user '{0}' with fingerprint {1}" \
-                        .format(self.masterkey.userid,
-                                self.masterkey.fingerprint))
+            logger.info(
+                "Key generated for user '{0}' with fingerprint {1}".format(
+                    self.masterkey.userid, self.masterkey.fingerprint
+                )
+            )
             self.masterkey.subkey.create(ctx)
-            logger.info("Subkey generated for signature with fingerprint {0}" \
-                        .format(self.masterkey.subkey.fingerprint))
+            logger.info(
+                "Subkey generated for signature with fingerprint {0}".format(
+                    self.masterkey.subkey.fingerprint
+                )
+            )
 
     def load(self):
         with gpg.Context(home_dir=self.homedir) as ctx:
             try:
                 self.masterkey.load_from_keyring(ctx)
             except RuntimeError as err:
-                logger.error("Error while loading keyring %s: %s" % (self.homedir, err))
+                logger.error(
+                    "Error while loading keyring %s: %s" % (self.homedir, err)
+                )
 
     def show(self):
 
@@ -237,33 +257,41 @@ class KeyringManager(object):
 
     def load_agent(self):
         """Load GPG signing subkey in gpg-agent so reprepro can use the key
-           non-interactively."""
+        non-interactively."""
 
         # First stop agent if running (ie. socket is present), as it may not
         # has been started to allow preset.
         gpgagent_sock_path = os.path.join(self.homedir, 'S.gpg-agent')
         if os.path.exists(gpgagent_sock_path):
-            cmd = ['gpgconf', '--kill',
-                   '--homedir', self.homedir, 'gpg-agent' ]
+            cmd = ['gpgconf', '--kill', '--homedir', self.homedir, 'gpg-agent']
             KeyringManager.runcmd(cmd)
 
         # Start agent with --allow-preset-passphrase so the key can be loaded
         # non-interactively.
-        cmd = ['gpg-agent', '--homedir', self.homedir,
-               '--allow-preset-passphrase', '--daemon' ]
+        cmd = [
+            'gpg-agent',
+            '--homedir',
+            self.homedir,
+            '--allow-preset-passphrase',
+            '--daemon',
+        ]
         KeyringManager.runcmd(cmd)
 
         # Load GPG in agent using the passphrase
-        cmd = ['/usr/lib/gnupg/gpg-preset-passphrase',
-               '--preset', self.masterkey.subkey.keygrip ]
-        KeyringManager.runcmd(cmd,
-                              env={'GNUPGHOME': self.homedir},
-                              input=self.passphrase.encode())
+        cmd = [
+            '/usr/lib/gnupg/gpg-preset-passphrase',
+            '--preset',
+            self.masterkey.subkey.keygrip,
+        ]
+        KeyringManager.runcmd(
+            cmd, env={'GNUPGHOME': self.homedir}, input=self.passphrase.encode()
+        )
 
     @staticmethod
     def runcmd(cmd, env=None, input=None):
         logger.debug("Running command: %s" % (' '.join(cmd)))
         proc = subprocess.run(cmd, env=env, input=input, capture_output=True)
         if proc.returncode:
-            raise RuntimeError("Command %s failed: %s"
-                               % (' '.join(cmd), proc.stderr.decode()))
+            raise RuntimeError(
+                "Command %s failed: %s" % (' '.join(cmd), proc.stderr.decode())
+            )

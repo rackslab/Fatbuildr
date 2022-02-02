@@ -25,17 +25,25 @@ logger = logr(__name__)
 
 
 class ContainerRunner(object):
-
     def __init__(self, conf):
         self.conf = conf
 
     def run_init(self, image, envcmd):
         self.run(image, envcmd, opts=self.conf.init_opts)
 
-    def run(self, image, runcmd, opts=None, binds=[], chdir=None, envs=[], logfile=None):
+    def run(
+        self,
+        image,
+        runcmd,
+        opts=None,
+        binds=[],
+        chdir=None,
+        envs=[],
+        logfile=None,
+    ):
         """Generic fully featured method to run command in container using
-           systemd-nspawn."""
-        cmd = ['systemd-nspawn', '--directory', image.path ]
+        systemd-nspawn."""
+        cmd = ['systemd-nspawn', '--directory', image.path]
         # add opts in args
         if opts is not None:
             cmd.extend(opts)
@@ -60,5 +68,7 @@ class ContainerRunner(object):
         if fh is not None:
             fh.close()
         if proc.returncode:
-            raise RuntimeError("Command failed with exit code %d: %s" \
-                               % (proc.returncode, ' '.join(cmd)))
+            raise RuntimeError(
+                "Command failed with exit code %d: %s"
+                % (proc.returncode, ' '.join(cmd))
+            )

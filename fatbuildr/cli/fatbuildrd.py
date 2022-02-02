@@ -34,13 +34,25 @@ logger = logr(__name__)
 
 
 class Fatbuildrd(FatbuildrCliRun):
-
     def __init__(self):
         super().__init__()
 
-        parser = argparse.ArgumentParser(description='Do something with fatbuildr.')
-        parser.add_argument('-v', '--version', dest='version', action='version', version='%(prog)s ' + __version__)
-        parser.add_argument('--debug', dest='debug', action='store_true', help="Enable debug mode")
+        parser = argparse.ArgumentParser(
+            description='Do something with fatbuildr.'
+        )
+        parser.add_argument(
+            '-v',
+            '--version',
+            dest='version',
+            action='version',
+            version='%(prog)s ' + __version__,
+        )
+        parser.add_argument(
+            '--debug',
+            dest='debug',
+            action='store_true',
+            help="Enable debug mode",
+        )
 
         args = parser.parse_args()
 
@@ -105,8 +117,10 @@ class Fatbuildrd(FatbuildrCliRun):
                 self.timer.release()  # allow threads to leave
             if self.timer.over:
                 break
-        logger.info("Stopping builder thread as timer is over and build queue "
-                    "is empty")
+        logger.info(
+            "Stopping builder thread as timer is over and build queue "
+            "is empty"
+        )
 
     def _server(self):
         """Thread handling requests from clients."""

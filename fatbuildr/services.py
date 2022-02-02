@@ -26,7 +26,6 @@ logger = logr(__name__)
 
 
 class ServiceManager:
-
     def __init__(self):
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         addr = os.getenv('NOTIFY_SOCKET')

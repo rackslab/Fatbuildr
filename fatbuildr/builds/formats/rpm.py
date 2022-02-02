@@ -61,35 +61,55 @@ class ArtefactBuildRpm(ArtefactBuild):
     def _build_src(self):
         """Build source SRPM"""
 
-        logger.info("Building source RPM for %s in environment %s" \
-                    % (self.name, self.env.name))
+        logger.info(
+            "Building source RPM for %s in environment %s"
+            % (self.name, self.env.name)
+        )
 
         # Generate spec file base on template
         spec_tpl_path = os.path.join(self.place, 'rpm', self.spec_basename)
         spec_path = os.path.join(self.place, self.spec_basename)
-        logger.debug("Generate RPM spec file %s base on %s" \
-                     % (spec_path, spec_tpl_path))
+        logger.debug(
+            "Generate RPM spec file %s base on %s" % (spec_path, spec_tpl_path)
+        )
         with open(spec_path, 'w+') as fh:
             fh.write(Templeter.frender(spec_tpl_path, pkg=self))
 
         # run SRPM build
-        logger.debug("Generate RPM spec file %s base on %s" \
-                     % (spec_path, spec_tpl_path))
-        cmd = [ 'mock', '--root', self.env.name, '--buildsrpm',
-               '--sources', self.cache.dir,
-               '--spec', spec_path,
-               '--resultdir', self.place ]
+        logger.debug(
+            "Generate RPM spec file %s base on %s" % (spec_path, spec_tpl_path)
+        )
+        cmd = [
+            'mock',
+            '--root',
+            self.env.name,
+            '--buildsrpm',
+            '--sources',
+            self.cache.dir,
+            '--spec',
+            spec_path,
+            '--resultdir',
+            self.place,
+        ]
         self.contruncmd(cmd)
 
     def _build_bin(self):
         """Build binary RPM"""
 
-        logger.info("Building binary RPM based on %s in environment %s" \
-                    % (self.srpm_path, self.env.name))
+        logger.info(
+            "Building binary RPM based on %s in environment %s"
+            % (self.srpm_path, self.env.name)
+        )
 
-        cmd = ['mock', '--root', self.env.name,
-               '--resultdir', self.place,
-               '--rebuild', self.srpm_path ]
+        cmd = [
+            'mock',
+            '--root',
+            self.env.name,
+            '--resultdir',
+            self.place,
+            '--rebuild',
+            self.srpm_path,
+        ]
 
         # Add additional build args if defined
         if self.has_buildargs:
@@ -103,10 +123,17 @@ class ArtefactBuildRpm(ArtefactBuild):
         # sign all RPM packages, including SRPM
         rpm_glob = os.path.join(self.place, '*.rpm')
         for rpm_path in glob.glob(rpm_glob):
-            logger.debug("Signing RPM %s with key %s" \
-                         % (rpm_path, self.keyring.masterkey.fingerprint))
-            cmd = ['rpmsign',
-                   '--define', '%__gpg /usr/bin/gpg',
-                   '--define', '%_gpg_name ' + self.keyring.masterkey.userid,
-                   '--addsign', rpm_path ]
+            logger.debug(
+                "Signing RPM %s with key %s"
+                % (rpm_path, self.keyring.masterkey.fingerprint)
+            )
+            cmd = [
+                'rpmsign',
+                '--define',
+                '%__gpg /usr/bin/gpg',
+                '--define',
+                '%_gpg_name ' + self.keyring.masterkey.userid,
+                '--addsign',
+                rpm_path,
+            ]
             self.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})

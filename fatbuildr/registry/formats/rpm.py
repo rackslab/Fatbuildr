@@ -46,7 +46,7 @@ class RegistryRpm(Registry):
 
     def _mk_missing_repo_dirs(self, distribution):
         """Create pkg_dir if it does not exists, considering pkg_dir is a
-           subdirectory of repo_dir."""
+        subdirectory of repo_dir."""
         pkg_dir = self.pkg_dir(distribution)
         if not os.path.exists(pkg_dir):
             logger.info("Creating missing package directory %s" % (pkg_dir))
@@ -55,8 +55,10 @@ class RegistryRpm(Registry):
     def publish(self, build):
         """Publish RPM (including SRPM) in yum/dnf repository."""
 
-        logger.info("Publishing RPM packages for %s in distribution %s" \
-                    % (build.name, build.distribution))
+        logger.info(
+            "Publishing RPM packages for %s in distribution %s"
+            % (build.name, build.distribution)
+        )
 
         dist_path = self.distribution_path(distribution)
         pkg_dir = self.pkg_dir(distribution)
@@ -79,8 +81,11 @@ class RegistryRpm(Registry):
         md.locate_and_load_xml(self.distribution_path(distribution))
         for key in md.keys():
             pkg = md.get(key)
-            artefacts.append(RegistryArtefact(pkg.name, pkg.arch,
-                                              pkg.version+'-'+pkg.release))
+            artefacts.append(
+                RegistryArtefact(
+                    pkg.name, pkg.arch, pkg.version + '-' + pkg.release
+                )
+            )
         return artefacts
 
     def artefact_bins(self, distribution, src_artefact):
@@ -98,8 +103,11 @@ class RegistryRpm(Registry):
             source = pkg.rpm_sourcerpm.rsplit('-', 2)[0]
             if source != src_artefact:
                 continue
-            artefacts.append(RegistryArtefact(pkg.name, pkg.arch,
-                                              pkg.version+'-'+pkg.release))
+            artefacts.append(
+                RegistryArtefact(
+                    pkg.name, pkg.arch, pkg.version + '-' + pkg.release
+                )
+            )
         return artefacts
 
     def artefact_src(self, distribution, bin_artefact):
@@ -119,7 +127,7 @@ class RegistryRpm(Registry):
             # For source version, extract the version and the release with
             # .src.rpm suffix removed.
             src_version = srcrpm_components[1] + '-' + srcrpm_components[2][:-8]
-            return RegistryArtefact(src_name, 'src',src_version)
+            return RegistryArtefact(src_name, 'src', src_version)
 
     def changelog(self, distribution, architecture, artefact):
         """Returns the changelog of a RPM source package."""
@@ -135,7 +143,6 @@ class RegistryRpm(Registry):
 
 
 class RpmChangelog:
-
     def __init__(self, entries):
         self._entries = entries
 
@@ -146,12 +153,15 @@ class RpmChangelog:
         for entry in reversed(self._entries):
 
             (author, version) = entry[cr.CHANGELOG_ENTRY_AUTHOR].rsplit(' ', 1)
-            changes = [RpmChangelog._sanitize_entry(entry) for entry
-                       in entry[cr.CHANGELOG_ENTRY_CHANGELOG].split('\n')]
-            result.append(ChangelogEntry(version,
-                                         author,
-                                         entry[cr.CHANGELOG_ENTRY_DATE],
-                                         changes))
+            changes = [
+                RpmChangelog._sanitize_entry(entry)
+                for entry in entry[cr.CHANGELOG_ENTRY_CHANGELOG].split('\n')
+            ]
+            result.append(
+                ChangelogEntry(
+                    version, author, entry[cr.CHANGELOG_ENTRY_DATE], changes
+                )
+            )
         return result
 
     @staticmethod

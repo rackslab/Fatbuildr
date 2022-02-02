@@ -160,7 +160,9 @@ class RuntimeSubConfKeyring(object):
             _expires = config.get(section, 'expires')
             self._parse_duration(_expires)
         if self.expires == True:
-            raise ValueError("keyring expires must be set with a duration to be enabled")
+            raise ValueError(
+                "keyring expires must be set with a duration to be enabled"
+            )
 
     def dump(self):
         logger.debug("[keyring]")
@@ -249,7 +251,7 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         self.operation = None
         self.format = None
         self.force = None
-        # parameters for build action
+        #  parameters for build action
         self.artefact = None
         self.distribution = None
         self.basedir = None
@@ -258,11 +260,11 @@ class RuntimeSubConfCtl(RuntimeConfApp):
         self.user_email = None
         self.build_msg = None
         self.watch = None
-        # parameters for watch action
+        #  parameters for watch action
         self.build = None
 
     def load(self, config):
-       self.default_instance = config.get('run', 'default_instance')
+        self.default_instance = config.get('run', 'default_instance')
 
     def dump(self):
         logger.debug("[run]")
@@ -345,9 +347,13 @@ class RuntimeConf(object):
         # configuration file
         vendor_conf_path = '/usr/lib/fatbuildr/fatbuildr.ini'
         site_conf_path = '/etc/fatbuildr/fatbuildr.ini'
-        logger.debug("Loading vendor configuration file %s" % (vendor_conf_path))
+        logger.debug(
+            "Loading vendor configuration file %s" % (vendor_conf_path)
+        )
         self.config.read_file(open(vendor_conf_path))
-        logger.debug("Loading site specific configuration file %s" % (site_conf_path))
+        logger.debug(
+            "Loading site specific configuration file %s" % (site_conf_path)
+        )
         self.config.read_file(open(site_conf_path))
         self.run.load(self.config)
         self.dirs.load(self.config)
@@ -386,6 +392,7 @@ class RuntimeConfd(RuntimeConf):
 
     def __init__(self):
         super().__init__(RuntimeSubConfd())
+
 
 class RuntimeConfWeb(RuntimeConf):
     """Runtime configuration class for FatbuildrWeb application."""

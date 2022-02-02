@@ -30,11 +30,12 @@ logger = logr(__name__)
 
 
 class Image(object):
-
     def __init__(self, conf, instance, fmt):
         self.conf = conf
         self.format = fmt
-        self.path = os.path.join(conf.images.storage, instance, self.format + '.img')
+        self.path = os.path.join(
+            conf.images.storage, instance, self.format + '.img'
+        )
         self.def_path = os.path.join(conf.images.defs, self.format + '.mkosi')
 
     @property
@@ -56,53 +57,69 @@ class Image(object):
             os.chmod(_dirname, 0o755)  # be umask agnostic
 
         logger.info("Creating image for %s format" % (self.format))
-        cmd = Templeter.srender(self.conf.images.create_cmd,
-                                definition=self.def_path,
-                                path=self.path).split(' ')
+        cmd = Templeter.srender(
+            self.conf.images.create_cmd,
+            definition=self.def_path,
+            path=self.path,
+        ).split(' ')
         if self.conf.run.force:
             cmd.insert(1, '--force')
 
         logger.debug("Running command: %s", ' '.join(cmd))
         proc = subprocess.run(cmd)
         if proc.returncode:
-            raise RuntimeError("Command failed with exit code %d: %s" \
-                               % (proc.returncode, ' '.join(cmd)))
+            raise RuntimeError(
+                "Command failed with exit code %d: %s"
+                % (proc.returncode, ' '.join(cmd))
+            )
 
     def update(self):
         logger.info("Updating image for %s format" % (self.format))
-        cmds = [ _cmd.strip() for _cmd in
-                 getattr(self.conf, self.format).img_update_cmds.split('&&') ]
+        cmds = [
+            _cmd.strip()
+            for _cmd in getattr(self.conf, self.format).img_update_cmds.split(
+                '&&'
+            )
+        ]
         ctn = ContainerRunner(self.conf.containers)
         for cmd in cmds:
             ctn.run_init(self, cmd)
 
 
 class BuildEnv(object):
-
     def __init__(self, conf, image, name):
         self.conf = conf
         self.image = image
         self.name = name
 
     def create(self):
-        logger.info("Create build environment %s in %s image" % (self.name, self.image.format))
-        cmd = Templeter.srender(getattr(self.conf, self.image.format).init_cmd,
-                                environment=self.name)
+        logger.info(
+            "Create build environment %s in %s image"
+            % (self.name, self.image.format)
+        )
+        cmd = Templeter.srender(
+            getattr(self.conf, self.image.format).init_cmd,
+            environment=self.name,
+        )
         ContainerRunner(self.conf.containers).run_init(self.image, cmd)
 
     def update(self):
-        logger.info("Updating build environment %s in %s image" % (self.name, self.image.format))
-        cmds = [ Templeter.srender(_cmd.strip(), environment=self.name)
-                 for _cmd in
-                 getattr(self.conf, self.image.format) \
-                   .env_update_cmds.split('&&') ]
+        logger.info(
+            "Updating build environment %s in %s image"
+            % (self.name, self.image.format)
+        )
+        cmds = [
+            Templeter.srender(_cmd.strip(), environment=self.name)
+            for _cmd in getattr(
+                self.conf, self.image.format
+            ).env_update_cmds.split('&&')
+        ]
         ctn = ContainerRunner(self.conf.containers)
         for cmd in cmds:
             ctn.run_init(self.image, cmd)
 
 
 class ImagesManager(object):
-
     def __init__(self, conf, instance):
         self.conf = conf
         self.instance = instance
@@ -115,7 +132,10 @@ class ImagesManager(object):
 
     def create(self):
         if not os.path.exists(self.conf.images.storage):
-            logger.debug("Creating missing images directory %s" % (self.conf.images.storage))
+            logger.debug(
+                "Creating missing images directory %s"
+                % (self.conf.images.storage)
+            )
             os.mkdir(self.conf.images.storage)
 
         for _format in self.selected_formats:
@@ -123,31 +143,42 @@ class ImagesManager(object):
             img = Image(self.conf, self.instance, _format)
 
             if img.exists and not self.conf.run.force:
-                logger.error("Image %s already exists, use --force to ignore" % (img.def_path))
+                logger.error(
+                    "Image %s already exists, use --force to ignore"
+                    % (img.def_path)
+                )
                 continue
 
             if not img.def_exists:
-                logger.error("Unable to find image definition file %s" % (img.def_path))
+                logger.error(
+                    "Unable to find image definition file %s" % (img.def_path)
+                )
                 continue
 
             try:
                 img.create()
             except RuntimeError as err:
-                logger.error("Error while creating the image %s: %s" % (img.path, err))
+                logger.error(
+                    "Error while creating the image %s: %s" % (img.path, err)
+                )
 
     def update(self):
 
         for _format in self.selected_formats:
             img = Image(self.conf, self.instance, _format)
             if not img.exists:
-                logger.warning("Image %s does not exist, create it first" % (img.path))
+                logger.warning(
+                    "Image %s does not exist, create it first" % (img.path)
+                )
                 continue
             img.update()
 
     def create_envs(self):
 
         if not os.path.exists(self.conf.run.basedir):
-            logger.error("Unable to find base directory %s" % (self.conf.run.basedir))
+            logger.error(
+                "Unable to find base directory %s" % (self.conf.run.basedir)
+            )
             sys.exit(1)
 
         logger.info("Creating build environments")
@@ -158,8 +189,7 @@ class ImagesManager(object):
             img = Image(self.conf, self.instance, _format)
             distributions = pipelines.format_dists(_format)
             if not distributions:
-                logger.info("No distribution defined for %s image"
-                            % (_format))
+                logger.info("No distribution defined for %s image" % (_format))
             for _dist in distributions:
                 env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
                 env.create()

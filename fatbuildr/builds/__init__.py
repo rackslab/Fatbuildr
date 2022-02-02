@@ -38,8 +38,7 @@ from .form import BuildForm
 logger = logr(__name__)
 
 
-class AbstractBuild():
-
+class AbstractBuild:
     def __init__(self, place, build_id):
         self.form = None
         self.id = build_id
@@ -67,11 +66,13 @@ class AbstractBuild():
         try:
             return getattr(self.form, name)
         except AttributeError:
-            raise AttributeError("%s does not have %s attribute" % (self.__class__.__name__, name))
+            raise AttributeError(
+                "%s does not have %s attribute"
+                % (self.__class__.__name__, name)
+            )
 
 
 class BuildArchive(AbstractBuild):
-
     def __init__(self, place, build_id):
         super().__init__(place, build_id)
         self.form = BuildForm.load(place)
@@ -90,7 +91,9 @@ class BuildSubmission(AbstractBuild):
 
         # Extract artefact tarball in dest
         tar_path = os.path.join(self.place, BuildSubmission.ARCHIVE_FILE)
-        logger.debug("Extracting tarball %s in destination %s" % (tar_path, dest))
+        logger.debug(
+            "Extracting tarball %s in destination %s" % (tar_path, dest)
+        )
         tar = tarfile.open(tar_path, 'r:xz')
         tar.extractall(path=dest)
         tar.close()
@@ -106,7 +109,10 @@ class BuildSubmission(AbstractBuild):
     @classmethod
     def load_from_request(cls, place, request, build_id):
         submission = cls(place, build_id, request.form)
-        logger.debug("Moving submission directory %s to %s" % (request.place, submission.place))
+        logger.debug(
+            "Moving submission directory %s to %s"
+            % (request.place, submission.place)
+        )
         shutil.move(request.place, submission.place)
         return submission
 
@@ -134,18 +140,27 @@ class BuildRequest(AbstractBuild):
         # create an archive of artefact subdirectory
         artefact_def_path = os.path.join(basedir, subdir)
         if not os.path.exists(artefact_def_path):
-            raise RuntimeError("artefact definition directory %s does not exist" % (artefact_def_path))
+            raise RuntimeError(
+                "artefact definition directory %s does not exist"
+                % (artefact_def_path)
+            )
 
         tar_path = os.path.join(dest, BuildRequest.ARCHIVE_FILE)
-        logger.debug("Creating archive %s with artefact definition directory %s" % (tar_path, artefact_def_path))
+        logger.debug(
+            "Creating archive %s with artefact definition directory %s"
+            % (tar_path, artefact_def_path)
+        )
         tar = tarfile.open(tar_path, 'x:xz')
         tar.add(artefact_def_path, arcname='.', recursive=True)
         tar.close()
 
     def cleanup(self):
         if not os.path.exists(self.place):
-            logger.debug("Request directory %s has already been removed, "
-                         "nothing to clean up", self.place)
+            logger.debug(
+                "Request directory %s has already been removed, "
+                "nothing to clean up",
+                self.place,
+            )
             return
         logger.debug("Removing request directory %s", self.place)
         shutil.rmtree(self.place)
@@ -165,7 +180,9 @@ class ArtefactBuild(AbstractBuild):
         self.id = build_id
         self.place = os.path.join(self.conf.dirs.build, self.id)
         self.cache = CacheArtefact(conf, self.instance, self)
-        self.registry = RegistryManager.factory(self.format, conf, self.instance)
+        self.registry = RegistryManager.factory(
+            self.format, conf, self.instance
+        )
         self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, self.instance, self.format)
         self.env = BuildEnv(conf, self.image, self.environment)
@@ -179,7 +196,10 @@ class ArtefactBuild(AbstractBuild):
             try:
                 return getattr(self.defs, name)
             except AttributeError:
-                raise AttributeError("%s does not have %s attribute" % (self.__class__.__name__, name))
+                raise AttributeError(
+                    "%s does not have %s attribute"
+                    % (self.__class__.__name__, name)
+                )
 
     @property
     def release(self):
@@ -239,7 +259,7 @@ class ArtefactBuild(AbstractBuild):
 
     def prepare(self):
         """Download the package upstream tarball and verify checksum if not
-           present in cache."""
+        present in cache."""
 
         # ensure artefact cache directory exists
         self.cache.ensure()
@@ -256,7 +276,7 @@ class ArtefactBuild(AbstractBuild):
             # The upstream tarball if already in cache, nothing more to do here
             return
 
-        # actual download and write in cache
+        #  actual download and write in cache
         dl = requests.get(self.tarball, allow_redirects=True)
         open(self.cache.tarball_path, 'wb').write(dl.content)
 
@@ -267,10 +287,14 @@ class ArtefactBuild(AbstractBuild):
                 tarball_hash.update(chunk)
 
         if tarball_hash.hexdigest() != self.checksum_value:
-            raise RuntimeError("%s checksum do not match: %s != %s" \
-                               % (self.checksum_format,
-                                  tarball_hash.hexdigest(),
-                                  self.checksum_value))
+            raise RuntimeError(
+                "%s checksum do not match: %s != %s"
+                % (
+                    self.checksum_format,
+                    tarball_hash.hexdigest(),
+                    self.checksum_value,
+                )
+            )
 
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""
@@ -278,14 +302,17 @@ class ArtefactBuild(AbstractBuild):
         with open(self.logfile, 'a') as fh:
             proc = subprocess.run(cmd, **kwargs, stdout=fh, stderr=fh)
             if proc.returncode:
-                raise RuntimeError("Command failed with exit code %d: %s" \
-                                   % (proc.returncode, ' '.join(cmd)))
+                raise RuntimeError(
+                    "Command failed with exit code %d: %s"
+                    % (proc.returncode, ' '.join(cmd))
+                )
 
     def contruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
         _binds = [self.place, self.cache.dir]
-        self.container.run(self.image, cmd, **kwargs, binds=_binds,
-                           logfile=self.logfile)
+        self.container.run(
+            self.image, cmd, **kwargs, binds=_binds, logfile=self.logfile
+        )
 
     @classmethod
     def load_from_submission(cls, conf, submission):

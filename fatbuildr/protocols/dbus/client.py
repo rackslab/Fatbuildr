@@ -19,7 +19,15 @@
 
 import subprocess
 
-from . import REGISTER, DbusSubmittedBuild, DbusRunningBuild, DbusArchivedBuild, DbusArtefact, DbusChangelogEntry, ErrorNoRunningBuild
+from . import (
+    REGISTER,
+    DbusSubmittedBuild,
+    DbusRunningBuild,
+    DbusArchivedBuild,
+    DbusArtefact,
+    DbusChangelogEntry,
+    ErrorNoRunningBuild,
+)
 
 
 class DbusClient(object):
@@ -37,29 +45,25 @@ class DbusClient(object):
 
     def artefacts(self, instance, fmt, distribution):
         return DbusArtefact.from_structure_list(
-            self.proxy.Artefacts(instance, fmt, distribution))
+            self.proxy.Artefacts(instance, fmt, distribution)
+        )
 
     def artefact_bins(self, instance, fmt, distribution, artefact):
         return DbusArtefact.from_structure_list(
-            self.proxy.ArtefactBinaries(instance,
-                                        fmt,
-                                        distribution,
-                                        artefact))
+            self.proxy.ArtefactBinaries(instance, fmt, distribution, artefact)
+        )
 
     def artefact_src(self, instance, fmt, distribution, artefact):
         return DbusArtefact.from_structure(
-            self.proxy.ArtefactSource(instance,
-                                      fmt,
-                                      distribution,
-                                      artefact))
+            self.proxy.ArtefactSource(instance, fmt, distribution, artefact)
+        )
 
     def changelog(self, instance, fmt, distribution, architecture, artefact):
         return DbusChangelogEntry.from_structure_list(
-            self.proxy.Changelog(instance,
-                                 fmt,
-                                 distribution,
-                                 architecture,
-                                 artefact))
+            self.proxy.Changelog(
+                instance, fmt, distribution, architecture, artefact
+            )
+        )
 
     def submit(self, request):
         return self.proxy.Submit(request.place)
@@ -90,7 +94,7 @@ class DbusClient(object):
 
     def watch(self, build):
         """Dbus clients run on the same host as the server, they access the
-           builds log files directly."""
+        builds log files directly."""
         assert hasattr(build, 'logfile')
         proc = None
         if build.state == 'running':
@@ -99,7 +103,9 @@ class DbusClient(object):
             # This tail command is in coreutils and it is installed basically
             # everywhere.
             cmd = ['tail', '--follow', build.logfile]
-            proc = subprocess.Popen(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+            proc = subprocess.Popen(
+                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
+            )
             fh = proc.stdout
         else:
             # dump full build log
@@ -111,8 +117,10 @@ class DbusClient(object):
                 break
             line = b_line.decode()
             # terminate `tail` if launched and log end is reached
-            if (line.startswith("Build failed") or
-                line.startswith("Build succeeded")) and proc:
+            if (
+                line.startswith("Build failed")
+                or line.startswith("Build succeeded")
+            ) and proc:
                 proc.terminate()
             yield line
 

@@ -27,6 +27,7 @@ logger = logr(__name__)
 
 class CleanupRegistry(object):
     """Registry of things to cleanup before leaving Fatbuildr apps"""
+
     _tmpdirs = []
 
     @classmethod
@@ -46,4 +47,7 @@ class CleanupRegistry(object):
                 logger.debug("Removing temporary directory %s" % (_dir))
                 shutil.rmtree(_dir)
             else:
-                logger.warning("Temporary directory %s registered for removal does not exist" % (_dir))
+                logger.warning(
+                    "Temporary directory %s registered for removal does not exist"
+                    % (_dir)
+                )

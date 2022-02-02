@@ -29,12 +29,24 @@ logger = logr(__name__)
 
 
 class FatbuildrWeb(FatbuildrCliRun):
-
     def __init__(self):
         super().__init__()
-        parser = argparse.ArgumentParser(description='Fatbuilrdr web interface.')
-        parser.add_argument('-v', '--version', dest='version', action='version', version='%(prog)s ' + __version__)
-        parser.add_argument('--debug', dest='debug', action='store_true', help="Enable debug mode")
+        parser = argparse.ArgumentParser(
+            description='Fatbuilrdr web interface.'
+        )
+        parser.add_argument(
+            '-v',
+            '--version',
+            dest='version',
+            action='version',
+            version='%(prog)s ' + __version__,
+        )
+        parser.add_argument(
+            '--debug',
+            dest='debug',
+            action='store_true',
+            help="Enable debug mode",
+        )
         args = parser.parse_args()
 
         logger.setup(args.debug)

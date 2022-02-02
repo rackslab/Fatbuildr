@@ -32,7 +32,19 @@ class BuildForm(object):
 
     YML_FILE = 'build.yml'
 
-    def __init__(self, source, user, email, instance, distribution, environment, fmt, artefact, submission, message):
+    def __init__(
+        self,
+        source,
+        user,
+        email,
+        instance,
+        distribution,
+        environment,
+        fmt,
+        artefact,
+        submission,
+        message,
+    ):
         self.source = source
         self.user = user
         self.email = email
@@ -59,7 +71,7 @@ class BuildForm(object):
             'format': self.format,
             'artefact': self.artefact,
             'submission': int(self.submission.timestamp()),
-            'message': self.message
+            'message': self.message,
         }
 
     def save(self, dest):
@@ -70,7 +82,9 @@ class BuildForm(object):
 
     def move(self, orig, dest):
         path = os.path.join(orig, BuildForm.YML_FILE)
-        logger.debug("Moving YAML build form file %s to directory %s" % (path, dest))
+        logger.debug(
+            "Moving YAML build form file %s to directory %s" % (path, dest)
+        )
         shutil.move(path, dest)
 
     @classmethod
@@ -78,13 +92,15 @@ class BuildForm(object):
         path = os.path.join(place, BuildForm.YML_FILE)
         with open(path, 'r') as fh:
             description = yaml.load(fh, Loader=yaml.FullLoader)
-        return cls(description['source'],
-                   description['user'],
-                   description['email'],
-                   description['instance'],
-                   description['distribution'],
-                   description['environment'],
-                   description['format'],
-                   description['artefact'],
-                   datetime.fromtimestamp(description['submission']),
-                   description['message'])
+        return cls(
+            description['source'],
+            description['user'],
+            description['email'],
+            description['instance'],
+            description['distribution'],
+            description['environment'],
+            description['format'],
+            description['artefact'],
+            datetime.fromtimestamp(description['submission']),
+            description['message'],
+        )

@@ -27,7 +27,6 @@ logger = logr(__name__)
 
 
 class FatbuildrCliRun(object):
-
     @classmethod
     def run(cls):
         """Instanciate and execute the CliRun."""

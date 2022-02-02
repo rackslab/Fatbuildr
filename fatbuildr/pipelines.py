@@ -32,7 +32,9 @@ class PipelinesDefs(object):
     def __init__(self, path):
         self.path = path
         pipelines_yml_f = os.path.join(self.path, 'pipelines.yml')
-        logger.debug("Loading pipelines definitions from %s" % (pipelines_yml_f))
+        logger.debug(
+            "Loading pipelines definitions from %s" % (pipelines_yml_f)
+        )
         with open(pipelines_yml_f) as fh:
             self.defs = yaml.safe_load(fh)
 
@@ -54,22 +56,26 @@ class PipelinesDefs(object):
 
     def dist_format(self, distribution):
         """Which format (ex: RPM) for this distribution? Raise RuntimeError if
-           the format has not been found."""
+        the format has not been found."""
         for format, dists in self.defs['formats'].items():
             if distribution in dists.keys():
                 return format
-        raise RuntimeError("Unable to find format corresponding to "
-                           "distribution %s" % (distribution))
+        raise RuntimeError(
+            "Unable to find format corresponding to "
+            "distribution %s" % (distribution)
+        )
 
     def dist_env(self, distribution):
         """Return the name of the build environment for the given
-           distribution. Raise RuntimeError is the environment has not been
-           found."""
+        distribution. Raise RuntimeError is the environment has not been
+        found."""
         for format, dists in self.defs['formats'].items():
             if distribution in dists.keys():
                 return dists[distribution]
-        raise RuntimeError("Unable to find environment corresponding "
-                           "to distribution %s" % (distribution))
+        raise RuntimeError(
+            "Unable to find environment corresponding "
+            "to distribution %s" % (distribution)
+        )
 
     def format_dists(self, format):
         """Return the list of distributions for the given format."""
@@ -91,7 +97,9 @@ class ArtefactDefs(object):
 
     @property
     def checksum_format(self):
-        return self.meta['checksums'][self.version].keys()  # pickup the first format
+        return self.meta['checksums'][
+            self.version
+        ].keys()  # pickup the first format
 
     @property
     def checksum_value(self):
@@ -107,8 +115,11 @@ class ArtefactDefs(object):
 
     @property
     def supported_formats(self):
-        return [key for key in self.meta.keys()
-                if key not in ['version', 'tarball', 'checksums']]
+        return [
+            key
+            for key in self.meta.keys()
+            if key not in ['version', 'tarball', 'checksums']
+        ]
 
     def release(self, fmt):
         return str(self.meta[fmt]['release'])

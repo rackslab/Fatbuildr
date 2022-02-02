@@ -24,6 +24,7 @@ from .formats.rpm import ArtefactBuildRpm
 from .formats.osi import ArtefactBuildOsi
 from .form import BuildForm
 
+
 class BuildFactory(object):
 
     _formats = {
@@ -36,8 +37,12 @@ class BuildFactory(object):
     def generate(conf, submission):
         """Generate a BuildArtefact from a new submission."""
         if not submission.format in BuildFactory._formats:
-            raise RuntimeError("format %s unsupported by builders" % (submission.format))
-        return BuildFactory._formats[submission.format].load_from_submission(conf, submission)
+            raise RuntimeError(
+                "format %s unsupported by builders" % (submission.format)
+            )
+        return BuildFactory._formats[submission.format].load_from_submission(
+            conf, submission
+        )
 
     @staticmethod
     def load(conf, place, build_id):
@@ -45,5 +50,7 @@ class BuildFactory(object):
         # Load the form to get the format
         form = BuildForm.load(place)
         if not form.format in BuildFactory._formats:
-            raise RuntimeError("format %s unsupported by builders" % (form.format))
+            raise RuntimeError(
+                "format %s unsupported by builders" % (form.format)
+            )
         return BuildFactory._formats[form.format](conf, build_id, form)

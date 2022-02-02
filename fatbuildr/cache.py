@@ -25,7 +25,6 @@ logger = logr(__name__)
 
 
 class CacheArtefact(object):
-
     def __init__(self, conf, instance, artefact):
         self.instance_dir = os.path.join(conf.dirs.cache, instance)
         self.dir = os.path.join(self.instance_dir, artefact.name)
@@ -41,7 +40,9 @@ class CacheArtefact(object):
 
     def ensure(self):
         if not os.path.exists(self.instance_dir):
-            logger.info("Creating instance cache directory %s" % (self.instance_dir))
+            logger.info(
+                "Creating instance cache directory %s" % (self.instance_dir)
+            )
             os.mkdir(self.instance_dir)
             os.chmod(self.instance_dir, 0o755)  # be umask agnostic
 

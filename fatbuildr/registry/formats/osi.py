@@ -30,7 +30,7 @@ logger = logr(__name__)
 class RegistryOsi(Registry):
     """Registry for Osi format (aka. OS images)."""
 
-    CHECKSUMS_FILES =  ['SHA256SUMS', 'SHA256SUMS.gpg']
+    CHECKSUMS_FILES = ['SHA256SUMS', 'SHA256SUMS.gpg']
 
     def __init__(self, conf, instance):
         super().__init__(conf, instance)
@@ -64,8 +64,9 @@ class RegistryOsi(Registry):
 
         built_files = RegistryOsi.CHECKSUMS_FILES
         images_files_path = os.path.join(build.place, '*.tar.*')
-        built_files.extend([os.path.basename(_path)
-                            for _path in glob.glob(images_files_path)])
+        built_files.extend(
+            [os.path.basename(_path) for _path in glob.glob(images_files_path)]
+        )
         logger.debug("Found files: %s" % (' '.join(built_files)))
 
         for fpath in built_files:
@@ -81,35 +82,41 @@ class RegistryOsi(Registry):
                 continue
             if _path.endswith('.manifest'):
                 continue
-            f_re = re.match(r'(?P<name>.+)_(?P<version>\d+)\.(?P<arch>.+)',
-                            _path)
+            f_re = re.match(
+                r'(?P<name>.+)_(?P<version>\d+)\.(?P<arch>.+)', _path
+            )
             if not f_re:
-                logger.warning("File %s does not match OSI artefact regular "
-                               "expression" % (_path))
+                logger.warning(
+                    "File %s does not match OSI artefact regular "
+                    "expression" % (_path)
+                )
                 continue
             # skip if it does not match the filter
             if name_filter and f_re.group('name') != name_filter:
                 continue
-            artefacts.append(RegistryArtefact(f_re.group('name'),
-                                              f_re.group('arch'),
-                                              f_re.group('version')))
+            artefacts.append(
+                RegistryArtefact(
+                    f_re.group('name'),
+                    f_re.group('arch'),
+                    f_re.group('version'),
+                )
+            )
 
         return artefacts
 
-    def artefacts(self,  distribution):
+    def artefacts(self, distribution):
         """Returns the list of artefacts in OSI registry."""
         return self._artefacts_filter(distribution)
 
     def artefact_bins(self, distribution, src_artefact):
         """There is no notion of source/binary artefact with OSI format. This
-           return the artefact whose name is the given source artefact."""
+        return the artefact whose name is the given source artefact."""
         return self._artefacts_filter(distribution, name_filter=src_artefact)
 
     def artefact_src(self, distribution, bin_artefact):
         """There is no notion of source/binary artefact with OSI format. This
-           return the artefact whose name is the given binary artefact."""
-        return self._artefacts_filter(distribution,
-                                      name_filter=bin_artefact)[0]
+        return the artefact whose name is the given binary artefact."""
+        return self._artefacts_filter(distribution, name_filter=bin_artefact)[0]
 
     def changelog(self, distribution, architecture, artefact):
         """Return empty array as there is notion of changelog with OSI."""

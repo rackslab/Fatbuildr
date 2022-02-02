@@ -20,7 +20,13 @@
 import os
 import tempfile
 
-from flask import request, jsonify, render_template, current_app, send_from_directory
+from flask import (
+    request,
+    jsonify,
+    render_template,
+    current_app,
+    send_from_directory,
+)
 from werkzeug.utils import secure_filename
 
 from ..version import __version__
@@ -31,6 +37,7 @@ from ..builds import BuildRequest
 def version():
     return f"Fatbuildr v{__version__}"
 
+
 def index():
     connection = ClientFactory.get('local')
     instances = connection.instances()
@@ -40,67 +47,82 @@ def index():
         else:
             return jsonify(instances)
 
+
 def instance(instance):
     connection = ClientFactory.get('local')
     formats = connection.formats(instance)
     for mimetype in request.accept_mimetypes:
         if mimetype[0] == 'text/html':
-            return render_template('instance.html.j2',
-                                   instance=instance,
-                                   formats=formats)
+            return render_template(
+                'instance.html.j2', instance=instance, formats=formats
+            )
         else:
             return jsonify(formats)
+
 
 def distributions(instance, fmt):
     connection = ClientFactory.get('local')
     distributions = connection.distributions(instance, fmt)
     for mimetype in request.accept_mimetypes:
         if mimetype[0] == 'text/html':
-            return render_template('format.html.j2',
-                                   instance=instance,
-                                   format=fmt,
-                                   distributions=distributions)
+            return render_template(
+                'format.html.j2',
+                instance=instance,
+                format=fmt,
+                distributions=distributions,
+            )
         else:
             return jsonify(distributions)
+
 
 def registry(instance, fmt, distribution):
     connection = ClientFactory.get('local')
     artefacts = connection.artefacts(instance, fmt, distribution)
     for mimetype in request.accept_mimetypes:
         if mimetype[0] == 'text/html':
-            return render_template('distribution.html.j2',
-                                   instance=instance,
-                                   format=fmt,
-                                   distribution=distribution,
-                                   artefacts=artefacts)
+            return render_template(
+                'distribution.html.j2',
+                instance=instance,
+                format=fmt,
+                distribution=distribution,
+                artefacts=artefacts,
+            )
         else:
             return jsonify([vars(artefact) for artefact in artefacts])
+
 
 def artefact(instance, fmt, distribution, architecture, artefact):
     connection = ClientFactory.get('local')
     if architecture == 'src':
         source = None
-        binaries = connection.artefact_bins(instance, fmt, distribution, artefact)
+        binaries = connection.artefact_bins(
+            instance, fmt, distribution, artefact
+        )
         template = 'src.html.j2'
     else:
         source = connection.artefact_src(instance, fmt, distribution, artefact)
         binaries = []
         template = 'bin.html.j2'
-    changelog = connection.changelog(instance, fmt, distribution, architecture, artefact)
+    changelog = connection.changelog(
+        instance, fmt, distribution, architecture, artefact
+    )
 
     for mimetype in request.accept_mimetypes:
         if mimetype[0] == 'text/html':
-            return render_template(template,
-                                   instance=instance,
-                                   format=fmt,
-                                   distribution=distribution,
-                                   architecture=architecture,
-                                   artefact=artefact,
-                                   source=source,
-                                   binaries=binaries,
-                                   changelog=changelog)
+            return render_template(
+                template,
+                instance=instance,
+                format=fmt,
+                distribution=distribution,
+                architecture=architecture,
+                artefact=artefact,
+                source=source,
+                binaries=binaries,
+                changelog=changelog,
+            )
         else:
             return jsonify(artefact)
+
 
 def artefacts(instance, artefact):
     connection = ClientFactory.get('local')
@@ -121,12 +143,15 @@ def artefacts(instance, artefact):
 
     for mimetype in request.accept_mimetypes:
         if mimetype[0] == 'text/html':
-            return render_template('artefacts.html.j2',
-                                   instance=instance,
-                                   artefact=artefact,
-                                   results=results)
+            return render_template(
+                'artefacts.html.j2',
+                instance=instance,
+                artefact=artefact,
+                results=results,
+            )
         else:
             return jsonify(results)
+
 
 def submit():
     tarball = request.files['tarball']
@@ -135,8 +160,9 @@ def submit():
     secured_form = secure_filename(form.filename)
 
     # Create tmp directory to save the build request files
-    tmpdir = tempfile.mkdtemp(prefix='fatbuildr',
-                              dir=current_app.config['UPLOAD_FOLDER'])
+    tmpdir = tempfile.mkdtemp(
+        prefix='fatbuildr', dir=current_app.config['UPLOAD_FOLDER']
+    )
     tarball.save(os.path.join(tmpdir, secured_tarball))
     form.save(os.path.join(tmpdir, secured_form))
 
@@ -146,6 +172,7 @@ def submit():
     build_id = connection.submit(build_request)
     return jsonify({'build': build_id})
 
+
 def running():
     connection = ClientFactory.get('local')
     running = connection.running()
@@ -153,22 +180,27 @@ def running():
         return jsonify(running.to_dict())
     return jsonify(None)
 
+
 def queue():
     connection = ClientFactory.get('local')
-    builds= connection.queue()
+    builds = connection.queue()
     return jsonify([build.to_dict() for build in builds])
+
 
 def build(build_id):
     connection = ClientFactory.get('local')
     build = connection.get(build_id)
     return jsonify(build.to_dict())
 
+
 def watch(build_id):
     """Stream lines obtained by DbusClient.watch() generator."""
     connection = ClientFactory.get('local')
     build = connection.get(build_id)
-    return current_app.response_class(connection.watch(build),
-                                      mimetype='text/plain')
+    return current_app.response_class(
+        connection.watch(build), mimetype='text/plain'
+    )
+
 
 def content(instance, filename):
     return send_from_directory(

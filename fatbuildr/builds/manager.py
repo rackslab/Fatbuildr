@@ -34,7 +34,6 @@ logger = logr(__name__)
 
 
 class QueueManager:
-
     def __init__(self):
         self._queue = deque()
         self._count = threading.Semaphore(0)
@@ -75,15 +74,21 @@ class ServerBuildsManager:
 
     def clear_orphaned(self):
         """Remove all submissions in queue directory not actually in queue, and
-           archive all builds in build directory not actually running."""
+        archive all builds in build directory not actually running."""
         for build_id in os.listdir(self.conf.dirs.queue):
-            if build_id not in [build.id for build in self.queue.dump()] :
-                logger.warning("Removing orphaned build submission %s" % (build_id))
+            if build_id not in [build.id for build in self.queue.dump()]:
+                logger.warning(
+                    "Removing orphaned build submission %s" % (build_id)
+                )
                 shutil.rmtree(os.path.join(self.conf.dirs.queue, build_id))
         for build_id in os.listdir(self.conf.dirs.build):
-            if not self.running or build_id != self.running.id :
+            if not self.running or build_id != self.running.id:
                 logger.warning("Archiving orphaned build %s" % (build_id))
-                build = BuildFactory.load(self.conf, os.path.join(self.conf.dirs.build, build_id), build_id)
+                build = BuildFactory.load(
+                    self.conf,
+                    os.path.join(self.conf.dirs.build, build_id),
+                    build_id,
+                )
                 self.archive(build)
 
     def submit(self, input):
@@ -99,22 +104,31 @@ class ServerBuildsManager:
 
     def pick(self, timeout):
 
-        logger.debug("Trying to get build submission for %f seconds" % (timeout))
+        logger.debug(
+            "Trying to get build submission for %f seconds" % (timeout)
+        )
         submission = self.queue.get(timeout)
         if not submission:
             return None
 
-        logger.info("Picking up build submission %s from queue" % (submission.id))
+        logger.info(
+            "Picking up build submission %s from queue" % (submission.id)
+        )
         # transition the request to an artefact build
         build = None
         try:
             build = BuildFactory.generate(self.conf, submission)
             self.running = build
         except RuntimeError as err:
-            logger.error("unable to generate build from submission %s: %s" % (submission.id, err))
+            logger.error(
+                "unable to generate build from submission %s: %s"
+                % (submission.id, err)
+            )
         finally:
             self.queue.release()
-            logger.info("Build submission %s removed from queue" % (submission.id))
+            logger.info(
+                "Build submission %s removed from queue" % (submission.id)
+            )
             # cleanup submission directory
             self._cleanup(submission)
         return build
@@ -123,7 +137,10 @@ class ServerBuildsManager:
 
         self.running = None
         dest = os.path.join(self.conf.dirs.archives, build.id)
-        logger.info("Moving build directory %s to archives directory %s" % (build.place, dest))
+        logger.info(
+            "Moving build directory %s to archives directory %s"
+            % (build.place, dest)
+        )
         shutil.move(build.place, dest)
 
     def _cleanup(self, submission):
@@ -136,14 +153,21 @@ class ServerBuildsManager:
         _archives = []
         for build_id in os.listdir(self.conf.dirs.archives):
             try:
-                _archives.append(BuildArchive(os.path.join(self.conf.dirs.archives, build_id), build_id))
+                _archives.append(
+                    BuildArchive(
+                        os.path.join(self.conf.dirs.archives, build_id),
+                        build_id,
+                    )
+                )
             except FileNotFoundError as err:
-                logger.error("Unable to load malformed build archive %s: %s" % (build_id, err))
+                logger.error(
+                    "Unable to load malformed build archive %s: %s"
+                    % (build_id, err)
+                )
         return _archives
 
 
 class ClientBuildsManager:
-
     def __init__(self, conf):
         self.conf = conf
 
@@ -153,21 +177,25 @@ class ClientBuildsManager:
         logger.debug("Created request temporary directory %s" % (tmpdir))
 
         # create build request
-        request = BuildRequest(tmpdir,
-                               reponame,
-                               self.conf.run.user_name,
-                               self.conf.run.user_email,
-                               instance,
-                               distribution,
-                               env,
-                               fmt,
-                               self.conf.run.artefact,
-                               datetime.now(),
-                               msg)
+        request = BuildRequest(
+            tmpdir,
+            reponame,
+            self.conf.run.user_name,
+            self.conf.run.user_email,
+            instance,
+            distribution,
+            env,
+            fmt,
+            self.conf.run.artefact,
+            datetime.now(),
+            msg,
+        )
 
         # save the request form in tmpdir
         request.form.save(tmpdir)
 
         # prepare artefact tarball
-        request.prepare_tarball(self.conf.run.basedir, self.conf.run.subdir, tmpdir)
+        request.prepare_tarball(
+            self.conf.run.basedir, self.conf.run.subdir, tmpdir
+        )
         return request

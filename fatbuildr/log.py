@@ -20,8 +20,7 @@
 import logging
 
 
-class ANSIStyle():
-
+class ANSIStyle:
     def __init__(self, fg, bg=None):
         self.fg = fg
         self.bg = bg
@@ -41,12 +40,12 @@ class ANSIStyle():
 class TTYFormatter(logging.Formatter):
 
     LEVEL_STYLES = {
-        logging.CRITICAL: ANSIStyle(fg=15, bg=160), # white on red
-        logging.ERROR: ANSIStyle(fg=160), # red
-        logging.WARNING: ANSIStyle(fg=208), # orange
-        logging.INFO: ANSIStyle(fg=28), # dark green
-        logging.DEBUG: ANSIStyle(fg=62), # light mauve
-        logging.NOTSET: ANSIStyle(fg=8), # grey
+        logging.CRITICAL: ANSIStyle(fg=15, bg=160),  # white on red
+        logging.ERROR: ANSIStyle(fg=160),  # red
+        logging.WARNING: ANSIStyle(fg=208),  # orange
+        logging.INFO: ANSIStyle(fg=28),  # dark green
+        logging.DEBUG: ANSIStyle(fg=62),  # light mauve
+        logging.NOTSET: ANSIStyle(fg=8),  # grey
     }
 
     def __init__(self, debug=False):
@@ -61,7 +60,7 @@ class TTYFormatter(logging.Formatter):
         if self.debug:
             prefix = "{level:8s}⸬{where:30s} ↦ ".format(
                 level='[' + record.levelname + ']',
-                where=record.name + ':' + str(record.lineno)
+                where=record.name + ':' + str(record.lineno),
             )
         elif record.levelno > logging.INFO:
             # prefix with level if over info
@@ -71,7 +70,6 @@ class TTYFormatter(logging.Formatter):
 
 
 class DaemonFormatter(logging.Formatter):
-
     def __init__(self, debug=True):
         if debug:
             _fmt = '%(threadName)s: [%(levelname)s] %(name)s %(message)s'
@@ -81,7 +79,6 @@ class DaemonFormatter(logging.Formatter):
 
 
 class BuildlogFilter(logging.Filter):
-
     def filter(self, record):
         if record.threadName == 'builder':
             return 1
@@ -89,7 +86,6 @@ class BuildlogFilter(logging.Filter):
 
 
 class Log(logging.Logger):
-
     def __init__(self, name):
         super().__init__(name)
         self._file_handler = None  # used for file duplication
@@ -105,8 +101,9 @@ class Log(logging.Logger):
         elif self.name == 'fatbuildr.cli.fatbuildrctl':
             return TTYFormatter(debug)
         else:
-            raise RuntimeError("Unable to define log formatter for module %s"
-                               % (self.name))
+            raise RuntimeError(
+                "Unable to define log formatter for module %s" % (self.name)
+            )
 
     def setup(self, debug: bool):
         if debug:
@@ -150,7 +147,7 @@ class Log(logging.Logger):
 
 def logr(name):
     """Instanciate Log by setting logging.setLoggerClass using
-       logging.getLogger() so Python logging module can do all its Loggers
-       registration. """
+    logging.getLogger() so Python logging module can do all its Loggers
+    registration."""
     logging.setLoggerClass(Log)
     return logging.getLogger(name)

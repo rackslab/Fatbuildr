@@ -44,13 +44,23 @@ class ArtefactBuildOsi(ArtefactBuild):
 
         def_path = os.path.join(self.place, self.format, self.name + '.mkosi')
         if not os.path.exists(def_path):
-            raise RuntimeError("Unable to find OS image definition file at %s"
-                               % (def_path))
+            raise RuntimeError(
+                "Unable to find OS image definition file at %s" % (def_path)
+            )
         output = os.path.join(self.place, self.name + '.mkosi')
 
-        cmd = ['mkosi', '--default', def_path, '--output-dir', self.place,
-               '--image-id', self.name, '--image-version', self.version,
-               '--checksum']
+        cmd = [
+            'mkosi',
+            '--default',
+            def_path,
+            '--output-dir',
+            self.place,
+            '--image-id',
+            self.name,
+            '--image-version',
+            self.version,
+            '--checksum',
+        ]
         self.contruncmd(cmd)
 
         # Load keyring in agent
@@ -63,7 +73,13 @@ class ArtefactBuildOsi(ArtefactBuild):
         checksum_path = os.path.join(self.place, 'SHA256SUMS')
         sig_path = checksum_path + '.gpg'
         logger.info("Signing checksum file %s with GPG" % (checksum_path))
-        cmd = ['gpg', '--detach-sign', '--output', sig_path,
-               '--default-key', self.keyring.masterkey.userid,
-               checksum_path]
+        cmd = [
+            'gpg',
+            '--detach-sign',
+            '--output',
+            sig_path,
+            '--default-key',
+            self.keyring.masterkey.userid,
+            checksum_path,
+        ]
         self.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})

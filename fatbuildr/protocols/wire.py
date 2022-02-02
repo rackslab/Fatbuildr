@@ -25,7 +25,6 @@ logger = logr(__name__)
 
 
 class WireBuild:
-
     def report(self):
         print("- id: %s" % (self.id))
         print("  state: %s" % (self.state))
@@ -42,7 +41,14 @@ class WireBuild:
         print("  environment: %s" % (self.environment))
         print("  format: %s" % (self.format))
         print("  artefact: %s" % (self.artefact))
-        print("  submission: %s" % (datetime.fromtimestamp(self.submission).isoformat(sep=' ',timespec='seconds')))
+        print(
+            "  submission: %s"
+            % (
+                datetime.fromtimestamp(self.submission).isoformat(
+                    sep=' ', timespec='seconds'
+                )
+            )
+        )
         print("  message: %s" % (self.message))
 
     def to_dict(self):
@@ -82,11 +88,11 @@ class WireBuild:
         _obj.email = build.email
         _obj.instance = build.instance
         if build.distribution is None:
-           _obj.distribution = 'none'
+            _obj.distribution = 'none'
         else:
             _obj.distribution = build.distribution
         if build.environment is None:
-           _obj.environment = 'none'
+            _obj.environment = 'none'
         else:
             _obj.environment = build.environment
         _obj.format = build.format
@@ -111,11 +117,11 @@ class WireBuild:
         _obj.email = json['email']
         _obj.instance = json['instance']
         if json['distribution'] is None:
-           _obj.distribution = 'none'
+            _obj.distribution = 'none'
         else:
             _obj.distribution = json['distribution']
         if json['environment'] is None:
-           _obj.environment = 'none'
+            _obj.environment = 'none'
         else:
             _obj.environment = json['environment']
         _obj.format = json['format']

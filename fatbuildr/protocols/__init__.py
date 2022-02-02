@@ -24,7 +24,6 @@ from .dbus.server import DbusServer
 
 
 class ClientFactory(object):
-
     @staticmethod
     def get(host):
         if host == 'local':
@@ -32,8 +31,8 @@ class ClientFactory(object):
         else:
             return HttpClient(host)
 
-class ServerFactory(object):
 
+class ServerFactory(object):
     @staticmethod
     def get():
         return DbusServer()
