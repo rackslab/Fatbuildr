@@ -142,4 +142,10 @@ class ArtefactBuildDeb(ArtefactBuild):
             self.place,
             dsc_path,
         ]
-        self.contruncmd(cmd)
+        self.contruncmd(
+            cmd,
+            envs=[
+                f"FATBUILDR_REPO={self.registry.path}",
+                f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
+            ],
+        )

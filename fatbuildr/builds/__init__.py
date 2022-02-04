@@ -327,7 +327,7 @@ class ArtefactBuild(AbstractBuild):
 
     def contruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
-        _binds = [self.place, self.cache.dir]
+        _binds = [self.place, self.cache.dir, self.registry.path]
         self.container.run(
             self.image, cmd, **kwargs, binds=_binds, logfile=self.logfile
         )
