@@ -254,6 +254,8 @@ class ArtefactBuild(AbstractBuild):
         """Return the hashlib object corresponding to the hash_format."""
         if hash_format == 'sha1':
             return hashlib.sha1()
+        elif hash_format == 'sha256':
+            return hashlib.sha256()
         else:
             raise RuntimeError("Unsupported hash format %s" % (hash_format))
 
