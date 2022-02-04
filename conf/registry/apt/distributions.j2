@@ -4,7 +4,7 @@ Origin: {{ instance }}
 Label: {{ instance }}
 Codename: {{ distribution }}
 Architectures: amd64 source
-Components: main
+Components: {{ components|join(' ') }}
 Description: {{ instance }} Deb {{ distribution }} packages
 SignWith: {{ key }}
 {% endfor %}

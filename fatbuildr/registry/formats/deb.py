@@ -49,6 +49,10 @@ class RegistryDeb(Registry):
     def distributions(self):
         return os.listdir(os.path.join(self.path, 'dists'))
 
+    @property
+    def components(self):
+        return os.listdir(os.path.join(self.path, 'pool'))
+
     def publish(self, build):
         """Publish both source and binary package in APT repository."""
 
@@ -72,11 +76,13 @@ class RegistryDeb(Registry):
         # Combine existing distributions in repository with build distribution
         # to define resulting list of distributions.
         distributions = list(set(self.distributions + [build.distribution]))
+        components = list(set(self.components + build.derivatives))
         with open(dists_path, 'w+') as fh:
             fh.write(
                 Templeter.frender(
                     dists_tpl_path,
                     distributions=distributions,
+                    components=components,
                     key=self.keyring.masterkey.subkey.fingerprint,
                     instance=build.source,
                 )
@@ -124,6 +130,8 @@ class RegistryDeb(Registry):
                 '--verbose',
                 '--basedir',
                 self.path,
+                '--component',
+                build.derivatives[0],
                 'include',
                 build.distribution,
                 changes_path,
