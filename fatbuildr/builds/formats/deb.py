@@ -102,12 +102,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         #  add symlink to tarball
         orig_tarball_path = os.path.join(
             self.place,
-            self.name
-            + '_'
-            + self.version
-            + '.orig'
-            + '.tar.'
-            + self.tarball_ext,
+            f"{self.name}_{self.version}.orig.tar.{self.tarball_ext}",
         )
         logger.debug(
             "Creating symlink %s → %s"
