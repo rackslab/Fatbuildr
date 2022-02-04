@@ -39,6 +39,7 @@ class BuildForm(object):
         email,
         instance,
         distribution,
+        derivatives,
         environment,
         fmt,
         artefact,
@@ -50,6 +51,7 @@ class BuildForm(object):
         self.email = email
         self.instance = instance
         self.distribution = distribution
+        self.derivatives = derivatives
         self.environment = environment
         self.format = fmt
         self.artefact = artefact
@@ -67,6 +69,7 @@ class BuildForm(object):
             'email': self.email,
             'instance': self.instance,
             'distribution': self.distribution,
+            'derivatives': self.derivatives,
             'environment': self.environment,
             'format': self.format,
             'artefact': self.artefact,
@@ -98,6 +101,7 @@ class BuildForm(object):
             description['email'],
             description['instance'],
             description['distribution'],
+            description['derivatives'],
             description['environment'],
             description['format'],
             description['artefact'],

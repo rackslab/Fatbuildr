@@ -202,6 +202,10 @@ class ArtefactBuild(AbstractBuild):
                 )
 
     @property
+    def version(self):
+        return self.defs.version(self.derivatives[0])
+
+    @property
     def release(self):
         return self.defs.release(self.format)
 
@@ -215,7 +219,19 @@ class ArtefactBuild(AbstractBuild):
 
     @property
     def fullversion(self):
-        return self.defs.fullversion(self.format)
+        return self.defs.fullversion(self.format, self.derivatives[0])
+
+    @property
+    def tarball(self):
+        return self.defs.tarball(self)
+
+    @property
+    def checksum_format(self):
+        return self.defs.checksum_format(self.derivatives[0])
+
+    @property
+    def checksum_value(self):
+        return self.defs.checksum_value(self.derivatives[0])
 
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""

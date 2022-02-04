@@ -137,6 +137,11 @@ class Fatbuildrctl(FatbuildrCliRun):
             '-f', '--format', help='Format of the artefact'
         )
         parser_build.add_argument(
+            '--derivative',
+            help='Distribution derivative',
+            default='main',
+        )
+        parser_build.add_argument(
             '-b',
             '--basedir',
             help='Artefacts definitions directory',
@@ -269,6 +274,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 self.conf.run.distribution = args.distribution
             if args.format:
                 self.conf.run.format = args.format
+            self.conf.run.derivative = args.derivative
             self.conf.run.basedir = args.basedir
             if args.subdir:
                 self.conf.run.subdir = args.subdir
@@ -321,6 +327,8 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         # load pipelines defs to get dist→format/env mapping
         pipelines = PipelinesDefs(self.conf.run.basedir)
+        path = os.path.join(self.conf.run.basedir, self.conf.run.subdir)
+        defs = ArtefactDefs(path)
 
         # If the user did not provide a build message, load the default
         # message from the pipelines definition.
@@ -342,8 +350,6 @@ class Fatbuildrctl(FatbuildrCliRun):
         elif not self.conf.run.format:
             # distribution and format have not been specified, check format
             # supported by the artefact.
-            path = os.path.join(self.conf.run.basedir, self.conf.run.subdir)
-            defs = ArtefactDefs(path)
             fmts = defs.supported_formats
             # check if there is not more than one supported format for this
             # artefact
@@ -386,6 +392,31 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         env = pipelines.dist_env(self.conf.run.distribution)
 
+        # check artefact accepts this derivative
+        if self.conf.run.derivative not in defs.derivatives:
+            logger.error(
+                "Derivative %s is not accepted by artefact %s",
+                self.conf.run.derivative,
+                self.conf.run.artefact,
+            )
+            sys.exit(1)
+
+        # check format is accepted for this derivative
+        if self.conf.run.format not in pipelines.derivative_formats(
+            self.conf.run.derivative
+        ):
+            logger.error(
+                "Derivative %s does not accept format %s",
+                self.conf.run.derivative,
+                self.conf.run.format,
+            )
+            sys.exit(1)
+
+        # Get the recursive list of derivatives extended by the given
+        # derivative.
+        derivatives = pipelines.recursive_derivatives(self.conf.run.derivative)
+        logger.debug("List of recursive derivatives: %s", derivatives)
+
         mgr = ClientBuildsManager(self.conf)
         connection = ClientFactory.get(self.conf.run.host)
 
@@ -394,6 +425,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 self.instance,
                 pipelines.name,
                 self.conf.run.distribution,
+                derivatives,
                 env,
                 self.conf.run.format,
                 msg,

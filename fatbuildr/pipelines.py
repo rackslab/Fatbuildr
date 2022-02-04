@@ -81,6 +81,44 @@ class PipelinesDefs(object):
         """Return the list of distributions for the given format."""
         return list(self.defs['formats'][format].keys())
 
+    def derivative_formats(self, derivative):
+        """Returns a set of formats supported by the derivative, proceeding
+        recursively with derivatives extensions."""
+        if derivative == 'main':
+            _formats = set(self.defs['formats'].keys())
+        else:
+            _formats = set()
+            if 'formats' in self.defs['derivatives'][derivative]:
+                _formats = set(self.defs['derivatives'][derivative]['formats'])
+            if 'extends' in self.defs['derivatives'][derivative]:
+                _formats = _formats.intersection(
+                    self.derivative_formats(
+                        self.defs['derivatives'][derivative]['extends']
+                    )
+                )
+            else:
+                _formats = _formats.intersection(
+                    self.derivative_formats('main')
+                )
+        logger.debug(
+            "List of formats supported by derivative %s: %s",
+            derivative,
+            _formats,
+        )
+        return _formats
+
+    def recursive_derivatives(self, derivative):
+        """Returns the list of derivatives recursively extended by the given
+        derivative."""
+        if derivative == 'main':
+            return ['main']
+        if 'extends' in self.defs['derivatives'][derivative]:
+            return [derivative] + self.recursive_derivatives(
+                self.defs['derivatives'][derivative]['extends']
+            )
+        else:
+            return [derivative] + self.recursive_derivatives('main')
+
 
 class ArtefactDefs(object):
     """Class to manipulate an artefact metadata definitions."""
@@ -92,40 +130,51 @@ class ArtefactDefs(object):
             self.meta = yaml.safe_load(fh)
 
     @property
-    def version(self):
-        return str(self.meta['version'])
-
-    @property
-    def checksum_format(self):
-        return self.meta['checksums'][
-            self.version
-        ].keys()  # pickup the first format
-
-    @property
-    def checksum_value(self):
-        return self.meta['checksums'][self.version][self.checksum_format]
-
-    @property
     def has_tarball(self):
         return 'tarball' in self.meta
-
-    @property
-    def tarball(self):
-        return Templeter.srender(self.meta['tarball'], pkg=self)
 
     @property
     def supported_formats(self):
         return [
             key
             for key in self.meta.keys()
-            if key not in ['version', 'tarball', 'checksums']
+            if key not in ['version', 'versions', 'tarball', 'checksums']
+        ]
+
+    @property
+    def derivatives(self):
+        results = []
+        if 'version' in self.meta:
+            results.append('main')
+        if 'versions' in self.meta:
+            results.extend(self.meta['versions'].keys())
+        logger.debug("Supported derivatives: %s", results)
+        return results
+
+    def version(self, derivative):
+        if derivative == 'main' and 'version' in self.meta:
+            return str(self.meta['version'])
+        else:
+            return str(self.meta['versions'][derivative])
+
+    def checksum_format(self, derivative):
+        return list(self.meta['checksums'][self.version(derivative)].keys())[
+            0
+        ]  # pickup the first format
+
+    def checksum_value(self, derivative):
+        return self.meta['checksums'][self.version(derivative)][
+            self.checksum_format(derivative)
         ]
 
     def release(self, fmt):
         return str(self.meta[fmt]['release'])
 
-    def fullversion(self, fmt):
-        return self.version + '-' + self.release(fmt)
+    def fullversion(self, fmt, derivative):
+        return self.version(derivative) + '-' + self.release(fmt)
+
+    def tarball(self, obj):
+        return Templeter.srender(self.meta['tarball'], pkg=obj)
 
     def has_buildargs(self, fmt):
         return 'buildargs' in self.meta[fmt]

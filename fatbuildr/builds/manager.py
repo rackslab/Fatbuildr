@@ -171,7 +171,9 @@ class ClientBuildsManager:
     def __init__(self, conf):
         self.conf = conf
 
-    def request(self, instance, reponame, distribution, env, fmt, msg):
+    def request(
+        self, instance, reponame, distribution, derivatives, env, fmt, msg
+    ):
         # create tmp submission directory
         tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
         logger.debug("Created request temporary directory %s" % (tmpdir))
@@ -184,6 +186,7 @@ class ClientBuildsManager:
             self.conf.run.user_email,
             instance,
             distribution,
+            derivatives,
             env,
             fmt,
             self.conf.run.artefact,
