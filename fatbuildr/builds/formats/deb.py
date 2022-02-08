@@ -23,6 +23,7 @@ import tarfile
 import shutil
 
 from .. import ArtefactBuild
+from ...keyring import KeyringManager
 from ...log import logr
 
 logger = logr(__name__)
@@ -34,6 +35,8 @@ class ArtefactBuildDeb(ArtefactBuild):
     def __init__(self, conf, build_id, form):
         super().__init__(conf, build_id, form)
         self.format = 'deb'
+        self.keyring = KeyringManager(conf).keyring(self.instance)
+        self.keyring.load()
 
     @property
     def tarball_ext(self):
@@ -121,6 +124,13 @@ class ArtefactBuildDeb(ArtefactBuild):
             "Building binary Deb packages for %s in %s"
             % (self.name, self.env.name)
         )
+
+        # Save keyring in build place to cowbuilder can check signatures of
+        # fatbuildr repositories.
+        keyring_path = os.path.join(self.place, 'keyring.asc')
+        with open(keyring_path, 'w+') as fh:
+            fh.write(self.keyring.export())
+
         dsc_path = os.path.join(
             self.place, self.name + '_' + self.fullversion + '.dsc'
         )
@@ -131,6 +141,8 @@ class ArtefactBuildDeb(ArtefactBuild):
             '/etc/fatbuildr/formats/deb/pbuilderrc',
             '--distribution',
             self.distribution,
+            '--bindmounts',
+            self.place,  # for apt in cowbuilder to access the keyring
             '--basepath',
             '/var/cache/pbuilder/' + self.distribution,
             '--buildresult',
@@ -141,6 +153,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             cmd,
             envs=[
                 f"FATBUILDR_REPO={self.registry.path}",
+                f"FATBUILDR_KEYRING={keyring_path}",
                 f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
             ],
         )

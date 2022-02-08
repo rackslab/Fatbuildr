@@ -5,6 +5,6 @@ if [ ! -d "${FATBUILDR_REPO}" ] ; then
     echo "Unable to find repository directory ${FATBUILDR_REPO}, exiting."
     exit 0
 else
-    echo "deb [trusted=yes] file://${FATBUILDR_REPO} ${DISTRIBUTION} ${FATBUILDR_DERIVATIVES}" >> /etc/apt/sources.list
+    echo "deb [signed-by=${FATBUILDR_KEYRING}] file://${FATBUILDR_REPO} ${DISTRIBUTION} ${FATBUILDR_DERIVATIVES}" >> /etc/apt/sources.list
     apt-get update
 fi
