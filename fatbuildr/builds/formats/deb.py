@@ -137,12 +137,14 @@ class ArtefactBuildDeb(ArtefactBuild):
         cmd = [
             'cowbuilder',
             '--build',
-            '--configfile',
-            '/etc/fatbuildr/formats/deb/pbuilderrc',
+            '--hookdir',
+            '/usr/lib/fatbuildr/images/deb/hooks',
             '--distribution',
             self.distribution,
             '--bindmounts',
-            self.place,  # for apt in cowbuilder to access the keyring
+            self.registry.path,  # for local repos
+            '--bindmounts',
+            self.place,  # for local repos keyring
             '--basepath',
             '/var/cache/pbuilder/' + self.distribution,
             '--buildresult',
