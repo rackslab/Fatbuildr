@@ -36,19 +36,23 @@ class RegistryRpm(Registry):
         super().__init__(conf, instance)
 
     @property
+    def path(self):
+        return os.path.join(self.instance_dir, 'rpm')
+
+    @property
     def distributions(self):
-        return os.listdir(os.path.join(self.instance_dir, 'rpm'))
+        return os.listdir(self.path)
 
-    def distribution_path(self, distribution):
-        return os.path.join(self.instance_dir, 'rpm', distribution)
+    def repo_path(self, distribution, derivative):
+        return os.path.join(self.path, distribution, derivative)
 
-    def pkg_dir(self, distribution):
-        return os.path.join(self.distribution_path(distribution), 'Packages')
+    def pkg_dir(self, distribution, derivative):
+        return os.path.join(self.repo_path(distribution, derivative), 'Packages')
 
-    def _mk_missing_repo_dirs(self, distribution):
+    def _mk_missing_repo_dirs(self, distribution, derivative):
         """Create pkg_dir if it does not exists, considering pkg_dir is a
         subdirectory of repo_dir."""
-        pkg_dir = self.pkg_dir(distribution)
+        pkg_dir = self.pkg_dir(distribution, derivative)
         if not os.path.exists(pkg_dir):
             logger.info("Creating missing package directory %s" % (pkg_dir))
             os.makedirs(pkg_dir)
@@ -61,10 +65,10 @@ class RegistryRpm(Registry):
             % (build.name, build.distribution)
         )
 
-        dist_path = self.distribution_path(distribution)
-        pkg_dir = self.pkg_dir(distribution)
+        dist_path = self.repo_path(build.distribution, build.derivatives[0])
+        pkg_dir = self.pkg_dir(build.distribution, build.derivatives[0])
 
-        self._mk_missing_repo_dirs(build.distribution)
+        self._mk_missing_repo_dirs(build.distribution, build.derivatives[0])
 
         rpm_glob = os.path.join(build.place, '*.rpm')
         for rpm_path in glob.glob(rpm_glob):
