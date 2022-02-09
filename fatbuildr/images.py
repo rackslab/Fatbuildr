@@ -22,7 +22,6 @@ import sys
 import subprocess
 
 from .containers import ContainerRunner
-from .pipelines import PipelinesDefs
 from .templates import Templeter
 from .log import logr
 
@@ -132,7 +131,8 @@ class ImagesManager(object):
             return self.conf.images.formats
         return [self.conf.run.format]
 
-    def create(self):
+    def create(self, format):
+        """Creates image for the given format."""
         if not os.path.exists(self.conf.images.storage):
             logger.debug(
                 "Creating missing images directory %s"
@@ -140,77 +140,60 @@ class ImagesManager(object):
             )
             os.mkdir(self.conf.images.storage)
 
-        for _format in self.selected_formats:
+        img = Image(self.conf, self.instance, format)
 
-            img = Image(self.conf, self.instance, _format)
-
-            if img.exists and not self.conf.run.force:
-                logger.error(
-                    "Image %s already exists, use --force to ignore"
-                    % (img.def_path)
-                )
-                continue
-
-            if not img.def_exists:
-                logger.error(
-                    "Unable to find image definition file %s" % (img.def_path)
-                )
-                continue
-
-            try:
-                img.create()
-            except RuntimeError as err:
-                logger.error(
-                    "Error while creating the image %s: %s" % (img.path, err)
-                )
-        logger.info("All images have been created")
-
-    def update(self):
-
-        for _format in self.selected_formats:
-            img = Image(self.conf, self.instance, _format)
-            if not img.exists:
-                logger.warning(
-                    "Image %s does not exist, create it first" % (img.path)
-                )
-                continue
-            img.update()
-
-        logger.info("All images have been updated")
-
-    def create_envs(self):
-
-        if not os.path.exists(self.conf.run.basedir):
+        if img.exists and not self.conf.run.force:
             logger.error(
-                "Unable to find base directory %s" % (self.conf.run.basedir)
+                "Image %s already exists, use --force to ignore"
+                % (img.def_path)
             )
-            sys.exit(1)
+            return
 
-        logger.info("Creating build environments")
-        # Load build environments declared in the basedir
-        pipelines = PipelinesDefs(self.conf.run.basedir)
+        if not img.def_exists:
+            logger.error(
+                "Unable to find image definition file %s" % (img.def_path)
+            )
+            return
 
-        for _format in self.selected_formats:
-            img = Image(self.conf, self.instance, _format)
-            distributions = pipelines.format_dists(_format)
-            if not distributions:
-                logger.info("No distribution defined for %s image" % (_format))
-            for _dist in distributions:
-                env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
-                env.create()
+        try:
+            img.create()
+        except RuntimeError as err:
+            logger.error(
+                "Error while creating the image %s: %s" % (img.path, err)
+            )
 
-        logger.info("All build environments have been created")
+    def update(self, format):
+        """Updates image for the given format."""
+        img = Image(self.conf, self.instance, format)
+        if not img.exists:
+            logger.warning(
+                "Image %s does not exist, create it first" % (img.path)
+            )
+            return
+        img.update()
 
-    def update_envs(self):
+    def create_envs(self, format, environments):
+        """Creates all given build environment in image for the given format."""
+        logger.info("Creating build environments for format %s", format)
+        img = Image(self.conf, self.instance, format)
 
-        logger.info("Updating build environments")
-        # Load build environments declared in the basedir
-        pipelines = PipelinesDefs(self.conf.run.basedir)
+        for environment in environments:
+            build_env = BuildEnv(self.conf, img, environment)
+            build_env.create()
 
-        for _format in self.selected_formats:
-            img = Image(self.conf, self.instance, _format)
-            for _dist in pipelines.format_dists(_format):
-                env = BuildEnv(self.conf, img, pipelines.dist_env(_dist))
-                env.update()
+        logger.info(
+            "All build environments have been created for format %s", format
+        )
 
-        logger.info("All build environment have been updated")
+    def update_envs(self, format, environments):
+        """Updates all given build environment in image for the given format."""
+        logger.info("Updating build environments for format %s", format)
+        img = Image(self.conf, self.instance, format)
+
+        for environment in environments:
+            build_env = BuildEnv(self.conf, img, environment)
+            build_env.update()
+
+        logger.info(
+            "All build environment have been updated for format %s", format
+        )

@@ -295,16 +295,51 @@ class Fatbuildrctl(FatbuildrCliRun):
         self.conf.dump()
 
     def _run_images(self):
-        logger.debug("running images operation: %s" % (self.conf.run.operation))
+        logger.debug("running images operation: %s", self.conf.run.operation)
+
         mgr = ImagesManager(self.conf, self.instance)
+
+        # check if operation is on images and run it
         if self.conf.run.operation == 'create':
-            mgr.create()
+            for format in mgr.selected_formats:
+                mgr.create(format)
+            logger.info("All images have been created")
+            return
         elif self.conf.run.operation == 'update':
-            mgr.update()
-        elif self.conf.run.operation == 'create_envs':
-            mgr.create_envs()
-        elif self.conf.run.operation == 'update_envs':
-            mgr.update_envs()
+            for format in mgr.selected_formats:
+                mgr.update(format)
+            logger.info("All images have been updated")
+            return
+
+        # At this stage, the operation is on build environments
+
+        # First check the basedir exists
+        if not os.path.exists(self.conf.run.basedir):
+            logger.error(
+                "Unable to find base directory %s", self.conf.run.basedir
+            )
+            sys.exit(1)
+
+        # Load build environments declared in the basedir
+        pipelines = PipelinesDefs(self.conf.run.basedir)
+        for format in mgr.selected_formats:
+
+            distributions = pipelines.format_dists(format)
+            if not distributions:
+                logger.info("No distribution defined for %s image", format)
+            envs = []
+            for distribution in distributions:
+                env = pipelines.dist_env(distribution)
+                if env is not None:
+                    envs.append(env)
+            logger.debug(
+                "Build environments found for format %s: %s", format, envs
+            )
+
+            if self.conf.run.operation == 'create_envs':
+                mgr.create_envs(format, envs)
+            elif self.conf.run.operation == 'update_envs':
+                mgr.update_envs(format, envs)
 
     def _run_keyring(self):
         logger.debug(
