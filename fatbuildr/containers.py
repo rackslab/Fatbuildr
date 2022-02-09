@@ -48,8 +48,6 @@ class ContainerRunner(object):
             '--directory',
             image.path,
             '--bind',
-            f"/etc/fatbuildr/formats/{image.format}",
-            '--bind',
             f"/usr/lib/fatbuildr/images/{image.format}",
         ]
         # add opts in args
