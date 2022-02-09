@@ -5,6 +5,21 @@ if [ ! -d "${FATBUILDR_REPO}" ] ; then
     echo "Unable to find repository directory ${FATBUILDR_REPO}, exiting."
     exit 0
 else
+    # add entry in sources list
     echo "deb [signed-by=${FATBUILDR_KEYRING}] file://${FATBUILDR_REPO} ${DISTRIBUTION} ${FATBUILDR_DERIVATIVES}" >> /etc/apt/sources.list
+
+    # setup ascending priority to derivatives
+    PRIORITY=1000
+    for DERIVATIVE in ${FATBUILDR_DERIVATIVES}; do
+        cat <<EOF >>/etc/apt/preferences.d/90fatbuildr
+Package: *
+Pin: release o=${FATBUILDR_SOURCE},c=${DERIVATIVE}
+Pin-Priority: ${PRIORITY}
+
+EOF
+        PRIORITY=$(($PRIORITY+1000))
+    done
+
+    # update package cache
     apt-get update
 fi
