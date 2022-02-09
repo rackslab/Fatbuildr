@@ -71,7 +71,7 @@ class ContainerRunner(object):
             cmd.extend(runcmd.split(' '))
         else:
             cmd.extend(runcmd)
-        logger.debug("Running command: %s" % ' '.join(cmd))
+        logger.debug("Running command: %s", ' '.join(cmd))
         fh = None
         if logfile is not None:
             fh = open(logfile, 'a')
@@ -80,6 +80,6 @@ class ContainerRunner(object):
             fh.close()
         if proc.returncode:
             raise RuntimeError(
-                "Command failed with exit code %d: %s"
-                % (proc.returncode, ' '.join(cmd))
+                f"Command failed with exit code {proc.returncode}: "
+                f"{' '.join(cmd)}"
             )
