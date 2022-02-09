@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
 import subprocess
 
 from .log import logr
@@ -47,9 +48,13 @@ class ContainerRunner(object):
             'systemd-nspawn',
             '--directory',
             image.path,
-            '--bind',
-            f"/usr/lib/fatbuildr/images/{image.format}",
         ]
+
+        # Bind-mount image format subdir if it exists
+        img_dir_path = f"/usr/lib/fatbuildr/images/{image.format}"
+        if os.path.exists(img_dir_path):
+            cmd.extend(['--bind', img_dir_path])
+
         # add opts in args
         if opts is not None:
             cmd.extend(opts)
