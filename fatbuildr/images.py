@@ -95,9 +95,19 @@ class BuildEnv(object):
 
     def create(self):
         logger.info(
-            "Create build environment %s in %s image"
-            % (self.name, self.image.format)
+            "Creating build environment %s in %s image",
+            self.name,
+            self.image.format,
         )
+
+        # check init_cmd is defined for this format
+        if getattr(self.conf, self.image.format).init_cmd is None:
+            raise RuntimeError(
+                f"Unable to create build environment {self.name} in "
+                f"{self.image.format} image because init_cmd is not defined "
+                "for this format"
+            )
+
         cmd = Templeter.srender(
             getattr(self.conf, self.image.format).init_cmd,
             environment=self.name,
