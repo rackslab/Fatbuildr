@@ -37,31 +37,29 @@ class RegistryOsi(Registry):
         super().__init__(conf, instance)
 
     @property
-    def distributions(self):
-        return os.listdir(os.path.join(self.instance_dir, 'osi'))
+    def path(self):
+        return os.path.join(self.instance_dir, 'osi')
 
-    def distribution_path(self, distribution):
-        return os.path.join(self.instance_dir, 'osi', distribution)
+    @property
+    def distributions(self):
+        return os.listdir(self.path)
+
+    def derivative_path(self, distribution, derivative):
+        return os.path.join(self.path, distribution, derivative)
 
     def publish(self, build):
         """Publish OSI images."""
 
         logger.info("Publishing OSI images for %s" % (build.name))
 
-        dist_path = self.distribution_path(build.distribution)
+        derivative_path = self.derivative_path(build.distribution, build.derivatives[0])
+        dist_path = os.path.dirname(derivative_path)
+        registry_path = os.path.dirname(dist_path)
 
-        # ensure osi directory exists
-        parent = os.path.dirname(dist_path)
-        if not os.path.exists(parent):
-            logger.debug("Creating directory %s" % (parent))
-            os.mkdir(parent)
-            os.chmod(parent, 0o755)
-
-        # ensure distribution directory exists
-        if not os.path.exists(dist_path):
-            logger.debug("Creating directory %s" % (dist_path))
-            os.mkdir(dist_path)
-            os.chmod(dist_path, 0o755)
+        # ensure registry (ie. osi) directory exists
+        RegistryOsi.ensure_directory(registry_path)
+        RegistryOsi.ensure_directory(dist_path)
+        RegistryOsi.ensure_directory(derivative_path)
 
         built_files = RegistryOsi.CHECKSUMS_FILES
         images_files_path = os.path.join(build.place, '*.tar.*')
@@ -72,7 +70,7 @@ class RegistryOsi(Registry):
 
         for fpath in built_files:
             src = os.path.join(build.place, fpath)
-            dst = os.path.join(dist_path, fpath)
+            dst = os.path.join(derivative_path, fpath)
             logger.debug("Copying file %s to %s" % (src, dst))
             shutil.copyfile(src, dst)
 
@@ -122,3 +120,11 @@ class RegistryOsi(Registry):
     def changelog(self, distribution, architecture, artefact):
         """Return empty array as there is notion of changelog with OSI."""
         return []
+
+    @staticmethod
+    def ensure_directory(path):
+        """Create a directory with 0755 mode if it does not exist."""
+        if not os.path.exists(path):
+            logger.info("Creating directory %s" % (path))
+            os.mkdir(path)
+            os.chmod(path, 0o755)
