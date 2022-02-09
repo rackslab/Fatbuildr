@@ -18,6 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import shutil
 import glob
 
 import createrepo_c as cr
