@@ -12,3 +12,4 @@ Packages=mock,man-db
 # Work-around for bug https://github.com/systemd/mkosi/issues/644
 WithNetwork=true
 PostInstallationScript=/usr/lib/fatbuildr/images/scripts/rpmdb-release.sh
+FinalizeScript=/usr/lib/fatbuildr/images/scripts/install-mock-plugin.sh

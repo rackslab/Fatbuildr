@@ -98,10 +98,26 @@ class ArtefactBuildRpm(ArtefactBuild):
             % (self.srpm_path, self.env.name)
         )
 
+        # Save keyring in build place so dnf can check signatures of
+        # fatbuildr packages in mock environment.
+        keyring_path = os.path.join(self.place, 'keyring.asc')
+        with open(keyring_path, 'w+') as fh:
+            fh.write(self.keyring.export())
+
         cmd = [
             'mock',
             '--root',
             self.env.name,
+            '--enable-plugin',
+            'fatbuildr_derivatives',
+            '--plugin-option',
+            f"fatbuildr_derivatives:repo={self.registry.path}",
+            '--plugin-option',
+            f"fatbuildr_derivatives:distribution={self.distribution}",
+            '--plugin-option',
+            f"fatbuildr_derivatives:derivatives={','.join(self.derivatives)}",
+            '--plugin-option',
+            f"fatbuildr_derivatives:keyring={keyring_path}",
             '--resultdir',
             self.place,
             '--rebuild',
