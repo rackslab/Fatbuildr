@@ -32,6 +32,7 @@ from ..registry.manager import RegistryManager
 from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
+from ..keyring import KeyringManager
 from ..log import logr
 from .form import BuildForm
 
@@ -186,6 +187,8 @@ class ArtefactBuild(AbstractBuild):
         self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, self.instance, self.format)
         self.env = BuildEnv(conf, self.image, self.environment)
+        self.keyring = KeyringManager(conf).keyring(self.instance)
+        self.keyring.load()
         self.defs = None  # loaded in prepare()
 
     def __getattr__(self, name):

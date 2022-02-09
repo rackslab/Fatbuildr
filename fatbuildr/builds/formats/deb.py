@@ -23,7 +23,6 @@ import tarfile
 import shutil
 
 from .. import ArtefactBuild
-from ...keyring import KeyringManager
 from ...log import logr
 
 logger = logr(__name__)
@@ -35,8 +34,6 @@ class ArtefactBuildDeb(ArtefactBuild):
     def __init__(self, conf, build_id, form):
         super().__init__(conf, build_id, form)
         self.format = 'deb'
-        self.keyring = KeyringManager(conf).keyring(self.instance)
-        self.keyring.load()
 
     @property
     def tarball_ext(self):

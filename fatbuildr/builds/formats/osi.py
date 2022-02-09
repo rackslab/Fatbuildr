@@ -21,7 +21,6 @@ import os
 import glob
 
 from .. import ArtefactBuild
-from ...keyring import KeyringManager
 from ...templates import Templeter
 from ...log import logr
 
@@ -34,8 +33,6 @@ class ArtefactBuildOsi(ArtefactBuild):
     def __init__(self, conf, build_id, form):
         super().__init__(conf, build_id, form)
         self.format = 'osi'
-        self.keyring = KeyringManager(conf).keyring(self.instance)
-        self.keyring.load()
 
     def build(self):
         """Build the OS image using mkosi"""
