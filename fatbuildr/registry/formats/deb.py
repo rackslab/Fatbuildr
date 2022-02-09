@@ -26,7 +26,6 @@ import email
 from debian import deb822, changelog, debfile
 
 from . import Registry, RegistryArtefact, ChangelogEntry
-from ...keyring import KeyringManager
 from ...templates import Templeter
 from ...log import logr
 
@@ -38,8 +37,6 @@ class RegistryDeb(Registry):
 
     def __init__(self, conf, instance):
         super().__init__(conf, instance)
-        self.keyring = KeyringManager(conf).keyring(instance)
-        self.keyring.load()
 
     @property
     def path(self):
@@ -83,13 +80,13 @@ class RegistryDeb(Registry):
                     dists_tpl_path,
                     distributions=distributions,
                     components=components,
-                    key=self.keyring.masterkey.subkey.fingerprint,
+                    key=build.keyring.masterkey.subkey.fingerprint,
                     instance=build.source,
                 )
             )
 
         # Load keyring in agent so repos are signed with new packages
-        self.keyring.load_agent()
+        build.keyring.load_agent()
 
         # Check packages are not already present in this distribution of the
         # repository with this version before trying to publish them, or fail
@@ -136,7 +133,7 @@ class RegistryDeb(Registry):
                 build.distribution,
                 changes_path,
             ]
-            build.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})
+            build.runcmd(cmd, env={'GNUPGHOME': build.keyring.homedir})
 
     def artefacts(self, distribution):
         """Returns the list of artefacts in deb repository."""
