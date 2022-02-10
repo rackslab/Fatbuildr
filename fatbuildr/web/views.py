@@ -74,37 +74,62 @@ def distributions(instance, fmt, output='html'):
         )
 
 
-def registry(instance, fmt, distribution, output='html'):
+def derivatives(instance, fmt, distribution, output='html'):
     connection = ClientFactory.get('local')
-    artefacts = connection.artefacts(instance, fmt, distribution)
+    derivatives = connection.derivatives(instance, fmt, distribution)
     if output == 'json':
-        return jsonify([vars(artefact) for artefact in artefacts])
+        return jsonify(derivatives)
     else:
         return render_template(
             'distribution.html.j2',
             instance=instance,
             format=fmt,
             distribution=distribution,
+            derivatives=derivatives,
+            artefacts=artefacts,
+        )
+
+
+def registry(instance, fmt, distribution, derivative, output='html'):
+    connection = ClientFactory.get('local')
+    artefacts = connection.artefacts(instance, fmt, distribution, derivative)
+    if output == 'json':
+        return jsonify([vars(artefact) for artefact in artefacts])
+    else:
+        return render_template(
+            'derivative.html.j2',
+            instance=instance,
+            format=fmt,
+            distribution=distribution,
+            derivative=derivative,
             artefacts=artefacts,
         )
 
 
 def artefact(
-    instance, fmt, distribution, architecture, artefact, output='html'
+    instance,
+    fmt,
+    distribution,
+    derivative,
+    architecture,
+    artefact,
+    output='html',
 ):
     connection = ClientFactory.get('local')
     if architecture == 'src':
         source = None
         binaries = connection.artefact_bins(
-            instance, fmt, distribution, artefact
+            instance, fmt, distribution, derivative, artefact
         )
         template = 'src.html.j2'
     else:
-        source = connection.artefact_src(instance, fmt, distribution, artefact)
+        source = connection.artefact_src(
+            instance, fmt, distribution, derivative, artefact
+        )
         binaries = []
         template = 'bin.html.j2'
     changelog = connection.changelog(
-        instance, fmt, distribution, architecture, artefact
+        instance, fmt, distribution, derivative, architecture, artefact
     )
 
     if output == 'json':
@@ -130,6 +155,7 @@ def artefact(
             instance=instance,
             format=fmt,
             distribution=distribution,
+            derivative=derivative,
             architecture=architecture,
             artefact=artefact,
             source=source,
@@ -146,23 +172,30 @@ def artefacts(instance, artefact, output='html'):
     for fmt in formats:
         distributions = connection.distributions(instance, fmt)
         for distribution in distributions:
-            artefacts = connection.artefacts(instance, fmt, distribution)
-            for _artefact in artefacts:
-                if artefact == _artefact.name:
-                    if fmt not in results:
-                        results[fmt] = {}
-                    if distribution not in results[fmt]:
-                        results[fmt][distribution] = []
-                    results[fmt][distribution].append(_artefact)
+            derivatives = connection.derivatives(instance, fmt, distribution)
+            for derivative in derivatives:
+                artefacts = connection.artefacts(
+                    instance, fmt, distribution, derivative
+                )
+                for _artefact in artefacts:
+                    if artefact == _artefact.name:
+                        if fmt not in results:
+                            results[fmt] = {}
+                        if distribution not in results[fmt]:
+                            results[fmt][distribution] = {}
+                        if derivative not in results[fmt][distribution]:
+                            results[fmt][distribution][derivative] = []
+                        results[fmt][distribution][derivative].append(_artefact)
 
     if output == 'json':
         # Convert lists of WireArtefact into lists of dicts for JSON
         # serialization
         for fmt, distributions in results.items():
-            for distribution, artefacts in distributions.items():
-                results[fmt][distribution] = [
-                    _artefact.to_dict() for artefact in artefacts
-                ]
+            for distribution, derivatives in distributions.items():
+                for derivative, artefacts in derivatives.items():
+                    results[fmt][distribution][derivative] = [
+                        _artefact.to_dict() for artefact in artefacts
+                    ]
         return jsonify(results)
     else:
         return render_template(

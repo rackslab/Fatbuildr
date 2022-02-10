@@ -1,14 +1,10 @@
 {% extends "layout/base.html.j2" %}
-{% block title %}{{ instance }} > {{ format }} > {{ distribution }}{% endblock %}
+{% block title %}{{ instance }} > {{ format }}{% endblock %}
 {% block content %}
-<h1>{{ instance }} > {{ format }} > {{ distribution }} > artefacts </h1>
+<h1>{{ instance }} > {{ format }} > {{ distribution }} > derivatives</h1>
 <ul>
-{% for artefact in artefacts %}
-  <li>
-    <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ artefact.architecture }}/{{ artefact.name }}">
-      {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
-    </a>
-  </li>
+{% for derivative in derivatives %}
+  <li><a href="{{ derivative }}/">{{ derivative }}<a></li>
 {% endfor %}
 </ul>
 <a href="../{{ distribution }}.json">JSON</a>

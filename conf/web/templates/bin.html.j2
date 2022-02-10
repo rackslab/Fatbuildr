@@ -1,9 +1,9 @@
 {% extends "layout/base.html.j2" %}
-{% block title %}{{ instance }} > {{ format }} > {{ distribution }} > {{ artefact }} binary artefact{% endblock %}
+{% block title %}{{ instance }} > {{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} binary artefact{% endblock %}
 {% block content %}
-<h1>{{ instance }} > {{ format }} > {{ distribution }} > {{ artefact }} binary artefact</h1>
+<h1>{{ instance }} > {{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} binary artefact</h1>
 Source artefact:
-<a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ source.architecture }}/{{ source.name }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }}
+<a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ derivative }}/{{ source.architecture }}/{{ source.name }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }}
 {% include 'partials/changelog.html.j2' %}
 <a href="../{{ artefact }}.json">JSON</a>
 {% endblock %}

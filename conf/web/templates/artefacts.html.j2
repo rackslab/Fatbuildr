@@ -4,17 +4,20 @@
 <h1>{{ instance }} > {{ artefact }} artefact</h1>
 {% for format, distributions in results.items() %}
   <h2><a href="/{{ instance }}/registry/{{ format }}">{{ format }}</a></h2>
-  {% for distribution, artefacts in distributions.items() %}
+  {% for distribution, derivatives in distributions.items() %}
     <h3><a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}">{{ distribution }}</a></h3>
-    <ul>
-    {% for artefact in artefacts %}
-      <li>
-        <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ artefact.architecture }}/{{ artefact.name }}">
-        {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
-        </a>
-      </li>
+    {% for derivative, artefacts in derivatives.items() %}
+      <h4><a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ derivative }}">{{ derivative }}</a></h4>
+      <ul>
+      {% for artefact in artefacts %}
+        <li>
+          <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ derivative }}/{{ artefact.architecture }}/{{ artefact.name }}">
+          {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
+          </a>
+        </li>
+      {% endfor %}
+      </ul>
     {% endfor %}
-    </ul>
   {% endfor %}
 {% endfor %}
 <a href="{{ artefact }}.json">JSON</a>
