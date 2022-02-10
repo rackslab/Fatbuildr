@@ -67,15 +67,12 @@ class ArtefactBuildRpm(ArtefactBuild):
         spec_tpl_path = os.path.join(self.place, 'rpm', self.spec_basename)
         spec_path = os.path.join(self.place, self.spec_basename)
         logger.debug(
-            "Generate RPM spec file %s base on %s" % (spec_path, spec_tpl_path)
+            "Generate RPM spec file %s based on %s" % (spec_path, spec_tpl_path)
         )
         with open(spec_path, 'w+') as fh:
             fh.write(Templeter.frender(spec_tpl_path, pkg=self))
 
         # run SRPM build
-        logger.debug(
-            "Generate RPM spec file %s base on %s" % (spec_path, spec_tpl_path)
-        )
         cmd = [
             'mock',
             '--root',
