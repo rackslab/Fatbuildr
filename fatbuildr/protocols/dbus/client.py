@@ -43,25 +43,34 @@ class DbusClient(object):
     def distributions(self, instance, fmt):
         return self.proxy.Distributions(instance, fmt)
 
-    def artefacts(self, instance, fmt, distribution):
+    def derivatives(self, instance, fmt, distribution):
+        return self.proxy.Derivatives(instance, fmt, distribution)
+
+    def artefacts(self, instance, fmt, distribution, derivative):
         return DbusArtefact.from_structure_list(
-            self.proxy.Artefacts(instance, fmt, distribution)
+            self.proxy.Artefacts(instance, fmt, distribution, derivative)
         )
 
-    def artefact_bins(self, instance, fmt, distribution, artefact):
+    def artefact_bins(self, instance, fmt, distribution, derivative, artefact):
         return DbusArtefact.from_structure_list(
-            self.proxy.ArtefactBinaries(instance, fmt, distribution, artefact)
+            self.proxy.ArtefactBinaries(
+                instance, fmt, distribution, derivative, artefact
+            )
         )
 
-    def artefact_src(self, instance, fmt, distribution, artefact):
+    def artefact_src(self, instance, fmt, distribution, derivative, artefact):
         return DbusArtefact.from_structure(
-            self.proxy.ArtefactSource(instance, fmt, distribution, artefact)
+            self.proxy.ArtefactSource(
+                instance, fmt, distribution, derivative, artefact
+            )
         )
 
-    def changelog(self, instance, fmt, distribution, architecture, artefact):
+    def changelog(
+        self, instance, fmt, distribution, derivative, architecture, artefact
+    ):
         return DbusChangelogEntry.from_structure_list(
             self.proxy.Changelog(
-                instance, fmt, distribution, architecture, artefact
+                instance, fmt, distribution, derivative, architecture, artefact
             )
         )
 

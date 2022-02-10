@@ -44,6 +44,9 @@ class RegistryOsi(Registry):
     def distributions(self):
         return os.listdir(self.path)
 
+    def derivatives(self, distribution):
+        return os.listdir(os.path.join(self.path, distribution))
+
     def derivative_path(self, distribution, derivative):
         return os.path.join(self.path, distribution, derivative)
 
@@ -52,7 +55,9 @@ class RegistryOsi(Registry):
 
         logger.info("Publishing OSI images for %s" % (build.name))
 
-        derivative_path = self.derivative_path(build.distribution, build.derivatives[0])
+        derivative_path = self.derivative_path(
+            build.distribution, build.derivatives[0]
+        )
         dist_path = os.path.dirname(derivative_path)
         registry_path = os.path.dirname(dist_path)
 
@@ -74,9 +79,9 @@ class RegistryOsi(Registry):
             logger.debug("Copying file %s to %s" % (src, dst))
             shutil.copyfile(src, dst)
 
-    def _artefacts_filter(self, distribution, name_filter=None):
+    def _artefacts_filter(self, distribution, derivative, name_filter=None):
         artefacts = []
-        for _path in os.listdir(self.distribution_path(distribution)):
+        for _path in os.listdir(self.derivative_path(distribution, derivative)):
             if _path in RegistryOsi.CHECKSUMS_FILES:
                 continue
             if _path.endswith('.manifest'):
@@ -103,21 +108,25 @@ class RegistryOsi(Registry):
 
         return artefacts
 
-    def artefacts(self, distribution):
+    def artefacts(self, distribution, derivative):
         """Returns the list of artefacts in OSI registry."""
-        return self._artefacts_filter(distribution)
+        return self._artefacts_filter(distribution, derivative)
 
-    def artefact_bins(self, distribution, src_artefact):
+    def artefact_bins(self, distribution, derivative, src_artefact):
         """There is no notion of source/binary artefact with OSI format. This
         return the artefact whose name is the given source artefact."""
-        return self._artefacts_filter(distribution, name_filter=src_artefact)
+        return self._artefacts_filter(
+            distribution, derivative, name_filter=src_artefact
+        )
 
-    def artefact_src(self, distribution, bin_artefact):
+    def artefact_src(self, distribution, derivative, bin_artefact):
         """There is no notion of source/binary artefact with OSI format. This
         return the artefact whose name is the given binary artefact."""
-        return self._artefacts_filter(distribution, name_filter=bin_artefact)[0]
+        return self._artefacts_filter(
+            distribution, derivative, name_filter=bin_artefact
+        )[0]
 
-    def changelog(self, distribution, architecture, artefact):
+    def changelog(self, distribution, derivative, architecture, artefact):
         """Return empty array as there is notion of changelog with OSI."""
         return []
 

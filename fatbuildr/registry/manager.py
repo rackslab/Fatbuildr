@@ -46,21 +46,33 @@ class RegistryManager:
         registry = RegistryManager.factory(fmt, self.conf, instance)
         return registry.distributions
 
-    def artefacts(self, instance, fmt, distribution):
+    def derivatives(self, instance, fmt, distribution):
         registry = RegistryManager.factory(fmt, self.conf, instance)
-        return registry.artefacts(distribution)
+        return registry.derivatives(distribution)
 
-    def artefact_bins(self, instance, fmt, distribution, src_artefact):
+    def artefacts(self, instance, fmt, distribution, derivative):
         registry = RegistryManager.factory(fmt, self.conf, instance)
-        return registry.artefact_bins(distribution, src_artefact)
+        return registry.artefacts(distribution, derivative)
 
-    def artefact_src(self, instance, fmt, distribution, bin_artefact):
+    def artefact_bins(
+        self, instance, fmt, distribution, derivative, src_artefact
+    ):
         registry = RegistryManager.factory(fmt, self.conf, instance)
-        return registry.artefact_src(distribution, bin_artefact)
+        return registry.artefact_bins(distribution, derivative, src_artefact)
 
-    def changelog(self, instance, fmt, distribution, architecture, artefact):
+    def artefact_src(
+        self, instance, fmt, distribution, derivative, bin_artefact
+    ):
         registry = RegistryManager.factory(fmt, self.conf, instance)
-        return registry.changelog(distribution, architecture, artefact)
+        return registry.artefact_src(distribution, derivative, bin_artefact)
+
+    def changelog(
+        self, instance, fmt, distribution, derivative, architecture, artefact
+    ):
+        registry = RegistryManager.factory(fmt, self.conf, instance)
+        return registry.changelog(
+            distribution, derivative, architecture, artefact
+        )
 
     @staticmethod
     def factory(fmt, conf, instance):
