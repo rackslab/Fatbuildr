@@ -44,11 +44,17 @@ class RegistryDeb(Registry):
 
     @property
     def distributions(self):
-        return os.listdir(os.path.join(self.path, 'dists'))
+        dists_path = os.path.join(self.path, 'dists')
+        if not os.path.exists(dists_path):
+            return []
+        return os.listdir(dists_path)
 
     @property
     def components(self):
-        return os.listdir(os.path.join(self.path, 'pool'))
+        pool_path = os.path.join(self.path, 'pool')
+        if not os.path.exists(pool_path):
+            return []
+        return os.listdir(pool_path)
 
     def publish(self, build):
         """Publish both source and binary package in APT repository."""

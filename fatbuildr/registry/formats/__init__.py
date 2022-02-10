@@ -31,6 +31,10 @@ class Registry:
     def distributions(self):
         raise NotImplementedError
 
+    @property
+    def exists(self):
+        return os.path.exists(self.path)
+
     def publish(self, build):
         raise NotImplementedError
 

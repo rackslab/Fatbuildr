@@ -51,12 +51,22 @@ class FatbuildrDerivatives:
 
         if self.buildroot.is_bootstrap:
             # During the boostrap phase, add bind-mount of the repo directory in
-            # the final chroot.
-            mountpoint = self.buildroot.make_chroot_path(self.opts['repo'])
-            self.buildroot.mounts.add(
-                BindMountPoint(srcpath=self.opts['repo'], bindpath=mountpoint)
-            )
-            getLog().info("Add bind-mount of %s in chroot", self.opts['repo'])
+            # the final chroot, if it exists.
+            if os.path.exists(self.opts['repo']):
+                mountpoint = self.buildroot.make_chroot_path(self.opts['repo'])
+                self.buildroot.mounts.add(
+                    BindMountPoint(
+                        srcpath=self.opts['repo'], bindpath=mountpoint
+                    )
+                )
+                getLog().info(
+                    "Add bind-mount of %s in chroot", self.opts['repo']
+                )
+            else:
+                getLog().info(
+                    "Skipping bind-mount of %s in chroot because unexisting",
+                    self.opts['repo'],
+                )
         else:
             # In the final chroot, add all the build derivatives repositories in
             # dnf configuration file content, with descending priorities.

@@ -4,6 +4,9 @@ echo "Derivatives: ${FATBUILDR_DERIVATIVES}"
 if [ ! -d "${FATBUILDR_REPO}" ] ; then
     echo "Unable to find repository directory ${FATBUILDR_REPO}, exiting."
     exit 0
+elif [ ! -f "${FATBUILDR_REPO}/dists/${DISTRIBUTION}/Release" ]; then
+    echo "Release file for distribution ${DISTRIBUTION} in directory ${FATBUILDR_REPO} not found, exiting."
+    exit 0
 else
     # add entry in sources list
     echo "deb [signed-by=${FATBUILDR_KEYRING}] file://${FATBUILDR_REPO} ${DISTRIBUTION} ${FATBUILDR_DERIVATIVES}" >> /etc/apt/sources.list

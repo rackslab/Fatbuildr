@@ -330,7 +330,11 @@ class ArtefactBuild(AbstractBuild):
 
     def contruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
-        _binds = [self.place, self.cache.dir, self.registry.path]
+        _binds = [self.place, self.cache.dir]
+        # Before the first artefact is actually published, the registry does
+        # not exist. Then check it really exists, then bind-mount it.
+        if self.registry.exists:
+            _binds.append(self.registry.path)
         self.container.run(
             self.image, cmd, **kwargs, binds=_binds, logfile=self.logfile
         )

@@ -139,8 +139,6 @@ class ArtefactBuildDeb(ArtefactBuild):
             '--distribution',
             self.distribution,
             '--bindmounts',
-            self.registry.path,  # for local repos
-            '--bindmounts',
             self.place,  # for local repos keyring
             '--basepath',
             '/var/cache/pbuilder/' + self.distribution,
@@ -148,6 +146,13 @@ class ArtefactBuildDeb(ArtefactBuild):
             self.place,
             dsc_path,
         ]
+
+        # The deb registry does not exist until the first artefact is actually
+        # published. If it exists, bind-mount so the local repos can be used
+        # in cowbuilder environments.
+        if self.registry.exists:
+            cmd[6:6] = ['--bindmounts', self.registry.path]
+
         self.contruncmd(
             cmd,
             envs=[
