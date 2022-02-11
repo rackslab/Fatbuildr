@@ -66,6 +66,12 @@ class ArtefactBuildRpm(ArtefactBuild):
         # Generate spec file base on template
         spec_tpl_path = os.path.join(self.place, 'rpm', self.spec_basename)
         spec_path = os.path.join(self.place, self.spec_basename)
+
+        if not os.path.exists(spec_tpl_path):
+            raise RuntimeError(
+                f"RPM spec template file {spec_tpl_path} does not exist"
+            )
+
         logger.debug(
             "Generate RPM spec file %s based on %s" % (spec_path, spec_tpl_path)
         )
