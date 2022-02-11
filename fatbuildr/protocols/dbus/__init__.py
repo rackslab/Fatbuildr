@@ -64,6 +64,7 @@ class DbusBuild(DBusData, WireBuild):
         self._email = None
         self._instance = None
         self._distribution = None
+        self._derivatives = None
         self._environment = None
         self._format = None
         self._artefact = None
@@ -141,6 +142,15 @@ class DbusBuild(DBusData, WireBuild):
     @distribution.setter
     def distribution(self, value: Str):
         self._distribution = value
+
+    # derivatives
+    @property
+    def derivatives(self) -> List[Str]:
+        return self._derivatives
+
+    @derivatives.setter
+    def derivatives(self, value: List[Str]):
+        self._derivatives = value
 
     # environment
     @property

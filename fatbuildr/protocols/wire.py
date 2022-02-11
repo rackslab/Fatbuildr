@@ -38,6 +38,7 @@ class WireBuild:
         print("  email: %s" % (self.email))
         print("  instance: %s" % (self.instance))
         print("  distribution: %s" % (self.distribution))
+        print("  derivatives: %s" % (self.derivatives))
         print("  environment: %s" % (self.environment))
         print("  format: %s" % (self.format))
         print("  artefact: %s" % (self.artefact))
@@ -61,6 +62,7 @@ class WireBuild:
             'email': self.email,
             'instance': self.instance,
             'distribution': self.distribution,
+            'derivatives': self.derivatives,
             'environment': self.environment,
             'format': self.format,
             'artefact': self.artefact,
@@ -91,6 +93,7 @@ class WireBuild:
             _obj.distribution = 'none'
         else:
             _obj.distribution = build.distribution
+        _obj.derivatives = build.derivatives
         if build.environment is None:
             _obj.environment = 'none'
         else:
@@ -120,6 +123,7 @@ class WireBuild:
             _obj.distribution = 'none'
         else:
             _obj.distribution = json['distribution']
+        _obj.derivatives = json['derivatives']
         if json['environment'] is None:
             _obj.environment = 'none'
         else:
