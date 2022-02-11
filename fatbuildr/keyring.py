@@ -27,7 +27,6 @@ import subprocess
 
 import gpg
 
-from .pipelines import PipelinesDefs
 from .log import logr
 
 logger = logr(__name__)
@@ -117,11 +116,10 @@ class KeyringMasterKey(KeyringKey):
             sep=' ', timespec='seconds'
         )
 
-    def create(self, ctx):
+    def create(self, ctx, userid):
         """Create masterkey in keyring context and load it."""
-        # load userid from pipelines definitions
         gen = ctx.create_key(
-            userid=self.keyring.pipelines_userid,
+            userid=userid,
             algorithm=self.keyring.algorithm,
             expires=self.keyring.expires,
             expires_in=self.keyring.expires_in,
@@ -188,16 +186,11 @@ class InstanceKeyring:
         self.masterkey = KeyringMasterKey(self)
 
     @property
-    def pipelines_userid(self):
-        pipelines = PipelinesDefs(self.conf.run.basedir)
-        return pipelines.gpg_name + ' <' + pipelines.gpg_email + '>'
-
-    @property
     def passphrase(self):
         with open(self.passphrase_path, 'r') as fh:
             return fh.read()
 
-    def create(self):
+    def create(self, userid):
 
         # create homedir is missing
         if not os.path.exists(self.homedir):
@@ -228,7 +221,7 @@ class InstanceKeyring:
         # generate GPG key with its subkey
         logger.info("Generating GPG key in %s" % (self.homedir))
         with gpg.Context(home_dir=self.homedir) as ctx:
-            self.masterkey.create(ctx)
+            self.masterkey.create(ctx, userid)
             logger.info(
                 "Key generated for user '{0}' with fingerprint {1}".format(
                     self.masterkey.userid, self.masterkey.fingerprint

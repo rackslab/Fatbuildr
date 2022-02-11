@@ -348,7 +348,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         mgr = KeyringManager(self.conf)
         keyring = mgr.keyring(self.instance)
         if self.conf.run.operation == 'create':
-            keyring.create()
+            pipelines = PipelinesDefs(self.conf.run.basedir)
+            userid = pipelines.gpg_name + ' <' + pipelines.gpg_email + '>'
+            keyring.create(userid)
         elif self.conf.run.operation == 'show':
             keyring.show()
         elif self.conf.run.operation == 'export':
