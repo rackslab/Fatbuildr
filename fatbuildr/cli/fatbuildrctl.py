@@ -425,7 +425,14 @@ class Fatbuildrctl(FatbuildrCliRun):
                 % (self.conf.run.distribution, self.conf.run.format)
             )
 
-        env = pipelines.dist_env(self.conf.run.distribution)
+        # check artefact accepts this format
+        if self.conf.run.format not in defs.supported_formats:
+            logger.error(
+                "Format %s is not accepted by artefact %s",
+                self.conf.run.format,
+                self.conf.run.artefact,
+            )
+            sys.exit(1)
 
         # check artefact accepts this derivative
         if self.conf.run.derivative not in defs.derivatives:
@@ -451,6 +458,14 @@ class Fatbuildrctl(FatbuildrCliRun):
         # derivative.
         derivatives = pipelines.recursive_derivatives(self.conf.run.derivative)
         logger.debug("List of recursive derivatives: %s", derivatives)
+
+        # Get the build environment corresponding to this distribution
+        env = pipelines.dist_env(self.conf.run.distribution)
+        logger.debug(
+            "Build environment selected for distribution %s: %s",
+            self.conf.run.distribution,
+            env,
+        )
 
         mgr = ClientBuildsManager(self.conf)
         connection = ClientFactory.get(self.conf.run.host)
