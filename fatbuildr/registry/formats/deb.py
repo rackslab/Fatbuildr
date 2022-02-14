@@ -90,7 +90,7 @@ class RegistryDeb(Registry):
                     distributions=distributions,
                     components=components,
                     key=build.keyring.masterkey.subkey.fingerprint,
-                    instance=build.source,
+                    instance=build._instance.name,
                 )
             )
 
@@ -137,7 +137,7 @@ class RegistryDeb(Registry):
                 '--basedir',
                 self.path,
                 '--component',
-                build.derivatives[0],
+                build.derivative,
                 'include',
                 build.distribution,
                 changes_path,

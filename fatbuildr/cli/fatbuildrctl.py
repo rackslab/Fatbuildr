@@ -30,7 +30,7 @@ from ..keyring import KeyringManager
 from ..builds.manager import ClientBuildsManager
 from ..log import logr
 from ..protocols import ClientFactory
-from ..pipelines import PipelinesDefs, ArtefactDefs
+from ..artefact import ArtefactDefs
 
 logger = logr(__name__)
 
@@ -100,9 +100,6 @@ class Fatbuildrctl(FatbuildrCliRun):
             action='store_true',
             help='Update the build environments in the images',
         )
-        parser_images.add_argument(
-            '-b', '--basedir', help='Artefacts definitions directory'
-        )
         parser_images.set_defaults(func=self._run_images)
 
         # Parser for the keyring command
@@ -117,10 +114,6 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_keyring.add_argument(
             '--export', action='store_true', help='Export keyring'
-        )
-
-        parser_keyring.add_argument(
-            '-b', '--basedir', help='Artefacts definitions directory'
         )
         parser_keyring.set_defaults(func=self._run_keyring)
 
@@ -155,7 +148,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_build.add_argument(
             '-e', '--email', help='Maintainer email', required=True
         )
-        parser_build.add_argument('-m', '--msg', help='Build log message')
+        parser_build.add_argument(
+            '-m', '--msg', help='Build log message', required=True
+        )
         parser_build.add_argument(
             '-w',
             '--watch',
@@ -183,12 +178,6 @@ class Fatbuildrctl(FatbuildrCliRun):
         # Parser for the registry command
         parser_registry = subparsers.add_parser(
             'registry', help='Manage artefact registries'
-        )
-        parser_registry.add_argument(
-            '-b',
-            '--basedir',
-            help='Artefacts definitions directory',
-            required=True,
         )
         parser_registry.add_argument(
             '-d', '--distribution', help='Distribution name', required=True
@@ -237,18 +226,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             else:
                 self.conf.run.format = 'all'
             self.conf.run.force = args.force
-            if (
-                self.conf.run.operation in ['create_envs', 'update_envs']
-                and args.basedir is None
-            ):
-                print(
-                    "The base directory must be specified to operate on build environments, type '%s images --help' for details"
-                    % (progname())
-                )
-                sys.exit(1)
-            self.conf.run.basedir = args.basedir
 
-        if args.action == 'keyring':
+        elif args.action == 'keyring':
             if args.create is True:
                 self.conf.run.operation = 'create'
             elif args.show is True:
@@ -261,13 +240,6 @@ class Fatbuildrctl(FatbuildrCliRun):
                     % (progname())
                 )
                 sys.exit(1)
-            if self.conf.run.operation == 'create' and args.basedir is None:
-                print(
-                    "The base directory must be specified to create keyring, type '%s keyring --help' for details"
-                    % (progname())
-                )
-                sys.exit(1)
-            self.conf.run.basedir = args.basedir
 
         elif args.action == 'build':
             self.conf.run.artefact = args.artefact
@@ -314,23 +286,20 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         # At this stage, the operation is on build environments
 
-        # First check the basedir exists
-        if not os.path.exists(self.conf.run.basedir):
-            logger.error(
-                "Unable to find base directory %s", self.conf.run.basedir
-            )
-            sys.exit(1)
+        connection = ClientFactory.get(self.conf.run.host)
 
-        # Load build environments declared in the basedir
-        pipelines = PipelinesDefs(self.conf.run.basedir)
         for format in mgr.selected_formats:
 
-            distributions = pipelines.format_dists(format)
+            distributions = connection.pipelines_format_distributions(
+                self.instance, format
+            )
             if not distributions:
                 logger.info("No distribution defined for %s image", format)
             envs = []
             for distribution in distributions:
-                env = pipelines.dist_env(distribution)
+                env = connection.pipelines_distribution_environment(
+                    self.instance, distribution
+                )
                 if env is not None:
                     envs.append(env)
             logger.debug(
@@ -349,9 +318,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         mgr = KeyringManager(self.conf)
         keyring = mgr.keyring(self.instance)
         if self.conf.run.operation == 'create':
-            pipelines = PipelinesDefs(self.conf.run.basedir)
-            userid = pipelines.gpg_name + ' <' + pipelines.gpg_email + '>'
-            keyring.create(userid)
+            connection = ClientFactory.get(self.conf.run.host)
+            instance = connection.instance(self.instance)
+            keyring.create(instance.userid)
         elif self.conf.run.operation == 'show':
             keyring.show()
         elif self.conf.run.operation == 'export':
@@ -363,19 +332,15 @@ class Fatbuildrctl(FatbuildrCliRun):
             % (self.conf.run.artefact, self.instance)
         )
 
-        # load pipelines defs to get dist→format/env mapping
-        pipelines = PipelinesDefs(self.conf.run.basedir)
+        connection = ClientFactory.get(self.conf.run.host)
+
         path = os.path.join(self.conf.run.basedir, self.conf.run.subdir)
         defs = ArtefactDefs(path)
 
-        # If the user did not provide a build message, load the default
-        # message from the pipelines definition.
-        msg = self.conf.run.build_msg
-        if msg is None:
-            msg = pipelines.msg
-
         if self.conf.run.distribution:
-            fmt = pipelines.dist_format(self.conf.run.distribution)
+            fmt = connection.pipelines_distribution_format(
+                self.instance, self.conf.run.distribution
+            )
             # if format is also given, check it matches
             if self.conf.run.format and self.conf.run.format != fmt:
                 logger.error(
@@ -413,7 +378,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
             sys.exit(1)
         elif not self.conf.run.distribution:
-            dists = pipelines.format_dists(self.conf.run.format)
+            dists = connection.pipelines_format_distributions(
+                self.instance, self.conf.run.format
+            )
             # check if there is not more than one distribution for this format
             if len(dists) > 1:
                 logger.error(
@@ -447,8 +414,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             sys.exit(1)
 
         # check format is accepted for this derivative
-        if self.conf.run.format not in pipelines.derivative_formats(
-            self.conf.run.derivative
+        if self.conf.run.format not in connection.pipelines_derivative_formats(
+            self.instance, self.conf.run.derivative
         ):
             logger.error(
                 "Derivative %s does not accept format %s",
@@ -457,13 +424,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
             sys.exit(1)
 
-        # Get the recursive list of derivatives extended by the given
-        # derivative.
-        derivatives = pipelines.recursive_derivatives(self.conf.run.derivative)
-        logger.debug("List of recursive derivatives: %s", derivatives)
-
         # Get the build environment corresponding to this distribution
-        env = pipelines.dist_env(self.conf.run.distribution)
+        env = connection.pipelines_distribution_environment(
+            self.instance, self.conf.run.distribution
+        )
         logger.debug(
             "Build environment selected for distribution %s: %s",
             self.conf.run.distribution,
@@ -471,17 +435,15 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
 
         mgr = ClientBuildsManager(self.conf)
-        connection = ClientFactory.get(self.conf.run.host)
 
         try:
             request = mgr.request(
                 self.instance,
-                pipelines.name,
                 self.conf.run.distribution,
-                derivatives,
+                self.conf.run.derivative,
                 env,
                 self.conf.run.format,
-                msg,
+                self.conf.run.build_msg,
             )
             build_id = connection.submit(request)
         except RuntimeError as err:
@@ -558,8 +520,9 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_registry(self):
         connection = ClientFactory.get(self.conf.run.host)
-        pipelines = PipelinesDefs(self.conf.run.basedir)
-        _fmt = pipelines.dist_format(self.conf.run.distribution)
+        _fmt = connection.pipelines_distribution_format(
+            self.instance, self.conf.run.distribution
+        )
         artefacts = connection.artefacts(
             self.instance, _fmt, self.conf.run.distribution
         )

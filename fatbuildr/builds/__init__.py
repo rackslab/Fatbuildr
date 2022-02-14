@@ -27,12 +27,13 @@ import tarfile
 import requests
 
 from ..cleanup import CleanupRegistry
-from ..pipelines import ArtefactDefs
+from ..artefact import ArtefactDefs
 from ..registry.manager import RegistryManager
 from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
 from ..keyring import KeyringManager
+from ..instances import Instances
 from ..log import logr
 from .form import BuildForm
 
@@ -179,11 +180,15 @@ class ArtefactBuild(AbstractBuild):
         self.form = form
         self.name = form.artefact
         self.id = build_id
+        self._instance = Instances(self.conf)[self.instance]
         self.place = os.path.join(self.conf.dirs.build, self.id)
         self.cache = CacheArtefact(conf, self.instance, self)
         self.registry = RegistryManager.factory(
             self.format, conf, self.instance
         )
+        # Get the recursive list of derivatives extended by the given
+        # derivative.
+        self.derivatives = self._instance.recursive_derivatives(self.derivative)
         self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, self.instance, self.format)
         self.env = BuildEnv(conf, self.image, self.environment)
@@ -206,7 +211,7 @@ class ArtefactBuild(AbstractBuild):
 
     @property
     def version(self):
-        return self.defs.version(self.derivatives[0])
+        return self.defs.version(self.derivative)
 
     @property
     def release(self):
@@ -222,7 +227,7 @@ class ArtefactBuild(AbstractBuild):
 
     @property
     def fullversion(self):
-        return self.defs.fullversion(self.format, self.derivatives[0])
+        return self.defs.fullversion(self.format, self.derivative)
 
     @property
     def tarball(self):
@@ -230,11 +235,11 @@ class ArtefactBuild(AbstractBuild):
 
     @property
     def checksum_format(self):
-        return self.defs.checksum_format(self.derivatives[0])
+        return self.defs.checksum_format(self.derivative)
 
     @property
     def checksum_value(self):
-        return self.defs.checksum_value(self.derivatives[0])
+        return self.defs.checksum_value(self.derivative)
 
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""

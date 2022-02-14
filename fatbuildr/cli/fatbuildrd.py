@@ -26,6 +26,7 @@ from ..conf import RuntimeConfd
 from ..builds.manager import ServerBuildsManager
 from ..protocols import ServerFactory
 from ..keyring import KeyringManager
+from ..instances import Instances
 from ..timer import ServerTimer
 from ..services import ServiceManager
 from ..registry.manager import RegistryManager
@@ -60,7 +61,10 @@ class Fatbuildrd(FatbuildrCliRun):
         logger.setup(args.debug)
 
         self.conf = RuntimeConfd()
+        self.instances = None  # initialized in load(), after conf is loaded
+
         self.load()
+
         self._run()
 
     def load(self):
@@ -71,6 +75,8 @@ class Fatbuildrd(FatbuildrCliRun):
             logger.ensure_debug()
 
         self.conf.dump()
+        self.instances = Instances(self.conf)
+        self.instances.load()
 
     def _run(self):
 
@@ -129,7 +135,11 @@ class Fatbuildrd(FatbuildrCliRun):
         logger.info("Starting server thread")
         self.server = ServerFactory.get()
         self.server.run(
-            self.build_mgr, self.registry_mgr, self.keyring_mgr, self.timer
+            self.instances,
+            self.build_mgr,
+            self.registry_mgr,
+            self.keyring_mgr,
+            self.timer,
         )
         logger.info("Stopping server thread")
 

@@ -73,10 +73,10 @@ class RegistryRpm(Registry):
             % (build.name, build.distribution)
         )
 
-        dist_path = self.repo_path(build.distribution, build.derivatives[0])
-        pkg_dir = self.pkg_dir(build.distribution, build.derivatives[0])
+        dist_path = self.repo_path(build.distribution, build.derivative)
+        pkg_dir = self.pkg_dir(build.distribution, build.derivative)
 
-        self._mk_missing_repo_dirs(build.distribution, build.derivatives[0])
+        self._mk_missing_repo_dirs(build.distribution, build.derivative)
 
         rpm_glob = os.path.join(build.place, '*.rpm')
         for rpm_path in glob.glob(rpm_glob):

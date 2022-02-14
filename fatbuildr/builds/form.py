@@ -34,24 +34,22 @@ class BuildForm(object):
 
     def __init__(
         self,
-        source,
         user,
         email,
         instance,
         distribution,
-        derivatives,
+        derivative,
         environment,
         fmt,
         artefact,
         submission,
         message,
     ):
-        self.source = source
         self.user = user
         self.email = email
         self.instance = instance
         self.distribution = distribution
-        self.derivatives = derivatives
+        self.derivative = derivative
         self.environment = environment
         self.format = fmt
         self.artefact = artefact
@@ -64,12 +62,11 @@ class BuildForm(object):
 
     def todict(self):
         return {
-            'source': self.source,
             'user': self.user,
             'email': self.email,
             'instance': self.instance,
             'distribution': self.distribution,
-            'derivatives': self.derivatives,
+            'derivative': self.derivative,
             'environment': self.environment,
             'format': self.format,
             'artefact': self.artefact,
@@ -96,12 +93,11 @@ class BuildForm(object):
         with open(path, 'r') as fh:
             description = yaml.load(fh, Loader=yaml.FullLoader)
         return cls(
-            description['source'],
             description['user'],
             description['email'],
             description['instance'],
             description['distribution'],
-            description['derivatives'],
+            description['derivative'],
             description['environment'],
             description['format'],
             description['artefact'],

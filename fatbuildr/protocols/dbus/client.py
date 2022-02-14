@@ -21,6 +21,7 @@ import subprocess
 
 from . import (
     REGISTER,
+    DbusInstance,
     DbusSubmittedBuild,
     DbusRunningBuild,
     DbusArchivedBuild,
@@ -34,8 +35,29 @@ class DbusClient(object):
     def __init__(self):
         self.proxy = REGISTER.get_proxy()
 
-    def instances(self):
-        return self.proxy.Instances
+    # instances
+
+    def instance(self, id):
+        return DbusInstance.from_structure(self.proxy.Instance(id))
+
+    def pipelines_format_distributions(self, instance, format):
+        return self.proxy.PipelinesFormatDistributions(instance, format)
+
+    def pipelines_distribution_format(self, instance, distribution):
+        return self.proxy.PipelinesDistributionFormat(instance, distribution)
+
+    def pipelines_distribution_environment(self, instance, distribution):
+        return self.proxy.PipelinesDistributionEnvironment(
+            instance, distribution
+        )
+
+    def pipelines_derivative_formats(self, instance, derivative):
+        return self.proxy.PipelinesDerivativeFormats(instance, derivative)
+
+    # registries
+
+    def registry_instances(self):
+        return self.proxy.RegistryInstances
 
     def formats(self, instance):
         return self.proxy.Formats(instance)

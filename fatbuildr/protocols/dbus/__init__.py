@@ -28,7 +28,7 @@ from dasbus.structure import (
 )
 from dasbus.typing import Str, Int, List
 
-from ..wire import WireBuild, WireArtefact, WireChangelogEntry
+from ..wire import WireInstance, WireBuild, WireArtefact, WireChangelogEntry
 
 # Define the error mapper.
 ERROR_MAPPER = ErrorMapper()
@@ -52,6 +52,42 @@ class ErrorNoRunningBuild(DBusError):
 
 
 # Define structures.
+
+
+class DbusInstance(DBusData, WireInstance):
+    def __init__(self):
+        self._id = None
+        self._name = None
+        self._userid = None
+
+    # id
+    @property
+    def id(self) -> Str:
+        return self._id
+
+    @id.setter
+    def id(self, value: Str):
+        self._id = value
+
+    # name
+    @property
+    def name(self) -> Str:
+        return self._name
+
+    @name.setter
+    def name(self, value: Str):
+        self._name = value
+
+    # userid
+    @property
+    def userid(self) -> Str:
+        return self._userid
+
+    @userid.setter
+    def userid(self, value: Str):
+        self._userid = value
+
+
 class DbusBuild(DBusData, WireBuild):
     """The user data."""
 
@@ -59,12 +95,11 @@ class DbusBuild(DBusData, WireBuild):
         self._id = None
         self._state = None
         self._place = None
-        self._source = None
         self._user = None
         self._email = None
         self._instance = None
         self._distribution = None
-        self._derivatives = None
+        self._derivative = None
         self._environment = None
         self._format = None
         self._artefact = None
@@ -97,15 +132,6 @@ class DbusBuild(DBusData, WireBuild):
     @place.setter
     def place(self, value: Str):
         self._place = value
-
-    # source
-    @property
-    def source(self) -> Str:
-        return self._source
-
-    @source.setter
-    def source(self, value: Str):
-        self._source = value
 
     # user
     @property
@@ -143,14 +169,14 @@ class DbusBuild(DBusData, WireBuild):
     def distribution(self, value: Str):
         self._distribution = value
 
-    # derivatives
+    # derivative
     @property
-    def derivatives(self) -> List[Str]:
-        return self._derivatives
+    def derivative(self) -> Str:
+        return self._derivative
 
-    @derivatives.setter
-    def derivatives(self, value: List[Str]):
-        self._derivatives = value
+    @derivative.setter
+    def derivative(self, value: List[Str]):
+        self._derivative = value
 
     # environment
     @property

@@ -56,7 +56,7 @@ class RegistryOsi(Registry):
         logger.info("Publishing OSI images for %s" % (build.name))
 
         derivative_path = self.derivative_path(
-            build.distribution, build.derivatives[0]
+            build.distribution, build.derivative
         )
         dist_path = os.path.dirname(derivative_path)
         registry_path = os.path.dirname(dist_path)

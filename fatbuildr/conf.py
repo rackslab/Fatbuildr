@@ -30,7 +30,7 @@ class RuntimeSubConfDirs(object):
 
     def __init__(self):
 
-        self.img = None
+        self.instances = None
         self.queue = None
         self.build = None
         self.archives = None
@@ -40,6 +40,7 @@ class RuntimeSubConfDirs(object):
 
     def load(self, config):
         section = 'dirs'
+        self.instances = config.get(section, 'instances')
         self.queue = config.get(section, 'queue')
         self.build = config.get(section, 'build')
         self.archives = config.get(section, 'archives')
@@ -49,6 +50,7 @@ class RuntimeSubConfDirs(object):
 
     def dump(self):
         logger.debug("[dirs]")
+        logger.debug("  instances: %s" % (self.instances))
         logger.debug("  queue: %s" % (self.queue))
         logger.debug("  build: %s" % (self.build))
         logger.debug("  archives: %s" % (self.archives))

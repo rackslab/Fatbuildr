@@ -24,11 +24,36 @@ from ..log import logr
 logger = logr(__name__)
 
 
+class WireInstance:
+    def to_dict(self):
+        result = {
+            'id': self.id,
+            'name': self.name,
+            'userid': self.userid,
+        }
+        return result
+
+    @classmethod
+    def load_from_instance(cls, instance):
+        _obj = cls()
+        _obj.id = instance.id
+        _obj.name = instance.name
+        _obj.userid = instance.userid
+        return _obj
+
+    @classmethod
+    def load_from_json(cls, json):
+        _obj = cls()
+        _obj.id = json['id']
+        _obj.name = json['name']
+        _obj.userid = json['userid']
+        return _obj
+
+
 class WireBuild:
     def report(self):
         print("- id: %s" % (self.id))
         print("  state: %s" % (self.state))
-        print("  source: %s" % (self.source))
         print("  place: %s" % (self.place))
         try:
             print("  logfile: %s" % (self.logfile))
@@ -38,7 +63,7 @@ class WireBuild:
         print("  email: %s" % (self.email))
         print("  instance: %s" % (self.instance))
         print("  distribution: %s" % (self.distribution))
-        print("  derivatives: %s" % (self.derivatives))
+        print("  derivative: %s" % (self.derivative))
         print("  environment: %s" % (self.environment))
         print("  format: %s" % (self.format))
         print("  artefact: %s" % (self.artefact))
@@ -56,13 +81,12 @@ class WireBuild:
         result = {
             'id': self.id,
             'state': self.state,
-            'source': self.source,
             'place': self.place,
             'user': self.user,
             'email': self.email,
             'instance': self.instance,
             'distribution': self.distribution,
-            'derivatives': self.derivatives,
+            'derivative': self.derivative,
             'environment': self.environment,
             'format': self.format,
             'artefact': self.artefact,
@@ -85,7 +109,6 @@ class WireBuild:
             _obj.logfile = build.logfile
         except AttributeError:
             _obj.logfile = None
-        _obj.source = build.source
         _obj.user = build.user
         _obj.email = build.email
         _obj.instance = build.instance
@@ -93,7 +116,7 @@ class WireBuild:
             _obj.distribution = 'none'
         else:
             _obj.distribution = build.distribution
-        _obj.derivatives = build.derivatives
+        _obj.derivative = build.derivative
         if build.environment is None:
             _obj.environment = 'none'
         else:
@@ -106,7 +129,6 @@ class WireBuild:
 
     @classmethod
     def load_from_json(cls, json):
-        logger.debug("JSON object to decode to WireBuild: %s", json)
         _obj = cls()
         _obj.id = json['id']
         _obj.state = json['state']
@@ -115,7 +137,6 @@ class WireBuild:
             _obj.logfile = json['logfile']
         except AttributeError:
             _obj.logfile = None
-        _obj.source = json['source']
         _obj.user = json['user']
         _obj.email = json['email']
         _obj.instance = json['instance']
@@ -123,7 +144,7 @@ class WireBuild:
             _obj.distribution = 'none'
         else:
             _obj.distribution = json['distribution']
-        _obj.derivatives = json['derivatives']
+        _obj.derivative = json['derivative']
         if json['environment'] is None:
             _obj.environment = 'none'
         else:

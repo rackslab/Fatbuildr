@@ -28,6 +28,7 @@ from dasbus.xml import XMLGenerator
 from . import (
     REGISTER,
     BUS,
+    DbusInstance,
     DbusSubmittedBuild,
     DbusRunningBuild,
     DbusArchivedBuild,
@@ -44,10 +45,48 @@ logger = logr(__name__)
 class FatbuildrInterface(InterfaceTemplate):
     """The DBus interface of Fatbuildr."""
 
+    def Instance(self, instance: Str) -> Structure:
+        """Returns the instance user id."""
+        return DbusInstance.to_structure(
+            self.implementation.instance_userid(instance)
+        )
+
+    def PipelinesFormatDistributions(
+        self, instance: Str, format: Str
+    ) -> List[Str]:
+        """Returns the distributions of the given format in the pipelines of the instance."""
+        return self.implementation.pipelines_format_distributions(
+            instance, format
+        )
+
+    def PipelinesDistributionFormat(
+        self, instance: Str, distribution: Str
+    ) -> Str:
+        """Returns the format of the given distribution in the pipelines of the instance."""
+        return self.implementation.pipelines_distribution_format(
+            instance, distribution
+        )
+
+    def PipelinesDistributionEnvironment(
+        self, instance: Str, distribution: Str
+    ) -> Str:
+        """Returns the environment of the given distribution in the pipelines of the instance."""
+        return self.implementation.pipelines_distribution_environment(
+            instance, distribution
+        )
+
+    def PipelinesDerivativeFormats(
+        self, instance: Str, derivative: Str
+    ) -> List[Str]:
+        """Returns the formats of the given derivative in the pipelines of the instance."""
+        return self.implementation.pipelines_derivative_formats(
+            instance, derivative
+        )
+
     @property
-    def Instances(self) -> List[Str]:
+    def RegistryInstances(self) -> List[Str]:
         """The list of available instances."""
-        return self.implementation.instances
+        return self.implementation.registry_instances
 
     @property
     def Queue(self) -> List[Structure]:
@@ -155,14 +194,37 @@ class FatbuildrInterface(InterfaceTemplate):
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
 
-    def __init__(self, build_mgr, registry_mgr, keyring_mgr, timer):
+    def __init__(self, instances, build_mgr, registry_mgr, keyring_mgr, timer):
+        self.instances = instances
         self.build_mgr = build_mgr
         self.registry_mgr = registry_mgr
         self.keyring_mgr = keyring_mgr
         self.timer = timer
 
+    def instance(self, instance: Str):
+        self.timer.reset()
+        return DbusInstance.load_from_instance(self.instances[instance])
+
+    def pipelines_format_distributions(self, instance: Str, format: Str):
+        self.timer.reset()
+        return self.instances[instance].format_dists(format)
+
+    def pipelines_distribution_format(self, instance: Str, distribution: Str):
+        self.timer.reset()
+        return self.instances[instance].dist_format(distribution)
+
+    def pipelines_distribution_environment(
+        self, instance: Str, distribution: Str
+    ):
+        self.timer.reset()
+        return self.instances[instance].dist_env(distribution)
+
+    def pipelines_derivative_formats(self, instance: Str, derivative: Str):
+        self.timer.reset()
+        return self.instances[instance].derivative_formats(derivative)
+
     @property
-    def instances(self):
+    def registry_instances(self):
         self.timer.reset()
         return self.registry_mgr.instances
 
@@ -282,7 +344,7 @@ class FatbuildrMultiplexer(object):
 
 
 class DbusServer(object):
-    def run(self, build_mgr, registry_mgr, keyring_mgr, timer):
+    def run(self, instances, build_mgr, registry_mgr, keyring_mgr, timer):
 
         # Print the generated XML specification.
         logger.debug(
@@ -292,7 +354,7 @@ class DbusServer(object):
 
         # Create the Fatbuildr multiplexer.
         multiplexer = FatbuildrMultiplexer(
-            build_mgr, registry_mgr, keyring_mgr, timer
+            instances, build_mgr, registry_mgr, keyring_mgr, timer
         )
 
         # Publish the register at /org/rackslab/Fatbuildr.
