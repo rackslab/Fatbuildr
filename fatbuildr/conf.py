@@ -80,7 +80,6 @@ class RuntimeSubConfImages(object):
         logger.debug("[images]")
         logger.debug("  storage: %s" % (self.storage))
         logger.debug("  defs: %s" % (self.defs))
-        logger.debug("  formats: %s" % (self.formats))
         logger.debug("  create_cmd: %s" % (self.create_cmd))
 
 

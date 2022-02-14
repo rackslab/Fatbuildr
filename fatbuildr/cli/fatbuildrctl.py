@@ -242,7 +242,8 @@ class Fatbuildrctl(FatbuildrCliRun):
         if args.format:
             selected_formats = [args.format]
         else:
-            selected_formats = self.conf.images.formats
+            selected_formats = connection.pipelines_formats(self.instance)
+        logger.debug("Selected formats: %s", selected_formats)
 
         # check if operation is on images and run it
         if args.create:
