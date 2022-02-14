@@ -19,7 +19,7 @@
 
 import requests
 
-from ..wire import WireBuild
+from ..wire import WireInstance, WireBuild
 from ...log import logr
 
 logger = logr(__name__)
@@ -28,6 +28,38 @@ logger = logr(__name__)
 class HttpClient:
     def __init__(self, host):
         self.host = host
+
+    def instance(self, instance):
+        url = f"{self.host}/{instance}/instance.json"
+        response = requests.get(url)
+        return WireInstance.load_from_json(response.json())
+
+    def pipelines_format_distributions(self, instance, format):
+        url = f"{self.host}/{instance}/pipelines/formats.json?format={format}"
+        response = requests.get(url)
+        formats = response.json()
+        return [item['distribution'] for item in formats[format]]
+
+    def pipelines_distribution_format(self, instance, distribution):
+        url = f"{self.host}/{instance}/pipelines/formats.json?distribution={distribution}"
+        response = requests.get(url)
+        formats = response.json()
+        return formats.keys()[0]
+
+    def pipelines_distribution_environment(self, instance, distribution):
+        url = f"{self.host}/{instance}/pipelines/formats.json?distribution={distribution}"
+        response = requests.get(url)
+        formats = response.json()
+        # Return the environment of the first distribution of the first format,
+        # because there is only one format and distribution thanks to the
+        # request filter.
+        return next(iter(formats.items()))[1][0]['environment']
+
+    def pipelines_derivative_formats(self, instance, derivative):
+        url = f"{self.host}/{instance}/pipelines/formats.json?derivative={derivative}"
+        response = requests.get(url)
+        formats = response.json()
+        return list(formats.keys())
 
     def submit(self, request):
         url = f"{self.host}/submit"

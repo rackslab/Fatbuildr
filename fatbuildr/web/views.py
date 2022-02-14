@@ -40,16 +40,60 @@ def version():
     return f"Fatbuildr v{__version__}"
 
 
+def instance(instance):
+    connection = ClientFactory.get('local')
+    _instance = connection.instance(instance)
+    return jsonify(_instance.to_dict())
+
+
+def pipelines_formats(instance):
+    connection = ClientFactory.get('local')
+    result = {}
+
+    filter_format = request.args.get('format')
+    filter_distribution = request.args.get('distribution')
+    filter_environment = request.args.get('environment')
+
+    formats = connection.pipelines_formats(instance)
+    for format in formats:
+        if filter_format and format != filter_format:
+            continue
+        distributions = connection.pipelines_format_distributions(
+            instance, format
+        )
+        for distribution in distributions:
+            if filter_distribution and distribution != filter_distribution:
+                continue
+            environment = connection.pipelines_distribution_environment(
+                instance, distribution
+            )
+            if filter_environment and environment != filter_environment:
+                continue
+            derivatives = connection.pipelines_distribution_derivatives(
+                instance, distribution
+            )
+            if format not in result:
+                result[format] = []
+            result[format].append(
+                {
+                    'distribution': distribution,
+                    'environment': environment,
+                    'derivatives': derivatives,
+                }
+            )
+    return jsonify(result)
+
+
 def index(output='html'):
     connection = ClientFactory.get('local')
-    instances = connection.instances()
+    instances = connection.registry_instances()
     if output == 'json':
         return jsonify(instances)
     else:
         return render_template('index.html.j2', instances=instances)
 
 
-def instance(instance, output='html'):
+def registry_formats(instance, output='html'):
     connection = ClientFactory.get('local')
     formats = connection.formats(instance)
     if output == 'json':
@@ -60,7 +104,7 @@ def instance(instance, output='html'):
         )
 
 
-def distributions(instance, fmt, output='html'):
+def format_distributions(instance, fmt, output='html'):
     connection = ClientFactory.get('local')
     distributions = connection.distributions(instance, fmt)
     if output == 'json':
@@ -74,7 +118,7 @@ def distributions(instance, fmt, output='html'):
         )
 
 
-def derivatives(instance, fmt, distribution, output='html'):
+def distribution_derivatives(instance, fmt, distribution, output='html'):
     connection = ClientFactory.get('local')
     derivatives = connection.derivatives(instance, fmt, distribution)
     if output == 'json':
@@ -90,7 +134,9 @@ def derivatives(instance, fmt, distribution, output='html'):
         )
 
 
-def registry(instance, fmt, distribution, derivative, output='html'):
+def derivative_artefacts(
+    instance, fmt, distribution, derivative, output='html'
+):
     connection = ClientFactory.get('local')
     artefacts = connection.artefacts(instance, fmt, distribution, derivative)
     if output == 'json':

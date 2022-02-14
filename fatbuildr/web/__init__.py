@@ -38,6 +38,14 @@ class WebApp(Flask):
         super().__init__('fatbuildr')
         self.conf = conf
         self.add_url_rule('/version', view_func=views.version)
+        self.add_url_rule(
+            '/<instance>/instance.json',
+            view_func=views.instance,
+        )
+        self.add_url_rule(
+            '/<instance>/pipelines/formats.json',
+            view_func=views.pipelines_formats,
+        )
         self.add_url_rule('/', view_func=views.index)
         self.add_url_rule(
             '/instances.json',
@@ -45,42 +53,42 @@ class WebApp(Flask):
             defaults={'output': 'json'},
         )
         self.add_url_rule(
-            '/<string:instance>/registry/', view_func=views.instance
+            '/<string:instance>/registry/', view_func=views.registry_formats
         )
         self.add_url_rule(
             '/<string:instance>/registry.json',
-            view_func=views.instance,
+            view_func=views.registry_formats,
             defaults={'output': 'json'},
         )
         self.add_url_rule(
             '/<string:instance>/registry/<string:fmt>/',
-            view_func=views.distributions,
+            view_func=views.format_distributions,
         )
         self.add_url_rule(
             '/<string:instance>/registry/<string:fmt>.json',
-            view_func=views.distributions,
+            view_func=views.format_distributions,
             defaults={'output': 'json'},
         )
         self.add_url_rule(
             '/<string:instance>/registry/<string:fmt>/'
             '<string:distribution>/',
-            view_func=views.derivatives,
+            view_func=views.distribution_derivatives,
         )
         self.add_url_rule(
             '/<string:instance>/registry/<string:fmt>/'
             '<string:distribution>.json',
-            view_func=views.derivatives,
+            view_func=views.distribution_derivatives,
             defaults={'output': 'json'},
         )
         self.add_url_rule(
             '/<string:instance>/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>/',
-            view_func=views.registry,
+            view_func=views.derivative_artefacts,
         )
         self.add_url_rule(
             '/<string:instance>/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>.json',
-            view_func=views.registry,
+            view_func=views.derivative_artefacts,
             defaults={'output': 'json'},
         )
         self.add_url_rule(
