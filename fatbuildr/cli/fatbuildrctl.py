@@ -47,7 +47,6 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser = argparse.ArgumentParser(
             description='Do something with fatbuildr.'
         )
-        # parser.add_argument('action', help='Action to perform', choices=['build', 'list', 'watch'])
         parser.add_argument(
             '-v',
             '--version',
@@ -72,7 +71,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             help='Action to perform', dest='action', required=True
         )
 
-        # create the parser for the images command
+        # Parser for the images command
         parser_images = subparsers.add_parser(
             'images', help='Manage build images'
         )
@@ -106,7 +105,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_images.set_defaults(func=self._run_images)
 
-        # create the parser for the build command
+        # Parser for the keyring command
         parser_keyring = subparsers.add_parser(
             'keyring', help='Manage signing keyring'
         )
@@ -125,7 +124,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_keyring.set_defaults(func=self._run_keyring)
 
-        # create the parser for the build command
+        # Parser for the build command
         parser_build = subparsers.add_parser('build', help='Submit new build')
         parser_build.add_argument(
             '-a', '--artefact', help='Artefact name', required=True
@@ -165,21 +164,23 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_build.set_defaults(func=self._run_build)
 
-        # create the parser for the list command
+        # Parser for the list command
         parser_list = subparsers.add_parser('list', help='List builds')
         parser_list.add_argument('-p', '--pending', help='List pending builds')
         parser_list.set_defaults(func=self._run_list)
 
-        # create the parser for the watch command
+        # Parser for the watch command
         parser_watch = subparsers.add_parser('watch', help='Watch build')
         parser_watch.add_argument('-b', '--build', help='ID of build to watch')
         parser_watch.set_defaults(func=self._run_watch)
 
+        # Parser for the archives command
         parser_archives = subparsers.add_parser(
             'archives', help='List archives'
         )
         parser_archives.set_defaults(func=self._run_archives)
 
+        # Parser for the registry command
         parser_registry = subparsers.add_parser(
             'registry', help='Manage artefact registries'
         )
