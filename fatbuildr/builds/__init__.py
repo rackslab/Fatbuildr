@@ -346,6 +346,6 @@ class ArtefactBuild(AbstractBuild):
 
     @classmethod
     def load_from_submission(cls, conf, submission):
-        instance = cls(conf, submission.id, submission.form)
-        instance.init_from_submission(submission)
-        return instance
+        obj = cls(conf, submission.id, submission.form)
+        obj.init_from_submission(submission)
+        return obj
