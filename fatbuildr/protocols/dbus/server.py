@@ -47,9 +47,11 @@ class FatbuildrInterface(InterfaceTemplate):
 
     def Instance(self, instance: Str) -> Structure:
         """Returns the instance user id."""
-        return DbusInstance.to_structure(
-            self.implementation.instance_userid(instance)
-        )
+        return DbusInstance.to_structure(self.implementation.instance(instance))
+
+    def PipelinesFormats(self, instance: Str) -> List[Str]:
+        """Returns the list of formats defined in pipelines of the given instance."""
+        return self.implementation.pipelines_formats(instance)
 
     def PipelinesFormatDistributions(
         self, instance: Str, format: Str
@@ -71,7 +73,18 @@ class FatbuildrInterface(InterfaceTemplate):
         self, instance: Str, distribution: Str
     ) -> Str:
         """Returns the environment of the given distribution in the pipelines of the instance."""
-        return self.implementation.pipelines_distribution_environment(
+        env = self.implementation.pipelines_distribution_environment(
+            instance, distribution
+        )
+        if not env:
+            return 'none'
+        return env
+
+    def PipelinesDistributionDerivatives(
+        self, instance: Str, distribution: Str
+    ) -> List[Str]:
+        """Returns the derivatives of the given distribution in the pipelines of the instance."""
+        return self.implementation.pipelines_distribution_derivatives(
             instance, distribution
         )
 
@@ -205,6 +218,10 @@ class FatbuildrMultiplexer(object):
         self.timer.reset()
         return DbusInstance.load_from_instance(self.instances[instance])
 
+    def pipelines_formats(self, instance: Str):
+        self.timer.reset()
+        return self.instances[instance].formats
+
     def pipelines_format_distributions(self, instance: Str, format: Str):
         self.timer.reset()
         return self.instances[instance].format_dists(format)
@@ -212,6 +229,12 @@ class FatbuildrMultiplexer(object):
     def pipelines_distribution_format(self, instance: Str, distribution: Str):
         self.timer.reset()
         return self.instances[instance].dist_format(distribution)
+
+    def pipelines_distribution_derivatives(
+        self, instance: Str, distribution: Str
+    ):
+        self.timer.reset()
+        return self.instances[instance].dist_derivatives(distribution)
 
     def pipelines_distribution_environment(
         self, instance: Str, distribution: Str

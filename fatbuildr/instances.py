@@ -35,17 +35,21 @@ class InstanceDefs:
         self.name = name
         self.gpg_name = gpg_name
         self.gpg_email = gpg_email
-        self.formats = formats
+        self._formats = formats
         self.derivatives = derivatives
 
     @property
     def userid(self):
         return f"{self.gpg_name} <{self.gpg_email}>"
 
+    @property
+    def formats(self):
+        return list(self._formats.keys())
+
     def dist_format(self, distribution):
         """Which format (ex: RPM) for this distribution? Raise RuntimeError if
         the format has not been found."""
-        for format, dists in self.formats.items():
+        for format, dists in self._formats.items():
             if distribution in dists.keys():
                 return format
         raise RuntimeError(
@@ -57,7 +61,7 @@ class InstanceDefs:
         """Return the name of the build environment for the given
         distribution. Raise RuntimeError is the environment has not been
         found."""
-        for format, dists in self.formats.items():
+        for format, dists in self._formats.items():
             if distribution in dists.keys():
                 return dists[distribution]
         raise RuntimeError(
@@ -65,15 +69,27 @@ class InstanceDefs:
             "to distribution %s" % (distribution)
         )
 
+    def dist_derivatives(self, distribution):
+        """Return the list of derivatives for the given distribution."""
+        result = ['main']
+        if not self.derivatives:
+            return result
+        # get the format of the distribution to find the associated derivatives
+        format = self.dist_format(distribution)
+        for derivative, items in self.derivatives.items():
+            if 'formats' in items and format in items['formats']:
+                result.append(derivative)
+        return result
+
     def format_dists(self, format):
         """Return the list of distributions for the given format."""
-        return list(self.formats[format].keys())
+        return list(self._formats[format].keys())
 
     def derivative_formats(self, derivative):
         """Returns a set of formats supported by the derivative, proceeding
         recursively with derivatives extensions."""
         if derivative == 'main':
-            _formats = set(self.formats.keys())
+            _formats = set(self.formats)
         else:
             _formats = set()
             if 'formats' in self.derivatives[derivative]:

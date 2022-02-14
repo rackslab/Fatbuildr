@@ -40,16 +40,27 @@ class DbusClient(object):
     def instance(self, id):
         return DbusInstance.from_structure(self.proxy.Instance(id))
 
+    def pipelines_formats(self, instance):
+        return self.proxy.PipelinesFormats(instance)
+
     def pipelines_format_distributions(self, instance, format):
         return self.proxy.PipelinesFormatDistributions(instance, format)
 
     def pipelines_distribution_format(self, instance, distribution):
         return self.proxy.PipelinesDistributionFormat(instance, distribution)
 
-    def pipelines_distribution_environment(self, instance, distribution):
-        return self.proxy.PipelinesDistributionEnvironment(
+    def pipelines_distribution_derivatives(self, instance, distribution):
+        return self.proxy.PipelinesDistributionDerivatives(
             instance, distribution
         )
+
+    def pipelines_distribution_environment(self, instance, distribution):
+        env = self.proxy.PipelinesDistributionEnvironment(
+            instance, distribution
+        )
+        if env == 'none':
+            return None
+        return env
 
     def pipelines_derivative_formats(self, instance, derivative):
         return self.proxy.PipelinesDerivativeFormats(instance, derivative)
