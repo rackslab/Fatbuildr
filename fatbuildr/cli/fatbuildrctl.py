@@ -161,7 +161,6 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         # Parser for the list command
         parser_list = subparsers.add_parser('list', help='List builds')
-        parser_list.add_argument('-p', '--pending', help='List pending builds')
         parser_list.set_defaults(func=self._run_list)
 
         # Parser for the watch command
