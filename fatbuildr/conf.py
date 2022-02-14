@@ -246,45 +246,12 @@ class RuntimeSubConfCtl(RuntimeConfApp):
 
     def __init__(self):
         super().__init__()
-        self.default_instance = None
-        self.host = None
-        self.action = None
-        # parameters for image action
-        self.operation = None
-        self.format = None
-        self.force = None
-        #  parameters for build action
-        self.artefact = None
-        self.distribution = None
-        self.basedir = None
-        self.subdir = None
-        self.user_name = None
-        self.user_email = None
-        self.build_msg = None
-        self.watch = None
-        #  parameters for watch action
-        self.build = None
 
     def load(self, config):
-        self.default_instance = config.get('run', 'default_instance')
+        pass
 
     def dump(self):
-        logger.debug("[run]")
-        logger.debug("  default_instance: %s" % (self.default_instance))
-        logger.debug("  host: %s" % (self.host))
-        logger.debug("  action: %s" % (self.action))
-        logger.debug("  operation: %s" % (self.operation))
-        logger.debug("  format: %s" % (self.format))
-        logger.debug("  distribution: %s" % (self.distribution))
-        logger.debug("  force: %s" % (self.force))
-        logger.debug("  artefact: %s" % (self.artefact))
-        logger.debug("  build: %s" % (self.build))
-        logger.debug("  basedir: %s" % (self.basedir))
-        logger.debug("  subdir: %s" % (self.subdir))
-        logger.debug("  user_name: %s" % (self.user_name))
-        logger.debug("  user_email: %s" % (self.user_email))
-        logger.debug("  build_msg: %s" % (self.build_msg))
-        logger.debug("  watch: %s" % (self.watch))
+        pass
 
 
 class RuntimeSubConfd(RuntimeConfApp):

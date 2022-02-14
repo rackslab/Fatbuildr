@@ -45,7 +45,7 @@ class Image(object):
     def def_exists(self):
         return os.path.exists(self.def_path)
 
-    def create(self):
+    def create(self, force):
         """Create the image."""
 
         # ensure instance images directory is present
@@ -63,7 +63,7 @@ class Image(object):
             dirpath=os.path.dirname(self.path),
             path=self.path,
         ).split(' ')
-        if self.conf.run.force:
+        if force:
             cmd.insert(1, '--force')
 
         logger.debug("Running command: %s", ' '.join(cmd))
@@ -135,13 +135,7 @@ class ImagesManager(object):
         self.conf = conf
         self.instance = instance
 
-    @property
-    def selected_formats(self):
-        if self.conf.run.format == 'all':
-            return self.conf.images.formats
-        return [self.conf.run.format]
-
-    def create(self, format):
+    def create(self, format, force):
         """Creates image for the given format."""
         if not os.path.exists(self.conf.images.storage):
             logger.debug(
@@ -152,7 +146,7 @@ class ImagesManager(object):
 
         img = Image(self.conf, self.instance, format)
 
-        if img.exists and not self.conf.run.force:
+        if img.exists and not force:
             logger.error(
                 "Image %s already exists, use --force to ignore"
                 % (img.def_path)
@@ -166,7 +160,7 @@ class ImagesManager(object):
             return
 
         try:
-            img.create()
+            img.create(force)
         except RuntimeError as err:
             logger.error(
                 "Error while creating the image %s: %s" % (img.path, err)

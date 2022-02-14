@@ -21,10 +21,12 @@ import argparse
 import sys
 import os
 import time
+from pathlib import Path
 
 from . import FatbuildrCliRun
 from ..version import __version__
 from ..conf import RuntimeConfCtl
+from ..prefs import UserPreferences
 from ..images import ImagesManager
 from ..keyring import KeyringManager
 from ..builds.manager import ClientBuildsManager
@@ -38,6 +40,17 @@ logger = logr(__name__)
 def progname():
     """Return the name of the program."""
     return os.path.basename(sys.argv[0])
+
+
+def default_user_pref():
+    """Returns the default path to the user preferences file, through
+    XDG_CONFIG_HOME environment variable if it is set."""
+    ini = 'fatbuildr.ini'
+    xdg_env = os.getenv('XDG_CONFIG_HOME')
+    if xdg_env:
+        return Path(xdg_env).join(ini)
+    else:
+        return Path(f"~/.config/{ini}")
 
 
 class Fatbuildrctl(FatbuildrCliRun):
@@ -62,6 +75,12 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser.add_argument(
             '-i', '--instance', dest='instance', help="Name of the instance"
+        )
+        parser.add_argument(
+            '--preferences',
+            help=f"Path to user preference file (default: {default_user_pref()})",
+            type=Path,
+            default=default_user_pref(),
         )
         parser.add_argument(
             '--host', dest='host', help="Fatbuildr host", default='local'
@@ -137,20 +156,13 @@ class Fatbuildrctl(FatbuildrCliRun):
             '-b',
             '--basedir',
             help='Artefacts definitions directory',
-            required=True,
         )
         parser_build.add_argument(
             '-s', '--subdir', help='Artefact subdirectory'
         )
-        parser_build.add_argument(
-            '-n', '--name', help='Maintainer name', required=True
-        )
-        parser_build.add_argument(
-            '-e', '--email', help='Maintainer email', required=True
-        )
-        parser_build.add_argument(
-            '-m', '--msg', help='Build log message', required=True
-        )
+        parser_build.add_argument('-n', '--name', help='Maintainer name')
+        parser_build.add_argument('-e', '--email', help='Maintainer email')
+        parser_build.add_argument('-m', '--msg', help='Build log message')
         parser_build.add_argument(
             '-w',
             '--watch',
@@ -186,108 +198,73 @@ class Fatbuildrctl(FatbuildrCliRun):
         args = parser.parse_args()
 
         logger.setup(args.debug)
-
         self.conf = RuntimeConfCtl()
         self.load(args)
 
         # run the method corresponding to the provided action
-        args.func()
+        args.func(args)
 
     def load(self, args):
+        """Load main configuration file and user preferences, then set common
+        parameters accordingly."""
+
+        # Load main configuration
         super().load()
 
-        self.conf.run.action = args.action
-        self.conf.run.host = args.host
+        # Load user preferences
+        self.prefs = UserPreferences(args.preferences)
 
-        # select the default instance from conf if not given in args
+        # Set host with args, prefs, 'local' descending priority
+        if args.host is None:
+            if self.prefs.host is None:
+                self.host = 'local'
+            else:
+                self.host = self.prefs.host
+        else:
+            self.host = args.host
+
+        # Set instance with args, prefs, 'default', descending priority
         if args.instance is None:
-            self.instance = self.conf.run.default_instance
+            if self.prefs.instance is None:
+                self.instance = 'default'
+            else:
+                self.instance = self.prefs.instance
         else:
             self.instance = args.instance
 
-        if args.action == 'images':
-            if args.create is True:
-                self.conf.run.operation = 'create'
-            elif args.update is True:
-                self.conf.run.operation = 'update'
-            elif args.create_envs is True:
-                self.conf.run.operation = 'create_envs'
-            elif args.update_envs is True:
-                self.conf.run.operation = 'update_envs'
-            else:
-                print(
-                    "An operation on the images must be specified, type '%s images --help' for details"
-                    % (progname())
-                )
-                sys.exit(1)
-            if args.format:
-                self.conf.run.format = args.format
-            else:
-                self.conf.run.format = 'all'
-            self.conf.run.force = args.force
+        self.prefs.dump()
 
-        elif args.action == 'keyring':
-            if args.create is True:
-                self.conf.run.operation = 'create'
-            elif args.show is True:
-                self.conf.run.operation = 'show'
-            elif args.export is True:
-                self.conf.run.operation = 'export'
-            else:
-                print(
-                    "An operation on the keyring must be specified, type '%s keyring --help' for details"
-                    % (progname())
-                )
-                sys.exit(1)
-
-        elif args.action == 'build':
-            self.conf.run.artefact = args.artefact
-            if args.distribution:
-                self.conf.run.distribution = args.distribution
-            if args.format:
-                self.conf.run.format = args.format
-            self.conf.run.derivative = args.derivative
-            self.conf.run.basedir = args.basedir
-            if args.subdir:
-                self.conf.run.subdir = args.subdir
-            else:
-                self.conf.run.subdir = self.conf.run.artefact
-            self.conf.run.user_name = args.name
-            self.conf.run.user_email = args.email
-            self.conf.run.build_msg = args.msg
-            self.conf.run.watch = args.watch
-
-        elif args.action == 'watch':
-            self.conf.run.build = args.build
-
-        elif args.action == 'registry':
-            self.conf.run.basedir = args.basedir
-            self.conf.run.distribution = args.distribution
-
-        self.conf.dump()
-
-    def _run_images(self):
-        logger.debug("running images operation: %s", self.conf.run.operation)
+    def _run_images(self, args):
+        logger.debug("running images task")
+        connection = ClientFactory.get(self.host)
 
         mgr = ImagesManager(self.conf, self.instance)
+        if args.format:
+            selected_formats = [args.format]
+        else:
+            selected_formats = self.conf.images.formats
 
         # check if operation is on images and run it
-        if self.conf.run.operation == 'create':
-            for format in mgr.selected_formats:
-                mgr.create(format)
+        if args.create:
+            for format in selected_formats:
+                mgr.create(format, args.force)
             logger.info("All images have been created")
             return
-        elif self.conf.run.operation == 'update':
-            for format in mgr.selected_formats:
+        elif args.update:
+            for format in selected_formats:
                 mgr.update(format)
             logger.info("All images have been updated")
             return
+        else:
+            print(
+                "An operation on the images must be specified, type "
+                f"'{progname()} images --help' for details"
+            )
+            sys.exit(1)
 
         # At this stage, the operation is on build environments
 
-        connection = ClientFactory.get(self.conf.run.host)
-
-        for format in mgr.selected_formats:
+        for format in selected_formats:
 
             distributions = connection.pipelines_format_distributions(
                 self.instance, format
@@ -305,131 +282,201 @@ class Fatbuildrctl(FatbuildrCliRun):
                 "Build environments found for format %s: %s", format, envs
             )
 
-            if self.conf.run.operation == 'create_envs':
+            if args.create_envs:
                 mgr.create_envs(format, envs)
-            elif self.conf.run.operation == 'update_envs':
+            elif args.update_envs:
                 mgr.update_envs(format, envs)
 
-    def _run_keyring(self):
-        logger.debug(
-            "running keyring operation: %s" % (self.conf.run.operation)
-        )
+    def _run_keyring(self, args):
+        logger.debug("running keyring operation")
         mgr = KeyringManager(self.conf)
         keyring = mgr.keyring(self.instance)
-        if self.conf.run.operation == 'create':
-            connection = ClientFactory.get(self.conf.run.host)
+        if args.create:
+            connection = ClientFactory.get(self.host)
             instance = connection.instance(self.instance)
             keyring.create(instance.userid)
-        elif self.conf.run.operation == 'show':
+        elif args.show:
             keyring.show()
-        elif self.conf.run.operation == 'export':
+        elif args.export:
             print(keyring.export())
+        else:
+            print(
+                "An operation on the keyring must be specified, type "
+                f"'{progname()} keyring --help' for details"
+            )
+            sys.exit(1)
 
-    def _run_build(self):
+    def _run_build(self, args):
         logger.debug(
             "running build for artefact: %s instance: %s"
-            % (self.conf.run.artefact, self.instance)
+            % (args.artefact, self.instance)
         )
 
-        connection = ClientFactory.get(self.conf.run.host)
+        connection = ClientFactory.get(self.host)
 
-        path = os.path.join(self.conf.run.basedir, self.conf.run.subdir)
-        defs = ArtefactDefs(path)
-
-        if self.conf.run.distribution:
-            fmt = connection.pipelines_distribution_format(
-                self.instance, self.conf.run.distribution
-            )
-            # if format is also given, check it matches
-            if self.conf.run.format and self.conf.run.format != fmt:
-                logger.error(
-                    "Specified format %s does not match the format "
-                    "of the specified distribution %s"
-                    % (self.conf.run.format, self.conf.run.distribution)
+        # Set basedir with args, prefs descending priority, or fail
+        if args.basedir is None:
+            if self.prefs.basedir is None:
+                print(
+                    "Base directory must be defined for build operations, "
+                    "either with --basedir argument or through user "
+                    "preferences file."
                 )
                 sys.exit(1)
-            self.conf.run.format = fmt
-        elif not self.conf.run.format:
+            else:
+                basedir = self.prefs.basedir
+        else:
+            basedir = args.basedir
+
+        # Set user name with args, prefs descending priority, or fail
+        if args.name is None:
+            if self.prefs.user_name is None:
+                print(
+                    "The user name be defined for build operations, "
+                    "either with --name argument or through user "
+                    "preferences file."
+                )
+                sys.exit(1)
+            else:
+                user_name = self.prefs.user_name
+        else:
+            user_name = args.name
+
+        # Set user email with args, prefs descending priority, or fail
+        if args.email is None:
+            if self.prefs.user_email is None:
+                print(
+                    "The user email must be defined for build operations, "
+                    "either with --email argument or through user "
+                    "preferences file."
+                )
+                sys.exit(1)
+            else:
+                user_email = self.prefs.user_name
+        else:
+            user_email = args.name
+
+        # Set build_msg with args, prefs descending priority, or fail
+        if args.msg is None:
+            if self.prefs.message is None:
+                print(
+                    "The build message must be defined for build operations, "
+                    "either with --msg argument or through user "
+                    "preferences file."
+                )
+                sys.exit(1)
+            else:
+                build_msg = self.prefs.message
+        else:
+            build_msg = args.msg
+
+        # Set subdir, which defaults to artefact name
+        if args.subdir is None:
+            subdir = args.artefact
+        else:
+            subdir = args.subdir
+
+        path = os.path.join(basedir, subdir)
+        defs = ArtefactDefs(path)
+
+        format = None
+        distribution = None
+
+        if args.distribution:
+            distribution = args.distribution
+            dist_fmt = connection.pipelines_distribution_format(
+                self.instance, args.distribution
+            )
+            # if format is also given, check it matches
+            if args.format and args.format != dist_fmt:
+                logger.error(
+                    "Specified format %s does not match the format "
+                    "of the specified distribution %s",
+                    args.format,
+                    args.distribution,
+                )
+                sys.exit(1)
+            format = dist_fmt
+        elif args.format is None:
             # distribution and format have not been specified, check format
             # supported by the artefact.
-            fmts = defs.supported_formats
+            supported_fmts = defs.supported_formats
             # check if there is not more than one supported format for this
             # artefact
-            if len(fmts) > 1:
+            if len(supported_fmts) > 1:
                 logger.error(
                     "There is more than one supported format for "
                     "artefact %s, at least the format must be "
-                    "specified" % (self.conf.run.artefact)
+                    "specified" % (args.artefact)
                 )
                 sys.exit(1)
-            if fmts:
-                self.conf.run.format = fmts[0]
+            if supported_fmts:
+                format = supported_fmts[0]
                 logger.debug(
                     "Format %s has been selected for artefact %s"
-                    % (self.conf.run.format, self.conf.run.artefact)
+                    % (format, args.artefact)
                 )
 
-        if not self.conf.run.format:
+        if not format:
             logger.error(
                 "Unable to define format of artefact %s, either the "
-                "distribution or the format must be specified"
-                % (self.conf.run.artefact)
+                "distribution or the format must be specified" % (args.artefact)
             )
             sys.exit(1)
-        elif not self.conf.run.distribution:
-            dists = connection.pipelines_format_distributions(
-                self.instance, self.conf.run.format
+        elif not args.distribution:
+            format_dists = connection.pipelines_format_distributions(
+                self.instance, format
             )
             # check if there is not more than one distribution for this format
-            if len(dists) > 1:
+            if len(format_dists) > 1:
                 logger.error(
                     "There is more than one distribution for the "
                     "format %s in pipelines definition, the "
-                    "distribution must be specified" % (self.conf.run.format)
+                    "distribution must be specified" % (format)
                 )
                 sys.exit(1)
-            self.conf.run.distribution = dists[0]
+            distribution = format_dists[0]
             logger.debug(
                 "Distribution %s has been selected for format %s"
-                % (self.conf.run.distribution, self.conf.run.format)
+                % (distribution, format)
             )
 
         # check artefact accepts this format
-        if self.conf.run.format not in defs.supported_formats:
+        if format not in defs.supported_formats:
             logger.error(
                 "Format %s is not accepted by artefact %s",
-                self.conf.run.format,
-                self.conf.run.artefact,
+                format,
+                args.artefact,
             )
             sys.exit(1)
 
         # check artefact accepts this derivative
-        if self.conf.run.derivative not in defs.derivatives:
+        if args.derivative not in defs.derivatives:
             logger.error(
                 "Derivative %s is not accepted by artefact %s",
-                self.conf.run.derivative,
-                self.conf.run.artefact,
+                args.derivative,
+                args.artefact,
             )
             sys.exit(1)
 
         # check format is accepted for this derivative
-        if self.conf.run.format not in connection.pipelines_derivative_formats(
-            self.instance, self.conf.run.derivative
+        if format not in connection.pipelines_derivative_formats(
+            self.instance, args.derivative
         ):
             logger.error(
                 "Derivative %s does not accept format %s",
-                self.conf.run.derivative,
-                self.conf.run.format,
+                args.derivative,
+                format,
             )
             sys.exit(1)
 
         # Get the build environment corresponding to this distribution
         env = connection.pipelines_distribution_environment(
-            self.instance, self.conf.run.distribution
+            self.instance, distribution
         )
         logger.debug(
             "Build environment selected for distribution %s: %s",
-            self.conf.run.distribution,
+            distribution,
             env,
         )
 
@@ -437,24 +484,29 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         try:
             request = mgr.request(
+                basedir,
+                subdir,
                 self.instance,
-                self.conf.run.distribution,
-                self.conf.run.derivative,
+                distribution,
+                args.derivative,
                 env,
-                self.conf.run.format,
-                self.conf.run.build_msg,
+                args.artefact,
+                format,
+                user_name,
+                user_email,
+                build_msg,
             )
             build_id = connection.submit(request)
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)
         logger.info("Build %s submitted" % (build_id))
-        if self.conf.run.watch:
+        if args.watch:
             self._watch_build(build_id)
 
-    def _run_list(self):
+    def _run_list(self, args):
         logger.debug("running list")
-        connection = ClientFactory.get(self.conf.run.host)
+        connection = ClientFactory.get(self.host)
         try:
             _running = connection.running()
             if _running:
@@ -474,7 +526,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             sys.exit(1)
 
     def _watch_build(self, build_id):
-        connection = ClientFactory.get(self.conf.run.host)
+        connection = ClientFactory.get(self.host)
         try:
             build = connection.get(build_id)
         except RuntimeError as err:
@@ -504,11 +556,11 @@ class Fatbuildrctl(FatbuildrCliRun):
             # `head` for example.
             pass
 
-    def _run_watch(self):
-        self._watch_build(self.conf.run.build)
+    def _run_watch(self, args):
+        self._watch_build(args.build)
 
-    def _run_archives(self):
-        connection = ClientFactory.get(self.conf.run.host)
+    def _run_archives(self, args):
+        connection = ClientFactory.get(self.host)
         archives = connection.archives()
         if not archives:
             print("No archive found")
@@ -517,23 +569,21 @@ class Fatbuildrctl(FatbuildrCliRun):
         for archive in archives:
             archive.report()
 
-    def _run_registry(self):
-        connection = ClientFactory.get(self.conf.run.host)
+    def _run_registry(self, args):
+        connection = ClientFactory.get(self.host)
         _fmt = connection.pipelines_distribution_format(
-            self.instance, self.conf.run.distribution
+            self.instance, args.distribution
         )
-        artefacts = connection.artefacts(
-            self.instance, _fmt, self.conf.run.distribution
-        )
+        artefacts = connection.artefacts(self.instance, _fmt, args.distribution)
         if not artefacts:
             print(
                 "No artefact found in %s distribution %s"
-                % (_fmt, self.conf.run.distribution)
+                % (_fmt, args.distribution)
             )
             return
         print(
             "Artefacts found for %s distribution %s:"
-            % (_fmt, self.conf.run.distribution)
+            % (_fmt, args.distribution)
         )
         for artefact in artefacts:
             artefact.report()

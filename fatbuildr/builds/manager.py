@@ -171,7 +171,20 @@ class ClientBuildsManager:
     def __init__(self, conf):
         self.conf = conf
 
-    def request(self, instance, distribution, derivative, env, fmt, msg):
+    def request(
+        self,
+        basedir,
+        subdir,
+        instance,
+        distribution,
+        derivative,
+        env,
+        artefact,
+        fmt,
+        user_name,
+        user_email,
+        msg,
+    ):
         # create tmp submission directory
         tmpdir = tempfile.mkdtemp(prefix='fatbuildr', dir=self.conf.dirs.tmp)
         logger.debug("Created request temporary directory %s" % (tmpdir))
@@ -179,14 +192,14 @@ class ClientBuildsManager:
         # create build request
         request = BuildRequest(
             tmpdir,
-            self.conf.run.user_name,
-            self.conf.run.user_email,
+            user_name,
+            user_email,
             instance,
             distribution,
             derivative,
             env,
             fmt,
-            self.conf.run.artefact,
+            artefact,
             datetime.now(),
             msg,
         )
@@ -195,7 +208,5 @@ class ClientBuildsManager:
         request.form.save(tmpdir)
 
         # prepare artefact tarball
-        request.prepare_tarball(
-            self.conf.run.basedir, self.conf.run.subdir, tmpdir
-        )
+        request.prepare_tarball(basedir, subdir, tmpdir)
         return request
