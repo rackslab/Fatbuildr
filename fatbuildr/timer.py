@@ -18,7 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import threading
-from datetime import datetime
+from time import monotonic as _time
 
 from .log import logr
 
@@ -27,7 +27,7 @@ logger = logr(__name__)
 
 class ServerTimer:
     def __init__(self, timeout=30):
-        self.start = datetime.now().timestamp()
+        self.start = _time()
         self.timeout = timeout
         self.event = threading.Event()
         # Combine a threading condition and a set for a kind of reverse
@@ -37,11 +37,11 @@ class ServerTimer:
 
     def reset(self):
         logger.debug("Reseting timer")
-        self.start = datetime.now().timestamp()
+        self.start = _time()
 
     @property
     def remaining(self):
-        return max(0, (self.start + self.timeout) - datetime.now().timestamp())
+        return max(0, (self.start + self.timeout) - _time())
 
     @property
     def notask(self):
