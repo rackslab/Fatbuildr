@@ -128,45 +128,6 @@ class BuildArchive(AbstractServerBuild):
         self.form = BuildForm.load(place)
 
 
-class BuildSubmission(AbstractServerBuild):
-
-    ARCHIVE_FILE = 'artefact.tar.xz'
-
-    def __init__(self, place, task_id, form):
-        super().__init__(place, task_id, 'pending')
-        self.form = form
-
-    def transfer_inputs(self, dest):
-        """Extract artefact archive and move build form in dest."""
-
-        # Extract artefact tarball in dest
-        tar_path = os.path.join(self.place, BuildSubmission.ARCHIVE_FILE)
-        logger.debug(
-            "Extracting tarball %s in destination %s" % (tar_path, dest)
-        )
-        tar = tarfile.open(tar_path, 'r:xz')
-        tar.extractall(path=dest)
-        tar.close()
-
-        # Move build form in dest
-        self.form.move(self.place, dest)
-
-    @classmethod
-    def load(cls, place, task_id):
-        form = BuildForm.load(place)
-        return cls(place, task_id, form)
-
-    @classmethod
-    def load_from_request(cls, place, request, task_id):
-        submission = cls(place, task_id, request.form)
-        logger.debug(
-            "Moving submission directory %s to %s"
-            % (request.place, submission.place)
-        )
-        shutil.move(request.place, submission.place)
-        return submission
-
-
 class ArtefactBuild(AbstractServerBuild):
     """Generic parent class of all ArtefactBuild formats."""
 
@@ -262,7 +223,7 @@ class ArtefactBuild(AbstractServerBuild):
 
         logger.del_file()
 
-    def init_from_submission(self, submission):
+    def init_from_request(self, request):
 
         if os.path.exists(self.place):
             logger.warning("Build directory %s already exists" % (self.place))
@@ -272,8 +233,17 @@ class ArtefactBuild(AbstractServerBuild):
             os.mkdir(self.place)
             os.chmod(self.place, 0o755)  # be umask agnostic
 
-        # get input from requests
-        submission.transfer_inputs(self.place)
+        # Extract artefact tarball in build place
+        tar_path = os.path.join(request.place, BuildRequest.ARCHIVE_FILE)
+        logger.debug(
+            "Extracting tarball %s in destination %s" % (tar_path, self.place)
+        )
+        tar = tarfile.open(tar_path, 'r:xz')
+        tar.extractall(path=self.place)
+        tar.close()
+
+        # Move request build form in build place
+        request.form.move(request.place, self.place)
 
     @staticmethod
     def hasher(hash_format):
@@ -353,7 +323,7 @@ class ArtefactBuild(AbstractServerBuild):
         )
 
     @classmethod
-    def load_from_submission(cls, conf, instance, submission):
-        obj = cls(conf, instance, submission.id, submission.form)
-        obj.init_from_submission(submission)
+    def load_from_request(cls, conf, instance, request, task_id):
+        obj = cls(conf, instance, task_id, request.form)
+        obj.init_from_request(request)
         return obj

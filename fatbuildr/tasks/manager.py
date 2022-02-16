@@ -26,9 +26,8 @@ from datetime import datetime
 from time import monotonic as _time
 from collections import deque
 
-from ..cleanup import CleanupRegistry
 from ..log import logr
-from ..builds import BuildSubmission, BuildRequest, BuildArchive
+from ..builds import BuildRequest, BuildArchive
 from ..builds.factory import BuildFactory
 
 logger = logr(__name__)
@@ -99,21 +98,17 @@ class ServerTasksManager:
         """Remove all submissions in queue directory not actually in queue, and
         archive all builds in build directory not actually running."""
         for build_id in os.listdir(self.conf.dirs.queue):
-            if build_id not in [build.id for build in self.queue.dump()]:
-                logger.warning(
-                    "Removing orphaned build submission %s" % (build_id)
-                )
-                shutil.rmtree(os.path.join(self.conf.dirs.queue, build_id))
-        for build_id in os.listdir(self.conf.dirs.build):
             if not self.running or build_id != self.running.id:
-                logger.warning("Archiving orphaned build %s" % (build_id))
+                logger.warning("Archiving orphaned build %s", build_id)
+                build_dir = os.path.join(self.conf.dirs.queue, build_id)
                 build = BuildFactory.load(
                     self.conf,
                     self.instance,
-                    os.path.join(self.conf.dirs.build, build_id),
+                    build_dir,
                     build_id,
                 )
                 build.archive()
+
 
     def interrupt(self):
         """Interrupt thread blocked in self.pick()->self.queue.get(timeout)."""
@@ -122,20 +117,16 @@ class ServerTasksManager:
     def submit(self, input):
         """Generate the build ID and place in queue."""
 
-        build_id = str(uuid.uuid4())  # generate build ID
-        place = os.path.join(self.conf.dirs.queue, build_id)
+        task_id = str(uuid.uuid4())  # generate task ID
         request = BuildRequest.load(input)
-        submission = BuildSubmission.load_from_request(place, request, build_id)
         try:
-            build = BuildFactory.generate(self.conf, self.instance, submission)
+            build = BuildFactory.generate(self.conf, self.instance, request, task_id)
         except RuntimeError as err:
             logger.error(
-                "unable to generate build from submission %s: %s"
-                % (submission.id, err)
+                "unable to generate build %s request %s: %s",
+                task_id, err
             )
             return None
-        logger.debug("Deleting submission directory %s" % (submission.place))
-        shutil.rmtree(submission.place)
         self.queue.put(build)
         logger.info("Build %s submitted in queue" % (build.id))
         return build

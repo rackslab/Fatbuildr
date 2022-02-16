@@ -32,7 +32,6 @@ class RuntimeSubConfDirs(object):
 
         self.instances = None
         self.queue = None
-        self.build = None
         self.archives = None
         self.registry = None
         self.cache = None
@@ -42,7 +41,6 @@ class RuntimeSubConfDirs(object):
         section = 'dirs'
         self.instances = config.get(section, 'instances')
         self.queue = config.get(section, 'queue')
-        self.build = config.get(section, 'build')
         self.archives = config.get(section, 'archives')
         self.registry = config.get(section, 'registry')
         self.cache = config.get(section, 'cache')
@@ -52,7 +50,6 @@ class RuntimeSubConfDirs(object):
         logger.debug("[dirs]")
         logger.debug("  instances: %s" % (self.instances))
         logger.debug("  queue: %s" % (self.queue))
-        logger.debug("  build: %s" % (self.build))
         logger.debug("  archives: %s" % (self.archives))
         logger.debug("  registry: %s" % (self.registry))
         logger.debug("  cache: %s" % (self.cache))
