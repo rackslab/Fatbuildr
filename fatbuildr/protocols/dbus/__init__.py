@@ -97,7 +97,6 @@ class DbusBuild(DBusData, WireBuild):
         self._place = None
         self._user = None
         self._email = None
-        self._instance = None
         self._distribution = None
         self._derivative = None
         self._environment = None
@@ -150,15 +149,6 @@ class DbusBuild(DBusData, WireBuild):
     @email.setter
     def email(self, value: Str):
         self._email = value
-
-    # instance
-    @property
-    def instance(self) -> Str:
-        return self._instance
-
-    @instance.setter
-    def instance(self, value: Str):
-        self._instance = value
 
     # distribution
     @property

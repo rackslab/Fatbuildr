@@ -90,7 +90,7 @@ class RegistryDeb(Registry):
                     distributions=distributions,
                     components=components,
                     key=build.keyring.masterkey.subkey.fingerprint,
-                    instance=build._instance.name,
+                    instance=build.instance.name,
                 )
             )
 

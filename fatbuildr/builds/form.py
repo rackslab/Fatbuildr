@@ -36,7 +36,6 @@ class BuildForm(object):
         self,
         user,
         email,
-        instance,
         distribution,
         derivative,
         environment,
@@ -47,7 +46,6 @@ class BuildForm(object):
     ):
         self.user = user
         self.email = email
-        self.instance = instance
         self.distribution = distribution
         self.derivative = derivative
         self.environment = environment
@@ -64,7 +62,6 @@ class BuildForm(object):
         return {
             'user': self.user,
             'email': self.email,
-            'instance': self.instance,
             'distribution': self.distribution,
             'derivative': self.derivative,
             'environment': self.environment,
@@ -95,7 +92,6 @@ class BuildForm(object):
         return cls(
             description['user'],
             description['email'],
-            description['instance'],
             description['distribution'],
             description['derivative'],
             description['environment'],

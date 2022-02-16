@@ -61,7 +61,6 @@ class WireBuild:
             pass
         print("  user: %s" % (self.user))
         print("  email: %s" % (self.email))
-        print("  instance: %s" % (self.instance))
         print("  distribution: %s" % (self.distribution))
         print("  derivative: %s" % (self.derivative))
         print("  environment: %s" % (self.environment))
@@ -84,7 +83,6 @@ class WireBuild:
             'place': self.place,
             'user': self.user,
             'email': self.email,
-            'instance': self.instance,
             'distribution': self.distribution,
             'derivative': self.derivative,
             'environment': self.environment,
@@ -111,7 +109,6 @@ class WireBuild:
             _obj.logfile = None
         _obj.user = build.user
         _obj.email = build.email
-        _obj.instance = build.instance
         if build.distribution is None:
             _obj.distribution = 'none'
         else:
@@ -139,7 +136,6 @@ class WireBuild:
             _obj.logfile = None
         _obj.user = json['user']
         _obj.email = json['email']
-        _obj.instance = json['instance']
         if json['distribution'] is None:
             _obj.distribution = 'none'
         else:

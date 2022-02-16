@@ -179,21 +179,21 @@ class ArtefactBuild(AbstractBuild):
         self.form = form
         self.name = form.artefact
         self.id = build_id
-        self._instance = instance
+        self.instance = instance
         self.place = os.path.join(self.conf.dirs.build, self.id)
-        self.cache = CacheArtefact(conf, self.instance, self)
+        self.cache = CacheArtefact(conf, self.instance.id, self)
         self.registry = RegistryManager.factory(
-            self.format, conf, self.instance
+            self.format, conf, self.instance.id,
         )
         # Get the recursive list of derivatives extended by the given
         # derivative.
-        self.derivatives = self._instance.pipelines.recursive_derivatives(
+        self.derivatives = self.instance.pipelines.recursive_derivatives(
             self.derivative
         )
         self.container = ContainerRunner(conf.containers)
-        self.image = Image(conf, self.instance, self.format)
+        self.image = Image(conf, self.instance.id, self.format)
         self.env = BuildEnv(conf, self.image, self.environment)
-        self.keyring = KeyringManager(conf).keyring(self.instance)
+        self.keyring = KeyringManager(conf).keyring(self.instance.id)
         self.keyring.load()
         self.defs = None  # loaded in prepare()
 
@@ -247,7 +247,7 @@ class ArtefactBuild(AbstractBuild):
         logger.info("Running build %s" % (self.id))
 
         # setup logger to duplicate logs in logfile
-        logger.add_file(self.logfile, self._instance.id)
+        logger.add_file(self.logfile, self.instance.id)
 
         try:
             self.prepare()

@@ -487,7 +487,6 @@ class Fatbuildrctl(FatbuildrCliRun):
             request = mgr.request(
                 basedir,
                 subdir,
-                self.instance,
                 distribution,
                 args.derivative,
                 env,

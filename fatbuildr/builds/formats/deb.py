@@ -158,7 +158,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             envs=[
                 f"FATBUILDR_REPO={self.registry.path}",
                 f"FATBUILDR_KEYRING={keyring_path}",
-                f"FATBUILDR_SOURCE={self._instance.name}",
+                f"FATBUILDR_SOURCE={self.instance.name}",
                 f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
             ],
         )
