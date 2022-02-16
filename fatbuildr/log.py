@@ -83,7 +83,7 @@ class BuildlogFilter(logging.Filter):
         self.instance = instance
 
     def filter(self, record):
-        if record.threadName == f"builder-{self.instance}":
+        if record.threadName == f"worker-{self.instance}":
             return 1
         return 0
 

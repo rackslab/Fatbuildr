@@ -26,6 +26,7 @@ import tarfile
 
 import requests
 
+from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artefact import ArtefactDefs
 from ..registry.manager import RegistryManager
@@ -33,6 +34,7 @@ from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
 from ..keyring import KeyringManager
+from ..archives import ArchivesManager
 from ..log import logr
 from .form import BuildForm
 
@@ -40,27 +42,9 @@ logger = logr(__name__)
 
 
 class AbstractBuild:
-    def __init__(self, place, build_id):
-        self.form = None
-        self.id = build_id
+    def __init__(self, place):
         self.place = place
-
-    @property
-    def state(self):
-        if isinstance(self, BuildArchive):
-            return 'finished'
-        elif isinstance(self, BuildSubmission):
-            return 'pending'
-        elif isinstance(self, ArtefactBuild):
-            return 'running'
-        else:
-            raise RuntimeError("Unsupported instance %s" % (type(self)))
-
-    @property
-    def logfile(self):
-        if self.place is None or self.state not in ['running', 'finished']:
-            return None
-        return os.path.join(self.place, 'build.log')
+        self.form = None
 
     def __getattr__(self, name):
         """Returns self.form attribute as if they were instance attributes."""
@@ -73,57 +57,12 @@ class AbstractBuild:
             )
 
 
-class BuildArchive(AbstractBuild):
-    def __init__(self, place, build_id):
-        super().__init__(place, build_id)
-        self.form = BuildForm.load(place)
-
-
-class BuildSubmission(AbstractBuild):
-
-    ARCHIVE_FILE = 'artefact.tar.xz'
-
-    def __init__(self, place, build_id, form):
-        super().__init__(place, build_id)
-        self.form = form
-
-    def transfer_inputs(self, dest):
-        """Extract artefact archive and move build form in dest."""
-
-        # Extract artefact tarball in dest
-        tar_path = os.path.join(self.place, BuildSubmission.ARCHIVE_FILE)
-        logger.debug(
-            "Extracting tarball %s in destination %s" % (tar_path, dest)
-        )
-        tar = tarfile.open(tar_path, 'r:xz')
-        tar.extractall(path=dest)
-        tar.close()
-
-        # Move build form in dest
-        self.form.move(self.place, dest)
-
-    @classmethod
-    def load(cls, place, build_id):
-        form = BuildForm.load(place)
-        return cls(place, build_id, form)
-
-    @classmethod
-    def load_from_request(cls, place, request, build_id):
-        submission = cls(place, build_id, request.form)
-        logger.debug(
-            "Moving submission directory %s to %s"
-            % (request.place, submission.place)
-        )
-        shutil.move(request.place, submission.place)
-        return submission
-
-
 class BuildRequest(AbstractBuild):
 
     ARCHIVE_FILE = 'artefact.tar.xz'
 
     def __init__(self, place, *args):
-        super().__init__(place, None)
+        super().__init__(place)
         if isinstance(args[0], BuildForm):
             self.form = args[0]
         else:
@@ -171,19 +110,78 @@ class BuildRequest(AbstractBuild):
         return cls(place, BuildForm.load(place))
 
 
-class ArtefactBuild(AbstractBuild):
+class AbstractServerBuild(AbstractBuild, RunnableTask):
+    def __init__(self, place, task_id, state):
+        AbstractBuild.__init__(self, place)
+        RunnableTask.__init__(self, task_id, state)
+
+    @property
+    def logfile(self):
+        if self.place is None or self.state not in ['running', 'finished']:
+            return None
+        return os.path.join(self.place, 'build.log')
+
+
+class BuildArchive(AbstractServerBuild):
+    def __init__(self, place, task_id):
+        super().__init__(place, task_id, 'finished')
+        self.form = BuildForm.load(place)
+
+
+class BuildSubmission(AbstractServerBuild):
+
+    ARCHIVE_FILE = 'artefact.tar.xz'
+
+    def __init__(self, place, task_id, form):
+        super().__init__(place, task_id, 'pending')
+        self.form = form
+
+    def transfer_inputs(self, dest):
+        """Extract artefact archive and move build form in dest."""
+
+        # Extract artefact tarball in dest
+        tar_path = os.path.join(self.place, BuildSubmission.ARCHIVE_FILE)
+        logger.debug(
+            "Extracting tarball %s in destination %s" % (tar_path, dest)
+        )
+        tar = tarfile.open(tar_path, 'r:xz')
+        tar.extractall(path=dest)
+        tar.close()
+
+        # Move build form in dest
+        self.form.move(self.place, dest)
+
+    @classmethod
+    def load(cls, place, task_id):
+        form = BuildForm.load(place)
+        return cls(place, task_id, form)
+
+    @classmethod
+    def load_from_request(cls, place, request, task_id):
+        submission = cls(place, task_id, request.form)
+        logger.debug(
+            "Moving submission directory %s to %s"
+            % (request.place, submission.place)
+        )
+        shutil.move(request.place, submission.place)
+        return submission
+
+
+class ArtefactBuild(AbstractServerBuild):
     """Generic parent class of all ArtefactBuild formats."""
 
-    def __init__(self, conf, instance, build_id, form):
-        self.conf = conf
+    def __init__(self, conf, instance, task_id, form):
+        super().__init__(
+            os.path.join(conf.dirs.queue, task_id), task_id, 'pending'
+        )
         self.form = form
         self.name = form.artefact
-        self.id = build_id
         self.instance = instance
-        self.place = os.path.join(self.conf.dirs.build, self.id)
         self.cache = CacheArtefact(conf, self.instance.id, self)
         self.registry = RegistryManager.factory(
-            self.format, conf, self.instance.id,
+            self.format,
+            conf,
+            self.instance.id,
         )
         # Get the recursive list of derivatives extended by the given
         # derivative.
@@ -195,6 +193,7 @@ class ArtefactBuild(AbstractBuild):
         self.env = BuildEnv(conf, self.image, self.environment)
         self.keyring = KeyringManager(conf).keyring(self.instance.id)
         self.keyring.load()
+        self.archives_mgr = ArchivesManager(conf)
         self.defs = None  # loaded in prepare()
 
     def __getattr__(self, name):
@@ -245,6 +244,8 @@ class ArtefactBuild(AbstractBuild):
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""
         logger.info("Running build %s" % (self.id))
+
+        super().run()
 
         # setup logger to duplicate logs in logfile
         logger.add_file(self.logfile, self.instance.id)
@@ -322,6 +323,12 @@ class ArtefactBuild(AbstractBuild):
                     self.checksum_value,
                 )
             )
+
+    def terminate(self):
+        self.archive()
+
+    def archive(self):
+        self.archives_mgr.save_build(self)
 
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""

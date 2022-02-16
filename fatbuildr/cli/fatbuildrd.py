@@ -86,14 +86,14 @@ class Fatbuildrd(FatbuildrCliRun):
         self.sm = ServiceManager()
         self.timer = ServerTimer()
 
-        builder_threads = {}
+        worker_threads = {}
         for instance in self.instances:
-            builder_threads[instance.id] = threading.Thread(
-                target=self._builder,
+            worker_threads[instance.id] = threading.Thread(
+                target=self._worker,
                 args=(instance,),
-                name=f"builder-{instance.id}",
+                name=f"worker-{instance.id}",
             )
-            builder_threads[instance.id].start()
+            worker_threads[instance.id].start()
 
         server_thread = threading.Thread(target=self._server, name='server')
         server_thread.start()
@@ -103,7 +103,7 @@ class Fatbuildrd(FatbuildrCliRun):
 
         logger.debug("All threads are started")
 
-        for instance, thread in builder_threads.items():
+        for instance, thread in worker_threads.items():
             thread.join()
         server_thread.join()
         timer_thread.join()
@@ -111,10 +111,10 @@ class Fatbuildrd(FatbuildrCliRun):
         logger.debug("All threads are properly stopped")
         self.sm.notify_stop()
 
-    def _builder(self, instance):
-        """Thread handling build loop."""
-        logger.info("Starting builder thread")
-        instance.build_mgr.clear_orphaned()
+    def _worker(self, instance):
+        """Thread working over an instance tasks queue."""
+        logger.info("Starting worker thread for instance %s", instance.id)
+        instance.tasks_mgr.clear_orphaned_builds()
 
         timer_inc = False
         while True:
@@ -122,24 +122,21 @@ class Fatbuildrd(FatbuildrCliRun):
                 # Try picking the first request in queue for 60 seconds. The
                 # timeout is set to 60 seconds to avoid too frequent polling
                 # but it can be interrupted by the timer thread when it leaves.
-                build = instance.build_mgr.pick(60)
-                if build:
-                    self.timer.register_task(
-                        instance.id
-                    )  # lock the timer while builds are in the queue
-                    build.run()
-                    instance.build_mgr.archive(build)
+                task = instance.tasks_mgr.pick(60)
+                if task:
+                    # lock the timer while tasks are in the queue
+                    self.timer.register_worker(instance.id)
+                    instance.tasks_mgr.run(task)
             except RuntimeError as err:
-                logger.error("Error while processing build: %s" % (err))
-            if instance.build_mgr.queue.empty():
-                self.timer.unregister_task(
-                    instance.id
-                )  # allow other threads to leave
+                logger.error("Error while processing task: %s" % (err))
+            if instance.tasks_mgr.queue.empty():
+                # release the timer to allow other threads to leave
+                self.timer.unregister_worker(instance.id)
             if self.timer.over:
                 break
         logger.info(
-            f"Stopping builder-{instance.id} thread as timer is over and "
-            "build queue is empty"
+            f"Stopping worker thread for instance {instance.id} as timer is "
+            "over and task queue is empty"
         )
 
     def _server(self):
@@ -163,12 +160,12 @@ class Fatbuildrd(FatbuildrCliRun):
 
         logger.info("Timer is over, notifying all builder threads")
         for instance in self.instances:
-            with instance.build_mgr.queue._count._cond:
+            with instance.tasks_mgr.queue._count._cond:
                 logger.debug(
                     "Interrupting %s instance build manager to stop waiting for tasks",
                     instance.id,
                 )
-                instance.build_mgr.interrupt()
+                instance.tasks_mgr.interrupt()
         logger.info("Stopping the server")
         self.server.quit()
         logger.info("Leaving timer thread")

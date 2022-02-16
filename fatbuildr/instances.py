@@ -21,7 +21,7 @@ from pathlib import Path
 
 import yaml
 
-from .builds.manager import ServerBuildsManager
+from .tasks.manager import ServerTasksManager
 
 from .utils import Singleton
 from .log import logr
@@ -126,7 +126,7 @@ class RunningInstance:
         self.gpg_name = gpg_name
         self.gpg_email = gpg_email
         self.pipelines = pipelines
-        self.build_mgr = ServerBuildsManager(self.conf, self)
+        self.tasks_mgr = ServerTasksManager(self.conf, self)
 
     @property
     def userid(self):

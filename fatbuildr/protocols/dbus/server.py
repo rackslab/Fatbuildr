@@ -258,16 +258,16 @@ class FatbuildrMultiplexer(object):
         self.timer.reset()
         return [
             DbusSubmittedBuild.load_from_build(_build)
-            for _build in self.instances[instance].build_mgr.queue.dump()
+            for _build in self.instances[instance].tasks_mgr.queue.dump()
         ]
 
     def running(self, instance):
         """The list of builds in queue."""
         self.timer.reset()
-        if not self.instances[instance].build_mgr.running:
+        if not self.instances[instance].tasks_mgr.running:
             raise ErrorNoRunningBuild()
         return DbusRunningBuild.load_from_build(
-            self.instances[instance].build_mgr.running
+            self.instances[instance].tasks_mgr.running
         )
 
     def archives(self, instance):
@@ -275,7 +275,7 @@ class FatbuildrMultiplexer(object):
         self.timer.reset()
         return [
             DbusArchivedBuild.load_from_build(_build)
-            for _build in self.instances[instance].build_mgr.archives()
+            for _build in self.instances[instance].tasks_mgr.archives()
         ]
 
     def formats(self, instance: Str):
@@ -358,7 +358,7 @@ class FatbuildrMultiplexer(object):
     def submit(self, instance: Str, input: Str):
         """Submit a new build."""
         self.timer.reset()
-        submission = self.instances[instance].build_mgr.submit(input)
+        submission = self.instances[instance].tasks_mgr.submit(input)
         return submission.id
 
     def keyring_export(self, instance: Str):

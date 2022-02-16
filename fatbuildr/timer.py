@@ -31,9 +31,9 @@ class ServerTimer:
         self.timeout = timeout
         self.event = threading.Event()
         # Combine a threading condition and a set for a kind of reverse
-        # semaphore to track all running instances threads.
+        # semaphore to track all running instances workers threads.
         self._cond = threading.Condition(threading.Lock())
-        self._tasks = set()
+        self._workers = set()
 
     def reset(self):
         logger.debug("Reseting timer")
@@ -46,28 +46,28 @@ class ServerTimer:
     @property
     def notask(self):
         with self._cond:
-            return not self._tasks
+            return not self._workers
 
     @property
     def over(self):
         return self.notask and self.remaining == 0
 
-    def register_task(self, task):
+    def register_worker(self, worker):
         with self._cond:
-            self._tasks.add(task)
+            self._workers.add(worker)
 
-    def unregister_task(self, task):
+    def unregister_worker(self, worker):
         with self._cond:
             try:
-                self._tasks.remove(task)
+                self._workers.remove(worker)
             except KeyError:
                 pass
-            if not self._tasks:
+            if not self._workers:
                 self._cond.notify()
 
     def waitnotask(self, timeout):
         with self._cond:
-            if not self._tasks:
+            if not self._workers:
                 return True
             logger.debug("Waiting for timer lock for %f seconds" % (timeout))
             return self._cond.wait(timeout)
