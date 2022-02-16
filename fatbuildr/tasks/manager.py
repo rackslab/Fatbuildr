@@ -101,14 +101,20 @@ class ServerTasksManager:
             if not self.running or build_id != self.running.id:
                 logger.warning("Archiving orphaned build %s", build_id)
                 build_dir = os.path.join(self.conf.dirs.queue, build_id)
-                build = BuildFactory.load(
-                    self.conf,
-                    self.instance,
-                    build_dir,
-                    build_id,
-                )
-                build.archive()
-
+                try:
+                    build = BuildFactory.load(
+                        self.conf,
+                        self.instance,
+                        build_dir,
+                        build_id,
+                    )
+                    build.archive()
+                except Exception as err:
+                    logger.error(
+                        "Unable to load orphaned build %s : %s", build_id, err
+                    )
+                    logger.warning("Removing directory %s", build_dir)
+                    shutil.rmtree(build_dir)
 
     def interrupt(self):
         """Interrupt thread blocked in self.pick()->self.queue.get(timeout)."""
@@ -120,11 +126,12 @@ class ServerTasksManager:
         task_id = str(uuid.uuid4())  # generate task ID
         request = BuildRequest.load(input)
         try:
-            build = BuildFactory.generate(self.conf, self.instance, request, task_id)
+            build = BuildFactory.generate(
+                self.conf, self.instance, request, task_id
+            )
         except RuntimeError as err:
             logger.error(
-                "unable to generate build %s request %s: %s",
-                task_id, err
+                "unable to generate build %s request %s: %s", task_id, err
             )
             return None
         self.queue.put(build)
