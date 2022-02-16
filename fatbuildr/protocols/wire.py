@@ -19,6 +19,7 @@
 
 from datetime import datetime
 
+from ..registry.formats import RegistryArtefact
 from ..log import logr
 
 logger = logr(__name__)
@@ -172,6 +173,12 @@ class WireArtefact:
         _obj.architecture = artefact.architecture
         _obj.version = artefact.version
         return _obj
+
+    @staticmethod
+    def convert_to_artefact(artefact):
+        return RegistryArtefact(
+            artefact.name, artefact.architecture, artefact.version
+        )
 
 
 class WireChangelogEntry:

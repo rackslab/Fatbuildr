@@ -149,6 +149,23 @@ class FatbuildrInterface(InterfaceTemplate):
             )
         )
 
+    def ArtefactDelete(
+        self,
+        instance: Str,
+        fmt: Str,
+        distribution: Str,
+        derivative: Str,
+        artefact: Structure,
+    ) -> Str:
+        """Submit artefact deletion task."""
+        return self.implementation.artefact_delete(
+            instance,
+            fmt,
+            distribution,
+            derivative,
+            DbusArtefact.from_structure(artefact),
+        )
+
     def ArtefactBinaries(
         self,
         instance: Str,
@@ -301,6 +318,22 @@ class FatbuildrMultiplexer(object):
         return [
             DbusArtefact.load_from_artefact(artefact) for artefact in artefacts
         ]
+
+    def artefact_delete(
+        self,
+        instance: Str,
+        fmt: Str,
+        distribution: Str,
+        derivative: Str,
+        artefact: Structure,
+    ):
+        self.timer.reset()
+        return self.instances[instance].tasks_mgr.submit_artefact_deletion(
+            fmt,
+            distribution,
+            derivative,
+            DbusArtefact.convert_to_artefact(artefact),
+        )
 
     def artefact_bins(
         self,

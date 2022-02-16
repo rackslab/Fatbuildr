@@ -30,6 +30,8 @@ from ..log import logr
 from ..builds import BuildRequest, BuildArchive
 from ..builds.factory import BuildFactory
 
+from .registry import RegistryArtefactDeletionTask
+
 logger = logr(__name__)
 
 
@@ -119,6 +121,23 @@ class ServerTasksManager:
     def interrupt(self):
         """Interrupt thread blocked in self.pick()->self.queue.get(timeout)."""
         self.queue.interrupt_get()
+
+    def submit_artefact_deletion(
+        self, format, distribution, derivative, artefact
+    ):
+        task_id = str(uuid.uuid4())  # generate task ID
+        task = RegistryArtefactDeletionTask(
+            self.conf,
+            self.instance,
+            task_id,
+            format,
+            distribution,
+            derivative,
+            artefact,
+        )
+        self.queue.put(task)
+        logger.info("Artefact deletion task %s submitted in queue" % (task.id))
+        return task_id
 
     def submit(self, input):
         """Generate the build ID and place in queue."""

@@ -84,6 +84,17 @@ class DbusClient(object):
             self.proxy.Artefacts(instance, fmt, distribution, derivative)
         )
 
+    def delete_artefact(
+        self, instance, fmt, distribution, derivative, artefact
+    ):
+        return self.proxy.ArtefactDelete(
+            instance,
+            fmt,
+            distribution,
+            derivative,
+            DbusArtefact.to_structure(artefact),
+        )
+
     def artefact_bins(self, instance, fmt, distribution, derivative, artefact):
         return DbusArtefact.from_structure_list(
             self.proxy.ArtefactBinaries(

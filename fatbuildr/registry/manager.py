@@ -74,6 +74,12 @@ class RegistryManager:
             distribution, derivative, architecture, artefact
         )
 
+    def delete_artefact(
+        self, instance, fmt, distribution, derivative, artefact
+    ):
+        registry = RegistryManager.factory(fmt, self.conf, instance)
+        return registry.delete_artefact(distribution, derivative, artefact)
+
     @staticmethod
     def factory(fmt, conf, instance):
         """Instanciate the appropriate Registry for the given format."""
