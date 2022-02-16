@@ -37,6 +37,7 @@ logger = logr(__name__)
 class InterruptableSemaphore(threading.Semaphore):
     """Override threading.Semaphore acquire to make acquire interruptable
     before the timeout by notifying the internal threading.Condition."""
+
     def acquire(self, timeout=None):
         rc = False
         with self._cond:
@@ -163,10 +164,19 @@ class ServerBuildsManager:
     def archive(self, build):
 
         self.running = None
-        dest = os.path.join(self.conf.dirs.archives, build.id)
+        archives_dir = os.path.join(self.conf.dirs.archives, build.id)
+        if not os.path.exists(archives_dir):
+            logger.debug(
+                "Creating instance archives directory %s", archives_dir
+            )
+            os.mkdir(archives_dir)
+            os.chmod(archives_dir, 0o755)  # be umask agnostic
+
+        dest = os.path.join(archives_dir, self.instance.id)
         logger.info(
-            "Moving build directory %s to archives directory %s"
-            % (build.place, dest)
+            "Moving build directory %s to archives directory %s",
+            build.place,
+            dest,
         )
         shutil.move(build.place, dest)
 
@@ -178,11 +188,13 @@ class ServerBuildsManager:
     def archives(self):
         """Returns all BuildArchive found in archives directory."""
         _archives = []
-        for build_id in os.listdir(self.conf.dirs.archives):
+
+        archives_dir = os.path.join(self.conf.dirs.archives, self.instance.id)
+        for build_id in os.listdir(archives_dir):
             try:
                 _archives.append(
                     BuildArchive(
-                        os.path.join(self.conf.dirs.archives, build_id),
+                        os.path.join(archives_dir, build_id),
                         build_id,
                     )
                 )
