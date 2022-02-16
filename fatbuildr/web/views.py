@@ -252,7 +252,7 @@ def artefacts(instance, artefact, output='html'):
         )
 
 
-def submit():
+def submit(instance):
     tarball = request.files['tarball']
     form = request.files['form']
     secured_tarball = secure_filename(tarball.filename)
@@ -268,34 +268,34 @@ def submit():
     # load the build request and submit to local fatbuildrd
     build_request = BuildRequest.load(tmpdir)
     connection = ClientFactory.get('local')
-    build_id = connection.submit(build_request)
+    build_id = connection.submit(instance, build_request)
     return jsonify({'build': build_id})
 
 
-def running():
+def running(instance):
     connection = ClientFactory.get('local')
-    running = connection.running()
+    running = connection.running(instance)
     if running:
         return jsonify(running.to_dict())
     return jsonify(None)
 
 
-def queue():
+def queue(instance):
     connection = ClientFactory.get('local')
-    builds = connection.queue()
+    builds = connection.queue(instance)
     return jsonify([build.to_dict() for build in builds])
 
 
-def build(build_id):
+def build(instance, build_id):
     connection = ClientFactory.get('local')
-    build = connection.get(build_id)
+    build = connection.get(instance, build_id)
     return jsonify(build.to_dict())
 
 
-def watch(build_id):
+def watch(instance, build_id):
     """Stream lines obtained by DbusClient.watch() generator."""
     connection = ClientFactory.get('local')
-    build = connection.get(build_id)
+    build = connection.get(instance, build_id)
     return current_app.response_class(
         connection.watch(build), mimetype='text/plain'
     )

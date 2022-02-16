@@ -114,13 +114,25 @@ class WebApp(Flask):
             defaults={'output': 'json'},
         )
 
-        self.add_url_rule('/submit', view_func=views.submit, methods=['POST'])
-        self.add_url_rule('/running.json', view_func=views.running)
-        self.add_url_rule('/queue.json', view_func=views.queue)
         self.add_url_rule(
-            '/builds/<string:build_id>.json', view_func=views.build
+            '/<string:instance>/submit',
+            view_func=views.submit,
+            methods=['POST'],
         )
-        self.add_url_rule('/watch/<string:build_id>.log', view_func=views.watch)
+        self.add_url_rule(
+            '/<string:instance>/running.json', view_func=views.running
+        )
+        self.add_url_rule(
+            '/<string:instance>/queue.json', view_func=views.queue
+        )
+        self.add_url_rule(
+            '/<string:instance>/builds/<string:build_id>.json',
+            view_func=views.build,
+        )
+        self.add_url_rule(
+            '/<string:instance>/watch/<string:build_id>.log',
+            view_func=views.watch,
+        )
         self.add_url_rule(
             '/<string:instance>/<path:filename>', view_func=views.content
         )

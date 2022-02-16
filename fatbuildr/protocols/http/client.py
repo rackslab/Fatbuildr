@@ -61,8 +61,8 @@ class HttpClient:
         formats = response.json()
         return list(formats.keys())
 
-    def submit(self, request):
-        url = f"{self.host}/submit"
+    def submit(self, instance, request):
+        url = f"{self.host}/{instance}/submit"
 
         files = {
             'tarball': open(request.tarball, 'rb'),
@@ -77,30 +77,30 @@ class HttpClient:
 
         return response.json()['build']
 
-    def queue(self):
-        url = f"{self.host}/queue.json"
+    def queue(self, instance):
+        url = f"{self.host}/{instance}/queue.json"
         response = requests.get(url)
         return [WireBuild.load_from_json(build) for build in response.json()]
 
-    def running(self):
-        url = f"{self.host}/running.json"
+    def running(self, instance):
+        url = f"{self.host}/{instance}/running.json"
         response = requests.get(url)
         json_build = response.json()
         if json_build is None:
             return None
         return WireBuild.load_from_json(json_build)
 
-    def get(self, build_id):
-        url = f"{self.host}/builds/{build_id}.json"
+    def get(self, instance, build_id):
+        url = f"{self.host}/{instance}/builds/{build_id}.json"
         response = requests.get(url)
         json_build = response.json()
         if json_build is None:
             return None
         return WireBuild.load_from_json(json_build)
 
-    def watch(self, build):
+    def watch(self, instance, build):
         """Generate build log lines with a streaming request."""
-        url = f"{self.host}/watch/{build.id}.log"
+        url = f"{self.host}/{instance}/watch/{build.id}.log"
         response = requests.get(url, stream=True)
         for line in response.iter_lines(decode_unicode=True, delimiter='\n'):
             yield line + '\n'
