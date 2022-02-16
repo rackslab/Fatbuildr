@@ -78,7 +78,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser.add_argument(
             '--preferences',
-            help=f"Path to user preference file (default: {default_user_pref()})",
+            help="Path to user preference file (default: %(default)s)",
             type=Path,
             default=default_user_pref(),
         )
