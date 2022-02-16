@@ -353,9 +353,9 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
                 sys.exit(1)
             else:
-                user_email = self.prefs.user_name
+                user_email = self.prefs.user_email
         else:
-            user_email = args.name
+            user_email = args.email
 
         # Set build_msg with args, prefs descending priority, or fail
         if args.msg is None:
