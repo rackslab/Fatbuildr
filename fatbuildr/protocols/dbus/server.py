@@ -101,20 +101,23 @@ class FatbuildrInterface(InterfaceTemplate):
         """The list of available instances."""
         return self.implementation.registry_instances
 
-    @property
-    def Queue(self) -> List[Structure]:
+    def Queue(self, instance: Str) -> List[Structure]:
         """The list of builds in queue."""
-        return DbusSubmittedBuild.to_structure_list(self.implementation.queue)
+        return DbusSubmittedBuild.to_structure_list(
+            self.implementation.queue(instance)
+        )
 
-    @property
-    def Running(self) -> Structure:
+    def Running(self, instance: Str) -> Structure:
         """The currently running build"""
-        return DbusRunningBuild.to_structure(self.implementation.running)
+        return DbusRunningBuild.to_structure(
+            self.implementation.running(instance)
+        )
 
-    @property
-    def Archives(self) -> List[Structure]:
+    def Archives(self, instance: Str) -> List[Structure]:
         """The list of builds in queue."""
-        return DbusArchivedBuild.to_structure_list(self.implementation.archives)
+        return DbusArchivedBuild.to_structure_list(
+            self.implementation.archives(instance)
+        )
 
     def Formats(self, instance: Str) -> List[Str]:
         """The list of available formats in an instance registries."""
@@ -195,9 +198,9 @@ class FatbuildrInterface(InterfaceTemplate):
             )
         )
 
-    def Submit(self, input: Str) -> Str:
+    def Submit(self, instance: Str, input: Str) -> Str:
         """Submit a new build."""
-        return self.implementation.submit(input)
+        return self.implementation.submit(instance, input)
 
     def KeyringExport(self, instance: Str) -> Str:
         """Returns armored public key of instance keyring."""
@@ -207,9 +210,8 @@ class FatbuildrInterface(InterfaceTemplate):
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
 
-    def __init__(self, instances, build_mgr, registry_mgr, keyring_mgr, timer):
+    def __init__(self, instances, registry_mgr, keyring_mgr, timer):
         self.instances = instances
-        self.build_mgr = build_mgr
         self.registry_mgr = registry_mgr
         self.keyring_mgr = keyring_mgr
         self.timer = timer
@@ -220,61 +222,60 @@ class FatbuildrMultiplexer(object):
 
     def pipelines_formats(self, instance: Str):
         self.timer.reset()
-        return self.instances[instance].formats
+        return self.instances[instance].pipelines.formats
 
     def pipelines_format_distributions(self, instance: Str, format: Str):
         self.timer.reset()
-        return self.instances[instance].format_dists(format)
+        return self.instances[instance].pipelines.format_dists(format)
 
     def pipelines_distribution_format(self, instance: Str, distribution: Str):
         self.timer.reset()
-        return self.instances[instance].dist_format(distribution)
+        return self.instances[instance].pipelines.dist_format(distribution)
 
     def pipelines_distribution_derivatives(
         self, instance: Str, distribution: Str
     ):
         self.timer.reset()
-        return self.instances[instance].dist_derivatives(distribution)
+        return self.instances[instance].pipelines.dist_derivatives(distribution)
 
     def pipelines_distribution_environment(
         self, instance: Str, distribution: Str
     ):
         self.timer.reset()
-        return self.instances[instance].dist_env(distribution)
+        return self.instances[instance].pipelines.dist_env(distribution)
 
     def pipelines_derivative_formats(self, instance: Str, derivative: Str):
         self.timer.reset()
-        return self.instances[instance].derivative_formats(derivative)
+        return self.instances[instance].pipelines.derivative_formats(derivative)
 
     @property
     def registry_instances(self):
         self.timer.reset()
         return self.registry_mgr.instances
 
-    @property
-    def queue(self):
-        """The list of builds in queue."""
+    def queue(self, instance):
+        """The list of builds in instance queue."""
         self.timer.reset()
         return [
             DbusSubmittedBuild.load_from_build(_build)
-            for _build in self.build_mgr.queue.dump()
+            for _build in self.instances[instance].build_mgr.queue.dump()
         ]
 
-    @property
-    def running(self):
+    def running(self, instance):
         """The list of builds in queue."""
         self.timer.reset()
-        if not self.build_mgr.running:
+        if not self.instances[instance].build_mgr.running:
             raise ErrorNoRunningBuild()
-        return DbusRunningBuild.load_from_build(self.build_mgr.running)
+        return DbusRunningBuild.load_from_build(
+            self.instances[instance].build_mgr.running
+        )
 
-    @property
-    def archives(self):
+    def archives(self, instance):
         """The list of archived builds."""
         self.timer.reset()
         return [
             DbusArchivedBuild.load_from_build(_build)
-            for _build in self.build_mgr.archives()
+            for _build in self.instances[instance].build_mgr.archives()
         ]
 
     def formats(self, instance: Str):
@@ -354,10 +355,10 @@ class FatbuildrMultiplexer(object):
             DbusChangelogEntry.load_from_entry(entry) for entry in changelog
         ]
 
-    def submit(self, input: Str):
+    def submit(self, instance: Str, input: Str):
         """Submit a new build."""
         self.timer.reset()
-        submission = self.build_mgr.submit(input)
+        submission = self.instances[instance].build_mgr.submit(input)
         return submission.id
 
     def keyring_export(self, instance: Str):
@@ -367,7 +368,7 @@ class FatbuildrMultiplexer(object):
 
 
 class DbusServer(object):
-    def run(self, instances, build_mgr, registry_mgr, keyring_mgr, timer):
+    def run(self, instances, registry_mgr, keyring_mgr, timer):
 
         # Print the generated XML specification.
         logger.debug(
@@ -377,7 +378,7 @@ class DbusServer(object):
 
         # Create the Fatbuildr multiplexer.
         multiplexer = FatbuildrMultiplexer(
-            instances, build_mgr, registry_mgr, keyring_mgr, timer
+            instances, registry_mgr, keyring_mgr, timer
         )
 
         # Publish the register at /org/rackslab/Fatbuildr.

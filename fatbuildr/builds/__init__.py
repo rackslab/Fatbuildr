@@ -33,7 +33,6 @@ from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
 from ..keyring import KeyringManager
-from ..instances import Instances
 from ..log import logr
 from .form import BuildForm
 
@@ -175,12 +174,12 @@ class BuildRequest(AbstractBuild):
 class ArtefactBuild(AbstractBuild):
     """Generic parent class of all ArtefactBuild formats."""
 
-    def __init__(self, conf, build_id, form):
+    def __init__(self, conf, instance, build_id, form):
         self.conf = conf
         self.form = form
         self.name = form.artefact
         self.id = build_id
-        self._instance = Instances(self.conf)[self.instance]
+        self._instance = instance
         self.place = os.path.join(self.conf.dirs.build, self.id)
         self.cache = CacheArtefact(conf, self.instance, self)
         self.registry = RegistryManager.factory(
@@ -188,7 +187,9 @@ class ArtefactBuild(AbstractBuild):
         )
         # Get the recursive list of derivatives extended by the given
         # derivative.
-        self.derivatives = self._instance.recursive_derivatives(self.derivative)
+        self.derivatives = self._instance.pipelines.recursive_derivatives(
+            self.derivative
+        )
         self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, self.instance, self.format)
         self.env = BuildEnv(conf, self.image, self.environment)
@@ -246,7 +247,7 @@ class ArtefactBuild(AbstractBuild):
         logger.info("Running build %s" % (self.id))
 
         # setup logger to duplicate logs in logfile
-        logger.add_file(self.logfile)
+        logger.add_file(self.logfile, self._instance.id)
 
         try:
             self.prepare()
@@ -345,7 +346,7 @@ class ArtefactBuild(AbstractBuild):
         )
 
     @classmethod
-    def load_from_submission(cls, conf, submission):
-        obj = cls(conf, submission.id, submission.form)
+    def load_from_submission(cls, conf, instance, submission):
+        obj = cls(conf, instance, submission.id, submission.form)
         obj.init_from_submission(submission)
         return obj

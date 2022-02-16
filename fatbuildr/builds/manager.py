@@ -23,6 +23,7 @@ import uuid
 import shutil
 import threading
 from datetime import datetime
+from time import monotonic as _time
 from collections import deque
 
 from ..cleanup import CleanupRegistry
@@ -33,10 +34,25 @@ from .factory import BuildFactory
 logger = logr(__name__)
 
 
+class InterruptableSemaphore(threading.Semaphore):
+    """Override threading.Semaphore acquire to make acquire interruptable
+    before the timeout by notifying the internal threading.Condition."""
+    def acquire(self, timeout=None):
+        rc = False
+        with self._cond:
+            if self._value == 0:
+                endtime = _time() + timeout
+                self._cond.wait(timeout)
+            else:
+                self._value -= 1
+                rc = True
+        return rc
+
+
 class QueueManager:
     def __init__(self):
         self._queue = deque()
-        self._count = threading.Semaphore(0)
+        self._count = InterruptableSemaphore(0)
         self._state_lock = threading.Lock()
 
     def empty(self):
@@ -51,7 +67,7 @@ class QueueManager:
         self._count.release()
 
     def get(self, timeout):
-        if not self._count.acquire(True, timeout):
+        if not self._count.acquire(timeout):
             return None
         self._state_lock.acquire()
         return self._queue.popleft()
@@ -59,12 +75,18 @@ class QueueManager:
     def release(self):
         self._state_lock.release()
 
+    def interrupt_get(self):
+        """Notify the semaphore condition to interrupt thread blocked in
+        self.get(timeout)"""
+        self._count._cond.notify()
+
 
 class ServerBuildsManager:
     """Manage the various builds."""
 
-    def __init__(self, conf):
+    def __init__(self, conf, instance):
         self.conf = conf
+        self.instance = instance
         self.queue = QueueManager()
         self.running = None
 
@@ -86,10 +108,15 @@ class ServerBuildsManager:
                 logger.warning("Archiving orphaned build %s" % (build_id))
                 build = BuildFactory.load(
                     self.conf,
+                    self.instance,
                     os.path.join(self.conf.dirs.build, build_id),
                     build_id,
                 )
                 self.archive(build)
+
+    def interrupt(self):
+        """Interrupt thread blocked in self.pick()->self.queue.get(timeout)."""
+        self.queue.interrupt_get()
 
     def submit(self, input):
         """Generate the build ID and place in queue."""
@@ -105,7 +132,7 @@ class ServerBuildsManager:
     def pick(self, timeout):
 
         logger.debug(
-            "Trying to get build submission for %f seconds" % (timeout)
+            "Trying to get build submission for up to %d seconds", int(timeout)
         )
         submission = self.queue.get(timeout)
         if not submission:
@@ -117,7 +144,7 @@ class ServerBuildsManager:
         # transition the request to an artefact build
         build = None
         try:
-            build = BuildFactory.generate(self.conf, submission)
+            build = BuildFactory.generate(self.conf, self.instance, submission)
             self.running = build
         except RuntimeError as err:
             logger.error(

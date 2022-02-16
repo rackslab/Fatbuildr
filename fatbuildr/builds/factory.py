@@ -34,18 +34,18 @@ class BuildFactory(object):
     }
 
     @staticmethod
-    def generate(conf, submission):
+    def generate(conf, instance, submission):
         """Generate a BuildArtefact from a new submission."""
         if not submission.format in BuildFactory._formats:
             raise RuntimeError(
                 "format %s unsupported by builders" % (submission.format)
             )
         return BuildFactory._formats[submission.format].load_from_submission(
-            conf, submission
+            conf, instance, submission
         )
 
     @staticmethod
-    def load(conf, place, build_id):
+    def load(conf, instance, place, build_id):
         """Load a BuildArtefact based on a format."""
         # Load the form to get the format
         form = BuildForm.load(place)
@@ -53,4 +53,6 @@ class BuildFactory(object):
             raise RuntimeError(
                 "format %s unsupported by builders" % (form.format)
             )
-        return BuildFactory._formats[form.format](conf, build_id, form)
+        return BuildFactory._formats[form.format](
+            conf, instance, build_id, form
+        )

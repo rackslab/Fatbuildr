@@ -31,8 +31,8 @@ logger = logr(__name__)
 class ArtefactBuildDeb(ArtefactBuild):
     """Class to manipulation build of package in Deb format."""
 
-    def __init__(self, conf, build_id, form):
-        super().__init__(conf, build_id, form)
+    def __init__(self, conf, instance, build_id, form):
+        super().__init__(conf, instance, build_id, form)
         self.format = 'deb'
 
     @property

@@ -23,7 +23,6 @@ import threading
 from . import FatbuildrCliRun
 from ..version import __version__
 from ..conf import RuntimeConfd
-from ..builds.manager import ServerBuildsManager
 from ..protocols import ServerFactory
 from ..keyring import KeyringManager
 from ..instances import Instances
@@ -81,15 +80,20 @@ class Fatbuildrd(FatbuildrCliRun):
     def _run(self):
 
         logger.debug("Running fatbuildrd")
-        self.build_mgr = ServerBuildsManager(self.conf)
         self.registry_mgr = RegistryManager(self.conf)
         self.keyring_mgr = KeyringManager(self.conf)
         self.server = None
         self.sm = ServiceManager()
         self.timer = ServerTimer()
 
-        builder_thread = threading.Thread(target=self._builder, name='builder')
-        builder_thread.start()
+        builder_threads = {}
+        for instance in self.instances:
+            builder_threads[instance.id] = threading.Thread(
+                target=self._builder,
+                args=(instance,),
+                name=f"builder-{instance.id}",
+            )
+            builder_threads[instance.id].start()
 
         server_thread = threading.Thread(target=self._server, name='server')
         server_thread.start()
@@ -99,35 +103,43 @@ class Fatbuildrd(FatbuildrCliRun):
 
         logger.debug("All threads are started")
 
-        builder_thread.join()
+        for instance, thread in builder_threads.items():
+            thread.join()
         server_thread.join()
         timer_thread.join()
 
         logger.debug("All threads are properly stopped")
         self.sm.notify_stop()
 
-    def _builder(self):
+    def _builder(self, instance):
         """Thread handling build loop."""
         logger.info("Starting builder thread")
-        self.build_mgr.clear_orphaned()
+        instance.build_mgr.clear_orphaned()
 
+        timer_inc = False
         while True:
             try:
-                # pick the first request in queue
-                build = self.build_mgr.pick(self.timer.remaining)
+                # Try picking the first request in queue for 60 seconds. The
+                # timeout is set to 60 seconds to avoid too frequent polling
+                # but it can be interrupted by the timer thread when it leaves.
+                build = instance.build_mgr.pick(60)
                 if build:
-                    self.timer.lock()  # lock the timer while builds are in the queue
+                    self.timer.register_task(
+                        instance.id
+                    )  # lock the timer while builds are in the queue
                     build.run()
-                    self.build_mgr.archive(build)
+                    instance.build_mgr.archive(build)
             except RuntimeError as err:
                 logger.error("Error while processing build: %s" % (err))
-            if self.build_mgr.queue.empty():
-                self.timer.release()  # allow threads to leave
+            if instance.build_mgr.queue.empty():
+                self.timer.unregister_task(
+                    instance.id
+                )  # allow other threads to leave
             if self.timer.over:
                 break
         logger.info(
-            "Stopping builder thread as timer is over and build queue "
-            "is empty"
+            f"Stopping builder-{instance.id} thread as timer is over and "
+            "build queue is empty"
         )
 
     def _server(self):
@@ -136,7 +148,6 @@ class Fatbuildrd(FatbuildrCliRun):
         self.server = ServerFactory.get()
         self.server.run(
             self.instances,
-            self.build_mgr,
             self.registry_mgr,
             self.keyring_mgr,
             self.timer,
@@ -150,5 +161,14 @@ class Fatbuildrd(FatbuildrCliRun):
             self.sm.notify_watchdog()
             self.timer.wait(timeout=10)
 
-        logger.info("Timer is over, stopping timer thread")
+        logger.info("Timer is over, notifying all builder threads")
+        for instance in self.instances:
+            with instance.build_mgr.queue._count._cond:
+                logger.debug(
+                    "Interrupting %s instance build manager to stop waiting for tasks",
+                    instance.id,
+                )
+                instance.build_mgr.interrupt()
+        logger.info("Stopping the server")
         self.server.quit()
+        logger.info("Leaving timer thread")

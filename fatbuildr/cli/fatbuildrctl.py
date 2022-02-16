@@ -497,7 +497,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 user_email,
                 build_msg,
             )
-            build_id = connection.submit(request)
+            build_id = connection.submit(self.instance, request)
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)
@@ -509,14 +509,14 @@ class Fatbuildrctl(FatbuildrCliRun):
         logger.debug("running list")
         connection = ClientFactory.get(self.host)
         try:
-            _running = connection.running()
+            _running = connection.running(self.instance)
             if _running:
                 print("Running build:")
                 _running.report()
             else:
                 print("No running build")
 
-            _queue = connection.queue()
+            _queue = connection.queue(self.instance)
             if _queue:
                 print("Pending build submissions:")
                 for _build in _queue:
@@ -529,7 +529,7 @@ class Fatbuildrctl(FatbuildrCliRun):
     def _watch_build(self, build_id):
         connection = ClientFactory.get(self.host)
         try:
-            build = connection.get(build_id)
+            build = connection.get(self.instance, build_id)
         except RuntimeError as err:
             logger.error(err)
             sys.exit(1)
@@ -545,9 +545,9 @@ class Fatbuildrctl(FatbuildrCliRun):
                 warned_pending = True
             time.sleep(1)
             # poll build state again
-            build = connection.get(build_id)
+            build = connection.get(self.instance, build_id)
         try:
-            for line in connection.watch(build):
+            for line in connection.watch(self.instance, build):
                 print(line, end='')
         except KeyboardInterrupt:
             # Leave gracefully after a keyboard interrupt (eg. ^c)
@@ -562,7 +562,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_archives(self, args):
         connection = ClientFactory.get(self.host)
-        archives = connection.archives()
+        archives = connection.archives(self.instance)
         if not archives:
             print("No archive found")
             return

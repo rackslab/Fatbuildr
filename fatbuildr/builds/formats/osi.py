@@ -30,8 +30,8 @@ logger = logr(__name__)
 class ArtefactBuildOsi(ArtefactBuild):
     """Class to manipulate builds of OS images."""
 
-    def __init__(self, conf, build_id, form):
-        super().__init__(conf, build_id, form)
+    def __init__(self, conf, instance, build_id, form):
+        super().__init__(conf, instance, build_id, form)
         self.format = 'osi'
 
     def build(self):

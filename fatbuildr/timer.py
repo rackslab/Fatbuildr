@@ -30,7 +30,10 @@ class ServerTimer:
         self.start = datetime.now().timestamp()
         self.timeout = timeout
         self.event = threading.Event()
-        self._lock = threading.Lock()
+        # Combine a threading condition and a set for a kind of reverse
+        # semaphore to track all running instances threads.
+        self._cond = threading.Condition(threading.Lock())
+        self._tasks = set()
 
     def reset(self):
         logger.debug("Reseting timer")
@@ -41,22 +44,36 @@ class ServerTimer:
         return max(0, (self.start + self.timeout) - datetime.now().timestamp())
 
     @property
+    def notask(self):
+        with self._cond:
+            return not self._tasks
+
+    @property
     def over(self):
-        return not self._lock.locked() and self.remaining == 0
+        return self.notask and self.remaining == 0
 
-    def lock(self):
-        if not self._lock.locked():
-            self._lock.acquire()
+    def register_task(self, task):
+        with self._cond:
+            self._tasks.add(task)
 
-    def release(self):
-        if self._lock.locked():
-            self._lock.release()
+    def unregister_task(self, task):
+        with self._cond:
+            try:
+                self._tasks.remove(task)
+            except KeyError:
+                pass
+            if not self._tasks:
+                self._cond.notify()
+
+    def waitnotask(self, timeout):
+        with self._cond:
+            if not self._tasks:
+                return True
+            logger.debug("Waiting for timer lock for %f seconds" % (timeout))
+            return self._cond.wait(timeout)
 
     def wait(self, timeout):
-        logger.debug("Waiting for timer lock for %f seconds" % (timeout))
-        acquired = self._lock.acquire(timeout=timeout)
-        if acquired:
-            self._lock.release()  # release is instantly
-            if self.remaining:
-                logger.debug("Waiting for %f seconds" % (self.remaining))
-                self.event.wait(timeout=self.remaining)
+        notask = self.waitnotask(timeout=timeout)
+        if notask and self.remaining:
+            logger.debug("Waiting for %f seconds" % (self.remaining))
+            self.event.wait(timeout=self.remaining)

@@ -79,8 +79,11 @@ class DaemonFormatter(logging.Formatter):
 
 
 class BuildlogFilter(logging.Filter):
+    def __init__(self, instance):
+        self.instance = instance
+
     def filter(self, record):
-        if record.threadName == 'builder':
+        if record.threadName == f"builder-{self.instance}":
             return 1
         return 0
 
@@ -133,9 +136,9 @@ class Log(logging.Logger):
             handler.setLevel(logging.DEBUG)
             handler.setFormatter(_formatter)
 
-    def add_file(self, path):
+    def add_file(self, path, instance):
         self._file_handler = logging.FileHandler(path)
-        _filter = BuildlogFilter()
+        _filter = BuildlogFilter(instance)
         self._file_handler.addFilter(_filter)
         logging.getLogger().addHandler(self._file_handler)
 

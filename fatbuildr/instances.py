@@ -21,26 +21,20 @@ from pathlib import Path
 
 import yaml
 
+from .builds.manager import ServerBuildsManager
+
 from .utils import Singleton
 from .log import logr
 
 logger = logr(__name__)
 
 
-class InstanceDefs:
-    """Class to manipulate instance definitions, including its pipelines."""
+class InstancePipelines:
+    """Class to manipulate instance pipelines."""
 
-    def __init__(self, id, name, gpg_name, gpg_email, formats, derivatives):
-        self.id = id
-        self.name = name
-        self.gpg_name = gpg_name
-        self.gpg_email = gpg_email
+    def __init__(self, formats, derivatives):
         self._formats = formats
         self.derivatives = derivatives
-
-    @property
-    def userid(self):
-        return f"{self.gpg_name} <{self.gpg_email}>"
 
     @property
     def formats(self):
@@ -123,21 +117,37 @@ class InstanceDefs:
         else:
             return [derivative] + self.recursive_derivatives('main')
 
+
+class RunningInstance:
+    def __init__(self, conf, id, name, gpg_name, gpg_email, pipelines):
+        self.conf = conf
+        self.id = id
+        self.name = name
+        self.gpg_name = gpg_name
+        self.gpg_email = gpg_email
+        self.pipelines = pipelines
+        self.build_mgr = ServerBuildsManager(self.conf, self)
+
+    @property
+    def userid(self):
+        return f"{self.gpg_name} <{self.gpg_email}>"
+
     @classmethod
-    def load(cls, path):
+    def load(cls, conf, path):
         logger.debug("Loading instances definitions from %s" % (path))
         with open(path) as fh:
             defs = yaml.safe_load(fh)
         derivatives = None
         if 'derivatives' in defs:
             derivatives = defs['derivatives']
+        pipelines = InstancePipelines(defs['formats'], derivatives)
         return cls(
+            conf,
             path.stem,
             defs['name'],
             defs['gpg']['name'],
             defs['gpg']['email'],
-            defs['formats'],
-            derivatives,
+            pipelines,
         )
 
 
@@ -145,6 +155,7 @@ class Instances(metaclass=Singleton):
     """Manages the instances definitions in dedicated directory"""
 
     def __init__(self, conf):
+        self.conf = conf
         self.dir = Path(conf.dirs.instances)
         self._instances = {}
 
@@ -152,10 +163,14 @@ class Instances(metaclass=Singleton):
         """Load all instances from definition files."""
         for instance_path in self.dir.glob("*.yml"):
             logger.info("Loading settings of instance %s", instance_path.stem)
-            self._instances[instance_path.stem] = InstanceDefs.load(
-                instance_path
+            self._instances[instance_path.stem] = RunningInstance.load(
+                self.conf, instance_path
             )
         logger.info("All instances are loaded")
 
     def __getitem__(self, instance):
         return self._instances[instance]
+
+    def __iter__(self):
+        for value in self._instances.values():
+            yield value

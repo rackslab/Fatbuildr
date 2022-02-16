@@ -107,34 +107,38 @@ class DbusClient(object):
             )
         )
 
-    def submit(self, request):
-        return self.proxy.Submit(request.place)
+    def submit(self, instance, request):
+        return self.proxy.Submit(instance, request.place)
 
-    def queue(self):
-        return DbusSubmittedBuild.from_structure_list(self.proxy.Queue)
+    def queue(self, instance):
+        return DbusSubmittedBuild.from_structure_list(
+            self.proxy.Queue(instance)
+        )
 
-    def running(self):
+    def running(self, instance):
         try:
-            return DbusRunningBuild.from_structure(self.proxy.Running)
+            return DbusRunningBuild.from_structure(self.proxy.Running(instance))
         except ErrorNoRunningBuild:
             return None
 
-    def archives(self):
-        return DbusArchivedBuild.from_structure_list(self.proxy.Archives)
+    def archives(self, instance):
+        return DbusArchivedBuild.from_structure_list(
+            self.proxy.Archives(instance)
+        )
 
-    def get(self, build_id):
-        for _build in self.queue():
+    def get(self, instance, build_id):
+        for _build in self.queue(instance):
             if _build.id == build_id:
                 return _build
-        _running = self.running()
+        _running = self.running(instance)
         if _running and _running.id == build_id:
             return _running
-        for _build in self.archives():
+        for _build in self.archives(instance):
             if _build.id == build_id:
                 return _build
         raise RuntimeError("Unable to find build %s on server" % (build_id))
 
-    def watch(self, build):
+    def watch(self, instance, build):
         """Dbus clients run on the same host as the server, they access the
         builds log files directly."""
         assert hasattr(build, 'logfile')

@@ -30,8 +30,8 @@ logger = logr(__name__)
 class ArtefactBuildRpm(ArtefactBuild):
     """Class to manipulation package in RPM format."""
 
-    def __init__(self, conf, build_id, form):
-        super().__init__(conf, build_id, form)
+    def __init__(self, conf, instance, build_id, form):
+        super().__init__(conf, instance, build_id, form)
         self.format = 'rpm'
 
     @property
