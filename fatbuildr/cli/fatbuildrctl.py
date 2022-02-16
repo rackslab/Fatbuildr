@@ -193,6 +193,10 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_registry.add_argument(
             '-d', '--distribution', help='Distribution name', required=True
         )
+        parser_registry.add_argument(
+            '--derivative', help='Distribution derivative', default='main'
+        )
+
         parser_registry.set_defaults(func=self._run_registry)
 
         args = parser.parse_args()
@@ -574,16 +578,18 @@ class Fatbuildrctl(FatbuildrCliRun):
         _fmt = connection.pipelines_distribution_format(
             self.instance, args.distribution
         )
-        artefacts = connection.artefacts(self.instance, _fmt, args.distribution)
+        artefacts = connection.artefacts(
+            self.instance, _fmt, args.distribution, args.derivative
+        )
         if not artefacts:
             print(
-                "No artefact found in %s distribution %s"
-                % (_fmt, args.distribution)
+                f"No artefact found in {_fmt} distribution {args.distribution} "
+                f"derivative {args.derivative}"
             )
             return
         print(
-            "Artefacts found for %s distribution %s:"
-            % (_fmt, args.distribution)
+            f"Artefacts found for {_fmt} distribution {args.distribution} "
+            f"derivative {args.derivative}:"
         )
         for artefact in artefacts:
             artefact.report()
