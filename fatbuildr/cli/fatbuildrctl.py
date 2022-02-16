@@ -191,6 +191,13 @@ class Fatbuildrctl(FatbuildrCliRun):
             'registry', help='Manage artefact registries'
         )
         parser_registry.add_argument(
+            'operation',
+            help='Operation on selected artefacts (default: %(default)s)',
+            nargs='?',
+            choices=['list', 'delete'],
+            default='list',
+        )
+        parser_registry.add_argument(
             '-d', '--distribution', help='Distribution name', required=True
         )
         parser_registry.add_argument(
@@ -586,16 +593,33 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         if args.artefact:
             # filter out other artefact names
-            artefacts = [artefact for artefact in artefacts if args.artefact in artefact.name]
+            artefacts = [
+                artefact
+                for artefact in artefacts
+                if args.artefact in artefact.name
+            ]
         if not artefacts:
             print(
                 f"No artefact found in {_fmt} distribution {args.distribution} "
                 f"derivative {args.derivative}"
             )
             return
-        print(
-            f"Artefacts found for {_fmt} distribution {args.distribution} "
-            f"derivative {args.derivative}:"
-        )
-        for artefact in artefacts:
-            artefact.report()
+        if args.operation == 'list':
+            print(
+                f"Artefacts found for {_fmt} distribution {args.distribution} "
+                f"derivative {args.derivative}:"
+            )
+            for artefact in artefacts:
+                artefact.report()
+        elif args.operation == 'delete':
+            for artefact in artefacts:
+                task_id = connection.delete_artefact(
+                    self.instance,
+                    _fmt,
+                    args.distribution,
+                    args.derivative,
+                    artefact,
+                )
+                print(
+                    f"Submitted artefact {artefact.name} deletion task {task_id}"
+                )
