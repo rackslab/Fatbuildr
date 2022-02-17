@@ -20,6 +20,7 @@
 import os
 import shutil
 import glob
+import subprocess
 
 import createrepo_c as cr
 
@@ -153,6 +154,27 @@ class RegistryRpm(Registry):
             if pkg.arch != architecture:
                 continue
             return RpmChangelog(pkg.changelogs).entries()
+
+    def delete_artefact(self, distribution, derivative, artefact):
+        md = cr.Metadata()
+        md.locate_and_load_xml(self.repo_path(distribution, derivative))
+        for key in md.keys():
+            pkg = md.get(key)
+            if pkg.name == artefact.name and pkg.arch == artefact.architecture:
+                pkg_path = os.path.join(self.repo_path(distribution, derivative), pkg.location_href)
+                logger.info("Deleting RPM package %s", pkg_path)
+                if not os.path.exists(pkg_path):
+                    logger.warning("RPM file %s not found, unable to delete", pkg_path)
+                else:
+                    os.remove(pkg_path)
+
+        logger.info("Updating metadata of RPM repository %s" % (self.repo_path(distribution, derivative)))
+        cmd = ['createrepo_c', '--update', self.repo_path(distribution, derivative)]
+        proc = subprocess.run(cmd, capture_output=True)
+        if proc.returncode:
+            raise RuntimeError(
+                f"Command {' '.join(cmd)} failed: {proc.stderr.decode()}"
+            )
 
 
 class RpmChangelog:
