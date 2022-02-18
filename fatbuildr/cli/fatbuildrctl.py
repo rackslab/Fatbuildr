@@ -28,7 +28,6 @@ from ..version import __version__
 from ..conf import RuntimeConfCtl
 from ..prefs import UserPreferences
 from ..images import ImagesManager
-from ..keyring import KeyringManager
 from ..builds.manager import ClientBuildsManager
 from ..log import logr
 from ..protocols import ClientFactory
@@ -304,16 +303,16 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_keyring(self, args):
         logger.debug("running keyring operation")
-        mgr = KeyringManager(self.conf)
-        keyring = mgr.keyring(self.instance)
+        connection = ClientFactory.get(self.host)
         if args.create:
-            connection = ClientFactory.get(self.host)
-            instance = connection.instance(self.instance)
-            keyring.create(instance.userid)
+            task_id = connection.keyring_create(self.instance)
+            print(f"Submitted keyring creation task {task_id}")
         elif args.show:
-            keyring.show()
+            pass
+            # keyring = connection.keyring(self.instance)
+            # keyring.report()
         elif args.export:
-            print(keyring.export())
+            print(connection.keyring_export(self.instance))
         else:
             print(
                 "An operation on the keyring must be specified, type "

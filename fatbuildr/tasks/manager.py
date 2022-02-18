@@ -31,6 +31,7 @@ from ..builds import BuildRequest
 from ..builds.factory import BuildFactory
 
 from .registry import RegistryArtefactDeletionTask
+from .keyring import KeyringCreationTask
 
 logger = logr(__name__)
 
@@ -136,6 +137,13 @@ class ServerTasksManager:
         )
         self.queue.put(task)
         logger.info("Artefact deletion task %s submitted in queue" % (task.id))
+        return task_id
+
+    def submit_keyring_create(self):
+        task_id = str(uuid.uuid4())  # generate task ID
+        task = KeyringCreationTask(self.instance, task_id, self.conf)
+        self.queue.put(task)
+        logger.info("Keyring create task %s submitted in queue" % (task.id))
         return task_id
 
     def submit(self, input):

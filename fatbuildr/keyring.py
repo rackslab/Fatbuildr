@@ -21,7 +21,6 @@
 import os
 import string
 import secrets
-import sys
 from datetime import datetime
 
 import gpg
@@ -202,11 +201,9 @@ class InstanceKeyring:
         # check if key already exist
         with gpg.Context(home_dir=self.homedir) as ctx:
             if any(ctx.keylist()):
-                logger.error(
-                    "Fatbuildr GPG key in %s already exists, leaving."
-                    % (self.homedir)
+                raise RuntimeError(
+                    f"GPG key in {self.homedir} already exists."
                 )
-                sys.exit(1)
 
         # generate random passphrase and save it in file
         logger.info("Generating random passphrase in %s" % (self.homedir))

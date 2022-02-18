@@ -219,6 +219,10 @@ class FatbuildrInterface(InterfaceTemplate):
         """Submit a new build."""
         return self.implementation.submit(instance, input)
 
+    def KeyringCreate(self, instance: Str) -> Str:
+        """Create instance keyring."""
+        return self.implementation.keyring_create(instance)
+
     def KeyringExport(self, instance: Str) -> Str:
         """Returns armored public key of instance keyring."""
         return self.implementation.keyring_export(instance)
@@ -400,6 +404,10 @@ class FatbuildrMultiplexer(object):
         self.timer.reset()
         submission = self._instances[instance].tasks_mgr.submit(input)
         return submission.id
+
+    def keyring_create(self, instance: Str):
+        self.timer.reset()
+        return self._instances[instance].tasks_mgr.submit_keyring_create()
 
     def keyring_export(self, instance: Str):
         """Returns armored public key of instance keyring."""

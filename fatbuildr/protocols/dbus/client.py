@@ -183,5 +183,8 @@ class DbusClient(object):
 
         fh.close()
 
+    def keyring_create(self, instance):
+        return self.proxy.KeyringCreate(instance)
+
     def keyring_export(self, instance):
         return self.proxy.KeyringExport(instance)
