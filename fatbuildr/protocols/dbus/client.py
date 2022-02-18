@@ -27,6 +27,7 @@ from . import (
     DbusArchivedBuild,
     DbusArtefact,
     DbusChangelogEntry,
+    DbusKeyring,
     ErrorNoRunningBuild,
 )
 
@@ -185,6 +186,9 @@ class DbusClient(object):
 
     def keyring_create(self, instance):
         return self.proxy.KeyringCreate(instance)
+
+    def keyring(self, instance):
+        return DbusKeyring.from_structure(self.proxy.Keyring(instance))
 
     def keyring_export(self, instance):
         return self.proxy.KeyringExport(instance)

@@ -308,9 +308,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             task_id = connection.keyring_create(self.instance)
             print(f"Submitted keyring creation task {task_id}")
         elif args.show:
-            pass
-            # keyring = connection.keyring(self.instance)
-            # keyring.report()
+            keyring = connection.keyring(self.instance)
+            keyring.report()
         elif args.export:
             print(connection.keyring_export(self.instance))
         else:

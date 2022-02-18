@@ -151,23 +151,6 @@ class KeyringMasterKey(KeyringKey):
         if next(_keys_iter, None) is not None:
             raise RuntimeError("multiple keys found in keyring")
 
-    def show(self):
-        """Print information about the masterkey and its signing subkey."""
-
-        print("masterkey:")
-        print("  userid: %s" % (self.userid))
-        print("  id: %s" % (self.id))
-        print("  fingerprint: %s" % (self.fingerprint))
-        print("  algo: %s" % (self.algo))
-        print("  expires: %s" % (self.expires))
-        print("  creation: %s" % (self.creation))
-        print("  last_update: %s" % (self.last_update))
-        print("  subkey:")
-        print("    fingerprint: %s" % (self.subkey.fingerprint))
-        print("    algo: %s" % (self.subkey.algo))
-        print("    expires: %s" % (self.subkey.expires))
-        print("    creation: %s" % (self.subkey.creation))
-
 
 class InstanceKeyring:
     def __init__(self, conf, instance):
@@ -239,11 +222,6 @@ class InstanceKeyring:
                 logger.error(
                     "Error while loading keyring %s: %s" % (self.homedir, err)
                 )
-
-    def show(self):
-
-        self.load()
-        self.masterkey.show()
 
     def export(self):
         """Return string representation of armored public key of the keyring

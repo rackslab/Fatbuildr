@@ -28,7 +28,13 @@ from dasbus.structure import (
 )
 from dasbus.typing import Str, Int, List
 
-from ..wire import WireInstance, WireBuild, WireArtefact, WireChangelogEntry
+from ..wire import (
+    WireInstance,
+    WireBuild,
+    WireArtefact,
+    WireChangelogEntry,
+    WireKeyring,
+)
 
 # Define the error mapper.
 ERROR_MAPPER = ErrorMapper()
@@ -316,3 +322,117 @@ class DbusChangelogEntry(DBusData, WireChangelogEntry):
     @changes.setter
     def changes(self, value: Str):
         self._changes = value
+
+
+class DbusKeyring(DBusData, WireKeyring):
+    def __init__(self):
+        self._userid = None
+        self._id = None
+        self._fingerprint = None
+        self._algo = None
+        self._expires = None
+        self._creation = None
+        self._last_update = None
+        self._subkey_fingerprint = None
+        self._subkey_algo = None
+        self._subkey_expires = None
+        self._subkey_creation = None
+
+    # userid
+    @property
+    def userid(self) -> Str:
+        return self._userid
+
+    @userid.setter
+    def userid(self, value: Str):
+        self._userid = value
+
+    # id
+    @property
+    def id(self) -> Str:
+        return self._id
+
+    @id.setter
+    def id(self, value: Str):
+        self._id = value
+
+    # fingerprint
+    @property
+    def fingerprint(self) -> Str:
+        return self._fingerprint
+
+    @fingerprint.setter
+    def fingerprint(self, value: Str):
+        self._fingerprint = value
+
+    # algo
+    @property
+    def algo(self) -> Str:
+        return self._algo
+
+    @algo.setter
+    def algo(self, value: Str):
+        self._algo = value
+
+    # expires
+    @property
+    def expires(self) -> Str:
+        return self._expires
+
+    @expires.setter
+    def expires(self, value: Str):
+        self._expires = value
+
+    # creation
+    @property
+    def creation(self) -> Str:
+        return self._creation
+
+    @creation.setter
+    def creation(self, value: Str):
+        self._creation = value
+
+    # last_update
+    @property
+    def last_update(self) -> Str:
+        return self._last_update
+
+    @last_update.setter
+    def last_update(self, value: Str):
+        self._last_update = value
+
+    # subkey_fingerprint
+    @property
+    def subkey_fingerprint(self) -> Str:
+        return self._subkey_fingerprint
+
+    @subkey_fingerprint.setter
+    def subkey_fingerprint(self, value: Str):
+        self._subkey_fingerprint = value
+
+    # subkey_algo
+    @property
+    def subkey_algo(self) -> Str:
+        return self._subkey_algo
+
+    @subkey_algo.setter
+    def subkey_algo(self, value: Str):
+        self._subkey_algo = value
+
+    # subkey_expires
+    @property
+    def subkey_expires(self) -> Str:
+        return self._subkey_expires
+
+    @subkey_expires.setter
+    def subkey_expires(self, value: Str):
+        self._subkey_expires = value
+
+    # subkey_creation
+    @property
+    def subkey_creation(self) -> Str:
+        return self._subkey_creation
+
+    @subkey_creation.setter
+    def subkey_creation(self, value: Str):
+        self._subkey_creation = value

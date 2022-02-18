@@ -198,3 +198,36 @@ class WireChangelogEntry:
         _obj.date = entry.date
         _obj.changes = entry.changes
         return _obj
+
+
+class WireKeyring:
+    def report(self):
+        print("masterkey:")
+        print("  userid: %s" % (self.userid))
+        print("  id: %s" % (self.id))
+        print("  fingerprint: %s" % (self.fingerprint))
+        print("  algo: %s" % (self.algo))
+        print("  expires: %s" % (self.expires))
+        print("  creation: %s" % (self.creation))
+        print("  last update: %s" % (self.last_update))
+        print("  subkey:")
+        print("    fingerprint: %s" % (self.subkey_fingerprint))
+        print("    algo: %s" % (self.subkey_algo))
+        print("    expires: %s" % (self.subkey_expires))
+        print("    creation: %s" % (self.subkey_creation))
+
+    @classmethod
+    def load_from_keyring(cls, keyring):
+        _obj = cls()
+        _obj.userid = keyring.userid
+        _obj.id = keyring.id
+        _obj.fingerprint = keyring.fingerprint
+        _obj.algo = keyring.algo
+        _obj.expires = keyring.expires
+        _obj.creation = keyring.creation
+        _obj.last_update = keyring.last_update
+        _obj.subkey_fingerprint = keyring.subkey.fingerprint
+        _obj.subkey_algo = keyring.subkey.algo
+        _obj.subkey_expires = keyring.subkey.expires
+        _obj.subkey_creation = keyring.subkey.creation
+        return _obj

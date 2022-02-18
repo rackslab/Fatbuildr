@@ -34,6 +34,7 @@ from . import (
     DbusArchivedBuild,
     DbusArtefact,
     DbusChangelogEntry,
+    DbusKeyring,
     ErrorNoRunningBuild,
 )
 from ...log import logr
@@ -223,6 +224,9 @@ class FatbuildrInterface(InterfaceTemplate):
         """Create instance keyring."""
         return self.implementation.keyring_create(instance)
 
+    def Keyring(self, instance: Str) -> Structure:
+        return DbusKeyring.to_structure(self.implementation.keyring(instance))
+
     def KeyringExport(self, instance: Str) -> Str:
         """Returns armored public key of instance keyring."""
         return self.implementation.keyring_export(instance)
@@ -406,8 +410,16 @@ class FatbuildrMultiplexer(object):
         return submission.id
 
     def keyring_create(self, instance: Str):
+        """Submit a new task to create keyring."""
         self.timer.reset()
         return self._instances[instance].tasks_mgr.submit_keyring_create()
+
+    def keyring(self, instance: Str):
+        """Returns masterkey information."""
+        self.timer.reset()
+        keyring = self.keyring_mgr.keyring(instance)
+        keyring.load()
+        return DbusKeyring.load_from_keyring(keyring.masterkey)
 
     def keyring_export(self, instance: Str):
         """Returns armored public key of instance keyring."""
