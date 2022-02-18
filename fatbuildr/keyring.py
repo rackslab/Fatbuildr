@@ -156,7 +156,8 @@ class InstanceKeyring:
     def __init__(self, conf, instance):
 
         self.conf = conf
-        self.homedir = os.path.join(self.conf.keyring.storage, instance)
+        self.instance = instance
+        self.homedir = os.path.join(self.conf.keyring.storage, instance.id)
         self.passphrase_path = os.path.join(self.homedir, 'passphrase')
         self.algorithm = self.conf.keyring.type + str(self.conf.keyring.size)
         if type(self.conf.keyring.expires) is bool:
@@ -172,7 +173,7 @@ class InstanceKeyring:
         with open(self.passphrase_path, 'r') as fh:
             return fh.read()
 
-    def create(self, userid):
+    def create(self):
 
         # create homedir is missing
         if not os.path.exists(self.homedir):
@@ -201,7 +202,7 @@ class InstanceKeyring:
         # generate GPG key with its subkey
         logger.info("Generating GPG key in %s" % (self.homedir))
         with gpg.Context(home_dir=self.homedir) as ctx:
-            self.masterkey.create(ctx, userid)
+            self.masterkey.create(ctx, self.instance.userid)
             logger.info(
                 "Key generated for user '{0}' with fingerprint {1}".format(
                     self.masterkey.userid, self.masterkey.fingerprint

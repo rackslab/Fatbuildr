@@ -131,7 +131,7 @@ class RunningInstance:
         self.tasks_mgr = ServerTasksManager(self.conf, self)
         self.registry_mgr = RegistryManager(self.conf, self)
         self.archives_mgr = ArchivesManager(self.conf, self)
-        self.keyring = InstanceKeyring(self.conf, self.id)
+        self.keyring = InstanceKeyring(self.conf, self)
         self.keyring.load()
 
     @property
