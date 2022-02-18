@@ -4,7 +4,7 @@
 <h1>Available instances:</h1>
 <ul>
 {% for instance in instances %}
-  <li><a href="{{ instance }}/registry/">{{ instance }}<a></li>
+  <li><a href="{{ instance.id }}/registry/">{{ instance.id }} ({{ instance.name }})<a></li>
 {% endfor %}
 </ul>
 <a href="instances.json">JSON</a>

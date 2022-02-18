@@ -28,7 +28,6 @@ import requests
 from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artefact import ArtefactDefs
-from ..registry.manager import RegistryManager
 from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
@@ -139,11 +138,7 @@ class ArtefactBuild(AbstractServerBuild):
         self.name = form.artefact
         self.instance = instance
         self.cache = CacheArtefact(conf, self.instance.id, self)
-        self.registry = RegistryManager.factory(
-            self.format,
-            conf,
-            self.instance.id,
-        )
+        self.registry = self.instance.registry_mgr.factory(self.format)
         # Get the recursive list of derivatives extended by the given
         # derivative.
         self.derivatives = self.instance.pipelines.recursive_derivatives(

@@ -127,7 +127,6 @@ class ServerTasksManager:
     ):
         task_id = str(uuid.uuid4())  # generate task ID
         task = RegistryArtefactDeletionTask(
-            self.conf,
             self.instance,
             task_id,
             format,

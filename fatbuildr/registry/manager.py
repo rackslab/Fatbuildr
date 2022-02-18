@@ -32,57 +32,47 @@ class RegistryManager:
         'osi': RegistryOsi,
     }
 
-    def __init__(self, conf):
+    def __init__(self, conf, instance):
         self.conf = conf
+        self.instance = instance
 
-    @property
-    def instances(self):
-        return os.listdir(self.conf.dirs.registry)
+    def formats(self):
+        return os.listdir(
+            os.path.join(self.conf.dirs.registry, self.instance.id)
+        )
 
-    def formats(self, instance):
-        return os.listdir(os.path.join(self.conf.dirs.registry, instance))
-
-    def distributions(self, instance, fmt):
-        registry = RegistryManager.factory(fmt, self.conf, instance)
+    def distributions(self, fmt):
+        registry = self.factory(fmt)
         return registry.distributions
 
-    def derivatives(self, instance, fmt, distribution):
-        registry = RegistryManager.factory(fmt, self.conf, instance)
+    def derivatives(self, fmt, distribution):
+        registry = self.factory(fmt)
         return registry.derivatives(distribution)
 
-    def artefacts(self, instance, fmt, distribution, derivative):
-        registry = RegistryManager.factory(fmt, self.conf, instance)
+    def artefacts(self, fmt, distribution, derivative):
+        registry = self.factory(fmt)
         return registry.artefacts(distribution, derivative)
 
-    def artefact_bins(
-        self, instance, fmt, distribution, derivative, src_artefact
-    ):
-        registry = RegistryManager.factory(fmt, self.conf, instance)
+    def artefact_bins(self, fmt, distribution, derivative, src_artefact):
+        registry = self.factory(fmt)
         return registry.artefact_bins(distribution, derivative, src_artefact)
 
-    def artefact_src(
-        self, instance, fmt, distribution, derivative, bin_artefact
-    ):
-        registry = RegistryManager.factory(fmt, self.conf, instance)
+    def artefact_src(self, fmt, distribution, derivative, bin_artefact):
+        registry = self.factory(fmt)
         return registry.artefact_src(distribution, derivative, bin_artefact)
 
-    def changelog(
-        self, instance, fmt, distribution, derivative, architecture, artefact
-    ):
-        registry = RegistryManager.factory(fmt, self.conf, instance)
+    def changelog(self, fmt, distribution, derivative, architecture, artefact):
+        registry = self.factory(fmt)
         return registry.changelog(
             distribution, derivative, architecture, artefact
         )
 
-    def delete_artefact(
-        self, instance, fmt, distribution, derivative, artefact
-    ):
-        registry = RegistryManager.factory(fmt, self.conf, instance)
+    def delete_artefact(self, fmt, distribution, derivative, artefact):
+        registry = self.factory(fmt, self.conf, instance)
         return registry.delete_artefact(distribution, derivative, artefact)
 
-    @staticmethod
-    def factory(fmt, conf, instance):
+    def factory(self, fmt):
         """Instanciate the appropriate Registry for the given format."""
         if not fmt in RegistryManager._formats:
             raise RuntimeError("format %s unsupported by registries" % (fmt))
-        return RegistryManager._formats[fmt](conf, instance)
+        return RegistryManager._formats[fmt](self.conf, self.instance.id)

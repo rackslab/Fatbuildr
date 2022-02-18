@@ -18,7 +18,6 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 from . import RunnableTask
-from ..registry.manager import RegistryManager
 from ..log import logr
 
 logger = logr(__name__)
@@ -27,7 +26,6 @@ logger = logr(__name__)
 class RegistryArtefactDeletionTask(RunnableTask):
     def __init__(
         self,
-        conf,
         instance,
         task_id,
         format,
@@ -36,7 +34,6 @@ class RegistryArtefactDeletionTask(RunnableTask):
         artefact,
     ):
         super().__init__(task_id, 'pending')
-        self.conf = conf
         self.instance = instance
         self.format = format
         self.distribution = distribution
@@ -53,9 +50,7 @@ class RegistryArtefactDeletionTask(RunnableTask):
             self.derivative,
             self.artefact.name,
         )
-        registry_mgr = RegistryManager(self.conf)
-        registry_mgr.delete_artefact(
-            self.instance.id,
+        self.instance.registry_mgr.delete_artefact(
             self.format,
             self.distribution,
             self.derivative,

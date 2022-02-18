@@ -28,7 +28,6 @@ from ..keyring import KeyringManager
 from ..instances import Instances
 from ..timer import ServerTimer
 from ..services import ServiceManager
-from ..registry.manager import RegistryManager
 from ..log import logr
 
 logger = logr(__name__)
@@ -80,7 +79,6 @@ class Fatbuildrd(FatbuildrCliRun):
     def _run(self):
 
         logger.debug("Running fatbuildrd")
-        self.registry_mgr = RegistryManager(self.conf)
         self.keyring_mgr = KeyringManager(self.conf)
         self.server = None
         self.sm = ServiceManager()
@@ -145,7 +143,6 @@ class Fatbuildrd(FatbuildrCliRun):
         self.server = ServerFactory.get()
         self.server.run(
             self.instances,
-            self.registry_mgr,
             self.keyring_mgr,
             self.timer,
         )

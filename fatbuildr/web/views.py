@@ -86,7 +86,7 @@ def pipelines_formats(instance):
 
 def index(output='html'):
     connection = ClientFactory.get('local')
-    instances = connection.registry_instances()
+    instances = connection.instances()
     if output == 'json':
         return jsonify(instances)
     else:

@@ -45,6 +45,11 @@ logger = logr(__name__)
 class FatbuildrInterface(InterfaceTemplate):
     """The DBus interface of Fatbuildr."""
 
+    @property
+    def Instances(self) -> List[Structure]:
+        """Returns the instances list."""
+        return DbusInstance.to_structure_list(self.implementation.instances())
+
     def Instance(self, instance: Str) -> Structure:
         """Returns the instance user id."""
         return DbusInstance.to_structure(self.implementation.instance(instance))
@@ -95,11 +100,6 @@ class FatbuildrInterface(InterfaceTemplate):
         return self.implementation.pipelines_derivative_formats(
             instance, derivative
         )
-
-    @property
-    def RegistryInstances(self) -> List[Str]:
-        """The list of available instances."""
-        return self.implementation.registry_instances
 
     def Queue(self, instance: Str) -> List[Structure]:
         """The list of builds in queue."""
@@ -227,64 +227,69 @@ class FatbuildrInterface(InterfaceTemplate):
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
 
-    def __init__(self, instances, registry_mgr, keyring_mgr, timer):
-        self.instances = instances
-        self.registry_mgr = registry_mgr
+    def __init__(self, instances, keyring_mgr, timer):
+        self._instances = instances
         self.keyring_mgr = keyring_mgr
         self.timer = timer
 
+    def instances(self):
+        self.timer.reset()
+        return [
+            DbusInstance.load_from_instance(instance)
+            for instance in self._instances
+        ]
+
     def instance(self, instance: Str):
         self.timer.reset()
-        return DbusInstance.load_from_instance(self.instances[instance])
+        return DbusInstance.load_from_instance(self._instances[instance])
 
     def pipelines_formats(self, instance: Str):
         self.timer.reset()
-        return self.instances[instance].pipelines.formats
+        return self._instances[instance].pipelines.formats
 
     def pipelines_format_distributions(self, instance: Str, format: Str):
         self.timer.reset()
-        return self.instances[instance].pipelines.format_dists(format)
+        return self._instances[instance].pipelines.format_dists(format)
 
     def pipelines_distribution_format(self, instance: Str, distribution: Str):
         self.timer.reset()
-        return self.instances[instance].pipelines.dist_format(distribution)
+        return self._instances[instance].pipelines.dist_format(distribution)
 
     def pipelines_distribution_derivatives(
         self, instance: Str, distribution: Str
     ):
         self.timer.reset()
-        return self.instances[instance].pipelines.dist_derivatives(distribution)
+        return self._instances[instance].pipelines.dist_derivatives(
+            distribution
+        )
 
     def pipelines_distribution_environment(
         self, instance: Str, distribution: Str
     ):
         self.timer.reset()
-        return self.instances[instance].pipelines.dist_env(distribution)
+        return self._instances[instance].pipelines.dist_env(distribution)
 
     def pipelines_derivative_formats(self, instance: Str, derivative: Str):
         self.timer.reset()
-        return self.instances[instance].pipelines.derivative_formats(derivative)
-
-    @property
-    def registry_instances(self):
-        self.timer.reset()
-        return self.registry_mgr.instances
+        return self._instances[instance].pipelines.derivative_formats(
+            derivative
+        )
 
     def queue(self, instance):
         """The list of builds in instance queue."""
         self.timer.reset()
         return [
             DbusSubmittedBuild.load_from_build(_build)
-            for _build in self.instances[instance].tasks_mgr.queue.dump()
+            for _build in self._instances[instance].tasks_mgr.queue.dump()
         ]
 
     def running(self, instance):
         """The list of builds in queue."""
         self.timer.reset()
-        if not self.instances[instance].tasks_mgr.running:
+        if not self._instances[instance].tasks_mgr.running:
             raise ErrorNoRunningBuild()
         return DbusRunningBuild.load_from_build(
-            self.instances[instance].tasks_mgr.running
+            self._instances[instance].tasks_mgr.running
         )
 
     def archives(self, instance):
@@ -292,28 +297,30 @@ class FatbuildrMultiplexer(object):
         self.timer.reset()
         return [
             DbusArchivedBuild.load_from_build(_build)
-            for _build in self.instances[instance].tasks_mgr.archives()
+            for _build in self._instances[instance].tasks_mgr.archives()
         ]
 
     def formats(self, instance: Str):
         self.timer.reset()
-        return self.registry_mgr.formats(instance)
+        return self._instances[instance].registry_mgr.formats()
 
     def distributions(self, instance: Str, fmt: Str):
         self.timer.reset()
-        return self.registry_mgr.distributions(instance, fmt)
+        return self._instances[instance].registry_mgr.distributions(fmt)
 
     def derivatives(self, instance: Str, fmt: Str, distribution: Str):
         self.timer.reset()
-        return self.registry_mgr.derivatives(instance, fmt, distribution)
+        return self._instances[instance].registry_mgr.derivatives(
+            fmt, distribution
+        )
 
     def artefacts(
         self, instance: Str, fmt: Str, distribution: Str, derivative: Str
     ):
         """Get all artefacts in this derivative of this distribution registry."""
         self.timer.reset()
-        artefacts = self.registry_mgr.artefacts(
-            instance, fmt, distribution, derivative
+        artefacts = self._instances[instance].registry_mgr.artefacts(
+            fmt, distribution, derivative
         )
         return [
             DbusArtefact.load_from_artefact(artefact) for artefact in artefacts
@@ -328,7 +335,7 @@ class FatbuildrMultiplexer(object):
         artefact: Structure,
     ):
         self.timer.reset()
-        return self.instances[instance].tasks_mgr.submit_artefact_deletion(
+        return self._instances[instance].tasks_mgr.submit_artefact_deletion(
             fmt,
             distribution,
             derivative,
@@ -346,8 +353,8 @@ class FatbuildrMultiplexer(object):
         """Get all binary artefacts generated by the given source artefact in
         this derivative of this distribution registry."""
         self.timer.reset()
-        artefacts = self.registry_mgr.artefact_bins(
-            instance, fmt, distribution, derivative, src_artefact
+        artefacts = self._instances[instance].registry_mgr.artefact_bins(
+            fmt, distribution, derivative, src_artefact
         )
         return [
             DbusArtefact.load_from_artefact(artefact) for artefact in artefacts
@@ -364,8 +371,8 @@ class FatbuildrMultiplexer(object):
         """Get the source artefact that generated by the given binary artefact
         in this distribution registry."""
         self.timer.reset()
-        artefact = self.registry_mgr.artefact_src(
-            instance, fmt, distribution, derivative, bin_artefact
+        artefact = self._instances[instance].registry_mgr.artefact_src(
+            fmt, distribution, derivative, bin_artefact
         )
         return DbusArtefact.load_from_artefact(artefact)
 
@@ -381,8 +388,8 @@ class FatbuildrMultiplexer(object):
         """Get the changelog of the given artefact and architecture in this
         distribution registry."""
         self.timer.reset()
-        changelog = self.registry_mgr.changelog(
-            instance, fmt, distribution, derivative, architecture, artefact
+        changelog = self._instances[instance].registry_mgr.changelog(
+            fmt, distribution, derivative, architecture, artefact
         )
         return [
             DbusChangelogEntry.load_from_entry(entry) for entry in changelog
@@ -391,7 +398,7 @@ class FatbuildrMultiplexer(object):
     def submit(self, instance: Str, input: Str):
         """Submit a new build."""
         self.timer.reset()
-        submission = self.instances[instance].tasks_mgr.submit(input)
+        submission = self._instances[instance].tasks_mgr.submit(input)
         return submission.id
 
     def keyring_export(self, instance: Str):
@@ -401,7 +408,7 @@ class FatbuildrMultiplexer(object):
 
 
 class DbusServer(object):
-    def run(self, instances, registry_mgr, keyring_mgr, timer):
+    def run(self, instances, keyring_mgr, timer):
 
         # Print the generated XML specification.
         logger.debug(
@@ -410,9 +417,7 @@ class DbusServer(object):
         )
 
         # Create the Fatbuildr multiplexer.
-        multiplexer = FatbuildrMultiplexer(
-            instances, registry_mgr, keyring_mgr, timer
-        )
+        multiplexer = FatbuildrMultiplexer(instances, keyring_mgr, timer)
 
         # Publish the register at /org/rackslab/Fatbuildr.
         BUS.publish_object(

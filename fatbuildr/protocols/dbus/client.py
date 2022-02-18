@@ -37,6 +37,9 @@ class DbusClient(object):
 
     # instances
 
+    def instances(self):
+        return DbusInstance.from_structure_list(self.proxy.Instances)
+
     def instance(self, id):
         return DbusInstance.from_structure(self.proxy.Instance(id))
 
@@ -66,9 +69,6 @@ class DbusClient(object):
         return self.proxy.PipelinesDerivativeFormats(instance, derivative)
 
     # registries
-
-    def registry_instances(self):
-        return self.proxy.RegistryInstances
 
     def formats(self, instance):
         return self.proxy.Formats(instance)
