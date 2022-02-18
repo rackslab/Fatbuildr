@@ -40,12 +40,18 @@ def shelljoin(cmd):
     return " ".join(shlex.quote(str(x)) for x in cmd)
 
 
-def runcmd(cmd, *args, **kwargs):
+def runcmd(cmd, log=None, **kwargs):
     logger.debug("Running command: %s", shelljoin(cmd))
-    proc = subprocess.run(cmd, capture_output=True, *args, **kwargs)
+    if log is None:
+        proc = subprocess.run(cmd, capture_output=True, **kwargs)
+    else:
+        proc = subprocess.run(cmd, stdout=log, stderr=log, **kwargs)
     if proc.returncode:
-        raise RuntimeError(
+        error = (
             f"Command {shelljoin(cmd)} failed with exit code "
-            f"{proc.returncode}: {proc.stderr.decode()}"
+            f"{proc.returncode}"
         )
+        if log is None:
+            error += f": {proc.stderr.decode()}"
+        raise RuntimeError(error)
     return proc

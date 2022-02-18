@@ -21,7 +21,6 @@ import os
 import tempfile
 import hashlib
 import shutil
-import subprocess
 import tarfile
 
 import requests
@@ -35,6 +34,7 @@ from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
 from ..keyring import KeyringManager
 from ..archives import ArchivesManager
+from ..utils import runcmd
 from ..log import logr
 from .form import BuildForm
 
@@ -156,7 +156,7 @@ class ArtefactBuild(AbstractServerBuild):
         self.keyring.load()
         self.archives_mgr = ArchivesManager(conf)
         self.defs = None  # loaded in prepare()
-        self.log = None # handler on logfile, opened in run()
+        self.log = None  # handler on logfile, opened in run()
 
     def __getattr__(self, name):
         # try in form first, then try in defs
@@ -306,13 +306,7 @@ class ArtefactBuild(AbstractServerBuild):
 
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""
-        logger.debug("run cmd: %s" % (' '.join(cmd)))
-        proc = subprocess.run(cmd, **kwargs, stdout=self.log, stderr=self.log)
-        if proc.returncode:
-            raise RuntimeError(
-                "Command failed with exit code %d: %s"
-                % (proc.returncode, ' '.join(cmd))
-            )
+        runcmd(cmd, log=self.log, **kwargs)
 
     def contruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
@@ -322,7 +316,7 @@ class ArtefactBuild(AbstractServerBuild):
         if self.registry.exists:
             _binds.append(self.registry.path)
         self.container.run(
-            self.image, cmd, **kwargs, binds=_binds, log=self.log
+            self.image, cmd, binds=_binds, log=self.log, **kwargs
         )
 
     @classmethod

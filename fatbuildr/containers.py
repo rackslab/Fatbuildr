@@ -18,8 +18,8 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import subprocess
 
+from .utils import runcmd
 from .log import logr
 
 logger = logr(__name__)
@@ -35,7 +35,7 @@ class ContainerRunner(object):
     def run(
         self,
         image,
-        runcmd,
+        cmd,
         opts=None,
         binds=[],
         chdir=None,
@@ -44,7 +44,7 @@ class ContainerRunner(object):
     ):
         """Generic fully featured method to run command in container using
         systemd-nspawn."""
-        cmd = [
+        _cmd = [
             'systemd-nspawn',
             '--directory',
             image.path,
@@ -53,28 +53,22 @@ class ContainerRunner(object):
         # Bind-mount image format subdir if it exists
         img_dir_path = f"/usr/lib/fatbuildr/images/{image.format}"
         if os.path.exists(img_dir_path):
-            cmd.extend(['--bind', img_dir_path])
+            _cmd.extend(['--bind', img_dir_path])
 
         # add opts in args
         if opts is not None:
-            cmd.extend(opts)
+            _cmd.extend(opts)
         # add opts from conf
         if self.conf.opts is not None:
-            cmd.extend(self.conf.opts)
+            _cmd.extend(self.conf.opts)
         for _bind in binds:
-            cmd.extend(['--bind', _bind])
+            _cmd.extend(['--bind', _bind])
         if chdir is not None:
-            cmd.extend(['--chdir', chdir])
+            _cmd.extend(['--chdir', chdir])
         for _env in envs:
-            cmd.extend(['--setenv', _env])
+            _cmd.extend(['--setenv', _env])
         if isinstance(runcmd, str):
-            cmd.extend(runcmd.split(' '))
+            _cmd.extend(cmd.split(' '))
         else:
-            cmd.extend(runcmd)
-        logger.debug("Running command: %s", ' '.join(cmd))
-        proc = subprocess.run(cmd, stdout=log, stderr=log)
-        if proc.returncode:
-            raise RuntimeError(
-                f"Command failed with exit code {proc.returncode}: "
-                f"{' '.join(cmd)}"
-            )
+            _cmd.extend(cmd)
+        runcmd(_cmd, log=log)
