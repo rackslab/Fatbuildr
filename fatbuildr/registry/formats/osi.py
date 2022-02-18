@@ -130,6 +130,25 @@ class RegistryOsi(Registry):
         """Return empty array as there is notion of changelog with OSI."""
         return []
 
+    def delete_artefact(self, distribution, derivative, artefact):
+        path = os.path.join(
+            self.derivative_path(distribution, derivative),
+            f"{artefact.name}_{artefact.version}.{artefact.architecture}",
+        )
+        # delete the image if found
+        if os.path.exists(path):
+            logger.info("Deleting OSI file %s", path)
+            os.remove(path)
+        else:
+            logger.warning("Unable to find OSI file %s", path)
+        # delete the manifest if found
+        manifest = path + '.manifest'
+        if os.path.exists(manifest):
+            logger.info("Deleting OSI manifest file %s", manifest)
+            os.remove(manifest)
+        else:
+            logger.warning("Unable to find OSI manifest file %s", manifest)
+
     @staticmethod
     def ensure_directory(path):
         """Create a directory with 0755 mode if it does not exist."""
