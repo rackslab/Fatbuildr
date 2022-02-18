@@ -311,7 +311,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             keyring = connection.keyring(self.instance)
             keyring.report()
         elif args.export:
-            print(connection.keyring_export(self.instance))
+            print(connection.keyring_export(self.instance), end='')
         else:
             print(
                 "An operation on the keyring must be specified, type "
