@@ -23,10 +23,10 @@ import string
 import secrets
 import sys
 from datetime import datetime
-import subprocess
 
 import gpg
 
+from .utils import runcmd
 from .log import logr
 
 logger = logr(__name__)
@@ -269,7 +269,7 @@ class InstanceKeyring:
         gpgagent_sock_path = os.path.join(self.homedir, 'S.gpg-agent')
         if os.path.exists(gpgagent_sock_path):
             cmd = ['gpgconf', '--kill', '--homedir', self.homedir, 'gpg-agent']
-            KeyringManager.runcmd(cmd)
+            runcmd(cmd)
 
         # Start agent with --allow-preset-passphrase so the key can be loaded
         # non-interactively.
@@ -280,7 +280,7 @@ class InstanceKeyring:
             '--allow-preset-passphrase',
             '--daemon',
         ]
-        KeyringManager.runcmd(cmd)
+        runcmd(cmd)
 
         # Load GPG in agent using the passphrase
         cmd = [
@@ -288,7 +288,7 @@ class InstanceKeyring:
             '--preset',
             self.masterkey.subkey.keygrip,
         ]
-        KeyringManager.runcmd(
+        runcmd(
             cmd, env={'GNUPGHOME': self.homedir}, input=self.passphrase.encode()
         )
 
@@ -299,12 +299,3 @@ class KeyringManager:
 
     def keyring(self, instance):
         return InstanceKeyring(self.conf, instance)
-
-    @staticmethod
-    def runcmd(cmd, env=None, input=None):
-        logger.debug("Running command: %s" % (' '.join(cmd)))
-        proc = subprocess.run(cmd, env=env, input=input, capture_output=True)
-        if proc.returncode:
-            raise RuntimeError(
-                "Command %s failed: %s" % (' '.join(cmd), proc.stderr.decode())
-            )

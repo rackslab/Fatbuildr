@@ -17,6 +17,13 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import shlex
+import subprocess
+
+from .log import logr
+
+logger = logr(__name__)
+
 
 class Singleton(type):
     __instances = {}
@@ -27,3 +34,18 @@ class Singleton(type):
                 *args, **kwargs
             )
         return Singleton.__instances[cls]
+
+
+def shelljoin(cmd):
+    return " ".join(shlex.quote(str(x)) for x in cmd)
+
+
+def runcmd(cmd, *args, **kwargs):
+    logger.debug("Running command: %s", shelljoin(cmd))
+    proc = subprocess.run(cmd, capture_output=True, *args, **kwargs)
+    if proc.returncode:
+        raise RuntimeError(
+            f"Command {shelljoin(cmd)} failed with exit code "
+            f"{proc.returncode}: {proc.stderr.decode()}"
+        )
+    return proc

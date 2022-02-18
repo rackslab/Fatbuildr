@@ -19,10 +19,10 @@
 
 import os
 import sys
-import subprocess
 
 from .containers import ContainerRunner
 from .templates import Templeter
+from .utils import runcmd
 from .log import logr
 
 logger = logr(__name__)
@@ -66,13 +66,7 @@ class Image(object):
         if force:
             cmd.insert(1, '--force')
 
-        logger.debug("Running command: %s", ' '.join(cmd))
-        proc = subprocess.run(cmd)
-        if proc.returncode:
-            raise RuntimeError(
-                "Command failed with exit code %d: %s"
-                % (proc.returncode, ' '.join(cmd))
-            )
+        runcmd(cmd)
 
     def update(self):
         logger.info("Updating image for %s format" % (self.format))

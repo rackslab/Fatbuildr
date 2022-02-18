@@ -18,7 +18,6 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import subprocess
 import glob
 import tarfile
 import email
@@ -28,6 +27,7 @@ from debian import deb822, changelog, debfile
 from . import Registry, RegistryArtefact, ChangelogEntry
 from ...keyring import KeyringManager
 from ...templates import Templeter
+from ...utils import runcmd
 from ...log import logr
 
 logger = logr(__name__)
@@ -121,8 +121,9 @@ class RegistryDeb(Registry):
             build.distribution,
             build.name,
         ]
-        logger.debug("run cmd: %s" % (' '.join(cmd)))
-        repo_list = subprocess.run(cmd, capture_output=True)
+        # build.runcmd() is not used here because we want to capture and parse
+        # output here, and it writes the output to the build log file.
+        repo_list = runcmd(cmd)
 
         if repo_list.stdout.decode() == build.fullversion:
             raise RuntimeError(
@@ -165,8 +166,7 @@ class RegistryDeb(Registry):
             'list',
             distribution,
         ]
-        logger.debug("Running command %s", ' '.join(cmd))
-        repo_list_proc = subprocess.run(cmd, capture_output=True)
+        repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
             if not line:
@@ -192,7 +192,7 @@ class RegistryDeb(Registry):
             'list',
             distribution,
         ]
-        repo_list_proc = subprocess.run(cmd, capture_output=True)
+        repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
             (name, arch, source, version) = line.split('|')
@@ -218,7 +218,7 @@ class RegistryDeb(Registry):
             distribution,
             bin_artefact,
         ]
-        repo_list_proc = subprocess.run(cmd, capture_output=True)
+        repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
             (arch, source, version) = line.split('|')
@@ -240,7 +240,7 @@ class RegistryDeb(Registry):
             distribution,
             src_artefact,
         ]
-        repo_list_proc = subprocess.run(cmd, capture_output=True)
+        repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
             (arch, pkg_path) = line.split('|')
@@ -267,7 +267,7 @@ class RegistryDeb(Registry):
             distribution,
             bin_artefact,
         ]
-        repo_list_proc = subprocess.run(cmd, capture_output=True)
+        repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
             (arch, pkg_path) = line.split('|')
@@ -349,13 +349,7 @@ class RegistryDeb(Registry):
             distribution,
             artefact.name,
         ]
-        proc = subprocess.run(
-            cmd, capture_output=True, env={'GNUPGHOME': self.keyring.homedir}
-        )
-        if proc.returncode:
-            raise RuntimeError(
-                f"Command {' '.join(cmd)} failed: {proc.stderr.decode()}"
-            )
+        proc = runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})
 
     @staticmethod
     def debarch(arch):
