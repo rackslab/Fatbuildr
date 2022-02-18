@@ -156,6 +156,7 @@ class ArtefactBuild(AbstractServerBuild):
         self.keyring.load()
         self.archives_mgr = ArchivesManager(conf)
         self.defs = None  # loaded in prepare()
+        self.log = None # handler on logfile, opened in run()
 
     def __getattr__(self, name):
         # try in form first, then try in defs
@@ -208,8 +209,10 @@ class ArtefactBuild(AbstractServerBuild):
 
         super().run()
 
+        self.log = open(self.logfile, 'w+')
+
         # setup logger to duplicate logs in logfile
-        logger.add_file(self.logfile, self.instance.id)
+        logger.add_file(self.log, self.instance.id)
 
         try:
             self.prepare()
@@ -222,6 +225,7 @@ class ArtefactBuild(AbstractServerBuild):
             logger.info("Build succeeded")
 
         logger.del_file()
+        self.log.close()
 
     def init_from_request(self, request):
 
@@ -303,13 +307,12 @@ class ArtefactBuild(AbstractServerBuild):
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""
         logger.debug("run cmd: %s" % (' '.join(cmd)))
-        with open(self.logfile, 'a') as fh:
-            proc = subprocess.run(cmd, **kwargs, stdout=fh, stderr=fh)
-            if proc.returncode:
-                raise RuntimeError(
-                    "Command failed with exit code %d: %s"
-                    % (proc.returncode, ' '.join(cmd))
-                )
+        proc = subprocess.run(cmd, **kwargs, stdout=self.log, stderr=self.log)
+        if proc.returncode:
+            raise RuntimeError(
+                "Command failed with exit code %d: %s"
+                % (proc.returncode, ' '.join(cmd))
+            )
 
     def contruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
@@ -319,7 +322,7 @@ class ArtefactBuild(AbstractServerBuild):
         if self.registry.exists:
             _binds.append(self.registry.path)
         self.container.run(
-            self.image, cmd, **kwargs, binds=_binds, logfile=self.logfile
+            self.image, cmd, **kwargs, binds=_binds, log=self.log
         )
 
     @classmethod

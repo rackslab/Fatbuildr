@@ -136,8 +136,8 @@ class Log(logging.Logger):
             handler.setLevel(logging.DEBUG)
             handler.setFormatter(_formatter)
 
-    def add_file(self, path, instance):
-        self._file_handler = logging.FileHandler(path)
+    def add_file(self, fh, instance):
+        self._file_handler = logging.StreamHandler(stream=fh)
         _filter = BuildlogFilter(instance)
         self._file_handler.addFilter(_filter)
         logging.getLogger().addHandler(self._file_handler)
