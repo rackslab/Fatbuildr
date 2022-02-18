@@ -23,6 +23,7 @@ import yaml
 
 from .tasks.manager import ServerTasksManager
 from .registry.manager import RegistryManager
+from .archives import ArchivesManager
 
 from .utils import Singleton
 from .log import logr
@@ -129,6 +130,7 @@ class RunningInstance:
         self.pipelines = pipelines
         self.tasks_mgr = ServerTasksManager(self.conf, self)
         self.registry_mgr = RegistryManager(self.conf, self)
+        self.archives_mgr = ArchivesManager(self.conf, self)
 
     @property
     def userid(self):

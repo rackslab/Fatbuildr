@@ -26,19 +26,16 @@ logger = logr(__name__)
 
 
 class ArchivesManager:
-    def __init__(self, conf):
-        self.conf = conf
+    def __init__(self, conf, instance):
+        self.path = os.path.join(conf.dirs.archives, instance.id)
 
     def save_build(self, build):
-        archives_dir = os.path.join(self.conf.dirs.archives, build.instance.id)
-        if not os.path.exists(archives_dir):
-            logger.debug(
-                "Creating instance archives directory %s", archives_dir
-            )
-            os.mkdir(archives_dir)
-            os.chmod(archives_dir, 0o755)  # be umask agnostic
+        if not os.path.exists(self.path):
+            logger.debug("Creating instance archives directory %s", self.path)
+            os.mkdir(self.path)
+            os.chmod(self.path, 0o755)  # be umask agnostic
 
-        dest = os.path.join(archives_dir, build.id)
+        dest = os.path.join(self.path, build.id)
         logger.info(
             "Moving build directory %s to archives directory %s",
             build.place,

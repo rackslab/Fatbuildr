@@ -32,7 +32,6 @@ from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
 from ..keyring import KeyringManager
-from ..archives import ArchivesManager
 from ..utils import runcmd
 from ..log import logr
 from .form import BuildForm
@@ -149,7 +148,6 @@ class ArtefactBuild(AbstractServerBuild):
         self.env = BuildEnv(conf, self.image, self.environment)
         self.keyring = KeyringManager(conf).keyring(self.instance.id)
         self.keyring.load()
-        self.archives_mgr = ArchivesManager(conf)
         self.defs = None  # loaded in prepare()
         self.log = None  # handler on logfile, opened in run()
 
@@ -297,7 +295,7 @@ class ArtefactBuild(AbstractServerBuild):
         self.archive()
 
     def archive(self):
-        self.archives_mgr.save_build(self)
+        self.instance.archives_mgr.save_build(self)
 
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""
