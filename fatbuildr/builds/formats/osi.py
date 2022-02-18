@@ -61,7 +61,7 @@ class ArtefactBuildOsi(ArtefactBuild):
         self.contruncmd(cmd)
 
         # Load keyring in agent
-        self.keyring.load_agent()
+        self.instance.keyring.load_agent()
 
         # Sign checksum file. Note mkosi built-in signature feature (--sign) is
         # not used because, for security reasons, keyring is not available in
@@ -76,7 +76,7 @@ class ArtefactBuildOsi(ArtefactBuild):
             '--output',
             sig_path,
             '--default-key',
-            self.keyring.masterkey.userid,
+            self.instance.keyring.masterkey.userid,
             checksum_path,
         ]
-        self.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})
+        self.runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})

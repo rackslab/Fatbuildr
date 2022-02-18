@@ -31,7 +31,6 @@ from ..artefact import ArtefactDefs
 from ..cache import CacheArtefact
 from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
-from ..keyring import KeyringManager
 from ..utils import runcmd
 from ..log import logr
 from .form import BuildForm
@@ -146,8 +145,6 @@ class ArtefactBuild(AbstractServerBuild):
         self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, self.instance.id, self.format)
         self.env = BuildEnv(conf, self.image, self.environment)
-        self.keyring = KeyringManager(conf).keyring(self.instance.id)
-        self.keyring.load()
         self.defs = None  # loaded in prepare()
         self.log = None  # handler on logfile, opened in run()
 

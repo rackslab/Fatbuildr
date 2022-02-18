@@ -266,11 +266,3 @@ class InstanceKeyring:
         runcmd(
             cmd, env={'GNUPGHOME': self.homedir}, input=self.passphrase.encode()
         )
-
-
-class KeyringManager:
-    def __init__(self, conf):
-        self.conf = conf
-
-    def keyring(self, instance):
-        return InstanceKeyring(self.conf, instance)

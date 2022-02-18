@@ -19,17 +19,15 @@
 
 from . import RunnableTask
 
-from ..keyring import KeyringManager
 from ..log import logr
 
 logger = logr(__name__)
 
 
 class KeyringCreationTask(RunnableTask):
-    def __init__(self, instance, task_id, conf):
+    def __init__(self, instance, task_id):
         super().__init__(task_id, 'pending')
         self.instance = instance
-        self.conf = conf
 
     def run(self):
         super().run()
@@ -37,8 +35,7 @@ class KeyringCreationTask(RunnableTask):
             "Running keyring creation task %s",
             self.id,
         )
-        keyring = KeyringManager(self.conf).keyring(self.instance.id)
-        keyring.create(self.instance.userid)
+        self.instance.keyring.create(self.instance.userid)
 
     def terminate(self):
         logger.info("Terminating keyring creation task %s", self.id)

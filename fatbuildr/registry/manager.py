@@ -75,4 +75,4 @@ class RegistryManager:
         """Instanciate the appropriate Registry for the given format."""
         if not fmt in RegistryManager._formats:
             raise RuntimeError("format %s unsupported by registries" % (fmt))
-        return RegistryManager._formats[fmt](self.conf, self.instance.id)
+        return RegistryManager._formats[fmt](self.conf, self.instance)

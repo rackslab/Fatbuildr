@@ -25,7 +25,6 @@ import email
 from debian import deb822, changelog, debfile
 
 from . import Registry, RegistryArtefact, ChangelogEntry
-from ...keyring import KeyringManager
 from ...templates import Templeter
 from ...utils import runcmd
 from ...log import logr
@@ -40,7 +39,6 @@ class RegistryDeb(Registry):
 
     def __init__(self, conf, instance):
         super().__init__(conf, instance)
-        self.keyring = KeyringManager(conf).keyring(instance)
 
     @property
     def path(self):
@@ -81,9 +79,6 @@ class RegistryDeb(Registry):
         if not os.path.exists(os.path.dirname(dists_path)):
             os.makedirs(os.path.dirname(dists_path))
 
-        # load the keyring
-        self.keyring.load()
-
         # generate reprepro distributions file
         logger.debug("Generating distribution file %s" % (dists_path))
         # Combine existing distributions in repository with build distribution
@@ -96,13 +91,13 @@ class RegistryDeb(Registry):
                     dists_tpl_path,
                     distributions=distributions,
                     components=components,
-                    key=self.keyring.masterkey.subkey.fingerprint,
-                    instance=build.instance.name,
+                    key=self.instance.keyring.masterkey.subkey.fingerprint,
+                    instance=self.instance.name,
                 )
             )
 
         # Load keyring in agent so repos are signed with new packages
-        self.keyring.load_agent()
+        self.instance.keyring.load_agent()
 
         # Check packages are not already present in this distribution of the
         # repository with this version before trying to publish them, or fail
@@ -150,7 +145,7 @@ class RegistryDeb(Registry):
                 build.distribution,
                 changes_path,
             ]
-            build.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})
+            build.runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})
 
     def artefacts(self, distribution, derivative):
         """Returns the list of artefacts in deb repository."""
@@ -333,9 +328,8 @@ class RegistryDeb(Registry):
 
     def delete_artefact(self, distribution, derivative, artefact):
 
-        # load the keyring and the agent
-        self.keyring.load()
-        self.keyring.load_agent()
+        # load the keyring agent
+        self.instance.keyring.load_agent()
 
         cmd = [
             'reprepro',
@@ -349,7 +343,7 @@ class RegistryDeb(Registry):
             distribution,
             artefact.name,
         ]
-        proc = runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})
+        proc = runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})
 
     @staticmethod
     def debarch(arch):

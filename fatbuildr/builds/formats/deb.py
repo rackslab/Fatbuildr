@@ -126,7 +126,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         # fatbuildr repositories.
         keyring_path = os.path.join(self.place, 'keyring.asc')
         with open(keyring_path, 'w+') as fh:
-            fh.write(self.keyring.export())
+            fh.write(self.instance.keyring.export())
 
         dsc_path = os.path.join(
             self.place, self.name + '_' + self.fullversion + '.dsc'

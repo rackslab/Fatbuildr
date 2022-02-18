@@ -25,7 +25,8 @@ class Registry:
 
     def __init__(self, conf, instance):
         self.conf = conf
-        self.instance_dir = os.path.join(conf.dirs.registry, instance)
+        self.instance = instance
+        self.instance_dir = os.path.join(conf.dirs.registry, instance.id)
 
     @property
     def distributions(self):

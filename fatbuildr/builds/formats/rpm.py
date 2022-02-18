@@ -105,7 +105,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         # fatbuildr packages in mock environment.
         keyring_path = os.path.join(self.place, 'keyring.asc')
         with open(keyring_path, 'w+') as fh:
-            fh.write(self.keyring.export())
+            fh.write(self.instance.keyring.export())
 
         cmd = [
             'mock',
@@ -134,22 +134,22 @@ class ArtefactBuildRpm(ArtefactBuild):
         self.contruncmd(cmd)
 
         # Load keys in agent prior to signing
-        self.keyring.load_agent()
+        self.instance.keyring.load_agent()
 
         # sign all RPM packages, including SRPM
         rpm_glob = os.path.join(self.place, '*.rpm')
         for rpm_path in glob.glob(rpm_glob):
             logger.debug(
                 "Signing RPM %s with key %s"
-                % (rpm_path, self.keyring.masterkey.fingerprint)
+                % (rpm_path, self.instance.keyring.masterkey.fingerprint)
             )
             cmd = [
                 'rpmsign',
                 '--define',
                 '%__gpg /usr/bin/gpg',
                 '--define',
-                '%_gpg_name ' + self.keyring.masterkey.userid,
+                '%_gpg_name ' + self.instance.eyring.masterkey.userid,
                 '--addsign',
                 rpm_path,
             ]
-            self.runcmd(cmd, env={'GNUPGHOME': self.keyring.homedir})
+            self.runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})

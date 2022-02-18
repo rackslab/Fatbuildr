@@ -235,9 +235,8 @@ class FatbuildrInterface(InterfaceTemplate):
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
 
-    def __init__(self, instances, keyring_mgr, timer):
+    def __init__(self, instances, timer):
         self._instances = instances
-        self.keyring_mgr = keyring_mgr
         self.timer = timer
 
     def instances(self):
@@ -417,18 +416,18 @@ class FatbuildrMultiplexer(object):
     def keyring(self, instance: Str):
         """Returns masterkey information."""
         self.timer.reset()
-        keyring = self.keyring_mgr.keyring(instance)
-        keyring.load()
-        return DbusKeyring.load_from_keyring(keyring.masterkey)
+        return DbusKeyring.load_from_keyring(
+            self._instances[instance].keyring.masterkey
+        )
 
     def keyring_export(self, instance: Str):
         """Returns armored public key of instance keyring."""
         self.timer.reset()
-        return self.keyring_mgr.keyring(instance).export()
+        return self._instances[instance].keyring.export()
 
 
 class DbusServer(object):
-    def run(self, instances, keyring_mgr, timer):
+    def run(self, instances, timer):
 
         # Print the generated XML specification.
         logger.debug(
@@ -437,7 +436,7 @@ class DbusServer(object):
         )
 
         # Create the Fatbuildr multiplexer.
-        multiplexer = FatbuildrMultiplexer(instances, keyring_mgr, timer)
+        multiplexer = FatbuildrMultiplexer(instances, timer)
 
         # Publish the register at /org/rackslab/Fatbuildr.
         BUS.publish_object(
