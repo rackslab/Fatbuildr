@@ -297,7 +297,7 @@ class FatbuildrMultiplexer(object):
         self.timer.reset()
         return [
             DbusArchivedBuild.load_from_build(_build)
-            for _build in self._instances[instance].tasks_mgr.archives()
+            for _build in self._instances[instance].archives_mgr.dump()
         ]
 
     def formats(self, instance: Str):

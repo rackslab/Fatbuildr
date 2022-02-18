@@ -20,6 +20,7 @@
 import os
 import shutil
 
+from .builds import BuildArchive
 from .log import logr
 
 logger = logr(__name__)
@@ -42,3 +43,23 @@ class ArchivesManager:
             dest,
         )
         shutil.move(build.place, dest)
+
+    def dump(self):
+        """Returns all BuildArchive found in archives directory."""
+        _archives = []
+
+        for build_id in os.listdir(self.path):
+            try:
+                _archives.append(
+                    BuildArchive(
+                        os.path.join(self.path, build_id),
+                        build_id,
+                    )
+                )
+            except FileNotFoundError as err:
+                logger.error(
+                    "Unable to load malformed build archive %s: %s",
+                    build_id,
+                    err,
+                )
+        return _archives

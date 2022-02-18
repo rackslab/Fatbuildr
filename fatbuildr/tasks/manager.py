@@ -27,7 +27,7 @@ from time import monotonic as _time
 from collections import deque
 
 from ..log import logr
-from ..builds import BuildRequest, BuildArchive
+from ..builds import BuildRequest
 from ..builds.factory import BuildFactory
 
 from .registry import RegistryArtefactDeletionTask
@@ -149,7 +149,7 @@ class ServerTasksManager:
             )
         except RuntimeError as err:
             logger.error(
-                "unable to generate build %s request %s: %s", task_id, err
+                "unable to generate build request %s: %s", task_id, err
             )
             return None
         self.queue.put(build)
@@ -175,23 +175,3 @@ class ServerTasksManager:
         task.run()
         self.running = None
         task.terminate()
-
-    def archives(self):
-        """Returns all BuildArchive found in archives directory."""
-        _archives = []
-
-        archives_dir = os.path.join(self.conf.dirs.archives, self.instance.id)
-        for build_id in os.listdir(archives_dir):
-            try:
-                _archives.append(
-                    BuildArchive(
-                        os.path.join(archives_dir, build_id),
-                        build_id,
-                    )
-                )
-            except FileNotFoundError as err:
-                logger.error(
-                    "Unable to load malformed build archive %s: %s"
-                    % (build_id, err)
-                )
-        return _archives
