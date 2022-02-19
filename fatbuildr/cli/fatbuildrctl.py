@@ -73,6 +73,11 @@ class Fatbuildrctl(FatbuildrCliRun):
             help="Enable debug mode",
         )
         parser.add_argument(
+            '--fulldebug',
+            action='store_true',
+            help="Enable debug mode in external libs",
+        )
+        parser.add_argument(
             '-i', '--instance', dest='instance', help="Name of the instance"
         )
         parser.add_argument(
@@ -210,7 +215,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         args = parser.parse_args()
 
-        logger.setup(args.debug)
+        logger.setup(args.debug or args.fulldebug, args.fulldebug)
         self.conf = RuntimeConfCtl()
         self.load(args)
 

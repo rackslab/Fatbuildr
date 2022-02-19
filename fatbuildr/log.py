@@ -108,7 +108,7 @@ class Log(logging.Logger):
                 "Unable to define log formatter for module %s" % (self.name)
             )
 
-    def setup(self, debug: bool):
+    def setup(self, debug: bool, fulldebug: bool):
         if debug:
             logging_level = logging.DEBUG
         else:
@@ -120,8 +120,9 @@ class Log(logging.Logger):
         _handler.setLevel(logging_level)
         _formatter = self.formatter(debug)
         _handler.setFormatter(_formatter)
-        _filter = logging.Filter('fatbuildr')  # filter out all libs logs
-        _handler.addFilter(_filter)
+        if not fulldebug:
+            _filter = logging.Filter('fatbuildr')  # filter out all libs logs
+            _handler.addFilter(_filter)
         _root_logger.addHandler(_handler)
 
     def ensure_debug(self):
@@ -135,6 +136,13 @@ class Log(logging.Logger):
         for handler in _root_logger.handlers:
             handler.setLevel(logging.DEBUG)
             handler.setFormatter(_formatter)
+
+    def ensure_fulldebug(self):
+        """Removes all filters in all handlers of root logger."""
+        _root_logger = logging.getLogger()
+        for handler in _root_logger.handlers:
+            for filter in handler.filters:
+                handler.removeFilter(filter)
 
     def add_file(self, fh, instance):
         self._file_handler = logging.StreamHandler(stream=fh)

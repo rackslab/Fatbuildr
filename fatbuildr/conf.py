@@ -256,13 +256,17 @@ class RuntimeSubConfd(RuntimeConfApp):
     def __init__(self):
         super().__init__()
         self.debug = None
+        self.fulldebug = None
 
     def load(self, config):
+        section = 'daemon'
         self.debug = config.getboolean('daemon', 'debug')
+        self.fulldebug = config.getboolean('daemon', 'fulldebug')
 
     def dump(self):
         logger.debug("[daemon]")
         logger.debug("  debug: %s" % (self.debug))
+        logger.debug("  fulldebug: %s" % (self.fulldebug))
 
 
 class RuntimeSubConfWeb(RuntimeConfApp):

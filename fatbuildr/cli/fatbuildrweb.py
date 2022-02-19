@@ -49,7 +49,7 @@ class FatbuildrWeb(FatbuildrCliRun):
         )
         args = parser.parse_args()
 
-        logger.setup(args.debug)
+        logger.setup(args.debug, fulldebug=False)
 
         self.conf = RuntimeConfWeb()
         self.load(args)

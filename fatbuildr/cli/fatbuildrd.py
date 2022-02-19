@@ -55,7 +55,7 @@ class Fatbuildrd(FatbuildrCliRun):
 
         args = parser.parse_args()
 
-        logger.setup(args.debug)
+        logger.setup(args.debug, fulldebug=False)
 
         self.conf = RuntimeConfd()
         self.instances = None  # initialized in load(), after conf is loaded
@@ -68,8 +68,11 @@ class Fatbuildrd(FatbuildrCliRun):
         super().load()
 
         # set debug level on root logger if set in conf file
-        if self.conf.run.debug:
+        if self.conf.run.debug or self.conf.run.fulldebug:
             logger.ensure_debug()
+
+        if self.conf.run.fulldebug:
+            logger.ensure_fulldebug()
 
         self.conf.dump()
         self.instances = Instances(self.conf)
