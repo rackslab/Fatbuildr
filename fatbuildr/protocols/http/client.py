@@ -61,19 +61,38 @@ class HttpClient:
         formats = response.json()
         return list(formats.keys())
 
-    def submit(self, instance, request):
+    def submit(
+        self,
+        instance,
+        format,
+        distribution,
+        derivative,
+        artefact,
+        user_name,
+        user_email,
+        message,
+        tarball,
+    ):
         url = f"{self.host}/{instance}/submit"
-
-        files = {
-            'tarball': open(request.tarball, 'rb'),
-            'form': open(request.formfile, 'rb'),
-        }
         logger.debug("Submitting build request to %s", url)
-        response = requests.post(url, files=files)
+        response = requests.post(
+            url,
+            data={
+                'format': format,
+                'distribution': distribution,
+                'derivative': derivative,
+                'artefact': artefact,
+                'user_name': user_name,
+                'user_email': user_email,
+                'message': message,
+            },
+            files={
+                'tarball': open(tarball, 'rb'),
+            },
+        )
 
-        # Delete the request files and temporary directory as they are not
-        # consumed by the http server.
-        request.cleanup()
+        # Delete the tarball as it is not accessed by the http server.
+        tarball.unlink()
 
         return response.json()['build']
 

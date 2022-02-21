@@ -30,8 +30,33 @@ logger = logr(__name__)
 class ArtefactBuildRpm(ArtefactBuild):
     """Class to manipulation package in RPM format."""
 
-    def __init__(self, conf, instance, build_id, form):
-        super().__init__(conf, instance, build_id, form)
+    def __init__(
+        self,
+        instance,
+        task_id,
+        conf,
+        format,
+        distribution,
+        derivative,
+        artefact,
+        user_name,
+        user_email,
+        message,
+        tarball,
+    ):
+        super().__init__(
+            instance,
+            task_id,
+            conf,
+            format,
+            distribution,
+            derivative,
+            artefact,
+            user_name,
+            user_email,
+            message,
+            tarball,
+        )
         self.format = 'rpm'
 
     @property
@@ -41,11 +66,13 @@ class ArtefactBuildRpm(ArtefactBuild):
 
     @property
     def spec_basename(self):
-        return self.name + '.spec'
+        return self.artefact + '.spec'
 
     @property
     def srpm_filename(self):
-        return self.name + '-' + self.version + '-' + self.release + '.src.rpm'
+        return (
+            self.artefact + '-' + self.version + '-' + self.release + '.src.rpm'
+        )
 
     @property
     def srpm_path(self):
@@ -59,8 +86,9 @@ class ArtefactBuildRpm(ArtefactBuild):
         """Build source SRPM"""
 
         logger.info(
-            "Building source RPM for %s in environment %s"
-            % (self.name, self.env.name)
+            "Building source RPM for %s in environment %s",
+            self.artefact,
+            self.env.name,
         )
 
         # Generate spec file base on template

@@ -30,21 +30,48 @@ logger = logr(__name__)
 class ArtefactBuildOsi(ArtefactBuild):
     """Class to manipulate builds of OS images."""
 
-    def __init__(self, conf, instance, build_id, form):
-        super().__init__(conf, instance, build_id, form)
+    def __init__(
+        self,
+        instance,
+        task_id,
+        conf,
+        format,
+        distribution,
+        derivative,
+        artefact,
+        user_name,
+        user_email,
+        message,
+        tarball,
+    ):
+        super().__init__(
+            instance,
+            task_id,
+            conf,
+            format,
+            distribution,
+            derivative,
+            artefact,
+            user_name,
+            user_email,
+            message,
+            tarball,
+        )
         self.format = 'osi'
 
     def build(self):
         """Build the OS image using mkosi"""
 
-        logger.info("Building the OS image based %s" % (self.name))
+        logger.info("Building the OS image based %s", self.artefact)
 
-        def_path = os.path.join(self.place, self.format, self.name + '.mkosi')
+        def_path = os.path.join(
+            self.place, self.format, self.artefact + '.mkosi'
+        )
         if not os.path.exists(def_path):
             raise RuntimeError(
                 "Unable to find OS image definition file at %s" % (def_path)
             )
-        output = os.path.join(self.place, self.name + '.mkosi')
+        output = os.path.join(self.place, self.artefact + '.mkosi')
 
         cmd = [
             'mkosi',
@@ -53,7 +80,7 @@ class ArtefactBuildOsi(ArtefactBuild):
             '--output-dir',
             self.place,
             '--image-id',
-            self.name,
+            self.artefact,
             '--image-version',
             self.version,
             '--checksum',

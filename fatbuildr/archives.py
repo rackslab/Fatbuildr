@@ -30,7 +30,7 @@ class ArchivesManager:
     def __init__(self, conf, instance):
         self.path = os.path.join(conf.dirs.archives, instance.id)
 
-    def save_build(self, build):
+    def save_build(self, build, form):
         if not os.path.exists(self.path):
             logger.debug("Creating instance archives directory %s", self.path)
             os.mkdir(self.path)
@@ -43,6 +43,9 @@ class ArchivesManager:
             dest,
         )
         shutil.move(build.place, dest)
+
+        # Save build form
+        form.save(dest)
 
     def dump(self):
         """Returns all BuildArchive found in archives directory."""

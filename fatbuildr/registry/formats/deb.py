@@ -65,8 +65,9 @@ class RegistryDeb(Registry):
         """Publish both source and binary package in APT repository."""
 
         logger.info(
-            "Publishing Deb packages for %s in distribution %s"
-            % (build.name, build.distribution)
+            "Publishing Deb packages for %s in distribution %s",
+            build.artefact,
+            build.distribution,
         )
 
         # load reprepro distributions template
@@ -103,8 +104,9 @@ class RegistryDeb(Registry):
         # repository with this version before trying to publish them, or fail
         # when it is the case.
         logger.debug(
-            "Checking if package %s is already present in "
-            "distribution %s" % (build.name, build.distribution)
+            "Checking if package %s is already present in " "distribution %s",
+            build.artefact,
+            build.distribution,
         )
         cmd = [
             'reprepro',
@@ -114,7 +116,7 @@ class RegistryDeb(Registry):
             '${version}',
             'list',
             build.distribution,
-            build.name,
+            build.artefact,
         ]
         # build.runcmd() is not used here because we want to capture and parse
         # output here, and it writes the output to the build log file.
@@ -122,9 +124,8 @@ class RegistryDeb(Registry):
 
         if repo_list.stdout.decode() == build.fullversion:
             raise RuntimeError(
-                "package %s already present in distribution %s "
-                "with version %s"
-                % (build.name, build.distribution, build.fullversion)
+                f"package {build.artefact} already present in distribution "
+                f"{build.distribution} with version {build.fullversion}",
             )
 
         changes_glob = os.path.join(build.place, '*.changes')

@@ -31,8 +31,33 @@ logger = logr(__name__)
 class ArtefactBuildDeb(ArtefactBuild):
     """Class to manipulation build of package in Deb format."""
 
-    def __init__(self, conf, instance, build_id, form):
-        super().__init__(conf, instance, build_id, form)
+    def __init__(
+        self,
+        instance,
+        task_id,
+        conf,
+        format,
+        distribution,
+        derivative,
+        artefact,
+        user_name,
+        user_email,
+        message,
+        tarball,
+    ):
+        super().__init__(
+            instance,
+            task_id,
+            conf,
+            format,
+            distribution,
+            derivative,
+            artefact,
+            user_name,
+            user_email,
+            message,
+            tarball,
+        )
         self.format = 'deb'
 
     @property
@@ -54,8 +79,9 @@ class ArtefactBuildDeb(ArtefactBuild):
         """Build deb source package."""
 
         logger.info(
-            "Building source Deb packages for %s in %s"
-            % (self.name, self.env.name)
+            "Building source Deb packages for %s in %s",
+            self.artefact,
+            self.env.name,
         )
 
         # extract tarball in build place
@@ -89,7 +115,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             'debchange',
             '--create',
             '--package',
-            self.name,
+            self.artefact,
             '--newversion',
             self.fullversion,
             '--distribution',
@@ -102,7 +128,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         #  add symlink to tarball
         orig_tarball_path = os.path.join(
             self.place,
-            f"{self.name}_{self.version}.orig.tar.{self.tarball_ext}",
+            f"{self.artefact}_{self.version}.orig.tar.{self.tarball_ext}",
         )
         logger.debug(
             "Creating symlink %s → %s"
@@ -118,8 +144,9 @@ class ArtefactBuildDeb(ArtefactBuild):
     def _build_bin(self):
         """Build deb packages binary package."""
         logger.info(
-            "Building binary Deb packages for %s in %s"
-            % (self.name, self.env.name)
+            "Building binary Deb packages for %s in %s",
+            self.artefact,
+            self.env.name,
         )
 
         # Save keyring in build place to cowbuilder can check signatures of
@@ -129,7 +156,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             fh.write(self.instance.keyring.export())
 
         dsc_path = os.path.join(
-            self.place, self.name + '_' + self.fullversion + '.dsc'
+            self.place, self.artefact + '_' + self.fullversion + '.dsc'
         )
         cmd = [
             'cowbuilder',

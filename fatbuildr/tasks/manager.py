@@ -27,9 +27,8 @@ from time import monotonic as _time
 from collections import deque
 
 from ..log import logr
-from ..builds import BuildRequest
-from ..builds.factory import BuildFactory
 
+from ..builds.factory import BuildFactory
 from .registry import RegistryArtefactDeletionTask
 from .keyring import KeyringCreationTask
 
@@ -124,14 +123,33 @@ class ServerTasksManager:
         logger.info("Keyring create task %s submitted in queue" % (task.id))
         return task_id
 
-    def submit(self, input):
+    def submit_build(
+        self,
+        format,
+        distribution,
+        derivative,
+        artefact,
+        user_name,
+        user_email,
+        msg,
+        tarball,
+    ):
         """Generate the build ID and place in queue."""
 
         task_id = str(uuid.uuid4())  # generate task ID
-        request = BuildRequest.load(input)
         try:
             build = BuildFactory.generate(
-                self.conf, self.instance, request, task_id
+                self.instance,
+                task_id,
+                self.conf,
+                format,
+                distribution,
+                derivative,
+                artefact,
+                user_name,
+                user_email,
+                msg,
+                tarball,
             )
         except RuntimeError as err:
             logger.error(
@@ -140,7 +158,7 @@ class ServerTasksManager:
             return None
         self.queue.put(build)
         logger.info("Build %s submitted in queue" % (build.id))
-        return build
+        return task_id
 
     def pick(self, timeout):
 

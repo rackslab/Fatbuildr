@@ -33,7 +33,7 @@ class RegistryArtefactDeletionTask(RunnableTask):
         derivative,
         artefact,
     ):
-        super().__init__(task_id, 'pending')
+        super().__init__(task_id)
         self.instance = instance
         self.format = format
         self.distribution = distribution

@@ -216,9 +216,30 @@ class FatbuildrInterface(InterfaceTemplate):
             )
         )
 
-    def Submit(self, instance: Str, input: Str) -> Str:
+    def Submit(
+        self,
+        instance: Str,
+        format: Str,
+        distribution: Str,
+        derivative: Str,
+        artefact: Str,
+        user_name: Str,
+        user_email: Str,
+        message: Str,
+        tarball: Str,
+    ) -> Str:
         """Submit a new build."""
-        return self.implementation.submit(instance, input)
+        return self.implementation.submit(
+            instance,
+            format,
+            distribution,
+            derivative,
+            artefact,
+            user_name,
+            user_email,
+            message,
+            tarball,
+        )
 
     def KeyringCreate(self, instance: Str) -> Str:
         """Create instance keyring."""
@@ -402,11 +423,31 @@ class FatbuildrMultiplexer(object):
             DbusChangelogEntry.load_from_entry(entry) for entry in changelog
         ]
 
-    def submit(self, instance: Str, input: Str):
+    def submit(
+        self,
+        instance: Str,
+        format: Str,
+        distribution: Str,
+        derivative: Str,
+        artefact: Str,
+        user_name: Str,
+        user_email: Str,
+        message: Str,
+        tarball: Str,
+    ):
         """Submit a new build."""
         self.timer.reset()
-        submission = self._instances[instance].tasks_mgr.submit(input)
-        return submission.id
+        task_id = self._instances[instance].tasks_mgr.submit_build(
+            format,
+            distribution,
+            derivative,
+            artefact,
+            user_name,
+            user_email,
+            message,
+            tarball,
+        )
+        return task_id
 
     def keyring_create(self, instance: Str):
         """Submit a new task to create keyring."""

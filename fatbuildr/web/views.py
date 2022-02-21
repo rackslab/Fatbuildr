@@ -18,8 +18,8 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import tempfile
 import io
+from pathlib import Path
 
 from flask import (
     request,
@@ -33,7 +33,6 @@ from werkzeug.utils import secure_filename
 
 from ..version import __version__
 from ..protocols import ClientFactory
-from ..builds import BuildRequest
 
 
 def version():
@@ -254,21 +253,23 @@ def artefacts(instance, artefact, output='html'):
 
 def submit(instance):
     tarball = request.files['tarball']
-    form = request.files['form']
-    secured_tarball = secure_filename(tarball.filename)
-    secured_form = secure_filename(form.filename)
-
-    # Create tmp directory to save the build request files
-    tmpdir = tempfile.mkdtemp(
-        prefix='fatbuildr', dir=current_app.config['UPLOAD_FOLDER']
+    tarball_path = Path(current_app.config['UPLOAD_FOLDER']).joinpath(
+        secure_filename(tarball.filename)
     )
-    tarball.save(os.path.join(tmpdir, secured_tarball))
-    form.save(os.path.join(tmpdir, secured_form))
+    tarball.save(tarball_path)
 
-    # load the build request and submit to local fatbuildrd
-    build_request = BuildRequest.load(tmpdir)
     connection = ClientFactory.get('local')
-    build_id = connection.submit(instance, build_request)
+    build_id = connection.submit(
+        instance,
+        request.form['format'],
+        request.form['distribution'],
+        request.form['derivative'],
+        request.form['artefact'],
+        request.form['user_name'],
+        request.form['user_email'],
+        request.form['message'],
+        tarball_path,
+    )
     return jsonify({'build': build_id})
 
 
@@ -297,7 +298,7 @@ def watch(instance, build_id):
     connection = ClientFactory.get('local')
     build = connection.get(instance, build_id)
     return current_app.response_class(
-        connection.watch(build), mimetype='text/plain'
+        connection.watch(instance, build), mimetype='text/plain'
     )
 
 

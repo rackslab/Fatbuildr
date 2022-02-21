@@ -70,8 +70,9 @@ class RegistryRpm(Registry):
         """Publish RPM (including SRPM) in yum/dnf repository."""
 
         logger.info(
-            "Publishing RPM packages for %s in distribution %s"
-            % (build.name, build.distribution)
+            "Publishing RPM packages for %s in distribution %s",
+            build.artefact,
+            build.distribution,
         )
 
         dist_path = self.repo_path(build.distribution, build.derivative)

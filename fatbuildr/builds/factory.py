@@ -34,25 +34,32 @@ class BuildFactory(object):
     }
 
     @staticmethod
-    def generate(conf, instance, request, build_id):
+    def generate(
+        instance,
+        task_id,
+        conf,
+        format,
+        distribution,
+        derivative,
+        artefact,
+        user_name,
+        user_email,
+        message,
+        tarball,
+    ):
         """Generate a BuildArtefact from a new request."""
-        if not request.format in BuildFactory._formats:
-            raise RuntimeError(
-                "format %s unsupported by builders" % (request.format)
-            )
-        return BuildFactory._formats[request.format].load_from_request(
-            conf, instance, request, build_id
-        )
-
-    @staticmethod
-    def load(conf, instance, place, build_id):
-        """Load a BuildArtefact based on a format."""
-        # Load the form to get the format
-        form = BuildForm.load(place)
-        if not form.format in BuildFactory._formats:
-            raise RuntimeError(
-                "format %s unsupported by builders" % (form.format)
-            )
-        return BuildFactory._formats[form.format](
-            conf, instance, build_id, form
+        if not format in BuildFactory._formats:
+            raise RuntimeError("format %s unsupported by builders" % (format))
+        return BuildFactory._formats[format](
+            instance,
+            task_id,
+            conf,
+            format,
+            distribution,
+            derivative,
+            artefact,
+            user_name,
+            user_email,
+            message,
+            tarball,
         )

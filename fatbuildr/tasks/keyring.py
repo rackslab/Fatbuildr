@@ -26,7 +26,7 @@ logger = logr(__name__)
 
 class KeyringCreationTask(RunnableTask):
     def __init__(self, instance, task_id):
-        super().__init__(task_id, 'pending')
+        super().__init__(task_id)
         self.instance = instance
 
     def run(self):

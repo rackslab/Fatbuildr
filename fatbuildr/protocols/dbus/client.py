@@ -119,8 +119,29 @@ class DbusClient(object):
             )
         )
 
-    def submit(self, instance, request):
-        return self.proxy.Submit(instance, request.place)
+    def submit(
+        self,
+        instance,
+        format,
+        distribution,
+        derivative,
+        artefact,
+        user_name,
+        user_email,
+        message,
+        tarball,
+    ):
+        return self.proxy.Submit(
+            instance,
+            format,
+            distribution,
+            derivative,
+            artefact,
+            user_name,
+            user_email,
+            message,
+            str(tarball),
+        )
 
     def queue(self, instance):
         return DbusSubmittedBuild.from_structure_list(

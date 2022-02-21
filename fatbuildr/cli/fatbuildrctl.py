@@ -22,13 +22,15 @@ import sys
 import os
 import time
 from pathlib import Path
+import tempfile
+import tarfile
+from datetime import datetime
 
 from . import FatbuildrCliRun
 from ..version import __version__
 from ..conf import RuntimeConfCtl
 from ..prefs import UserPreferences
 from ..images import ImagesManager
-from ..builds.manager import ClientBuildsManager
 from ..log import logr
 from ..protocols import ClientFactory
 from ..artefact import ArtefactDefs
@@ -50,6 +52,31 @@ def default_user_pref():
         return Path(xdg_env).join(ini)
     else:
         return Path(f"~/.config/{ini}")
+
+
+def prepare_tarball(basedir, subdir):
+    # create tmp submission directory
+    tarball = Path(tempfile._get_default_tempdir()).joinpath(
+        f"fatbuildr-artefact-{next(tempfile._get_candidate_names())}.tar.xz"
+    )
+
+    artefact_def_path = Path(basedir, subdir)
+    if not artefact_def_path.exists():
+        raise RuntimeError(
+            f"artefact definition directory {artefact_def_path} does not "
+            "exist",
+        )
+
+    logger.debug(
+        "Creating archive %s with artefact definition directory %s",
+        tarball,
+        artefact_def_path,
+    )
+    tar = tarfile.open(tarball, 'x:xz')
+    tar.add(artefact_def_path, arcname='.', recursive=True)
+    tar.close()
+
+    return tarball
 
 
 class Fatbuildrctl(FatbuildrCliRun):
@@ -488,21 +515,19 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
             sys.exit(1)
 
-        mgr = ClientBuildsManager(self.conf)
-
         try:
-            request = mgr.request(
-                basedir,
-                subdir,
+            tarball = prepare_tarball(basedir, subdir)
+            build_id = connection.submit(
+                self.instance,
+                format,
                 distribution,
                 args.derivative,
                 args.artefact,
-                format,
                 user_name,
                 user_email,
                 build_msg,
+                tarball,
             )
-            build_id = connection.submit(self.instance, request)
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)

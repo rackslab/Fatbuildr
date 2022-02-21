@@ -17,13 +17,16 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+from datetime import datetime
+
 
 class RunnableTask:
     """Abtract runnable task."""
 
-    def __init__(self, task_id, state):
+    def __init__(self, task_id, state='pending', submission=datetime.now()):
         self.id = task_id
         self.state = state
+        self.submission = submission
 
     def run(self):
         self.state = 'running'

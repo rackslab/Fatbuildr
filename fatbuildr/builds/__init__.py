@@ -22,6 +22,7 @@ import tempfile
 import hashlib
 import shutil
 import tarfile
+from pathlib import Path
 
 import requests
 
@@ -38,10 +39,24 @@ from .form import BuildForm
 logger = logr(__name__)
 
 
-class AbstractBuild:
+class AbstractServerBuild:
     def __init__(self, place):
         self.place = place
-        self.form = None
+
+    @property
+    def logfile(self):
+        if self.place is None or self.state not in ['running', 'finished']:
+            return None
+        return os.path.join(self.place, 'build.log')
+
+
+class BuildArchive(AbstractServerBuild, RunnableTask):
+    def __init__(self, place, task_id):
+        self.form = BuildForm.load(place)
+        RunnableTask.__init__(
+            self, task_id, state='finished', submission=self.form.submission
+        )
+        AbstractServerBuild.__init__(self, place)
 
     def __getattr__(self, name):
         """Returns self.form attribute as if they were instance attributes."""
@@ -54,87 +69,36 @@ class AbstractBuild:
             )
 
 
-class BuildRequest(AbstractBuild):
-
-    ARCHIVE_FILE = 'artefact.tar.xz'
-
-    def __init__(self, place, *args):
-        super().__init__(place)
-        if isinstance(args[0], BuildForm):
-            self.form = args[0]
-        else:
-            self.form = BuildForm(*args)
-
-    @property
-    def tarball(self):
-        return os.path.join(self.place, BuildRequest.ARCHIVE_FILE)
-
-    @property
-    def formfile(self):
-        return os.path.join(self.place, self.form.filename)
-
-    def prepare_tarball(self, basedir, subdir, dest):
-        # create an archive of artefact subdirectory
-        artefact_def_path = os.path.join(basedir, subdir)
-        if not os.path.exists(artefact_def_path):
-            raise RuntimeError(
-                "artefact definition directory %s does not exist"
-                % (artefact_def_path)
-            )
-
-        tar_path = os.path.join(dest, BuildRequest.ARCHIVE_FILE)
-        logger.debug(
-            "Creating archive %s with artefact definition directory %s"
-            % (tar_path, artefact_def_path)
-        )
-        tar = tarfile.open(tar_path, 'x:xz')
-        tar.add(artefact_def_path, arcname='.', recursive=True)
-        tar.close()
-
-    def cleanup(self):
-        if not os.path.exists(self.place):
-            logger.debug(
-                "Request directory %s has already been removed, "
-                "nothing to clean up",
-                self.place,
-            )
-            return
-        logger.debug("Removing request directory %s", self.place)
-        shutil.rmtree(self.place)
-
-    @classmethod
-    def load(cls, place):
-        return cls(place, BuildForm.load(place))
-
-
-class AbstractServerBuild(AbstractBuild, RunnableTask):
-    def __init__(self, place, task_id, state):
-        AbstractBuild.__init__(self, place)
-        RunnableTask.__init__(self, task_id, state)
-
-    @property
-    def logfile(self):
-        if self.place is None or self.state not in ['running', 'finished']:
-            return None
-        return os.path.join(self.place, 'build.log')
-
-
-class BuildArchive(AbstractServerBuild):
-    def __init__(self, place, task_id):
-        super().__init__(place, task_id, 'finished')
-        self.form = BuildForm.load(place)
-
-
-class ArtefactBuild(AbstractServerBuild):
+class ArtefactBuild(AbstractServerBuild, RunnableTask):
     """Generic parent class of all ArtefactBuild formats."""
 
-    def __init__(self, conf, instance, task_id, form):
-        super().__init__(
-            os.path.join(conf.dirs.queue, task_id), task_id, 'pending'
+    def __init__(
+        self,
+        instance,
+        task_id,
+        conf,
+        format,
+        distribution,
+        derivative,
+        artefact,
+        user_name,
+        user_email,
+        message,
+        tarball,
+    ):
+        RunnableTask.__init__(self, task_id)
+        AbstractServerBuild.__init__(
+            self, os.path.join(conf.dirs.queue, task_id)
         )
-        self.form = form
-        self.name = form.artefact
+        self.artefact = artefact
         self.instance = instance
+        self.format = format
+        self.distribution = distribution
+        self.derivative = derivative
+        self.user = user_name
+        self.email = user_email
+        self.message = message
+        self.input_tarball = Path(tarball)
         self.cache = CacheArtefact(conf, self.instance.id, self)
         self.registry = self.instance.registry_mgr.factory(self.format)
         # Get the recursive list of derivatives extended by the given
@@ -156,17 +120,14 @@ class ArtefactBuild(AbstractServerBuild):
         self.log = None  # handler on logfile, opened in run()
 
     def __getattr__(self, name):
-        # try in form first, then try in defs
+        # try in defs
         try:
-            return getattr(self.form, name)
+            return getattr(self.defs, name)
         except AttributeError:
-            try:
-                return getattr(self.defs, name)
-            except AttributeError:
-                raise AttributeError(
-                    "%s does not have %s attribute"
-                    % (self.__class__.__name__, name)
-                )
+            raise AttributeError(
+                "%s does not have %s attribute"
+                % (self.__class__.__name__, name)
+            )
 
     @property
     def version(self):
@@ -189,7 +150,7 @@ class ArtefactBuild(AbstractServerBuild):
         return self.defs.fullversion(self.format, self.derivative)
 
     @property
-    def tarball(self):
+    def upstream_tarball(self):
         return self.defs.tarball(self)
 
     @property
@@ -205,6 +166,14 @@ class ArtefactBuild(AbstractServerBuild):
         logger.info("Running build %s" % (self.id))
 
         super().run()
+
+        if os.path.exists(self.place):
+            logger.warning("Build directory %s already exists" % (self.place))
+        else:
+            # create build directory
+            logger.info("Creating build directory %s" % (self.place))
+            os.mkdir(self.place)
+            os.chmod(self.place, 0o755)  # be umask agnostic
 
         self.log = open(self.logfile, 'w+')
 
@@ -224,28 +193,6 @@ class ArtefactBuild(AbstractServerBuild):
         logger.del_file()
         self.log.close()
 
-    def init_from_request(self, request):
-
-        if os.path.exists(self.place):
-            logger.warning("Build directory %s already exists" % (self.place))
-        else:
-            # create build directory
-            logger.debug("Creating build directory %s" % (self.place))
-            os.mkdir(self.place)
-            os.chmod(self.place, 0o755)  # be umask agnostic
-
-        # Extract artefact tarball in build place
-        tar_path = os.path.join(request.place, BuildRequest.ARCHIVE_FILE)
-        logger.debug(
-            "Extracting tarball %s in destination %s" % (tar_path, self.place)
-        )
-        tar = tarfile.open(tar_path, 'r:xz')
-        tar.extractall(path=self.place)
-        tar.close()
-
-        # Move request build form in build place
-        request.form.move(request.place, self.place)
-
     @staticmethod
     def hasher(hash_format):
         """Return the hashlib object corresponding to the hash_format."""
@@ -257,8 +204,20 @@ class ArtefactBuild(AbstractServerBuild):
             raise RuntimeError("Unsupported hash format %s" % (hash_format))
 
     def prepare(self):
-        """Download the package upstream tarball and verify checksum if not
-        present in cache."""
+        """Extract input tarball and, if not present in cache, download the
+        package upstream tarball and verify its checksum."""
+
+        # Extract artefact tarball in build place
+        logger.info(
+            "Extracting tarball %s in destination %s"
+            % (self.input_tarball, self.place)
+        )
+        tar = tarfile.open(self.input_tarball, 'r:xz')
+        tar.extractall(path=self.place)
+        tar.close()
+
+        # Remove the input tarball
+        self.input_tarball.unlink()
 
         # ensure artefact cache directory exists
         self.cache.ensure()
@@ -276,7 +235,7 @@ class ArtefactBuild(AbstractServerBuild):
             return
 
         #  actual download and write in cache
-        dl = requests.get(self.tarball, allow_redirects=True)
+        dl = requests.get(self.upstream_tarball, allow_redirects=True)
         open(self.cache.tarball_path, 'wb').write(dl.content)
 
         # verify checksum after download
@@ -296,10 +255,17 @@ class ArtefactBuild(AbstractServerBuild):
             )
 
     def terminate(self):
-        self.archive()
-
-    def archive(self):
-        self.instance.archives_mgr.save_build(self)
+        form = BuildForm(
+            self.user,
+            self.email,
+            self.distribution,
+            self.derivative,
+            self.format,
+            self.artefact,
+            self.submission,
+            self.message,
+        )
+        self.instance.archives_mgr.save_build(self, form)
 
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""
@@ -315,9 +281,3 @@ class ArtefactBuild(AbstractServerBuild):
         self.container.run(
             self.image, cmd, binds=_binds, log=self.log, **kwargs
         )
-
-    @classmethod
-    def load_from_request(cls, conf, instance, request, task_id):
-        obj = cls(conf, instance, task_id, request.form)
-        obj.init_from_request(request)
-        return obj

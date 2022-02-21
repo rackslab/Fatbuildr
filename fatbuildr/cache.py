@@ -25,14 +25,16 @@ logger = logr(__name__)
 
 
 class CacheArtefact(object):
-    def __init__(self, conf, instance, artefact):
+    def __init__(self, conf, instance, build):
         self.instance_dir = os.path.join(conf.dirs.cache, instance)
-        self.dir = os.path.join(self.instance_dir, artefact.name)
-        self.artefact = artefact
+        self.dir = os.path.join(self.instance_dir, build.artefact)
+        self.build = build
 
     @property
     def tarball_path(self):
-        return os.path.join(self.dir, os.path.basename(self.artefact.tarball))
+        return os.path.join(
+            self.dir, os.path.basename(self.build.upstream_tarball)
+        )
 
     @property
     def has_tarball(self):

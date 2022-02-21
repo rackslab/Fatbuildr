@@ -53,7 +53,7 @@ class RegistryOsi(Registry):
     def publish(self, build):
         """Publish OSI images."""
 
-        logger.info("Publishing OSI images for %s" % (build.name))
+        logger.info("Publishing OSI images for %s", build.artefact)
 
         derivative_path = self.derivative_path(
             build.distribution, build.derivative
