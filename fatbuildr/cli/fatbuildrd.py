@@ -19,6 +19,8 @@
 
 import argparse
 import threading
+import os
+import shutil
 
 from . import FatbuildrCliRun
 from ..version import __version__
@@ -85,6 +87,8 @@ class Fatbuildrd(FatbuildrCliRun):
         self.sm = ServiceManager()
         self.timer = ServerTimer()
 
+        self.clear_orphaned_builds()
+
         worker_threads = {}
         for instance in self.instances:
             worker_threads[instance.id] = threading.Thread(
@@ -112,8 +116,8 @@ class Fatbuildrd(FatbuildrCliRun):
 
     def _worker(self, instance):
         """Thread working over an instance tasks queue."""
+
         logger.info("Starting worker thread for instance %s", instance.id)
-        instance.tasks_mgr.clear_orphaned_builds()
 
         timer_inc = False
         while True:
@@ -166,3 +170,10 @@ class Fatbuildrd(FatbuildrCliRun):
         logger.info("Stopping the server")
         self.server.quit()
         logger.info("Leaving timer thread")
+
+    def clear_orphaned_builds(self):
+        """Remove all build directories in queue directory."""
+        for build_id in os.listdir(self.conf.dirs.queue):
+            logger.warning("Removing orphaned build %s", build_id)
+            build_dir = os.path.join(self.conf.dirs.queue, build_id)
+            shutil.rmtree(build_dir)

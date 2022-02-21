@@ -97,28 +97,6 @@ class ServerTasksManager:
     def empty(self):
         return self.queue.empty()
 
-    def clear_orphaned_builds(self):
-        """Remove all submissions in queue directory not actually in queue, and
-        archive all builds in build directory not actually running."""
-        for build_id in os.listdir(self.conf.dirs.queue):
-            if not self.running or build_id != self.running.id:
-                logger.warning("Archiving orphaned build %s", build_id)
-                build_dir = os.path.join(self.conf.dirs.queue, build_id)
-                try:
-                    build = BuildFactory.load(
-                        self.conf,
-                        self.instance,
-                        build_dir,
-                        build_id,
-                    )
-                    build.archive()
-                except Exception as err:
-                    logger.error(
-                        "Unable to load orphaned build %s : %s", build_id, err
-                    )
-                    logger.warning("Removing directory %s", build_dir)
-                    shutil.rmtree(build_dir)
-
     def interrupt(self):
         """Interrupt thread blocked in self.pick()->self.queue.get(timeout)."""
         self.queue.interrupt_get()
