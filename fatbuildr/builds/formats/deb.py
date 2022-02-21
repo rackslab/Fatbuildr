@@ -33,8 +33,9 @@ class ArtefactBuildDeb(ArtefactBuild):
 
     def __init__(
         self,
-        instance,
         task_id,
+        place,
+        instance,
         conf,
         format,
         distribution,
@@ -46,8 +47,9 @@ class ArtefactBuildDeb(ArtefactBuild):
         tarball,
     ):
         super().__init__(
-            instance,
             task_id,
+            place,
+            instance,
             conf,
             format,
             distribution,
@@ -86,26 +88,26 @@ class ArtefactBuildDeb(ArtefactBuild):
 
         # extract tarball in build place
         logger.debug(
-            "Extracting tarball %s in %s"
-            % (self.cache.tarball_path, self.place)
+            "Extracting tarball %s in %s", self.cache.tarball_path, self.place
         )
         tar = tarfile.open(self.cache.tarball_path, 'r:' + self.tarball_ext)
         tarball_subdir_info = tar.getmembers()[0]
         if not tarball_subdir_info.isdir():
             raise RuntimeError(
-                "unable to define tarball %s subdirectory"
-                % (self.cache.tarball_path)
+                f"unable to define tarball {self.cache.tarball_path} "
+                "subdirectory"
             )
-        tarball_subdir = os.path.join(self.place, tarball_subdir_info.name)
+        tarball_subdir = self.place.joinpath(tarball_subdir_info.name)
         tar.extractall(path=self.place)
         tar.close()
 
         # copy debian dir
-        deb_code_from = os.path.join(self.place, 'deb')
-        deb_code_to = os.path.join(tarball_subdir, 'debian')
+        deb_code_from = self.place.joinpath('deb')
+        deb_code_to = tarball_subdir.joinpath('debian')
         logger.debug(
-            "Copying debian packaging code from %s into %s"
-            % (deb_code_from, deb_code_to)
+            "Copying debian packaging code from %s into %s",
+            deb_code_from,
+            deb_code_to,
         )
         shutil.copytree(deb_code_from, deb_code_to)
 
@@ -126,20 +128,20 @@ class ArtefactBuildDeb(ArtefactBuild):
         self.contruncmd(cmd, chdir=tarball_subdir, envs=_envs)
 
         #  add symlink to tarball
-        orig_tarball_path = os.path.join(
-            self.place,
+        orig_tarball_path = self.place.joinpath(
             f"{self.artefact}_{self.version}.orig.tar.{self.tarball_ext}",
         )
         logger.debug(
-            "Creating symlink %s → %s"
-            % (orig_tarball_path, self.cache.tarball_path)
+            "Creating symlink %s → %s",
+            orig_tarball_path,
+            self.cache.tarball_path,
         )
         os.symlink(self.cache.tarball_path, orig_tarball_path)
 
         # build source package
         logger.info("Building source package")
         cmd = ['dpkg-source', '--build', tarball_subdir]
-        self.contruncmd(cmd, chdir=self.place)
+        self.contruncmd(cmd, chdir=str(self.place))
 
     def _build_bin(self):
         """Build deb packages binary package."""
@@ -151,12 +153,12 @@ class ArtefactBuildDeb(ArtefactBuild):
 
         # Save keyring in build place to cowbuilder can check signatures of
         # fatbuildr repositories.
-        keyring_path = os.path.join(self.place, 'keyring.asc')
+        keyring_path = self.place.joinpath('keyring.asc')
         with open(keyring_path, 'w+') as fh:
             fh.write(self.instance.keyring.export())
 
-        dsc_path = os.path.join(
-            self.place, self.artefact + '_' + self.fullversion + '.dsc'
+        dsc_path = self.place.joinpath(
+            self.artefact + '_' + self.fullversion + '.dsc'
         )
         cmd = [
             'cowbuilder',
@@ -166,11 +168,11 @@ class ArtefactBuildDeb(ArtefactBuild):
             '--distribution',
             self.distribution,
             '--bindmounts',
-            self.place,  # for local repos keyring
+            str(self.place),  # for local repos keyring
             '--basepath',
             '/var/cache/pbuilder/' + self.distribution,
             '--buildresult',
-            self.place,
+            str(self.place),
             dsc_path,
         ]
 

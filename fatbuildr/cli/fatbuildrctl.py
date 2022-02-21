@@ -421,8 +421,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         else:
             subdir = args.subdir
 
-        path = os.path.join(basedir, subdir)
-        defs = ArtefactDefs(path)
+        defs = ArtefactDefs(Path(basedir, subdir))
 
         format = None
         distribution = None

@@ -26,14 +26,15 @@ logger = logr(__name__)
 class RegistryArtefactDeletionTask(RunnableTask):
     def __init__(
         self,
-        instance,
         task_id,
+        place,
+        instance,
         format,
         distribution,
         derivative,
         artefact,
     ):
-        super().__init__(task_id)
+        super().__init__(task_id, place)
         self.instance = instance
         self.format = format
         self.distribution = distribution

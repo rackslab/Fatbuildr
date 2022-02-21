@@ -25,6 +25,7 @@ import threading
 from datetime import datetime
 from time import monotonic as _time
 from collections import deque
+from pathlib import Path
 
 from ..log import logr
 
@@ -104,9 +105,11 @@ class ServerTasksManager:
         self, format, distribution, derivative, artefact
     ):
         task_id = str(uuid.uuid4())  # generate task ID
+        place = Path(self.conf.dirs.queue, task_id)
         task = RegistryArtefactDeletionTask(
-            self.instance,
             task_id,
+            place,
+            self.instance,
             format,
             distribution,
             derivative,
@@ -118,7 +121,8 @@ class ServerTasksManager:
 
     def submit_keyring_create(self):
         task_id = str(uuid.uuid4())  # generate task ID
-        task = KeyringCreationTask(self.instance, task_id)
+        place = Path(self.conf.dirs.queue, task_id)
+        task = KeyringCreationTask(task_id, place, self.instance)
         self.queue.put(task)
         logger.info("Keyring create task %s submitted in queue" % (task.id))
         return task_id
@@ -137,10 +141,12 @@ class ServerTasksManager:
         """Generate the build ID and place in queue."""
 
         task_id = str(uuid.uuid4())  # generate task ID
+        place = Path(self.conf.dirs.queue, task_id)
         try:
             build = BuildFactory.generate(
-                self.instance,
                 task_id,
+                place,
+                self.instance,
                 self.conf,
                 format,
                 distribution,

@@ -101,9 +101,9 @@ class WireBuild:
         _obj = cls()
         _obj.id = build.id
         _obj.state = build.state
-        _obj.place = build.place
+        _obj.place = str(build.place)
         try:
-            _obj.logfile = build.logfile
+            _obj.logfile = str(build.logfile)
         except AttributeError:
             _obj.logfile = None
         _obj.user = build.user

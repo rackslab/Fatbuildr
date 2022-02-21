@@ -39,24 +39,12 @@ from .form import BuildForm
 logger = logr(__name__)
 
 
-class AbstractServerBuild:
-    def __init__(self, place):
-        self.place = place
-
-    @property
-    def logfile(self):
-        if self.place is None or self.state not in ['running', 'finished']:
-            return None
-        return os.path.join(self.place, 'build.log')
-
-
-class BuildArchive(AbstractServerBuild, RunnableTask):
-    def __init__(self, place, task_id):
+class BuildArchive(RunnableTask):
+    def __init__(self, task_id, place):
         self.form = BuildForm.load(place)
-        RunnableTask.__init__(
-            self, task_id, state='finished', submission=self.form.submission
+        super().__init__(
+            task_id, place, state='finished', submission=self.form.submission
         )
-        AbstractServerBuild.__init__(self, place)
 
     def __getattr__(self, name):
         """Returns self.form attribute as if they were instance attributes."""
@@ -69,13 +57,14 @@ class BuildArchive(AbstractServerBuild, RunnableTask):
             )
 
 
-class ArtefactBuild(AbstractServerBuild, RunnableTask):
+class ArtefactBuild(RunnableTask):
     """Generic parent class of all ArtefactBuild formats."""
 
     def __init__(
         self,
-        instance,
         task_id,
+        place,
+        instance,
         conf,
         format,
         distribution,
@@ -86,15 +75,12 @@ class ArtefactBuild(AbstractServerBuild, RunnableTask):
         message,
         tarball,
     ):
-        RunnableTask.__init__(self, task_id)
-        AbstractServerBuild.__init__(
-            self, os.path.join(conf.dirs.queue, task_id)
-        )
-        self.artefact = artefact
+        super().__init__(task_id, place)
         self.instance = instance
         self.format = format
         self.distribution = distribution
         self.derivative = derivative
+        self.artefact = artefact
         self.user = user_name
         self.email = user_email
         self.message = message
@@ -167,13 +153,13 @@ class ArtefactBuild(AbstractServerBuild, RunnableTask):
 
         super().run()
 
-        if os.path.exists(self.place):
-            logger.warning("Build directory %s already exists" % (self.place))
+        if self.place.exists():
+            logger.warning("Build directory %s already exists", self.place)
         else:
             # create build directory
-            logger.info("Creating build directory %s" % (self.place))
-            os.mkdir(self.place)
-            os.chmod(self.place, 0o755)  # be umask agnostic
+            logger.info("Creating build directory %s", self.place)
+            self.place.mkdir()
+            self.place.chmod(0o755)  # be umask agnostic
 
         self.log = open(self.logfile, 'w+')
 
@@ -209,8 +195,9 @@ class ArtefactBuild(AbstractServerBuild, RunnableTask):
 
         # Extract artefact tarball in build place
         logger.info(
-            "Extracting tarball %s in destination %s"
-            % (self.input_tarball, self.place)
+            "Extracting tarball %s in destination %s",
+            self.input_tarball,
+            self.place,
         )
         tar = tarfile.open(self.input_tarball, 'r:xz')
         tar.extractall(path=self.place)
@@ -273,7 +260,7 @@ class ArtefactBuild(AbstractServerBuild, RunnableTask):
 
     def contruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
-        _binds = [self.place, self.cache.dir]
+        _binds = [str(self.place), self.cache.dir]
         # Before the first artefact is actually published, the registry does
         # not exist. Then check it really exists, then bind-mount it.
         if self.registry.exists:

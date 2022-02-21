@@ -83,7 +83,7 @@ class BuildForm(object):
 
     @classmethod
     def load(cls, place):
-        path = os.path.join(place, BuildForm.YML_FILE)
+        path = place.joinpath(BuildForm.YML_FILE)
         with open(path, 'r') as fh:
             description = yaml.load(fh, Loader=yaml.FullLoader)
         return cls(

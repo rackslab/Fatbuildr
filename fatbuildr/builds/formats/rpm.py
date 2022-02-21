@@ -32,8 +32,9 @@ class ArtefactBuildRpm(ArtefactBuild):
 
     def __init__(
         self,
-        instance,
         task_id,
+        place,
+        instance,
         conf,
         format,
         distribution,
@@ -45,8 +46,9 @@ class ArtefactBuildRpm(ArtefactBuild):
         tarball,
     ):
         super().__init__(
-            instance,
             task_id,
+            place,
+            instance,
             conf,
             format,
             distribution,
@@ -76,7 +78,7 @@ class ArtefactBuildRpm(ArtefactBuild):
 
     @property
     def srpm_path(self):
-        return os.path.join(self.place, self.srpm_filename)
+        return self.place.joinpath(self.srpm_filename)
 
     def build(self):
         self._build_src()
@@ -92,16 +94,16 @@ class ArtefactBuildRpm(ArtefactBuild):
         )
 
         # Generate spec file base on template
-        spec_tpl_path = os.path.join(self.place, 'rpm', self.spec_basename)
-        spec_path = os.path.join(self.place, self.spec_basename)
+        spec_tpl_path = self.place.joinpath('rpm', self.spec_basename)
+        spec_path = self.place.joinpath(self.spec_basename)
 
-        if not os.path.exists(spec_tpl_path):
+        if not spec_tpl_path.exists():
             raise RuntimeError(
                 f"RPM spec template file {spec_tpl_path} does not exist"
             )
 
         logger.debug(
-            "Generate RPM spec file %s based on %s" % (spec_path, spec_tpl_path)
+            "Generate RPM spec file %s based on %s", spec_path, spec_tpl_path
         )
         with open(spec_path, 'w+') as fh:
             fh.write(Templeter.frender(spec_tpl_path, pkg=self))
@@ -115,9 +117,9 @@ class ArtefactBuildRpm(ArtefactBuild):
             '--sources',
             self.cache.dir,
             '--spec',
-            spec_path,
+            str(spec_path),
             '--resultdir',
-            self.place,
+            str(self.place),
         ]
         self.contruncmd(cmd)
 
@@ -125,13 +127,14 @@ class ArtefactBuildRpm(ArtefactBuild):
         """Build binary RPM"""
 
         logger.info(
-            "Building binary RPM based on %s in environment %s"
-            % (self.srpm_path, self.env.name)
+            "Building binary RPM based on %s in environment %s",
+            self.srpm_path,
+            self.env.name,
         )
 
         # Save keyring in build place so dnf can check signatures of
         # fatbuildr packages in mock environment.
-        keyring_path = os.path.join(self.place, 'keyring.asc')
+        keyring_path = self.place.joinpath('keyring.asc')
         with open(keyring_path, 'w+') as fh:
             fh.write(self.instance.keyring.export())
 
@@ -148,11 +151,11 @@ class ArtefactBuildRpm(ArtefactBuild):
             '--plugin-option',
             f"fatbuildr_derivatives:derivatives={','.join(self.derivatives)}",
             '--plugin-option',
-            f"fatbuildr_derivatives:keyring={keyring_path}",
+            f"fatbuildr_derivatives:keyring={str(keyring_path)}",
             '--resultdir',
-            self.place,
+            str(self.place),
             '--rebuild',
-            self.srpm_path,
+            str(self.srpm_path),
         ]
 
         # Add additional build args if defined
@@ -165,11 +168,11 @@ class ArtefactBuildRpm(ArtefactBuild):
         self.instance.keyring.load_agent()
 
         # sign all RPM packages, including SRPM
-        rpm_glob = os.path.join(self.place, '*.rpm')
-        for rpm_path in glob.glob(rpm_glob):
+        for rpm_path in self.place.glob('*.rpm'):
             logger.debug(
-                "Signing RPM %s with key %s"
-                % (rpm_path, self.instance.keyring.masterkey.fingerprint)
+                "Signing RPM %s with key %s",
+                rpm_path,
+                self.instance.keyring.masterkey.fingerprint,
             )
             cmd = [
                 'rpmsign',
@@ -178,6 +181,6 @@ class ArtefactBuildRpm(ArtefactBuild):
                 '--define',
                 '%_gpg_name ' + self.instance.keyring.masterkey.userid,
                 '--addsign',
-                rpm_path,
+                str(rpm_path),
             ]
             self.runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})

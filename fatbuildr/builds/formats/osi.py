@@ -32,8 +32,9 @@ class ArtefactBuildOsi(ArtefactBuild):
 
     def __init__(
         self,
-        instance,
         task_id,
+        place,
+        instance,
         conf,
         format,
         distribution,
@@ -45,8 +46,9 @@ class ArtefactBuildOsi(ArtefactBuild):
         tarball,
     ):
         super().__init__(
-            instance,
             task_id,
+            place,
+            instance,
             conf,
             format,
             distribution,
@@ -64,21 +66,18 @@ class ArtefactBuildOsi(ArtefactBuild):
 
         logger.info("Building the OS image based %s", self.artefact)
 
-        def_path = os.path.join(
-            self.place, self.format, self.artefact + '.mkosi'
-        )
-        if not os.path.exists(def_path):
+        def_path = self.place.joinpath(self.format, self.artefact + '.mkosi')
+        if not def_path.exists():
             raise RuntimeError(
-                "Unable to find OS image definition file at %s" % (def_path)
+                f"Unable to find OS image definition file at {def_path}"
             )
-        output = os.path.join(self.place, self.artefact + '.mkosi')
 
         cmd = [
             'mkosi',
             '--default',
-            def_path,
+            str(def_path),
             '--output-dir',
-            self.place,
+            str(self.place),
             '--image-id',
             self.artefact,
             '--image-version',
@@ -94,16 +93,16 @@ class ArtefactBuildOsi(ArtefactBuild):
         # not used because, for security reasons, keyring is not available in
         # build container. The checksum file is signed the same way mkosi does
         # (as expected by systemd-importd) outside the build container.
-        checksum_path = os.path.join(self.place, 'SHA256SUMS')
-        sig_path = checksum_path + '.gpg'
-        logger.info("Signing checksum file %s with GPG" % (checksum_path))
+        checksum_path = self.place.joinpath('SHA256SUMS')
+        sig_path = checksum_path.with_suffix('.gpg')
+        logger.info("Signing checksum file %s with GPG", checksum_path)
         cmd = [
             'gpg',
             '--detach-sign',
             '--output',
-            sig_path,
+            str(sig_path),
             '--default-key',
             self.instance.keyring.masterkey.userid,
-            checksum_path,
+            str(checksum_path),
         ]
         self.runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})

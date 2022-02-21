@@ -18,7 +18,6 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import glob
 import tarfile
 import email
 
@@ -128,11 +127,10 @@ class RegistryDeb(Registry):
                 f"{build.distribution} with version {build.fullversion}",
             )
 
-        changes_glob = os.path.join(build.place, '*.changes')
-        for changes_path in glob.glob(changes_glob):
+        for changes_path in build.place.glob('*.changes'):
             # Skip source changes, source package is published in repository as
             # part of binary changes.
-            if changes_path.endswith('_source.changes'):
+            if changes_path.match('*_source.changes'):
                 continue
             logger.debug("Publishing deb changes file %s" % (changes_path))
             cmd = [

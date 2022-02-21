@@ -55,8 +55,8 @@ class ArchivesManager:
             try:
                 _archives.append(
                     BuildArchive(
-                        os.path.join(self.path, build_id),
                         build_id,
+                        os.path.join(self.path, build_id),
                     )
                 )
             except FileNotFoundError as err:

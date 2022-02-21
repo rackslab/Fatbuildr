@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-
 import yaml
 
 from .templates import Templeter
@@ -31,8 +29,8 @@ class ArtefactDefs:
     """Class to manipulate an artefact metadata definitions."""
 
     def __init__(self, path):
-        meta_yml_f = os.path.join(path, 'meta.yml')
-        logger.debug("Loading artefact definitions from %s" % (meta_yml_f))
+        meta_yml_f = path.joinpath('meta.yml')
+        logger.debug("Loading artefact definitions from %s", meta_yml_f)
         with open(meta_yml_f) as fh:
             self.meta = yaml.safe_load(fh)
 

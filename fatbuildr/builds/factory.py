@@ -35,8 +35,9 @@ class BuildFactory(object):
 
     @staticmethod
     def generate(
-        instance,
         task_id,
+        place,
+        instance,
         conf,
         format,
         distribution,
@@ -51,8 +52,9 @@ class BuildFactory(object):
         if not format in BuildFactory._formats:
             raise RuntimeError("format %s unsupported by builders" % (format))
         return BuildFactory._formats[format](
-            instance,
             task_id,
+            place,
+            instance,
             conf,
             format,
             distribution,

@@ -19,7 +19,6 @@
 
 import os
 import shutil
-import glob
 
 import createrepo_c as cr
 
@@ -80,8 +79,7 @@ class RegistryRpm(Registry):
 
         self._mk_missing_repo_dirs(build.distribution, build.derivative)
 
-        rpm_glob = os.path.join(build.place, '*.rpm')
-        for rpm_path in glob.glob(rpm_glob):
+        for rpm_path in build.place.glob('*.rpm'):
             logger.debug("Copying RPM %s to %s" % (rpm_path, pkg_dir))
             shutil.copy(rpm_path, pkg_dir)
 

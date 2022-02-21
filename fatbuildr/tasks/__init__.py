@@ -23,10 +23,19 @@ from datetime import datetime
 class RunnableTask:
     """Abtract runnable task."""
 
-    def __init__(self, task_id, state='pending', submission=datetime.now()):
+    def __init__(
+        self, task_id, place, state='pending', submission=datetime.now()
+    ):
         self.id = task_id
+        self.place = place
         self.state = state
         self.submission = submission
+
+    @property
+    def logfile(self):
+        if self.place is None or self.state not in ['running', 'finished']:
+            return None
+        return self.place.joinpath('task.log')
 
     def run(self):
         self.state = 'running'

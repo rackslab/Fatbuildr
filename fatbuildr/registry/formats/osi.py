@@ -18,7 +18,6 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-import glob
 import shutil
 import re
 
@@ -67,14 +66,13 @@ class RegistryOsi(Registry):
         RegistryOsi.ensure_directory(derivative_path)
 
         built_files = RegistryOsi.CHECKSUMS_FILES
-        images_files_path = os.path.join(build.place, '*.tar.*')
         built_files.extend(
-            [os.path.basename(_path) for _path in glob.glob(images_files_path)]
+            [os.path.basename(_path) for _path in build.place.glob('*.tar.*')]
         )
         logger.debug("Found files: %s" % (' '.join(built_files)))
 
         for fpath in built_files:
-            src = os.path.join(build.place, fpath)
+            src = build.place.joinpath(fpath)
             dst = os.path.join(derivative_path, fpath)
             logger.debug("Copying file %s to %s" % (src, dst))
             shutil.copyfile(src, dst)
