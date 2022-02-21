@@ -148,7 +148,7 @@ class ArtefactBuildRpm(ArtefactBuild):
                 '--define',
                 '%__gpg /usr/bin/gpg',
                 '--define',
-                '%_gpg_name ' + self.instance.eyring.masterkey.userid,
+                '%_gpg_name ' + self.instance.keyring.masterkey.userid,
                 '--addsign',
                 rpm_path,
             ]
