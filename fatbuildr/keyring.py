@@ -185,9 +185,7 @@ class InstanceKeyring:
         # check if key already exist
         with gpg.Context(home_dir=self.homedir) as ctx:
             if any(ctx.keylist()):
-                raise RuntimeError(
-                    f"GPG key in {self.homedir} already exists."
-                )
+                raise RuntimeError(f"GPG key in {self.homedir} already exists.")
 
         # generate random passphrase and save it in file
         logger.info("Generating random passphrase in %s" % (self.homedir))
