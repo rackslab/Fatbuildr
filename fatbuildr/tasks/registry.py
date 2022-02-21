@@ -34,15 +34,13 @@ class RegistryArtefactDeletionTask(RunnableTask):
         derivative,
         artefact,
     ):
-        super().__init__(task_id, place)
-        self.instance = instance
+        super().__init__(task_id, place, instance)
         self.format = format
         self.distribution = distribution
         self.derivative = derivative
         self.artefact = artefact
 
     def run(self):
-        super().run()
         logger.info(
             "Running artefact deletion task %s %s>%s>%s>%s",
             self.id,

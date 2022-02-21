@@ -40,10 +40,14 @@ logger = logr(__name__)
 
 
 class BuildArchive(RunnableTask):
-    def __init__(self, task_id, place):
+    def __init__(self, task_id, place, instance):
         self.form = BuildForm.load(place)
         super().__init__(
-            task_id, place, state='finished', submission=self.form.submission
+            task_id,
+            place,
+            instance,
+            state='finished',
+            submission=self.form.submission,
         )
 
     def __getattr__(self, name):
@@ -75,8 +79,7 @@ class ArtefactBuild(RunnableTask):
         message,
         tarball,
     ):
-        super().__init__(task_id, place)
-        self.instance = instance
+        super().__init__(task_id, place, instance)
         self.format = format
         self.distribution = distribution
         self.derivative = derivative
@@ -103,7 +106,6 @@ class ArtefactBuild(RunnableTask):
         )
         self.env = BuildEnv(conf, self.image, build_env)
         self.defs = None  # loaded in prepare()
-        self.log = None  # handler on logfile, opened in run()
 
     def __getattr__(self, name):
         # try in defs
@@ -150,22 +152,6 @@ class ArtefactBuild(RunnableTask):
     def run(self):
         """Run the build! This is the entry point for fatbuildrd."""
         logger.info("Running build %s" % (self.id))
-
-        super().run()
-
-        if self.place.exists():
-            logger.warning("Build directory %s already exists", self.place)
-        else:
-            # create build directory
-            logger.info("Creating build directory %s", self.place)
-            self.place.mkdir()
-            self.place.chmod(0o755)  # be umask agnostic
-
-        self.log = open(self.logfile, 'w+')
-
-        # setup logger to duplicate logs in logfile
-        logger.add_file(self.log, self.instance.id)
-
         try:
             self.prepare()
             self.build()
@@ -175,9 +161,6 @@ class ArtefactBuild(RunnableTask):
             logger.info("Build failed")
         else:
             logger.info("Build succeeded")
-
-        logger.del_file()
-        self.log.close()
 
     @staticmethod
     def hasher(hash_format):
@@ -252,7 +235,7 @@ class ArtefactBuild(RunnableTask):
             self.submission,
             self.message,
         )
-        self.instance.archives_mgr.save_build(self, form)
+        self.instance.archives_mgr.save_task(self, form)
 
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""

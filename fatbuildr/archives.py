@@ -28,24 +28,26 @@ logger = logr(__name__)
 
 class ArchivesManager:
     def __init__(self, conf, instance):
+        self.instance = instance
         self.path = os.path.join(conf.dirs.archives, instance.id)
 
-    def save_build(self, build, form):
+    def save_task(self, task, form=None):
         if not os.path.exists(self.path):
             logger.debug("Creating instance archives directory %s", self.path)
             os.mkdir(self.path)
             os.chmod(self.path, 0o755)  # be umask agnostic
 
-        dest = os.path.join(self.path, build.id)
+        dest = os.path.join(self.path, task.id)
         logger.info(
-            "Moving build directory %s to archives directory %s",
-            build.place,
+            "Moving task directory %s to archives directory %s",
+            task.place,
             dest,
         )
-        shutil.move(build.place, dest)
+        shutil.move(task.place, dest)
 
-        # Save build form
-        form.save(dest)
+        # Save task form, if defined
+        if form:
+            form.save(dest)
 
     def dump(self):
         """Returns all BuildArchive found in archives directory."""
@@ -57,6 +59,7 @@ class ArchivesManager:
                     BuildArchive(
                         build_id,
                         os.path.join(self.path, build_id),
+                        self.instance,
                     )
                 )
             except FileNotFoundError as err:

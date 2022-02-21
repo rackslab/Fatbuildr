@@ -26,11 +26,9 @@ logger = logr(__name__)
 
 class KeyringCreationTask(RunnableTask):
     def __init__(self, task_id, place, instance):
-        super().__init__(task_id, place)
-        self.instance = instance
+        super().__init__(task_id, place, instance)
 
     def run(self):
-        super().run()
         logger.info(
             "Running keyring creation task %s",
             self.id,

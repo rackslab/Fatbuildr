@@ -19,17 +19,28 @@
 
 from datetime import datetime
 
+from ..log import logr
+
+logger = logr(__name__)
+
 
 class RunnableTask:
     """Abtract runnable task."""
 
     def __init__(
-        self, task_id, place, state='pending', submission=datetime.now()
+        self,
+        task_id,
+        place,
+        instance,
+        state='pending',
+        submission=datetime.now(),
     ):
         self.id = task_id
         self.place = place
+        self.instance = instance
         self.state = state
         self.submission = submission
+        self.log = None  # handler on logfile, opened in run()
 
     @property
     def logfile(self):
@@ -37,5 +48,29 @@ class RunnableTask:
             return None
         return self.place.joinpath('task.log')
 
-    def run(self):
+    def prerun(self):
         self.state = 'running'
+
+        if self.place.exists():
+            logger.warning("Task directory %s already exists", self.place)
+        else:
+            # create build directory
+            logger.info("Creating task directory %s", self.place)
+            self.place.mkdir()
+            self.place.chmod(0o755)  # be umask agnostic
+
+        self.log = open(self.logfile, 'w+')
+
+        # setup logger to duplicate logs in logfile
+        logger.add_file(self.log, self.instance.id)
+
+    def run(self):
+        raise NotImplementedError
+
+    def postrun(self):
+
+        logger.del_file()
+        self.log.close()
+
+    def terminate(self):
+        self.instance.archives_mgr.save_task(self)

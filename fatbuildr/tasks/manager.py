@@ -182,6 +182,8 @@ class ServerTasksManager:
 
     def run(self, task):
         logger.info("Running task %s", task.id)
+        task.prerun()
         task.run()
+        task.postrun()
         self.running = None
         task.terminate()
