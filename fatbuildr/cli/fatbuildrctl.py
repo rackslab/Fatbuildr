@@ -488,16 +488,6 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
             sys.exit(1)
 
-        # Get the build environment corresponding to this distribution
-        env = connection.pipelines_distribution_environment(
-            self.instance, distribution
-        )
-        logger.debug(
-            "Build environment selected for distribution %s: %s",
-            distribution,
-            env,
-        )
-
         mgr = ClientBuildsManager(self.conf)
 
         try:
@@ -506,7 +496,6 @@ class Fatbuildrctl(FatbuildrCliRun):
                 subdir,
                 distribution,
                 args.derivative,
-                env,
                 args.artefact,
                 format,
                 user_name,

@@ -64,7 +64,6 @@ class WireBuild:
         print("  email: %s" % (self.email))
         print("  distribution: %s" % (self.distribution))
         print("  derivative: %s" % (self.derivative))
-        print("  environment: %s" % (self.environment))
         print("  format: %s" % (self.format))
         print("  artefact: %s" % (self.artefact))
         print(
@@ -86,7 +85,6 @@ class WireBuild:
             'email': self.email,
             'distribution': self.distribution,
             'derivative': self.derivative,
-            'environment': self.environment,
             'format': self.format,
             'artefact': self.artefact,
             'submission': self.submission,
@@ -110,15 +108,8 @@ class WireBuild:
             _obj.logfile = None
         _obj.user = build.user
         _obj.email = build.email
-        if build.distribution is None:
-            _obj.distribution = 'none'
-        else:
-            _obj.distribution = build.distribution
+        _obj.distribution = build.distribution
         _obj.derivative = build.derivative
-        if build.environment is None:
-            _obj.environment = 'none'
-        else:
-            _obj.environment = build.environment
         _obj.format = build.format
         _obj.artefact = build.artefact
         _obj.submission = int(build.submission.timestamp())
@@ -137,15 +128,8 @@ class WireBuild:
             _obj.logfile = None
         _obj.user = json['user']
         _obj.email = json['email']
-        if json['distribution'] is None:
-            _obj.distribution = 'none'
-        else:
-            _obj.distribution = json['distribution']
+        _obj.distribution = json['distribution']
         _obj.derivative = json['derivative']
-        if json['environment'] is None:
-            _obj.environment = 'none'
-        else:
-            _obj.environment = json['environment']
         _obj.format = json['format']
         _obj.artefact = json['artefact']
         _obj.submission = json['submission']

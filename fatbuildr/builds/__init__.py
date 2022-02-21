@@ -144,7 +144,14 @@ class ArtefactBuild(AbstractServerBuild):
         )
         self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, self.instance.id, self.format)
-        self.env = BuildEnv(conf, self.image, self.environment)
+        # Get the build environment corresponding to the distribution
+        build_env = self.instance.pipelines.dist_env(self.distribution)
+        logger.debug(
+            "Build environment selected for distribution %s: %s",
+            self.distribution,
+            build_env,
+        )
+        self.env = BuildEnv(conf, self.image, build_env)
         self.defs = None  # loaded in prepare()
         self.log = None  # handler on logfile, opened in run()
 
