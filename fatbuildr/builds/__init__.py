@@ -34,31 +34,8 @@ from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
 from ..utils import runcmd
 from ..log import logr
-from .form import BuildForm
 
 logger = logr(__name__)
-
-
-class BuildArchive(RunnableTask):
-    def __init__(self, task_id, place, instance):
-        self.form = BuildForm.load(place)
-        super().__init__(
-            task_id,
-            place,
-            instance,
-            state='finished',
-            submission=self.form.submission,
-        )
-
-    def __getattr__(self, name):
-        """Returns self.form attribute as if they were instance attributes."""
-        try:
-            return getattr(self.form, name)
-        except AttributeError:
-            raise AttributeError(
-                "%s does not have %s attribute"
-                % (self.__class__.__name__, name)
-            )
 
 
 class ArtefactBuild(RunnableTask):
@@ -79,7 +56,7 @@ class ArtefactBuild(RunnableTask):
         message,
         tarball,
     ):
-        super().__init__(task_id, place, instance)
+        super().__init__('artefact build', task_id, place, instance)
         self.format = format
         self.distribution = distribution
         self.derivative = derivative
@@ -223,19 +200,6 @@ class ArtefactBuild(RunnableTask):
                     self.checksum_value,
                 )
             )
-
-    def terminate(self):
-        form = BuildForm(
-            self.user,
-            self.email,
-            self.distribution,
-            self.derivative,
-            self.format,
-            self.artefact,
-            self.submission,
-            self.message,
-        )
-        self.instance.archives_mgr.save_task(self, form)
 
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""

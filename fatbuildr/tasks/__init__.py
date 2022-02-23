@@ -29,12 +29,14 @@ class RunnableTask:
 
     def __init__(
         self,
+        name,
         task_id,
         place,
         instance,
         state='pending',
         submission=datetime.now(),
     ):
+        self.name = name
         self.id = task_id
         self.place = place
         self.instance = instance

@@ -17,27 +17,129 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import shutil
+from pathlib import Path
+from datetime import datetime
 
-from .builds import BuildArchive
+import yaml
+
+from .tasks import RunnableTask
 from .log import logr
 
 logger = logr(__name__)
 
 
+class TaskForm:
+
+    YML_FILE = 'task.yml'
+
+    def __init__(self, **kwargs):
+        for key, value in kwargs.items():
+            setattr(self, key, value)
+
+    def todict(self):
+        result = {}
+        for attribute in vars(self):
+            # check attribute is not callable?
+            result[attribute] = getattr(self, attribute)
+        return result
+
+    def save(self, dest):
+        path = Path(dest, TaskForm.YML_FILE)
+        logger.debug("Saving task form YAML file %s", path)
+        with open(path, 'w+') as fh:
+            yaml.dump(self.todict(), fh)
+
+    @classmethod
+    def fromArchive(cls, path):
+        logger.debug("Loading task form in directory %s", path)
+        with open(path.joinpath(TaskForm.YML_FILE), 'r') as fh:
+            description = yaml.load(fh, Loader=yaml.FullLoader)
+            return cls(**description)
+
+
+class ExportableField:
+    def __init__(self, name, native_type=str):
+        self.name = name
+        self.native_type = native_type
+        if native_type is datetime:
+            self.wire_type = int
+        elif native_type is Path:
+            self.wire_type = str
+        else:
+            self.wire_type = native_type
+
+    def export(self, value):
+        if value is None:
+            return value
+        assert isinstance(value, self.native_type)
+        if self.native_type is datetime:
+            return int(value.timestamp())
+        elif self.native_type is Path:
+            return str(value)
+        return value
+
+    def native(self, value):
+        assert isinstance(value, self.wire_type)
+        if self.native_type is datetime:
+            return datetime.fromtimestamp(value)
+        elif self.native_type is Path:
+            return Path(value)
+        return value
+
+
+class ArchivedTask(RunnableTask):
+    def __init__(self, task_id, place, instance, **kwargs):
+        super().__init__(
+            kwargs['name'],
+            task_id,
+            place,
+            instance,
+            state='finished',
+            submission=kwargs['submission'],
+        )
+        for field, value in kwargs.items():
+            if not hasattr(self, field):
+                setattr(self, field, value)
+
+
 class ArchivesManager:
+
+    BASEFIELDS = {
+        ExportableField('name'),
+        ExportableField('submission', datetime),
+        ExportableField('place', Path),
+    }
+
+    ARCHIVE_TYPES = {
+        'artefact build': {
+            ExportableField('format'),
+            ExportableField('distribution'),
+            ExportableField('derivative'),
+            ExportableField('artefact'),
+            ExportableField('user'),
+            ExportableField('email'),
+            ExportableField('message'),
+        },
+        'artefact deletion': {
+            ExportableField('format'),
+            ExportableField('distribution'),
+            ExportableField('derivative'),
+            ExportableField('artefact'),
+        },
+    }
+
     def __init__(self, conf, instance):
         self.instance = instance
-        self.path = os.path.join(conf.dirs.archives, instance.id)
+        self.path = Path(conf.dirs.archives, instance.id)
 
-    def save_task(self, task, form=None):
-        if not os.path.exists(self.path):
+    def save_task(self, task):
+        if not self.path.exists:
             logger.debug("Creating instance archives directory %s", self.path)
-            os.mkdir(self.path)
-            os.chmod(self.path, 0o755)  # be umask agnostic
+            self.path.mkdir()
+            self.path.chmod(0o755)  # be umask agnostic
 
-        dest = os.path.join(self.path, task.id)
+        dest = self.path.joinpath(task.id)
         logger.info(
             "Moving task directory %s to archives directory %s",
             task.place,
@@ -45,27 +147,37 @@ class ArchivesManager:
         )
         shutil.move(task.place, dest)
 
-        # Save task form, if defined
-        if form:
-            form.save(dest)
+        fields = {}
+
+        for field in self.BASEFIELDS | self.ARCHIVE_TYPES[task.name]:
+            fields[field.name] = field.export(getattr(task, field.name))
+
+        form = TaskForm(**fields)
+        form.save(dest)
 
     def dump(self):
-        """Returns all BuildArchive found in archives directory."""
+        """Returns all tasks found in archives directory."""
         _archives = []
 
-        for build_id in os.listdir(self.path):
+        for task_dir in self.path.iterdir():
             try:
-                _archives.append(
-                    BuildArchive(
-                        build_id,
-                        os.path.join(self.path, build_id),
-                        self.instance,
-                    )
+                form = TaskForm.fromArchive(task_dir)
+
+                fields = {}
+
+                for field in self.BASEFIELDS | self.ARCHIVE_TYPES[form.name]:
+                    fields[field.name] = field.native(getattr(form, field.name))
+
+                task = ArchivedTask(
+                    task_dir.stem, task_dir, self.instance, **fields
                 )
+
+                _archives.append(task)
+
             except FileNotFoundError as err:
                 logger.error(
                     "Unable to load malformed build archive %s: %s",
-                    build_id,
+                    task_dir,
                     err,
                 )
         return _archives
