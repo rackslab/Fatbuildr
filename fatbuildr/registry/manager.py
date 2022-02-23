@@ -68,7 +68,7 @@ class RegistryManager:
         )
 
     def delete_artefact(self, fmt, distribution, derivative, artefact):
-        registry = self.factory(fmt, self.conf, instance)
+        registry = self.factory(fmt)
         return registry.delete_artefact(distribution, derivative, artefact)
 
     def factory(self, fmt):
