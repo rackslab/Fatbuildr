@@ -68,13 +68,3 @@ class RegistryArtefactDeletionTask(RunnableTask):
             self.derivative,
             self.artefact,
         )
-
-    def terminate(self):
-        logger.info(
-            "Terminating artefact deletion task %s %s>%s>%s>%s",
-            self.id,
-            self.format,
-            self.distribution,
-            self.derivative,
-            self.artefact.name,
-        )

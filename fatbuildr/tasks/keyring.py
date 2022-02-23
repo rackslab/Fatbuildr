@@ -37,6 +37,3 @@ class KeyringCreationTask(RunnableTask):
             self.id,
         )
         self.instance.keyring.create()
-
-    def terminate(self):
-        logger.info("Terminating keyring creation task %s", self.id)
