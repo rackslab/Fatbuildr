@@ -100,9 +100,9 @@ class DbusInstance(DBusData, WireInstance):
         self._userid = value
 
 
-class DbusRunnableTask(WireRunnableTask):
+class FatbuildrDbusData:
     @classmethod
-    def from_structure(cls, structure: Structure):
+    def from_structure(cls, fields, structure: Structure):
         """Convert a DBus structure to a data object.
         :param structure: a DBus structure
         :return: a data object
@@ -113,8 +113,6 @@ class DbusRunnableTask(WireRunnableTask):
             )
 
         data = cls()
-        task_name = unwrap_variant(structure['name'])
-        fields = ProtocolRegistry().task_fields(task_name)
 
         for field in fields:
             wire_value = unwrap_variant(structure[field.name])
@@ -129,14 +127,14 @@ class DbusRunnableTask(WireRunnableTask):
         return data
 
     @classmethod
-    def to_structure(cls, task) -> Structure:
+    def to_structure(cls, fields, task) -> Structure:
         """Convert this data object to a DBus structure.
         :return: a DBus structure
         """
 
         structure = {}
 
-        for field in ProtocolRegistry().task_fields(task.name):
+        for field in fields:
             logger.debug(
                 "Exporting field %s with value %s (%s) and expected native type %s",
                 field.name,
@@ -180,6 +178,20 @@ class DbusRunnableTask(WireRunnableTask):
         :return: a list of DBus structures
         """
         return list(map(cls.to_structure, objects))
+
+
+class DbusRunnableTask(FatbuildrDbusData, WireRunnableTask):
+
+    @classmethod
+    def from_structure(cls, structure: Structure):
+        task_name = unwrap_variant(structure['name'])
+        fields = ProtocolRegistry().task_fields(task_name)
+        return super().from_structure(fields, structure)
+
+    @classmethod
+    def to_structure(cls, task) -> Structure:
+        fields = ProtocolRegistry().task_fields(task.name)
+        return super().to_structure(fields, task)
 
 
 class DbusArtefact(DBusData, WireArtefact):
