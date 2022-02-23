@@ -53,25 +53,28 @@ class WireInstance:
 
 class WireRunnableTask:
     def report(self):
-        print("- id: %s" % (self.id))
-        print("  name: %s" % (self.name))
-        print("  state: %s" % (self.state))
-        print("  place: %s" % (str(self.place)))
-        try:
-            print("  logfile: %s" % (str(self.logfile)))
-        except AttributeError:
-            pass
-        print("  user: %s" % (self.user))
-        print("  email: %s" % (self.email))
-        print("  distribution: %s" % (self.distribution))
-        print("  derivative: %s" % (self.derivative))
-        print("  format: %s" % (self.format))
-        print("  artefact: %s" % (self.artefact))
+        print(f"- id: {self.id}")
+        print(f"  name: {self.name}")
+        print(f"  state: {self.state}")
+        print(f"  place: {self.place}")
+        print(f"  logfile: {self.logfile}")
         print(
-            "  submission: %s"
-            % (self.submission.isoformat(sep=' ', timespec='seconds'))
+            "  submission: ",
+            self.submission.isoformat(sep=' ', timespec='seconds'),
         )
-        print("  message: %s" % (self.message))
+        if self.name == "artefact build":
+            print(f"  user: {self.user}")
+            print(f"  email: {self.email}")
+            print(f"  distribution: {self.distribution}")
+            print(f"  derivative: {self.derivative}")
+            print(f"  format: {self.format}")
+            print(f"  artefact: {self.artefact}")
+            print(f"  message: {self.message}")
+        elif self.name == "artefact deletion":
+            print("  artefact:")
+            print(f"    name: {self.artefact.name}")
+            print(f"    architecture: {self.artefact.architecture}")
+            print(f"    version: {self.artefact.version}")
 
     def to_dict(self):
         result = {
