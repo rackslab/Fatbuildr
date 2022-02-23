@@ -43,11 +43,24 @@ class Registry:
         raise NotImplementedError
 
 
-class RegistryArtefact:
+class ExportableType:
+    pass
+
+
+class RegistryArtefact(ExportableType):
+    WIRE_TYPE = dict[str, str]
+
     def __init__(self, name, architecture, version):
         self.name = name
         self.architecture = architecture
         self.version = version
+
+    def export(self):
+        return {
+            "name": self.name,
+            "architecture": self.architecture,
+            "version": self.version,
+        }
 
 
 class ChangelogEntry:

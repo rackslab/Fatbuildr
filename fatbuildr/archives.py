@@ -20,9 +20,11 @@
 import shutil
 from pathlib import Path
 from datetime import datetime
+import types
 
 import yaml
 
+from .registry.formats import ExportableType, RegistryArtefact
 from .tasks import RunnableTask
 from .log import logr
 
@@ -58,6 +60,13 @@ class TaskForm:
             return cls(**description)
 
 
+def get_class_type(typ):
+    if isinstance(typ, types.GenericAlias):
+        return typ.__origin__
+    else:
+        return typ
+
+
 class ExportableField:
     def __init__(self, name, native_type=str, archived=True):
         self.name = name
@@ -66,6 +75,8 @@ class ExportableField:
             self.wire_type = int
         elif native_type is Path:
             self.wire_type = str
+        elif issubclass(native_type, ExportableType):
+            self.wire_type = native_type.WIRE_TYPE
         else:
             self.wire_type = native_type
         self.archived = archived
@@ -78,14 +89,18 @@ class ExportableField:
             return int(value.timestamp())
         elif self.native_type is Path:
             return str(value)
+        elif issubclass(self.native_type, ExportableType):
+            return value.export()
         return value
 
     def native(self, value):
-        assert isinstance(value, self.wire_type)
+        assert isinstance(value, get_class_type(self.wire_type))
         if self.native_type is datetime:
             return datetime.fromtimestamp(value)
         elif self.native_type is Path:
             return Path(value)
+        elif issubclass(self.native_type, ExportableType):
+            return self.native_type(**value)
         return value
 
 
@@ -129,7 +144,7 @@ class ArchivesManager:
             ExportableField('format'),
             ExportableField('distribution'),
             ExportableField('derivative'),
-            ExportableField('artefact'),
+            ExportableField('artefact', RegistryArtefact),
         },
     }
 
