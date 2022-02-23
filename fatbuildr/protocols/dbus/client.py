@@ -22,13 +22,11 @@ import subprocess
 from . import (
     REGISTER,
     DbusInstance,
-    DbusSubmittedBuild,
-    DbusRunningBuild,
-    DbusArchivedBuild,
+    DbusRunnableTask,
     DbusArtefact,
     DbusChangelogEntry,
     DbusKeyring,
-    ErrorNoRunningBuild,
+    ErrorNoRunningTask,
 )
 
 
@@ -144,18 +142,16 @@ class DbusClient(object):
         )
 
     def queue(self, instance):
-        return DbusSubmittedBuild.from_structure_list(
-            self.proxy.Queue(instance)
-        )
+        return DbusRunnableTask.from_structure_list(self.proxy.Queue(instance))
 
     def running(self, instance):
         try:
-            return DbusRunningBuild.from_structure(self.proxy.Running(instance))
-        except ErrorNoRunningBuild:
+            return DbusRunnableTask.from_structure(self.proxy.Running(instance))
+        except ErrorNoRunningTask:
             return None
 
     def archives(self, instance):
-        return DbusArchivedBuild.from_structure_list(
+        return DbusRunnableTask.from_structure_list(
             self.proxy.Archives(instance)
         )
 

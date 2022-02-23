@@ -26,15 +26,21 @@ from dasbus.structure import (
     DBUS_FIELDS_ATTRIBUTE,
     DBusStructureError,
 )
-from dasbus.typing import Str, Int, List
+from dasbus.typing import unwrap_variant, get_variant, Structure, Str, Int, List
 
 from ..wire import (
     WireInstance,
-    WireBuild,
+    WireRunnableTask,
     WireArtefact,
     WireChangelogEntry,
     WireKeyring,
 )
+
+from ...archives import ArchivesManager
+
+from ...log import logr
+
+logger = logr(__name__)
 
 # Define the error mapper.
 ERROR_MAPPER = ErrorMapper()
@@ -52,8 +58,8 @@ REGISTER = DBusServiceIdentifier(namespace=REGISTER_NAMESPACE, message_bus=BUS)
 dbus_error = get_error_decorator(ERROR_MAPPER)
 
 # Define errors.
-@dbus_error("ErrorNoRunningBuild", namespace=REGISTER_NAMESPACE)
-class ErrorNoRunningBuild(DBusError):
+@dbus_error("ErrorNoRunningTask", namespace=REGISTER_NAMESPACE)
+class ErrorNoRunningTask(DBusError):
     pass
 
 
@@ -94,146 +100,93 @@ class DbusInstance(DBusData, WireInstance):
         self._userid = value
 
 
-class DbusBuild(DBusData, WireBuild):
-    """The user data."""
+class DbusRunnableTask(WireRunnableTask):
+    @classmethod
+    def from_structure(cls, structure: Structure):
+        """Convert a DBus structure to a data object.
+        :param structure: a DBus structure
+        :return: a data object
+        """
+        if not isinstance(structure, dict):
+            raise TypeError(
+                "Invalid type '{}'.".format(type(structure).__name__)
+            )
 
-    def __init__(self):
-        self._id = None
-        self._state = None
-        self._place = None
-        self._user = None
-        self._email = None
-        self._distribution = None
-        self._derivative = None
-        self._format = None
-        self._artefact = None
-        self._submission = None
-        self._message = None
+        data = cls()
+        task_name = unwrap_variant(structure['name'])
+        fields = (
+            ArchivesManager.BASEFIELDS
+            | ArchivesManager.ARCHIVE_TYPES[task_name]
+        )
 
-    # id
-    @property
-    def id(self) -> Str:
-        return self._id
+        for field in fields:
+            wire_value = unwrap_variant(structure[field.name])
+            if (field.wire_type is int and wire_value == -1) or (
+                field.wire_type is str and wire_value == '∅'
+            ):
+                native_value = None
+            else:
+                native_value = field.native(wire_value)
+            setattr(data, field.name, native_value)
 
-    @id.setter
-    def id(self, value: Str):
-        self._id = value
+        return data
 
-    # state
-    @property
-    def state(self) -> Str:
-        return self._state
+    @classmethod
+    def to_structure(cls, task) -> Structure:
+        """Convert this data object to a DBus structure.
+        :return: a DBus structure
+        """
 
-    @state.setter
-    def state(self, value: Str):
-        self._state = value
+        structure = {}
+        fields = (
+            ArchivesManager.BASEFIELDS
+            | ArchivesManager.ARCHIVE_TYPES[task.name]
+        )
 
-    # place
-    @property
-    def place(self) -> Str:
-        return self._place
+        for field in fields:
+            logger.debug(
+                "Exporting field %s with value %s (%s) and expected native type %s",
+                field.name,
+                str(getattr(task, field.name)),
+                str(type(getattr(task, field.name))),
+                str(field.native_type),
+            )
 
-    @place.setter
-    def place(self, value: Str):
-        self._place = value
+            native_value = getattr(task, field.name)
+            # Dbus does not support None/null values, then handle this case
+            # with special values.
+            if native_value is None:
+                if field.wire_type is int:
+                    wire_value = -1
+                else:
+                    wire_value = '∅'
+            else:
+                wire_value = field.export(native_value)
 
-    # user
-    @property
-    def user(self) -> Str:
-        return self._user
+            structure[field.name] = get_variant(field.wire_type, wire_value)
 
-    @user.setter
-    def user(self, value: Str):
-        self._user = value
+        return structure
 
-    # email
-    @property
-    def email(self) -> Str:
-        return self._email
+    @classmethod
+    def from_structure_list(cls, structures: List[Structure]):
+        """Convert DBus structures to data objects.
+        :param structures: a list of DBus structures
+        :return: a list of data objects
+        """
+        if not isinstance(structures, list):
+            raise TypeError(
+                "Invalid type '{}'.".format(type(structures).__name__)
+            )
 
-    @email.setter
-    def email(self, value: Str):
-        self._email = value
+        return list(map(cls.from_structure, structures))
 
-    # distribution
-    @property
-    def distribution(self) -> Str:
-        return self._distribution
-
-    @distribution.setter
-    def distribution(self, value: Str):
-        self._distribution = value
-
-    # derivative
-    @property
-    def derivative(self) -> Str:
-        return self._derivative
-
-    @derivative.setter
-    def derivative(self, value: List[Str]):
-        self._derivative = value
-
-    # format
-    @property
-    def format(self) -> Str:
-        return self._format
-
-    @format.setter
-    def format(self, value: Str):
-        self._format = value
-
-    # artefact
-    @property
-    def artefact(self) -> Str:
-        return self._artefact
-
-    @artefact.setter
-    def artefact(self, value: Str):
-        self._artefact = value
-
-    # submission
-    @property
-    def submission(self) -> Int:
-        return self._submission
-
-    @submission.setter
-    def submission(self, value: Int):
-        self._submission = value
-
-    # message
-    @property
-    def message(self) -> Str:
-        return self._message
-
-    @message.setter
-    def message(self, value: Str):
-        self._message = value
-
-
-class DbusSubmittedBuild(DbusBuild):
-    pass
-
-
-class DbusStartedBuild(DbusBuild):
-    def __init__(self):
-        self._logfile = None
-
-    # logfile
-    @property
-    def logfile(self) -> Str:
-        return self._logfile
-
-    @logfile.setter
-    def logfile(self, value: Str):
-        self._logfile = value
-
-
-class DbusRunningBuild(DbusStartedBuild):
-    pass
-
-
-class DbusArchivedBuild(DbusStartedBuild):
-    pass
+    @classmethod
+    def to_structure_list(cls, objects) -> List[Structure]:
+        """Convert data objects to DBus structures.
+        :param objects: a list of data objects
+        :return: a list of DBus structures
+        """
+        return list(map(cls.to_structure, objects))
 
 
 class DbusArtefact(DBusData, WireArtefact):

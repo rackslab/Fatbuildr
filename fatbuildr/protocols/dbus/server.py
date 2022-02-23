@@ -29,13 +29,11 @@ from . import (
     REGISTER,
     BUS,
     DbusInstance,
-    DbusSubmittedBuild,
-    DbusRunningBuild,
-    DbusArchivedBuild,
+    DbusRunnableTask,
     DbusArtefact,
     DbusChangelogEntry,
     DbusKeyring,
-    ErrorNoRunningBuild,
+    ErrorNoRunningTask,
 )
 from ...log import logr
 
@@ -104,19 +102,19 @@ class FatbuildrInterface(InterfaceTemplate):
 
     def Queue(self, instance: Str) -> List[Structure]:
         """The list of builds in queue."""
-        return DbusSubmittedBuild.to_structure_list(
+        return DbusRunnableTask.to_structure_list(
             self.implementation.queue(instance)
         )
 
     def Running(self, instance: Str) -> Structure:
         """The currently running build"""
-        return DbusRunningBuild.to_structure(
+        return DbusRunnableTask.to_structure(
             self.implementation.running(instance)
         )
 
     def Archives(self, instance: Str) -> List[Structure]:
         """The list of builds in queue."""
-        return DbusArchivedBuild.to_structure_list(
+        return DbusRunnableTask.to_structure_list(
             self.implementation.archives(instance)
         )
 
@@ -306,27 +304,19 @@ class FatbuildrMultiplexer(object):
     def queue(self, instance):
         """The list of builds in instance queue."""
         self.timer.reset()
-        return [
-            DbusSubmittedBuild.load_from_build(_build)
-            for _build in self._instances[instance].tasks_mgr.queue.dump()
-        ]
+        return self._instances[instance].tasks_mgr.queue.dump()
 
     def running(self, instance):
         """The list of builds in queue."""
         self.timer.reset()
         if not self._instances[instance].tasks_mgr.running:
-            raise ErrorNoRunningBuild()
-        return DbusRunningBuild.load_from_build(
-            self._instances[instance].tasks_mgr.running
-        )
+            raise ErrorNoRunningTask()
+        return self._instances[instance].tasks_mgr.running
 
     def archives(self, instance):
         """The list of archived builds."""
         self.timer.reset()
-        return [
-            DbusArchivedBuild.load_from_build(_build)
-            for _build in self._instances[instance].archives_mgr.dump()
-        ]
+        return self._instances[instance].archives_mgr.dump()
 
     def formats(self, instance: Str):
         self.timer.reset()

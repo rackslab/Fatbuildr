@@ -59,7 +59,7 @@ class TaskForm:
 
 
 class ExportableField:
-    def __init__(self, name, native_type=str):
+    def __init__(self, name, native_type=str, archived=True):
         self.name = name
         self.native_type = native_type
         if native_type is datetime:
@@ -68,6 +68,7 @@ class ExportableField:
             self.wire_type = str
         else:
             self.wire_type = native_type
+        self.archived = archived
 
     def export(self, value):
         if value is None:
@@ -106,9 +107,12 @@ class ArchivedTask(RunnableTask):
 class ArchivesManager:
 
     BASEFIELDS = {
+        ExportableField('id', archived=False),
         ExportableField('name'),
         ExportableField('submission', datetime),
-        ExportableField('place', Path),
+        ExportableField('place', Path, archived=False),
+        ExportableField('state', archived=False),
+        ExportableField('logfile', Path, archived=False),
     }
 
     ARCHIVE_TYPES = {
@@ -150,6 +154,8 @@ class ArchivesManager:
         fields = {}
 
         for field in self.BASEFIELDS | self.ARCHIVE_TYPES[task.name]:
+            if not field.archived:
+                continue
             fields[field.name] = field.export(getattr(task, field.name))
 
         form = TaskForm(**fields)
@@ -166,6 +172,8 @@ class ArchivesManager:
                 fields = {}
 
                 for field in self.BASEFIELDS | self.ARCHIVE_TYPES[form.name]:
+                    if not field.archived:
+                        continue
                     fields[field.name] = field.native(getattr(form, field.name))
 
                 task = ArchivedTask(

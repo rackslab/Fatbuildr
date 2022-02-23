@@ -19,7 +19,7 @@
 
 import requests
 
-from ..wire import WireInstance, WireBuild
+from ..wire import WireInstance, WireRunnableTask
 from ...log import logr
 
 logger = logr(__name__)
@@ -99,7 +99,9 @@ class HttpClient:
     def queue(self, instance):
         url = f"{self.host}/{instance}/queue.json"
         response = requests.get(url)
-        return [WireBuild.load_from_json(build) for build in response.json()]
+        return [
+            WireRunnableTask.load_from_json(build) for build in response.json()
+        ]
 
     def running(self, instance):
         url = f"{self.host}/{instance}/running.json"
@@ -107,7 +109,7 @@ class HttpClient:
         json_build = response.json()
         if json_build is None:
             return None
-        return WireBuild.load_from_json(json_build)
+        return WireRunnableTask.load_from_json(json_build)
 
     def get(self, instance, build_id):
         url = f"{self.host}/{instance}/builds/{build_id}.json"
@@ -115,7 +117,7 @@ class HttpClient:
         json_build = response.json()
         if json_build is None:
             return None
-        return WireBuild.load_from_json(json_build)
+        return WireRunnableTask.load_from_json(json_build)
 
     def watch(self, instance, build):
         """Generate build log lines with a streaming request."""
