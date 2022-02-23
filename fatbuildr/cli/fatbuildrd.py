@@ -25,6 +25,7 @@ import shutil
 from . import FatbuildrCliRun
 from ..version import __version__
 from ..conf import RuntimeConfd
+from ..tasks.crawler import register_tasks_protocols
 from ..protocols import ServerFactory
 from ..instances import Instances
 from ..timer import ServerTimer
@@ -88,6 +89,7 @@ class Fatbuildrd(FatbuildrCliRun):
         self.timer = ServerTimer()
 
         self.clear_orphaned_builds()
+        register_tasks_protocols()
 
         worker_threads = {}
         for instance in self.instances:

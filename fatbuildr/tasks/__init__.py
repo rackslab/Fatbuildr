@@ -17,8 +17,10 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+from pathlib import Path
 from datetime import datetime
 
+from ..protocols.exports import ExportableTaskField
 from ..log import logr
 
 logger = logr(__name__)
@@ -27,16 +29,24 @@ logger = logr(__name__)
 class RunnableTask:
     """Abtract runnable task."""
 
+    BASEFIELDS = {
+        ExportableTaskField('id', archived=False),
+        ExportableTaskField('name'),
+        ExportableTaskField('submission', datetime),
+        ExportableTaskField('place', Path, archived=False),
+        ExportableTaskField('state', archived=False),
+        ExportableTaskField('logfile', Path, archived=False),
+    }
+
     def __init__(
         self,
-        name,
         task_id,
         place,
         instance,
         state='pending',
         submission=datetime.now(),
     ):
-        self.name = name
+        self.name = self.TASK_NAME
         self.id = task_id
         self.place = place
         self.instance = instance

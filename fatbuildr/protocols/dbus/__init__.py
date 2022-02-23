@@ -36,7 +36,7 @@ from ..wire import (
     WireKeyring,
 )
 
-from ...archives import ArchivesManager
+from ..exports import ProtocolRegistry
 
 from ...log import logr
 
@@ -114,10 +114,7 @@ class DbusRunnableTask(WireRunnableTask):
 
         data = cls()
         task_name = unwrap_variant(structure['name'])
-        fields = (
-            ArchivesManager.BASEFIELDS
-            | ArchivesManager.ARCHIVE_TYPES[task_name]
-        )
+        fields = ProtocolRegistry().task_fields(task_name)
 
         for field in fields:
             wire_value = unwrap_variant(structure[field.name])
@@ -138,12 +135,8 @@ class DbusRunnableTask(WireRunnableTask):
         """
 
         structure = {}
-        fields = (
-            ArchivesManager.BASEFIELDS
-            | ArchivesManager.ARCHIVE_TYPES[task.name]
-        )
 
-        for field in fields:
+        for field in ProtocolRegistry().task_fields(task.name):
             logger.debug(
                 "Exporting field %s with value %s (%s) and expected native type %s",
                 field.name,

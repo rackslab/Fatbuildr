@@ -19,13 +19,12 @@
 
 import shutil
 from pathlib import Path
-from datetime import datetime
 import types
 
 import yaml
 
-from .registry.formats import ExportableType, RegistryArtefact
 from .tasks import RunnableTask
+from .protocols.exports import ProtocolRegistry
 from .log import logr
 
 logger = logr(__name__)
@@ -60,50 +59,6 @@ class TaskForm:
             return cls(**description)
 
 
-def get_class_type(typ):
-    if isinstance(typ, types.GenericAlias):
-        return typ.__origin__
-    else:
-        return typ
-
-
-class ExportableField:
-    def __init__(self, name, native_type=str, archived=True):
-        self.name = name
-        self.native_type = native_type
-        if native_type is datetime:
-            self.wire_type = int
-        elif native_type is Path:
-            self.wire_type = str
-        elif issubclass(native_type, ExportableType):
-            self.wire_type = native_type.WIRE_TYPE
-        else:
-            self.wire_type = native_type
-        self.archived = archived
-
-    def export(self, value):
-        if value is None:
-            return value
-        assert isinstance(value, self.native_type)
-        if self.native_type is datetime:
-            return int(value.timestamp())
-        elif self.native_type is Path:
-            return str(value)
-        elif issubclass(self.native_type, ExportableType):
-            return value.export()
-        return value
-
-    def native(self, value):
-        assert isinstance(value, get_class_type(self.wire_type))
-        if self.native_type is datetime:
-            return datetime.fromtimestamp(value)
-        elif self.native_type is Path:
-            return Path(value)
-        elif issubclass(self.native_type, ExportableType):
-            return self.native_type(**value)
-        return value
-
-
 class ArchivedTask(RunnableTask):
     def __init__(self, task_id, place, instance, **kwargs):
         super().__init__(
@@ -120,34 +75,6 @@ class ArchivedTask(RunnableTask):
 
 
 class ArchivesManager:
-
-    BASEFIELDS = {
-        ExportableField('id', archived=False),
-        ExportableField('name'),
-        ExportableField('submission', datetime),
-        ExportableField('place', Path, archived=False),
-        ExportableField('state', archived=False),
-        ExportableField('logfile', Path, archived=False),
-    }
-
-    ARCHIVE_TYPES = {
-        'artefact build': {
-            ExportableField('format'),
-            ExportableField('distribution'),
-            ExportableField('derivative'),
-            ExportableField('artefact'),
-            ExportableField('user'),
-            ExportableField('email'),
-            ExportableField('message'),
-        },
-        'artefact deletion': {
-            ExportableField('format'),
-            ExportableField('distribution'),
-            ExportableField('derivative'),
-            ExportableField('artefact', RegistryArtefact),
-        },
-    }
-
     def __init__(self, conf, instance):
         self.instance = instance
         self.path = Path(conf.dirs.archives, instance.id)
@@ -168,7 +95,7 @@ class ArchivesManager:
 
         fields = {}
 
-        for field in self.BASEFIELDS | self.ARCHIVE_TYPES[task.name]:
+        for field in ProtocolRegistry().task_fields(task.name):
             if not field.archived:
                 continue
             fields[field.name] = field.export(getattr(task, field.name))
@@ -186,7 +113,7 @@ class ArchivesManager:
 
                 fields = {}
 
-                for field in self.BASEFIELDS | self.ARCHIVE_TYPES[form.name]:
+                for field in ProtocolRegistry().task_fields(form.name):
                     if not field.archived:
                         continue
                     fields[field.name] = field.native(getattr(form, field.name))

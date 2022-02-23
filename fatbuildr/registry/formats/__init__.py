@@ -19,6 +19,8 @@
 
 import os
 
+from ...protocols.exports import ExportableType
+
 
 class Registry:
     """Abstract Registry class, parent of all specific Registry classes."""
@@ -41,10 +43,6 @@ class Registry:
 
     def artefact(self, distributions):
         raise NotImplementedError
-
-
-class ExportableType:
-    pass
 
 
 class RegistryArtefact(ExportableType):

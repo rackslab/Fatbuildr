@@ -26,6 +26,8 @@ from pathlib import Path
 
 import requests
 
+from ..protocols.exports import ExportableTaskField
+
 from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artefact import ArtefactDefs
@@ -40,6 +42,17 @@ logger = logr(__name__)
 
 class ArtefactBuild(RunnableTask):
     """Generic parent class of all ArtefactBuild formats."""
+
+    TASK_NAME = 'artefact build'
+    EXFIELDS = {
+        ExportableTaskField('format'),
+        ExportableTaskField('distribution'),
+        ExportableTaskField('derivative'),
+        ExportableTaskField('artefact'),
+        ExportableTaskField('user'),
+        ExportableTaskField('email'),
+        ExportableTaskField('message'),
+    }
 
     def __init__(
         self,
@@ -56,7 +69,7 @@ class ArtefactBuild(RunnableTask):
         message,
         tarball,
     ):
-        super().__init__('artefact build', task_id, place, instance)
+        super().__init__(task_id, place, instance)
         self.format = format
         self.distribution = distribution
         self.derivative = derivative

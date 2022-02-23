@@ -18,12 +18,25 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 from . import RunnableTask
+
+from ..protocols.exports import ExportableTaskField
+from ..registry.formats import RegistryArtefact
 from ..log import logr
 
 logger = logr(__name__)
 
 
 class RegistryArtefactDeletionTask(RunnableTask):
+
+    TASK_NAME = 'artefact deletion'
+
+    EXFIELDS = {
+        ExportableTaskField('format'),
+        ExportableTaskField('distribution'),
+        ExportableTaskField('derivative'),
+        ExportableTaskField('artefact', RegistryArtefact),
+    }
+
     def __init__(
         self,
         task_id,
@@ -34,7 +47,7 @@ class RegistryArtefactDeletionTask(RunnableTask):
         derivative,
         artefact,
     ):
-        super().__init__('artefact deletion', task_id, place, instance)
+        super().__init__(task_id, place, instance)
         self.format = format
         self.distribution = distribution
         self.derivative = derivative

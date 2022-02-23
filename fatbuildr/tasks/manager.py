@@ -92,6 +92,7 @@ class ServerTasksManager:
         self.instance = instance
         self.queue = QueueManager()
         self.running = None
+        # register all types of tasks with their exportable fields
 
     @property
     def empty(self):

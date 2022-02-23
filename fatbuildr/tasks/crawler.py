@@ -17,26 +17,19 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from . import RunnableTask
-from ..log import logr
 
-logger = logr(__name__)
+from ..builds import ArtefactBuild
+from .registry import RegistryArtefactDeletionTask
+from .keyring import KeyringCreationTask
+from ..protocols.exports import ProtocolRegistry
 
 
-class KeyringCreationTask(RunnableTask):
-
-    TASK_NAME = 'keyring creation'
-    EXFIELDS = set()
-
-    def __init__(self, task_id, place, instance):
-        super().__init__(task_id, place, instance)
-
-    def run(self):
-        logger.info(
-            "Running keyring creation task %s",
-            self.id,
-        )
-        self.instance.keyring.create()
-
-    def terminate(self):
-        logger.info("Terminating keyring creation task %s", self.id)
+def register_tasks_protocols():
+    """Load all tasks specific protocol structures in protocol registry."""
+    registry = ProtocolRegistry()
+    for task in [
+        ArtefactBuild,
+        RegistryArtefactDeletionTask,
+        KeyringCreationTask,
+    ]:
+        registry.register_task(task)
