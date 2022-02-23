@@ -181,7 +181,6 @@ class FatbuildrDbusData:
 
 
 class DbusRunnableTask(FatbuildrDbusData, WireRunnableTask):
-
     @classmethod
     def from_structure(cls, structure: Structure):
         task_name = unwrap_variant(structure['name'])
@@ -194,38 +193,20 @@ class DbusRunnableTask(FatbuildrDbusData, WireRunnableTask):
         return super().to_structure(fields, task)
 
 
-class DbusArtefact(DBusData, WireArtefact):
-    def __init__(self):
-        self._name = None
-        self._architecture = None
-        self._version = None
+class FatbuildrNativeDbusData(FatbuildrDbusData):
+    @classmethod
+    def from_structure(cls, structure: Structure):
+        fields = ProtocolRegistry().type_fields(cls.NATIVETYPE)
+        return super().from_structure(fields, structure)
 
-    # name
-    @property
-    def name(self) -> Str:
-        return self._name
+    @classmethod
+    def to_structure(cls, task) -> Structure:
+        fields = ProtocolRegistry().type_fields(cls.NATIVETYPE)
+        return super().to_structure(fields, task)
 
-    @name.setter
-    def name(self, value: Str):
-        self._name = value
 
-    # architecture
-    @property
-    def architecture(self) -> Str:
-        return self._architecture
-
-    @architecture.setter
-    def architecture(self, value: Str):
-        self._architecture = value
-
-    # version
-    @property
-    def version(self) -> Str:
-        return self._version
-
-    @version.setter
-    def version(self, value: Str):
-        self._version = value
+class DbusArtefact(FatbuildrNativeDbusData, WireArtefact):
+    NATIVETYPE = 'RegistryArtefact'
 
 
 class DbusChangelogEntry(DBusData, WireChangelogEntry):

@@ -17,11 +17,15 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+from ..protocols.exports import ProtocolRegistry
 
+# tasks
 from ..builds import ArtefactBuild
 from .registry import RegistryArtefactDeletionTask
 from .keyring import KeyringCreationTask
-from ..protocols.exports import ProtocolRegistry
+
+# types
+from ..registry.formats import RegistryArtefact
 
 
 def register_tasks_protocols():
@@ -33,3 +37,7 @@ def register_tasks_protocols():
         KeyringCreationTask,
     ]:
         registry.register_task(task)
+    for _type in [
+        RegistryArtefact,
+    ]:
+        registry.register_type(_type)

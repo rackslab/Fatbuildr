@@ -35,8 +35,8 @@ class ExportableType:
     pass
 
 
-class ExportableTaskField:
-    def __init__(self, name, native_type=str, archived=True):
+class ExportableField:
+    def __init__(self, name, native_type=str):
         self.name = name
         self.native_type = native_type
         if native_type is datetime:
@@ -47,7 +47,6 @@ class ExportableTaskField:
             self.wire_type = native_type.WIRE_TYPE
         else:
             self.wire_type = native_type
-        self.archived = archived
 
     def export(self, value):
         if value is None:
@@ -72,12 +71,25 @@ class ExportableTaskField:
         return value
 
 
+class ExportableTaskField(ExportableField):
+    def __init__(self, name, native_type=str, archived=True):
+        super().__init__(name, native_type)
+        self.archived = archived
+
+
 class ProtocolRegistry(metaclass=Singleton):
     def __init__(self):
         self._tasks = {}
+        self._types = {}
 
     def register_task(self, task):
         self._tasks[task.TASK_NAME] = task.BASEFIELDS | task.EXFIELDS
 
     def task_fields(self, task):
         return self._tasks[task]
+
+    def register_type(self, type):
+        self._types[type.__name__] = type.EXFIELDS
+
+    def type_fields(self, type):
+        return self._types[type]

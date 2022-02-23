@@ -19,7 +19,7 @@
 
 import os
 
-from ...protocols.exports import ExportableType
+from ...protocols.exports import ExportableType, ExportableField
 
 
 class Registry:
@@ -46,7 +46,14 @@ class Registry:
 
 
 class RegistryArtefact(ExportableType):
+
     WIRE_TYPE = dict[str, str]
+
+    EXFIELDS = {
+        ExportableField('name'),
+        ExportableField('architecture'),
+        ExportableField('version'),
+    }
 
     def __init__(self, name, architecture, version):
         self.name = name
