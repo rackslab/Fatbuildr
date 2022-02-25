@@ -123,7 +123,7 @@ class FatbuildrDbusData:
                     field.wire_type.__name__
                 ).from_structure(wire_value)
             else:
-                native_value = field.native(wire_value)
+                native_value = field.native(value=wire_value)
             setattr(data, field.name, native_value)
 
         return data
@@ -152,7 +152,7 @@ class FatbuildrDbusData:
                     native_value
                 )
             else:
-                wire_value = field.export(native_value)
+                wire_value = field.export(task)
 
             # If the type is exported, declare it as Structure type
             if issubclass(field.wire_type, ExportableType):
