@@ -171,14 +171,6 @@ class FatbuildrDbusData:
         structure = {}
 
         for field in fields:
-            logger.debug(
-                "Exporting field %s with value %s (%s) and expected native type %s",
-                field.name,
-                str(getattr(task, field.name)),
-                str(type(getattr(task, field.name))),
-                str(field.native_type),
-            )
-
             native_value = getattr(task, field.name)
             # Dbus does not support None/null values, then handle this case
             # with special values.
