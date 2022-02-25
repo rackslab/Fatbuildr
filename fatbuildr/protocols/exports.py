@@ -54,7 +54,7 @@ class ExportableField:
     def export(self, value):
         if value is None:
             return value
-        #assert isinstance(value, get_class_type(self.native_type))
+        assert isinstance(value, get_class_type(self.native_type))
         if self.native_type is datetime:
             return int(value.timestamp())
         elif self.native_type is Path:

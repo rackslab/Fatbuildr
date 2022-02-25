@@ -143,23 +143,7 @@ class WireKeyring:
         print("  creation: %s" % (self.creation))
         print("  last update: %s" % (self.last_update))
         print("  subkey:")
-        print("    fingerprint: %s" % (self.subkey_fingerprint))
-        print("    algo: %s" % (self.subkey_algo))
-        print("    expires: %s" % (self.subkey_expires))
-        print("    creation: %s" % (self.subkey_creation))
-
-    @classmethod
-    def load_from_keyring(cls, keyring):
-        _obj = cls()
-        _obj.userid = keyring.userid
-        _obj.id = keyring.id
-        _obj.fingerprint = keyring.fingerprint
-        _obj.algo = keyring.algo
-        _obj.expires = keyring.expires
-        _obj.creation = keyring.creation
-        _obj.last_update = keyring.last_update
-        _obj.subkey_fingerprint = keyring.subkey.fingerprint
-        _obj.subkey_algo = keyring.subkey.algo
-        _obj.subkey_expires = keyring.subkey.expires
-        _obj.subkey_creation = keyring.subkey.creation
-        return _obj
+        print("    fingerprint: %s" % (self.subkey.fingerprint))
+        print("    algo: %s" % (self.subkey.algo))
+        print("    expires: %s" % (self.subkey.expires))
+        print("    creation: %s" % (self.subkey.creation))

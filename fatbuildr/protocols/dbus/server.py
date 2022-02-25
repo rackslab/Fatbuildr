@@ -434,9 +434,7 @@ class FatbuildrMultiplexer(object):
     def keyring(self, instance: Str):
         """Returns masterkey information."""
         self.timer.reset()
-        return DbusKeyring.load_from_keyring(
-            self._instances[instance].keyring.masterkey
-        )
+        return self._instances[instance].keyring.masterkey
 
     def keyring_export(self, instance: Str):
         """Returns armored public key of instance keyring."""

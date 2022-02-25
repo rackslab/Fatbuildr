@@ -25,6 +25,7 @@ from datetime import datetime
 
 import gpg
 
+from .protocols.exports import ExportableType, ExportableField
 from .utils import runcmd
 from .log import logr
 
@@ -68,9 +69,16 @@ class KeyringKey(object):
         )
 
 
-class KeyringSubKey(KeyringKey):
+class KeyringSubKey(KeyringKey, ExportableType):
+    EXFIELDS = {
+        ExportableField('fingerprint'),
+        ExportableField('algo'),
+        ExportableField('expires'),
+        ExportableField('creation'),
+    }
+
     def __init__(self, keyring, masterkey):
-        super().__init__(keyring)
+        KeyringKey.__init__(self, keyring)
         self.masterkey = masterkey
 
     def create(self, ctx):
@@ -92,9 +100,21 @@ class KeyringSubKey(KeyringKey):
         self._key = _subkey
 
 
-class KeyringMasterKey(KeyringKey):
+class KeyringMasterKey(KeyringKey, ExportableType):
+
+    EXFIELDS = {
+        ExportableField('userid'),
+        ExportableField('id'),
+        ExportableField('fingerprint'),
+        ExportableField('algo'),
+        ExportableField('expires'),
+        ExportableField('creation'),
+        ExportableField('last_update'),
+        ExportableField('subkey', KeyringSubKey),
+    }
+
     def __init__(self, keyring):
-        super().__init__(keyring)
+        KeyringKey.__init__(self, keyring)
         self._masterkey = None
         self.subkey = KeyringSubKey(keyring, self)
 
