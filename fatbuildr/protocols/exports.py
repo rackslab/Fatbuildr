@@ -34,10 +34,7 @@ def get_class_type(typ):
 class ExportableType:
     def export(self):
         """Export object as a dict of fields."""
-        return {
-            field.name: field.export(self)
-            for field in self.EXFIELDS
-        }
+        return {field.name: field.export(self) for field in self.EXFIELDS}
 
 
 class ExportableField:
@@ -56,7 +53,6 @@ class ExportableField:
         value = getattr(obj, self.name)
         if value is None:
             return value
-        assert isinstance(value, get_class_type(self.native_type))
         if self.native_type is datetime:
             return int(value.timestamp())
         elif self.native_type is Path:
@@ -68,12 +64,10 @@ class ExportableField:
     def native(self, obj=None, value=None):
         """Convert field to Fatbuildr native type. Either obj or value must
         be given in args, but not both."""
-        assert (obj is None and value is not None) or (
-            obj is not None and value is None
-        )
+        if not obj and not value:
+            return None
         if obj:
             value = getattr(obj, self.name)
-        assert isinstance(value, get_class_type(self.wire_type))
         if self.native_type is datetime:
             return datetime.fromtimestamp(value)
         elif self.native_type is Path:

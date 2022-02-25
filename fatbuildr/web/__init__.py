@@ -126,11 +126,11 @@ class WebApp(Flask):
             '/<string:instance>/queue.json', view_func=views.queue
         )
         self.add_url_rule(
-            '/<string:instance>/builds/<string:build_id>.json',
-            view_func=views.build,
+            '/<string:instance>/tasks/<string:task_id>.json',
+            view_func=views.task,
         )
         self.add_url_rule(
-            '/<string:instance>/watch/<string:build_id>.log',
+            '/<string:instance>/watch/<string:task_id>.log',
             view_func=views.watch,
         )
         self.add_url_rule(

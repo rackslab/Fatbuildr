@@ -24,25 +24,15 @@ from ..log import logr
 logger = logr(__name__)
 
 
-class WireInstance:
-    def to_dict(self):
-        result = {
-            'id': self.id,
-            'name': self.name,
-            'userid': self.userid,
-        }
-        return result
-
-    @classmethod
-    def load_from_json(cls, json):
-        _obj = cls()
-        _obj.id = json['id']
-        _obj.name = json['name']
-        _obj.userid = json['userid']
-        return _obj
+class WireData:
+    pass
 
 
-class WireRunnableTask:
+class WireInstance(WireData):
+    pass
+
+
+class WireRunnableTask(WireData):
     def report(self):
         print(f"- id: {self.id}")
         print(f"  name: {self.name}")
@@ -67,72 +57,19 @@ class WireRunnableTask:
             print(f"    architecture: {self.artefact.architecture}")
             print(f"    version: {self.artefact.version}")
 
-    def to_dict(self):
-        result = {
-            'id': self.id,
-            'state': self.state,
-            'place': self.place,
-            'user': self.user,
-            'email': self.email,
-            'distribution': self.distribution,
-            'derivative': self.derivative,
-            'format': self.format,
-            'artefact': self.artefact,
-            'submission': self.submission,
-            'message': self.message,
-        }
-        try:
-            result['logfile'] = self.logfile
-        except AttributeError:
-            result['logfile'] = None
-        return result
 
-    @classmethod
-    def load_from_json(cls, json):
-        _obj = cls()
-        _obj.id = json['id']
-        _obj.state = json['state']
-        _obj.place = json['place']
-        try:
-            _obj.logfile = json['logfile']
-        except AttributeError:
-            _obj.logfile = None
-        _obj.user = json['user']
-        _obj.email = json['email']
-        _obj.distribution = json['distribution']
-        _obj.derivative = json['derivative']
-        _obj.format = json['format']
-        _obj.artefact = json['artefact']
-        _obj.submission = json['submission']
-        _obj.message = json['message']
-        return _obj
-
-
-class WireArtefact:
+class WireArtefact(WireData):
     def report(self):
         print(f"- name: {self.name}")
         print(f"  architecture: {self.architecture}")
         print(f"  version: {self.version}")
 
-    def to_dict(self):
-        return {
-            'name': self.name,
-            'architecture': self.architecture,
-            'version': self.version,
-        }
+
+class WireChangelogEntry(WireData):
+    pass
 
 
-class WireChangelogEntry:
-    def to_dict(self):
-        return {
-            'version': self.version,
-            'author': self.author,
-            'date': self.date,
-            'changes': self.changes,
-        }
-
-
-class WireKeyring:
+class WireKeyring(WireData):
     def report(self):
         print("masterkey:")
         print(f"  userid: {self.userid}")

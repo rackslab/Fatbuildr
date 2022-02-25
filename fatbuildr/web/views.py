@@ -33,6 +33,12 @@ from werkzeug.utils import secure_filename
 
 from ..version import __version__
 from ..protocols import ClientFactory
+from ..protocols.http import (
+    JsonInstance,
+    JsonRunnableTask,
+    JsonArtefact,
+    JsonChangelogEntry,
+)
 
 
 def version():
@@ -42,7 +48,7 @@ def version():
 def instance(instance):
     connection = ClientFactory.get('local')
     _instance = connection.instance(instance)
-    return jsonify(_instance.to_dict())
+    return jsonify(JsonInstance.export(_instance))
 
 
 def pipelines_formats(instance):
@@ -87,7 +93,9 @@ def index(output='html'):
     connection = ClientFactory.get('local')
     instances = connection.instances()
     if output == 'json':
-        return jsonify(instances)
+        return jsonify(
+            [JsonInstance.export(instance) for instance in instances]
+        )
     else:
         return render_template('index.html.j2', instances=instances)
 
@@ -182,16 +190,22 @@ def artefact(
             return jsonify(
                 {
                     'artefact': artefact,
-                    'source': source.to_dict(),
-                    'changelog': [entry.to_dict() for entry in changelog],
+                    'source': JsonArtefact.export(source),
+                    'changelog': [
+                        JsonChangelogEntry.export(entry) for entry in changelog
+                    ],
                 }
             )
         else:
             return jsonify(
                 {
                     'artefact': artefact,
-                    'binaries': [binary.to_dict() for binary in binaries],
-                    'changelog': [entry.to_dict() for entry in changelog],
+                    'binaries': [
+                        JsonArtefact.export(binary) for binary in binaries
+                    ],
+                    'changelog': [
+                        JsonChangelogEntry.export(entry) for entry in changelog
+                    ],
                 }
             )
     else:
@@ -239,7 +253,7 @@ def artefacts(instance, artefact, output='html'):
             for distribution, derivatives in distributions.items():
                 for derivative, artefacts in derivatives.items():
                     results[fmt][distribution][derivative] = [
-                        _artefact.to_dict() for artefact in artefacts
+                        JsonArtefact.export(_artefact) for artefact in artefacts
                     ]
         return jsonify(results)
     else:
@@ -259,7 +273,7 @@ def submit(instance):
     tarball.save(tarball_path)
 
     connection = ClientFactory.get('local')
-    build_id = connection.submit(
+    task_id = connection.submit(
         instance,
         request.form['format'],
         request.form['distribution'],
@@ -270,35 +284,35 @@ def submit(instance):
         request.form['message'],
         tarball_path,
     )
-    return jsonify({'build': build_id})
+    return jsonify({'task': task_id})
 
 
 def running(instance):
     connection = ClientFactory.get('local')
     running = connection.running(instance)
     if running:
-        return jsonify(running.to_dict())
+        return jsonify(JsonRunnableTask.export(running))
     return jsonify(None)
 
 
 def queue(instance):
     connection = ClientFactory.get('local')
-    builds = connection.queue(instance)
-    return jsonify([build.to_dict() for build in builds])
+    tasks = connection.queue(instance)
+    return jsonify([JsonRunnableTask.export(task) for task in tasks])
 
 
-def build(instance, build_id):
+def task(instance, task_id):
     connection = ClientFactory.get('local')
-    build = connection.get(instance, build_id)
-    return jsonify(build.to_dict())
+    task = connection.get(instance, task_id)
+    return jsonify(JsonRunnableTask.export(task))
 
 
-def watch(instance, build_id):
+def watch(instance, task_id):
     """Stream lines obtained by DbusClient.watch() generator."""
     connection = ClientFactory.get('local')
-    build = connection.get(instance, build_id)
+    task = connection.get(instance, task_id)
     return current_app.response_class(
-        connection.watch(instance, build), mimetype='text/plain'
+        connection.watch(instance, task), mimetype='text/plain'
     )
 
 

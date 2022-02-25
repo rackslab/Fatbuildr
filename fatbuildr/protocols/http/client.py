@@ -19,7 +19,7 @@
 
 import requests
 
-from ..wire import WireInstance, WireRunnableTask
+from . import JsonInstance, JsonRunnableTask
 from ...log import logr
 
 logger = logr(__name__)
@@ -32,7 +32,7 @@ class HttpClient:
     def instance(self, instance):
         url = f"{self.host}/{instance}/instance.json"
         response = requests.get(url)
-        return WireInstance.load_from_json(response.json())
+        return JsonInstance.load_from_json(response.json())
 
     def pipelines_format_distributions(self, instance, format):
         url = f"{self.host}/{instance}/pipelines/formats.json?format={format}"
@@ -94,34 +94,34 @@ class HttpClient:
         # Delete the tarball as it is not accessed by the http server.
         tarball.unlink()
 
-        return response.json()['build']
+        return response.json()['task']
 
     def queue(self, instance):
         url = f"{self.host}/{instance}/queue.json"
         response = requests.get(url)
         return [
-            WireRunnableTask.load_from_json(build) for build in response.json()
+            JsonRunnableTask.load_from_json(task) for task in response.json()
         ]
 
     def running(self, instance):
         url = f"{self.host}/{instance}/running.json"
         response = requests.get(url)
-        json_build = response.json()
-        if json_build is None:
+        json_task = response.json()
+        if json_task is None:
             return None
-        return WireRunnableTask.load_from_json(json_build)
+        return JsonRunnableTask.load_from_json(json_task)
 
-    def get(self, instance, build_id):
-        url = f"{self.host}/{instance}/builds/{build_id}.json"
+    def get(self, instance, task_id):
+        url = f"{self.host}/{instance}/tasks/{task_id}.json"
         response = requests.get(url)
-        json_build = response.json()
-        if json_build is None:
+        json_task = response.json()
+        if json_task is None:
             return None
-        return WireRunnableTask.load_from_json(json_build)
+        return JsonRunnableTask.load_from_json(json_task)
 
-    def watch(self, instance, build):
-        """Generate build log lines with a streaming request."""
-        url = f"{self.host}/{instance}/watch/{build.id}.log"
+    def watch(self, instance, task):
+        """Generate task log lines with a streaming request."""
+        url = f"{self.host}/{instance}/watch/{task.id}.log"
         response = requests.get(url, stream=True)
         for line in response.iter_lines(decode_unicode=True, delimiter='\n'):
             yield line + '\n'
