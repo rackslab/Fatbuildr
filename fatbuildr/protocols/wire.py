@@ -110,9 +110,9 @@ class WireRunnableTask:
 
 class WireArtefact:
     def report(self):
-        print("- name: %s" % (self.name))
-        print("  architecture: %s" % (self.architecture))
-        print("  version: %s" % (self.version))
+        print(f"- name: {self.name}")
+        print(f"  architecture: {self.architecture}")
+        print(f"  version: {self.version}")
 
     def to_dict(self):
         return {
@@ -135,15 +135,15 @@ class WireChangelogEntry:
 class WireKeyring:
     def report(self):
         print("masterkey:")
-        print("  userid: %s" % (self.userid))
-        print("  id: %s" % (self.id))
-        print("  fingerprint: %s" % (self.fingerprint))
-        print("  algo: %s" % (self.algo))
-        print("  expires: %s" % (self.expires))
-        print("  creation: %s" % (self.creation))
-        print("  last update: %s" % (self.last_update))
+        print(f"  userid: {self.userid}")
+        print(f"  id: {self.id}")
+        print(f"  fingerprint: {self.fingerprint}")
+        print(f"  algo: {self.algo}")
+        print(f"  expires: {self.expires}")
+        print(f"  creation: {self.creation}")
+        print(f"  last update: {self.last_update}")
         print("  subkey:")
-        print("    fingerprint: %s" % (self.subkey.fingerprint))
-        print("    algo: %s" % (self.subkey.algo))
-        print("    expires: %s" % (self.subkey.expires))
-        print("    creation: %s" % (self.subkey.creation))
+        print(f"    fingerprint: {self.subkey.fingerprint}")
+        print(f"    algo: {self.subkey.algo}")
+        print(f"    expires: {self.subkey.expires}")
+        print(f"    creation: {self.subkey.creation}")
