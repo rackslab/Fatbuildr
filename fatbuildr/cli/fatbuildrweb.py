@@ -22,6 +22,7 @@ import argparse
 from . import FatbuildrCliRun
 from ..conf import RuntimeConfWeb
 from ..version import __version__
+from ..protocols.crawler import register_protocols
 from ..web import WebApp
 from ..log import logr
 
@@ -58,6 +59,8 @@ class FatbuildrWeb(FatbuildrCliRun):
 
     def load(self, args):
         super().load()
+
+        register_protocols()
 
         if args.debug:
             self.conf.run.debug = True
