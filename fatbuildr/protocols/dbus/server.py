@@ -260,14 +260,11 @@ class FatbuildrMultiplexer(object):
 
     def instances(self):
         self.timer.reset()
-        return [
-            DbusInstance.load_from_instance(instance)
-            for instance in self._instances
-        ]
+        return self._instances
 
     def instance(self, instance: Str):
         self.timer.reset()
-        return DbusInstance.load_from_instance(self._instances[instance])
+        return self._instances[instance]
 
     def pipelines_formats(self, instance: Str):
         self.timer.reset()
@@ -399,12 +396,9 @@ class FatbuildrMultiplexer(object):
         """Get the changelog of the given artefact and architecture in this
         distribution registry."""
         self.timer.reset()
-        changelog = self._instances[instance].registry_mgr.changelog(
+        return self._instances[instance].registry_mgr.changelog(
             fmt, distribution, derivative, architecture, artefact
         )
-        return [
-            DbusChangelogEntry.load_from_entry(entry) for entry in changelog
-        ]
 
     def submit(
         self,

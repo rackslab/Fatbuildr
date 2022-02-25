@@ -25,7 +25,8 @@ from ..tasks.registry import RegistryArtefactDeletionTask
 from ..tasks.keyring import KeyringCreationTask
 
 # types
-from ..registry.formats import RegistryArtefact
+from ..instances import RunningInstance
+from ..registry.formats import RegistryArtefact, ChangelogEntry
 
 
 def register_protocols():
@@ -37,7 +38,5 @@ def register_protocols():
         KeyringCreationTask,
     ]:
         registry.register_task(task)
-    for _type in [
-        RegistryArtefact,
-    ]:
+    for _type in [RunningInstance, RegistryArtefact, ChangelogEntry]:
         registry.register_type(_type)

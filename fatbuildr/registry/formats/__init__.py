@@ -59,7 +59,15 @@ class RegistryArtefact(ExportableType):
         self.version = version
 
 
-class ChangelogEntry:
+class ChangelogEntry(ExportableType):
+
+    EXFIELDS = {
+        ExportableField('version'),
+        ExportableField('author'),
+        ExportableField('date', int),
+        ExportableField('changes', list[str]),
+    }
+
     def __init__(self, version, author, date, changes):
         self.version = version
         self.author = author

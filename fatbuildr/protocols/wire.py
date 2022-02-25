@@ -34,14 +34,6 @@ class WireInstance:
         return result
 
     @classmethod
-    def load_from_instance(cls, instance):
-        _obj = cls()
-        _obj.id = instance.id
-        _obj.name = instance.name
-        _obj.userid = instance.userid
-        return _obj
-
-    @classmethod
     def load_from_json(cls, json):
         _obj = cls()
         _obj.id = json['id']
@@ -138,15 +130,6 @@ class WireChangelogEntry:
             'date': self.date,
             'changes': self.changes,
         }
-
-    @classmethod
-    def load_from_entry(cls, entry):
-        _obj = cls()
-        _obj.version = entry.version
-        _obj.author = entry.author
-        _obj.date = entry.date
-        _obj.changes = entry.changes
-        return _obj
 
 
 class WireKeyring:

@@ -96,40 +96,6 @@ def native_type(type):
 # Define structures.
 
 
-class DbusInstance(DBusData, WireInstance):
-    def __init__(self):
-        self._id = None
-        self._name = None
-        self._userid = None
-
-    # id
-    @property
-    def id(self) -> Str:
-        return self._id
-
-    @id.setter
-    def id(self, value: Str):
-        self._id = value
-
-    # name
-    @property
-    def name(self) -> Str:
-        return self._name
-
-    @name.setter
-    def name(self, value: Str):
-        self._name = value
-
-    # userid
-    @property
-    def userid(self) -> Str:
-        return self._userid
-
-    @userid.setter
-    def userid(self, value: Str):
-        self._userid = value
-
-
 class FatbuildrDbusData:
     @classmethod
     def from_structure(cls, fields, structure: Structure):
@@ -250,52 +216,16 @@ class FatbuildrNativeDbusData(FatbuildrDbusData):
         return ProtocolRegistry().type_loader(native_type(type(self)))(**kwargs)
 
 
+class DbusInstance(FatbuildrNativeDbusData, WireInstance):
+    pass
+
+
 class DbusArtefact(FatbuildrNativeDbusData, WireArtefact):
     pass
 
 
-class DbusChangelogEntry(DBusData, WireChangelogEntry):
-    def __init__(self):
-        self._version = None
-        self._author = None
-        self._date = None
-        self._changes = None
-
-    # version
-    @property
-    def version(self) -> Str:
-        return self._version
-
-    @version.setter
-    def version(self, value: Str):
-        self._version = value
-
-    # author
-    @property
-    def author(self) -> Str:
-        return self._author
-
-    @author.setter
-    def author(self, value: Str):
-        self._author = value
-
-    # date
-    @property
-    def date(self) -> Int:
-        return self._date
-
-    @date.setter
-    def date(self, value: Str):
-        self._date = value
-
-    # changes
-    @property
-    def changes(self) -> List[Str]:
-        return self._changes
-
-    @changes.setter
-    def changes(self, value: Str):
-        self._changes = value
+class DbusChangelogEntry(FatbuildrNativeDbusData, WireChangelogEntry):
+    pass
 
 
 class DbusKeyring(DBusData, WireKeyring):
@@ -415,5 +345,7 @@ class DbusKeyring(DBusData, WireKeyring):
 # Map fatbuildr native exportable types with corresponding dbus types
 
 TYPES_MAP = {
+    ('RunningInstance', DbusInstance),
     ('RegistryArtefact', DbusArtefact),
+    ('ChangelogEntry', DbusChangelogEntry),
 }

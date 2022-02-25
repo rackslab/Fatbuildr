@@ -25,6 +25,7 @@ from .tasks.manager import ServerTasksManager
 from .registry.manager import RegistryManager
 from .archives import ArchivesManager
 from .keyring import InstanceKeyring
+from .protocols.exports import ExportableType, ExportableField
 from .utils import Singleton
 from .log import logr
 
@@ -120,7 +121,14 @@ class InstancePipelines:
             return [derivative] + self.recursive_derivatives('main')
 
 
-class RunningInstance:
+class RunningInstance(ExportableType):
+
+    EXFIELDS = {
+        ExportableField('id'),
+        ExportableField('name'),
+        ExportableField('userid'),
+    }
+
     def __init__(self, conf, id, name, gpg_name, gpg_email, pipelines):
         self.conf = conf
         self.id = id
