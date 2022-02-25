@@ -93,12 +93,11 @@ class ArchivesManager:
         )
         shutil.move(task.place, dest)
 
-        fields = {}
-
-        for field in ProtocolRegistry().task_fields(task.name):
-            if not field.archived:
-                continue
-            fields[field.name] = field.export(getattr(task, field.name))
+        fields = {
+            field.name: field.export(getattr(task, field.name))
+            for field in ProtocolRegistry().task_fields(task.name)
+            if field.archived
+        }
 
         form = TaskForm(**fields)
         form.save(dest)
@@ -111,12 +110,11 @@ class ArchivesManager:
             try:
                 form = TaskForm.fromArchive(task_dir)
 
-                fields = {}
-
-                for field in ProtocolRegistry().task_fields(form.name):
-                    if not field.archived:
-                        continue
-                    fields[field.name] = field.native(getattr(form, field.name))
+                fields = {
+                    field.name: field.native(getattr(form, field.name))
+                    for field in ProtocolRegistry().task_fields(form.name)
+                    if field.archived
+                }
 
                 task = ArchivedTask(
                     task_dir.stem, task_dir, self.instance, **fields
