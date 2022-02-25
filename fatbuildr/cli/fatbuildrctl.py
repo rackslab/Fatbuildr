@@ -33,7 +33,7 @@ from ..prefs import UserPreferences
 from ..images import ImagesManager
 from ..log import logr
 from ..protocols import ClientFactory
-from ..tasks.crawler import register_tasks_protocols
+from ..protocols.crawler import register_protocols
 from ..artefact import ArtefactDefs
 
 logger = logr(__name__)
@@ -257,8 +257,8 @@ class Fatbuildrctl(FatbuildrCliRun):
         # Load main configuration
         super().load()
 
-        # load all tasks structures in protocol
-        register_tasks_protocols()
+        # load all tasks and exportable types structures in protocol
+        register_protocols()
 
         # Load user preferences
         self.prefs = UserPreferences(args.preferences)

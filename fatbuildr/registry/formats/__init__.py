@@ -47,8 +47,6 @@ class Registry:
 
 class RegistryArtefact(ExportableType):
 
-    WIRE_TYPE = dict[str, str]
-
     EXFIELDS = {
         ExportableField('name'),
         ExportableField('architecture'),

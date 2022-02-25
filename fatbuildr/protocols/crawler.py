@@ -21,14 +21,14 @@ from ..protocols.exports import ProtocolRegistry
 
 # tasks
 from ..builds import ArtefactBuild
-from .registry import RegistryArtefactDeletionTask
-from .keyring import KeyringCreationTask
+from ..tasks.registry import RegistryArtefactDeletionTask
+from ..tasks.keyring import KeyringCreationTask
 
 # types
 from ..registry.formats import RegistryArtefact
 
 
-def register_tasks_protocols():
+def register_protocols():
     """Load all tasks specific protocol structures in protocol registry."""
     registry = ProtocolRegistry()
     for task in [

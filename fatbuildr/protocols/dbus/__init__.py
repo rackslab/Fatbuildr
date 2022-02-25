@@ -36,7 +36,7 @@ from ..wire import (
     WireKeyring,
 )
 
-from ..exports import ProtocolRegistry
+from ..exports import ProtocolRegistry, ExportableType
 
 from ...log import logr
 
@@ -61,6 +61,36 @@ dbus_error = get_error_decorator(ERROR_MAPPER)
 @dbus_error("ErrorNoRunningTask", namespace=REGISTER_NAMESPACE)
 class ErrorNoRunningTask(DBusError):
     pass
+
+
+# Utilities to manipulate TYPES_MAP
+
+
+def type_fields(type):
+    """Returns the set of ExportableFields for the given
+    FatbuildrNativeDbusData type."""
+    for native_type, dbus_type in TYPES_MAP:
+        if dbus_type is type:
+            return ProtocolRegistry().type_fields(native_type)
+    raise RuntimeError(f"Unable to find fields for type {type}")
+
+
+def dbus_type(type_name):
+    """Return the FatbuildrNativeDbusData type for the given ExportableType
+    name."""
+    for native_type, dbus_type in TYPES_MAP:
+        if type_name == native_type:
+            return dbus_type
+    raise RuntimeError(f"Unable to find dbus type for {type_name}")
+
+
+def native_type(type):
+    """Returns the ExportableType name of the given FatbuildrNativeDbusData
+    type."""
+    for native_type, dbus_type in TYPES_MAP:
+        if dbus_type is type:
+            return native_type
+    raise RuntimeError(f"Unable to find native type for {type}")
 
 
 # Define structures.
@@ -120,6 +150,12 @@ class FatbuildrDbusData:
                 field.wire_type is str and wire_value == '∅'
             ):
                 native_value = None
+            elif issubclass(field.wire_type, ExportableType):
+                # If the field has an exportable type, convert the structure to
+                # the corresponding FatbuildrNativeDbusData type.
+                native_value = dbus_type(
+                    field.wire_type.__name__
+                ).from_structure(wire_value)
             else:
                 native_value = field.native(wire_value)
             setattr(data, field.name, native_value)
@@ -151,10 +187,22 @@ class FatbuildrDbusData:
                     wire_value = -1
                 else:
                     wire_value = '∅'
+            elif issubclass(field.wire_type, ExportableType):
+                # If the type is directly exportable on the wire, convert it
+                # to (nested) structure.
+                wire_value = dbus_type(field.wire_type.__name__).to_structure(
+                    native_value
+                )
             else:
                 wire_value = field.export(native_value)
 
-            structure[field.name] = get_variant(field.wire_type, wire_value)
+            # If the type is exported, declare it as Structure type
+            if issubclass(field.wire_type, ExportableType):
+                wire_type = Structure
+            else:
+                wire_type = field.wire_type
+
+            structure[field.name] = get_variant(wire_type, wire_value)
 
         return structure
 
@@ -196,17 +244,22 @@ class DbusRunnableTask(FatbuildrDbusData, WireRunnableTask):
 class FatbuildrNativeDbusData(FatbuildrDbusData):
     @classmethod
     def from_structure(cls, structure: Structure):
-        fields = ProtocolRegistry().type_fields(cls.NATIVETYPE)
-        return super().from_structure(fields, structure)
+        return super().from_structure(type_fields(cls), structure)
 
     @classmethod
     def to_structure(cls, task) -> Structure:
-        fields = ProtocolRegistry().type_fields(cls.NATIVETYPE)
-        return super().to_structure(fields, task)
+        return super().to_structure(type_fields(cls), task)
+
+    def to_native(self):
+        kwargs = {
+            field.name: getattr(self, field.name)
+            for field in type_fields(type(self))
+        }
+        return ProtocolRegistry().type_loader(native_type(type(self)))(**kwargs)
 
 
 class DbusArtefact(FatbuildrNativeDbusData, WireArtefact):
-    NATIVETYPE = 'RegistryArtefact'
+    pass
 
 
 class DbusChangelogEntry(DBusData, WireChangelogEntry):
@@ -365,3 +418,10 @@ class DbusKeyring(DBusData, WireKeyring):
     @subkey_creation.setter
     def subkey_creation(self, value: Str):
         self._subkey_creation = value
+
+
+# Map fatbuildr native exportable types with corresponding dbus types
+
+TYPES_MAP = {
+    ('RegistryArtefact', DbusArtefact),
+}

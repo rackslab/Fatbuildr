@@ -43,8 +43,6 @@ class ExportableField:
             self.wire_type = int
         elif native_type is Path:
             self.wire_type = str
-        elif issubclass(native_type, ExportableType):
-            self.wire_type = native_type.WIRE_TYPE
         else:
             self.wire_type = native_type
 
@@ -89,7 +87,10 @@ class ProtocolRegistry(metaclass=Singleton):
         return self._tasks[task]
 
     def register_type(self, type):
-        self._types[type.__name__] = type.EXFIELDS
+        self._types[type.__name__] = {'loader': type, 'fields': type.EXFIELDS}
 
     def type_fields(self, type):
-        return self._types[type]
+        return self._types[type]['fields']
+
+    def type_loader(self, type):
+        return self._types[type]['loader']

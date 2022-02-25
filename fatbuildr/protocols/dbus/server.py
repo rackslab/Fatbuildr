@@ -337,12 +337,9 @@ class FatbuildrMultiplexer(object):
     ):
         """Get all artefacts in this derivative of this distribution registry."""
         self.timer.reset()
-        artefacts = self._instances[instance].registry_mgr.artefacts(
+        return self._instances[instance].registry_mgr.artefacts(
             fmt, distribution, derivative
         )
-        return [
-            DbusArtefact.load_from_artefact(artefact) for artefact in artefacts
-        ]
 
     def artefact_delete(
         self,
@@ -357,7 +354,7 @@ class FatbuildrMultiplexer(object):
             fmt,
             distribution,
             derivative,
-            DbusArtefact.convert_to_artefact(artefact),
+            artefact.to_native(),
         )
 
     def artefact_bins(
