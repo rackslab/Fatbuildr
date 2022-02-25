@@ -58,13 +58,6 @@ class RegistryArtefact(ExportableType):
         self.architecture = architecture
         self.version = version
 
-    def export(self):
-        return {
-            "name": self.name,
-            "architecture": self.architecture,
-            "version": self.version,
-        }
-
 
 class ChangelogEntry:
     def __init__(self, version, author, date, changes):

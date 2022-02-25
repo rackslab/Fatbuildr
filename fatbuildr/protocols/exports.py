@@ -32,7 +32,12 @@ def get_class_type(typ):
 
 
 class ExportableType:
-    pass
+    def export(self):
+        """Export object as a dict of fields."""
+        return {
+            field.name: field.export(getattr(self, field.name))
+            for field in self.EXFIELDS
+        }
 
 
 class ExportableField:
