@@ -44,3 +44,22 @@ class ImageCreationTask(RunnableTask):
             self.id,
         )
         self.instance.images_mgr.create(self.format, self.force)
+
+
+class ImageUpdateTask(RunnableTask):
+
+    TASK_NAME = 'image update'
+    EXFIELDS = {
+        ExportableTaskField('format'),
+    }
+
+    def __init__(self, task_id, place, instance, format):
+        super().__init__(task_id, place, instance)
+        self.format = format
+
+    def run(self):
+        logger.info(
+            "Running image update task %s",
+            self.id,
+        )
+        self.instance.images_mgr.update(self.format)

@@ -59,6 +59,8 @@ class WireRunnableTask(WireData):
         elif self.name == "image creation":
             print(f"  format: {self.format}")
             print(f"  force: {str(self.force)}")
+        elif self.name == "image update":
+            print(f"  format: {self.format}")
 
 
 class WireArtefact(WireData):

@@ -216,3 +216,6 @@ class DbusClient(object):
 
     def image_create(self, instance, format, force):
         return self.proxy.ImageCreate(instance, format, force)
+
+    def image_update(self, instance, format):
+        return self.proxy.ImageUpdate(instance, format)

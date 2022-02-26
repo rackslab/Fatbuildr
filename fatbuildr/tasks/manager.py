@@ -32,7 +32,7 @@ from ..log import logr
 from ..builds.factory import BuildFactory
 from .registry import RegistryArtefactDeletionTask
 from .keyring import KeyringCreationTask
-from .images import ImageCreationTask
+from .images import ImageCreationTask, ImageUpdateTask
 
 logger = logr(__name__)
 
@@ -135,6 +135,14 @@ class ServerTasksManager:
         task = ImageCreationTask(task_id, place, self.instance, format, force)
         self.queue.put(task)
         logger.info("Image creation task %s submitted in queue", task.id)
+        return task_id
+
+    def submit_image_update(self, format):
+        task_id = str(uuid.uuid4())  # generate task ID
+        place = Path(self.conf.dirs.queue, task_id)
+        task = ImageUpdateTask(task_id, place, self.instance, format)
+        self.queue.put(task)
+        logger.info("Image update task %s submitted in queue", task.id)
         return task_id
 
     def submit_build(

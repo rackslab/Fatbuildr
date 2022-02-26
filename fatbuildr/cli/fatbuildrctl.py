@@ -304,8 +304,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             return
         elif args.update:
             for format in selected_formats:
-                mgr.update(format)
-            logger.info("All images have been updated")
+                task_id = connection.image_update(self.instance, format)
+                print(f"Submitted {format} image update task {task_id}")
             return
         else:
             print(

@@ -254,6 +254,10 @@ class FatbuildrInterface(InterfaceTemplate):
         """Submit an image creation task and returns the task id."""
         return self.implementation.image_create(instance, format, force)
 
+    def ImageUpdate(self, instance: Str, format: Str) -> Str:
+        """Submit an image update task and returns the task id."""
+        return self.implementation.image_update(instance, format)
+
 
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
@@ -450,6 +454,10 @@ class FatbuildrMultiplexer(object):
         return self._instances[instance].tasks_mgr.submit_image_create(
             format, force
         )
+
+    def image_update(self, instance: Str, format: Str) -> Str:
+        self.timer.reset()
+        return self._instances[instance].tasks_mgr.submit_image_update(format)
 
 
 class DbusServer(object):
