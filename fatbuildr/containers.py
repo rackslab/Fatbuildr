@@ -29,8 +29,8 @@ class ContainerRunner(object):
     def __init__(self, conf):
         self.conf = conf
 
-    def run_init(self, image, envcmd):
-        self.run(image, envcmd, opts=self.conf.init_opts)
+    def run_init(self, image, cmd):
+        self.run(image, cmd, opts=self.conf.init_opts)
 
     def run(
         self,
@@ -67,7 +67,7 @@ class ContainerRunner(object):
             _cmd.extend(['--chdir', chdir])
         for _env in envs:
             _cmd.extend(['--setenv', _env])
-        if isinstance(runcmd, str):
+        if isinstance(cmd, str):
             _cmd.extend(cmd.split(' '))
         else:
             _cmd.extend(cmd)
