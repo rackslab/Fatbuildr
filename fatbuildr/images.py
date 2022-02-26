@@ -51,11 +51,11 @@ class Image(object):
         # ensure instance images directory is present
         _dirname = os.path.dirname(self.path)
         if not os.path.exists(_dirname):
-            logger.info("Creating instance image directory %s" % (_dirname))
+            logger.info("Creating instance image directory %s", _dirname)
             os.mkdir(_dirname)
             os.chmod(_dirname, 0o755)  # be umask agnostic
 
-        logger.info("Creating image for %s format" % (self.format))
+        logger.info("Creating image for %s format", self.format)
         cmd = Templeter.srender(
             self.conf.images.create_cmd,
             format=self.format,
@@ -69,7 +69,7 @@ class Image(object):
         runcmd(cmd)
 
     def update(self):
-        logger.info("Updating image for %s format" % (self.format))
+        logger.info("Updating image for %s format", self.format)
         cmds = [
             _cmd.strip()
             for _cmd in getattr(self.conf, self.format).img_update_cmds.split(
@@ -110,8 +110,9 @@ class BuildEnv(object):
 
     def update(self):
         logger.info(
-            "Updating build environment %s in %s image"
-            % (self.name, self.image.format)
+            "Updating build environment %s in %s image",
+            self.name,
+            self.image.format,
         )
         cmds = [
             Templeter.srender(_cmd.strip(), environment=self.name)
@@ -133,8 +134,7 @@ class ImagesManager(object):
         """Creates image for the given format."""
         if not os.path.exists(self.conf.images.storage):
             logger.debug(
-                "Creating missing images directory %s"
-                % (self.conf.images.storage)
+                "Creating missing images directory %s", self.conf.images.storage
             )
             os.mkdir(self.conf.images.storage)
 
