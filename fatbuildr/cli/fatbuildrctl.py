@@ -208,8 +208,8 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_list.set_defaults(func=self._run_list)
 
         # Parser for the watch command
-        parser_watch = subparsers.add_parser('watch', help='Watch build')
-        parser_watch.add_argument('-b', '--build', help='ID of build to watch')
+        parser_watch = subparsers.add_parser('watch', help='Watch task')
+        parser_watch.add_argument('-t', '--task', help='ID of task to watch')
         parser_watch.set_defaults(func=self._run_watch)
 
         # Parser for the archives command
@@ -522,7 +522,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         try:
             tarball = prepare_tarball(basedir, subdir)
-            build_id = connection.submit(
+            task_id = connection.submit(
                 self.instance,
                 format,
                 distribution,
@@ -536,9 +536,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)
-        logger.info("Build %s submitted" % (build_id))
+        logger.info("Task %s submitted", task_id)
         if args.watch:
-            self._watch_build(build_id)
+            self._watch_task(task_id)
 
     def _run_list(self, args):
         logger.debug("running list")
@@ -561,28 +561,28 @@ class Fatbuildrctl(FatbuildrCliRun):
             logger.error("Error while listing builds: %s" % (err))
             sys.exit(1)
 
-    def _watch_build(self, build_id):
+    def _watch_task(self, task_id):
         connection = ClientFactory.get(self.host)
         try:
-            build = connection.get(self.instance, build_id)
+            task = connection.get(self.instance, task_id)
         except RuntimeError as err:
             logger.error(err)
             sys.exit(1)
 
         warned_pending = False
         # if build is pending, wait
-        while build.state == 'pending':
+        while task.state == 'pending':
             if not warned_pending:
                 logger.info(
-                    "Build %s is pending, waiting for the build to start."
-                    % (build.id)
+                    "Task %s is pending, waiting for the task to start.",
+                    task.id,
                 )
                 warned_pending = True
             time.sleep(1)
-            # poll build state again
-            build = connection.get(self.instance, build_id)
+            # poll task state again
+            task = connection.get(self.instance, task_id)
         try:
-            for line in connection.watch(self.instance, build):
+            for line in connection.watch(self.instance, task):
                 print(line, end='')
         except KeyboardInterrupt:
             # Leave gracefully after a keyboard interrupt (eg. ^c)
@@ -593,7 +593,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             pass
 
     def _run_watch(self, args):
-        self._watch_build(args.build)
+        self._watch_task(args.task)
 
     def _run_archives(self, args):
         connection = ClientFactory.get(self.host)
