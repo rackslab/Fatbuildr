@@ -204,7 +204,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_build.set_defaults(func=self._run_build)
 
         # Parser for the list command
-        parser_list = subparsers.add_parser('list', help='List builds')
+        parser_list = subparsers.add_parser('list', help='List tasks')
         parser_list.set_defaults(func=self._run_list)
 
         # Parser for the watch command
@@ -544,21 +544,21 @@ class Fatbuildrctl(FatbuildrCliRun):
         logger.debug("running list")
         connection = ClientFactory.get(self.host)
         try:
-            _running = connection.running(self.instance)
-            if _running:
-                print("Running build:")
-                _running.report()
+            running = connection.running(self.instance)
+            if running:
+                print("Running tasks:")
+                running.report()
             else:
-                print("No running build")
+                print("No running task")
 
-            _queue = connection.queue(self.instance)
-            if _queue:
-                print("Pending build submissions:")
-                for _build in _queue:
-                    _build.report()
+            queue = connection.queue(self.instance)
+            if queue:
+                print("Pending tasks:")
+                for task in queue:
+                    task.report()
 
         except RuntimeError as err:
-            logger.error("Error while listing builds: %s" % (err))
+            logger.error("Error while listing tasks: %s", err)
             sys.exit(1)
 
     def _watch_task(self, task_id):
