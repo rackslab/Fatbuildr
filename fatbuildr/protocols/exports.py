@@ -24,13 +24,6 @@ from pathlib import Path
 from ..utils import Singleton
 
 
-def get_class_type(typ):
-    if isinstance(typ, types.GenericAlias):
-        return typ.__origin__
-    else:
-        return typ
-
-
 class ExportableType:
     def export(self):
         """Export object as a dict of fields."""
