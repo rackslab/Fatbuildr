@@ -56,6 +56,9 @@ class WireRunnableTask(WireData):
             print(f"    name: {self.artefact.name}")
             print(f"    architecture: {self.artefact.architecture}")
             print(f"    version: {self.artefact.version}")
+        elif self.name == "image creation":
+            print(f"  format: {self.format}")
+            print(f"  force: {str(self.force)}")
 
 
 class WireArtefact(WireData):

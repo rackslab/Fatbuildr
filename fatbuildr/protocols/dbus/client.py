@@ -201,6 +201,8 @@ class DbusClient(object):
 
         fh.close()
 
+    # keyring
+
     def keyring_create(self, instance):
         return self.proxy.KeyringCreate(instance)
 
@@ -209,3 +211,8 @@ class DbusClient(object):
 
     def keyring_export(self, instance):
         return self.proxy.KeyringExport(instance)
+
+    # images
+
+    def image_create(self, instance, format, force):
+        return self.proxy.ImageCreate(instance, format, force)

@@ -22,7 +22,7 @@ from dasbus.server.interface import dbus_interface
 from dasbus.server.property import emits_properties_changed
 from dasbus.server.template import InterfaceTemplate
 from dasbus.signal import Signal
-from dasbus.typing import Structure, List, Str
+from dasbus.typing import Structure, List, Str, Bool
 from dasbus.xml import XMLGenerator
 
 from . import (
@@ -250,6 +250,10 @@ class FatbuildrInterface(InterfaceTemplate):
         """Returns armored public key of instance keyring."""
         return self.implementation.keyring_export(instance)
 
+    def ImageCreate(self, instance: Str, format: Str, force: Bool) -> Str:
+        """Submit an image creation task and returns the task id."""
+        return self.implementation.image_create(instance, format, force)
+
 
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
@@ -440,6 +444,12 @@ class FatbuildrMultiplexer(object):
         """Returns armored public key of instance keyring."""
         self.timer.reset()
         return self._instances[instance].keyring.export()
+
+    def image_create(self, instance: Str, format: Str, force: Bool) -> Str:
+        self.timer.reset()
+        return self._instances[instance].tasks_mgr.submit_image_create(
+            format, force
+        )
 
 
 class DbusServer(object):

@@ -32,6 +32,7 @@ from ..log import logr
 from ..builds.factory import BuildFactory
 from .registry import RegistryArtefactDeletionTask
 from .keyring import KeyringCreationTask
+from .images import ImageCreationTask
 
 logger = logr(__name__)
 
@@ -117,7 +118,7 @@ class ServerTasksManager:
             artefact,
         )
         self.queue.put(task)
-        logger.info("Artefact deletion task %s submitted in queue" % (task.id))
+        logger.info("Artefact deletion task %s submitted in queue", task.id)
         return task_id
 
     def submit_keyring_create(self):
@@ -125,7 +126,15 @@ class ServerTasksManager:
         place = Path(self.conf.dirs.queue, task_id)
         task = KeyringCreationTask(task_id, place, self.instance)
         self.queue.put(task)
-        logger.info("Keyring create task %s submitted in queue" % (task.id))
+        logger.info("Keyring creation task %s submitted in queue", task.id)
+        return task_id
+
+    def submit_image_create(self, format, force):
+        task_id = str(uuid.uuid4())  # generate task ID
+        place = Path(self.conf.dirs.queue, task_id)
+        task = ImageCreationTask(task_id, place, self.instance, format, force)
+        self.queue.put(task)
+        logger.info("Image creation task %s submitted in queue", task.id)
         return task_id
 
     def submit_build(

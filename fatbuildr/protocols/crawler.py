@@ -23,6 +23,7 @@ from ..protocols.exports import ProtocolRegistry
 from ..builds import ArtefactBuild
 from ..tasks.registry import RegistryArtefactDeletionTask
 from ..tasks.keyring import KeyringCreationTask
+from ..tasks.images import ImageCreationTask
 
 # types
 from ..instances import RunningInstance
@@ -37,6 +38,7 @@ def register_protocols():
         ArtefactBuild,
         RegistryArtefactDeletionTask,
         KeyringCreationTask,
+        ImageCreationTask,
     ]:
         registry.register_task(task)
     for _type in [

@@ -25,6 +25,7 @@ from .tasks.manager import ServerTasksManager
 from .registry.manager import RegistryManager
 from .archives import ArchivesManager
 from .keyring import InstanceKeyring
+from .images import ImagesManager
 from .protocols.exports import ExportableType, ExportableField
 from .utils import Singleton
 from .log import logr
@@ -139,6 +140,7 @@ class RunningInstance(ExportableType):
         self.tasks_mgr = ServerTasksManager(self.conf, self)
         self.registry_mgr = RegistryManager(self.conf, self)
         self.archives_mgr = ArchivesManager(self.conf, self)
+        self.images_mgr = ImagesManager(self.conf, self.id)
         self.keyring = InstanceKeyring(self.conf, self)
         self.keyring.load()
 

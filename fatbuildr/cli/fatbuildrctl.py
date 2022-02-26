@@ -297,8 +297,10 @@ class Fatbuildrctl(FatbuildrCliRun):
         # check if operation is on images and run it
         if args.create:
             for format in selected_formats:
-                mgr.create(format, args.force)
-            logger.info("All images have been created")
+                task_id = connection.image_create(
+                    self.instance, format, args.force
+                )
+                print(f"Submitted {format} image creation task {task_id}")
             return
         elif args.update:
             for format in selected_formats:
