@@ -141,33 +141,24 @@ class ImagesManager(object):
         img = Image(self.conf, self.instance, format)
 
         if img.exists and not force:
-            logger.error(
-                "Image %s already exists, use --force to ignore"
-                % (img.def_path)
+            raise RuntimeError(
+                f"Image {img.def_path} already exists, use force to ignore"
             )
-            return
 
         if not img.def_exists:
-            logger.error(
-                "Unable to find image definition file %s" % (img.def_path)
+            raise RuntimeError(
+                f"Unable to find image definition file {img.def_path}"
             )
-            return
 
-        try:
-            img.create(force)
-        except RuntimeError as err:
-            logger.error(
-                "Error while creating the image %s: %s" % (img.path, err)
-            )
+        img.create(force)
 
     def update(self, format):
         """Updates image for the given format."""
         img = Image(self.conf, self.instance, format)
         if not img.exists:
-            logger.warning(
-                "Image %s does not exist, create it first" % (img.path)
+            raise RuntimeError(
+                f"Image {img.path} does not exist, create it first"
             )
-            return
         img.update()
 
     def create_envs(self, format, environments):
