@@ -201,7 +201,13 @@ class ServerTasksManager:
     def run(self, task):
         logger.info("Running task %s", task.id)
         task.prerun()
-        task.run()
+        try:
+            task.run()
+        except RuntimeError as err:
+            logger.error("error while running task %s: %s", task.id, err)
+            logger.info("Task failed")
+        else:
+            logger.info("Task succeeded")
         task.postrun()
         self.running = None
         task.terminate()

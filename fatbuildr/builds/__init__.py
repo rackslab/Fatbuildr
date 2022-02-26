@@ -140,17 +140,10 @@ class ArtefactBuild(RunnableTask):
         return self.defs.checksum_value(self.derivative)
 
     def run(self):
-        """Run the build! This is the entry point for fatbuildrd."""
         logger.info("Running build %s" % (self.id))
-        try:
-            self.prepare()
-            self.build()
-            self.registry.publish(self)
-        except RuntimeError as err:
-            logger.error("error during build of %s: %s" % (self.id, err))
-            logger.info("Build failed")
-        else:
-            logger.info("Build succeeded")
+        self.prepare()
+        self.build()
+        self.registry.publish(self)
 
     @staticmethod
     def hasher(hash_format):

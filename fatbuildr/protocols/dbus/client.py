@@ -155,36 +155,36 @@ class DbusClient(object):
             self.proxy.Archives(instance)
         )
 
-    def get(self, instance, build_id):
-        for _build in self.queue(instance):
-            if _build.id == build_id:
-                return _build
+    def get(self, instance, task_id):
+        for _task in self.queue(instance):
+            if _task.id == task_id:
+                return _task
         _running = self.running(instance)
-        if _running and _running.id == build_id:
+        if _running and _running.id == task_id:
             return _running
-        for _build in self.archives(instance):
-            if _build.id == build_id:
-                return _build
-        raise RuntimeError("Unable to find build %s on server" % (build_id))
+        for _task in self.archives(instance):
+            if _task.id == task_id:
+                return _task
+        raise RuntimeError("Unable to find task %s on server" % (build_id))
 
-    def watch(self, instance, build):
+    def watch(self, instance, task):
         """Dbus clients run on the same host as the server, they access the
-        builds log files directly."""
-        assert hasattr(build, 'logfile')
+        tasks log files directly."""
+        assert hasattr(task, 'logfile')
         proc = None
-        if build.state == 'running':
+        if task.state == 'running':
             # Follow the log file. It has been choosen to exec `tail -f`
             # because python lacks well maintained and common inotify library.
             # This tail command is in coreutils and it is installed basically
             # everywhere.
-            cmd = ['tail', '--follow', build.logfile]
+            cmd = ['tail', '--follow', task.logfile]
             proc = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
             fh = proc.stdout
         else:
-            # dump full build log
-            fh = open(build.logfile, 'rb')
+            # dump full task log
+            fh = open(task.logfile, 'rb')
 
         while True:
             b_line = fh.readline()
@@ -193,8 +193,8 @@ class DbusClient(object):
             line = b_line.decode()
             # terminate `tail` if launched and log end is reached
             if (
-                line.startswith("Build failed")
-                or line.startswith("Build succeeded")
+                line.startswith("Task failed")
+                or line.startswith("Task succeeded")
             ) and proc:
                 proc.terminate()
             yield line
