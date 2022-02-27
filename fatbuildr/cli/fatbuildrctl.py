@@ -147,6 +147,12 @@ class Fatbuildrctl(FatbuildrCliRun):
             action='store_true',
             help='Update the build environments in the images',
         )
+        parser_images.add_argument(
+            '-w',
+            '--watch',
+            action='store_true',
+            help='Watch task log and wait until its end',
+        )
         parser_images.set_defaults(func=self._run_images)
 
         # Parser for the keyring command
@@ -305,10 +311,14 @@ class Fatbuildrctl(FatbuildrCliRun):
                     self.instance, format, args.force
                 )
                 print(f"Submitted {format} image creation task {task_id}")
+                if args.watch:
+                    self._watch_task(task_id)
         elif args.update:
             for format in selected_formats:
                 task_id = connection.image_update(self.instance, format)
                 print(f"Submitted {format} image update task {task_id}")
+                if args.watch:
+                    self._watch_task(task_id)
         else:
             # At this stage, the operation is on build environments
             for format in selected_formats:
@@ -337,6 +347,8 @@ class Fatbuildrctl(FatbuildrCliRun):
                             f"Submitted {format} build environment creation "
                             f"task {task_id}"
                         )
+                        if args.watch:
+                            self._watch_task(task_id)
                 elif args.update_envs:
                     for env in envs:
                         task_id = connection.image_environment_update(
@@ -346,6 +358,8 @@ class Fatbuildrctl(FatbuildrCliRun):
                             f"Submitted {format} build environment update "
                             f"task {task_id}"
                         )
+                        if args.watch:
+                            self._watch_task(task_id)
 
     def _run_keyring(self, args):
         logger.debug("running keyring operation")
