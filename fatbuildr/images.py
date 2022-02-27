@@ -20,7 +20,6 @@
 import os
 import sys
 
-from .containers import ContainerRunner
 from .templates import Templeter
 from .utils import runcmd
 from .log import logr
@@ -45,7 +44,7 @@ class Image(object):
     def def_exists(self):
         return os.path.exists(self.def_path)
 
-    def create(self, force):
+    def create(self, task, force):
         """Create the image."""
 
         # ensure instance images directory is present
@@ -66,9 +65,9 @@ class Image(object):
         if force:
             cmd.insert(1, '--force')
 
-        runcmd(cmd)
+        task.runcmd(cmd)
 
-    def update(self):
+    def update(self, task):
         logger.info("Updating image for %s format", self.format)
         cmds = [
             _cmd.strip()
@@ -76,9 +75,8 @@ class Image(object):
                 '&&'
             )
         ]
-        ctn = ContainerRunner(self.conf.containers)
         for cmd in cmds:
-            ctn.run_init(self, cmd)
+            task.cruncmd(self, cmd, init=True)
 
 
 class BuildEnv(object):
@@ -87,7 +85,7 @@ class BuildEnv(object):
         self.image = image
         self.name = name
 
-    def create(self):
+    def create(self, task):
         logger.info(
             "Creating build environment %s in %s image",
             self.name,
@@ -106,9 +104,9 @@ class BuildEnv(object):
             getattr(self.conf, self.image.format).init_cmd,
             environment=self.name,
         )
-        ContainerRunner(self.conf.containers).run_init(self.image, cmd)
+        task.cruncmd(self.image, cmd, init=True)
 
-    def update(self):
+    def update(self, task):
         logger.info(
             "Updating build environment %s in %s image",
             self.name,
@@ -120,9 +118,8 @@ class BuildEnv(object):
                 self.conf, self.image.format
             ).env_update_cmds.split('&&')
         ]
-        ctn = ContainerRunner(self.conf.containers)
         for cmd in cmds:
-            ctn.run_init(self.image, cmd)
+            task.cruncmd(self.image, cmd, init=True)
 
 
 class ImagesManager(object):
@@ -130,7 +127,7 @@ class ImagesManager(object):
         self.conf = conf
         self.instance = instance
 
-    def create(self, format, force):
+    def create(self, task, format, force):
         """Creates image for the given format."""
         if not os.path.exists(self.conf.images.storage):
             logger.debug(
@@ -150,18 +147,18 @@ class ImagesManager(object):
                 f"Unable to find image definition file {img.def_path}"
             )
 
-        img.create(force)
+        img.create(task, force)
 
-    def update(self, format):
+    def update(self, task, format):
         """Updates image for the given format."""
         img = Image(self.conf, self.instance, format)
         if not img.exists:
             raise RuntimeError(
                 f"Image {img.path} does not exist, create it first"
             )
-        img.update()
+        img.update(task)
 
-    def create_env(self, format, environment):
+    def create_env(self, task, format, environment):
         """Creates given build environment in image for the given format."""
         logger.info(
             "Creating build environment %s for format %s", environment, format
@@ -169,7 +166,7 @@ class ImagesManager(object):
         img = Image(self.conf, self.instance, format)
 
         build_env = BuildEnv(self.conf, img, environment)
-        build_env.create()
+        build_env.create(task)
 
         logger.info(
             "Build environment %s has been created for format %s",
@@ -177,7 +174,7 @@ class ImagesManager(object):
             format,
         )
 
-    def update_env(self, format, environment):
+    def update_env(self, task, format, environment):
         """Updates given build environment in image for the given format."""
         logger.info(
             "Updating build environment %s for format %s", environment, format
@@ -185,7 +182,7 @@ class ImagesManager(object):
         img = Image(self.conf, self.instance, format)
 
         build_env = BuildEnv(self.conf, img, environment)
-        build_env.update()
+        build_env.update(task)
 
         logger.info(
             "Build environment %s has been updated for format %s",

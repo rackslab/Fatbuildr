@@ -43,7 +43,7 @@ class ImageCreationTask(RunnableTask):
             "Running image creation task %s",
             self.id,
         )
-        self.instance.images_mgr.create(self.format, self.force)
+        self.instance.images_mgr.create(self, self.format, self.force)
 
 
 class ImageUpdateTask(RunnableTask):
@@ -62,7 +62,7 @@ class ImageUpdateTask(RunnableTask):
             "Running image update task %s",
             self.id,
         )
-        self.instance.images_mgr.update(self.format)
+        self.instance.images_mgr.update(self, self.format)
 
 
 class ImageEnvironmentCreationTask(RunnableTask):
@@ -83,7 +83,7 @@ class ImageEnvironmentCreationTask(RunnableTask):
             "Running image build environment creation task %s",
             self.id,
         )
-        self.instance.images_mgr.create_env(self.format, self.environment)
+        self.instance.images_mgr.create_env(self, self.format, self.environment)
 
 
 class ImageEnvironmentUpdateTask(RunnableTask):
@@ -104,4 +104,4 @@ class ImageEnvironmentUpdateTask(RunnableTask):
             "Running image build environment update task %s",
             self.id,
         )
-        self.instance.images_mgr.update_env(self.format, self.environment)
+        self.instance.images_mgr.update_env(self, self.format, self.environment)
