@@ -84,7 +84,7 @@ class ArtefactBuildOsi(ArtefactBuild):
             self.version,
             '--checksum',
         ]
-        self.contruncmd(cmd)
+        self.cruncmd(cmd)
 
         # Load keyring in agent
         self.instance.keyring.load_agent()

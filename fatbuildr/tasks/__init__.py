@@ -86,3 +86,13 @@ class RunnableTask:
 
     def terminate(self):
         self.instance.archives_mgr.save_task(self)
+
+    def runcmd(self, cmd, **kwargs):
+        """Run command locally and log output in build log file."""
+        runcmd(cmd, log=self.log, **kwargs)
+
+    def cruncmd(self, image, cmd, init=False, **kwargs):
+        """Run command in container and log output in build log file."""
+        self.instance.crun.run(
+            image, cmd, init=init, log=self.log, **kwargs
+        )

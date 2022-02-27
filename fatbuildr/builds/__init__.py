@@ -32,7 +32,6 @@ from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artefact import ArtefactDefs
 from ..cache import CacheArtefact
-from ..containers import ContainerRunner
 from ..images import Image, BuildEnv
 from ..utils import runcmd
 from ..log import logr
@@ -85,7 +84,6 @@ class ArtefactBuild(RunnableTask):
         self.derivatives = self.instance.pipelines.recursive_derivatives(
             self.derivative
         )
-        self.container = ContainerRunner(conf.containers)
         self.image = Image(conf, self.instance.id, self.format)
         # Get the build environment corresponding to the distribution
         build_env = self.instance.pipelines.dist_env(self.distribution)
@@ -207,17 +205,13 @@ class ArtefactBuild(RunnableTask):
                 )
             )
 
-    def runcmd(self, cmd, **kwargs):
-        """Run command locally and log output in build log file."""
-        runcmd(cmd, log=self.log, **kwargs)
-
-    def contruncmd(self, cmd, **kwargs):
+    def cruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
         _binds = [str(self.place), self.cache.dir]
         # Before the first artefact is actually published, the registry does
         # not exist. Then check it really exists, then bind-mount it.
         if self.registry.exists:
             _binds.append(self.registry.path)
-        self.container.run(
-            self.image, cmd, binds=_binds, log=self.log, **kwargs
+        super().cruncmd(
+            self.image, cmd, init=False, binds=_binds, **kwargs
         )

@@ -29,13 +29,11 @@ class ContainerRunner(object):
     def __init__(self, conf):
         self.conf = conf
 
-    def run_init(self, image, cmd):
-        self.run(image, cmd, opts=self.conf.init_opts)
-
     def run(
         self,
         image,
         cmd,
+        init=False,
         opts=None,
         binds=[],
         chdir=None,
@@ -55,6 +53,9 @@ class ContainerRunner(object):
         if os.path.exists(img_dir_path):
             _cmd.extend(['--bind', img_dir_path])
 
+        # add init_opts if init is True
+        if init:
+            _cmd.extend(self.conf.init_opts)
         # add opts in args
         if opts is not None:
             _cmd.extend(opts)

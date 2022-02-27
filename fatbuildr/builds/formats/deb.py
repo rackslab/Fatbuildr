@@ -125,7 +125,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             self.message,
         ]
         _envs = ['DEBEMAIL=' + self.email, 'DEBFULLNAME=' + self.user]
-        self.contruncmd(cmd, chdir=tarball_subdir, envs=_envs)
+        self.cruncmd(cmd, chdir=tarball_subdir, envs=_envs)
 
         #  add symlink to tarball
         orig_tarball_path = self.place.joinpath(
@@ -141,7 +141,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         # build source package
         logger.info("Building source package")
         cmd = ['dpkg-source', '--build', tarball_subdir]
-        self.contruncmd(cmd, chdir=str(self.place))
+        self.cruncmd(cmd, chdir=str(self.place))
 
     def _build_bin(self):
         """Build deb packages binary package."""
@@ -182,7 +182,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         if self.registry.exists:
             cmd[6:6] = ['--bindmounts', self.registry.path]
 
-        self.contruncmd(
+        self.cruncmd(
             cmd,
             envs=[
                 f"FATBUILDR_REPO={self.registry.path}",

@@ -121,7 +121,7 @@ class ArtefactBuildRpm(ArtefactBuild):
             '--resultdir',
             str(self.place),
         ]
-        self.contruncmd(cmd)
+        self.cruncmd(cmd)
 
     def _build_bin(self):
         """Build binary RPM"""
@@ -162,7 +162,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         if self.has_buildargs:
             cmd.extend(self.buildargs)
 
-        self.contruncmd(cmd)
+        self.cruncmd(cmd)
 
         # Load keys in agent prior to signing
         self.instance.keyring.load_agent()
