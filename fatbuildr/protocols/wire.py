@@ -61,6 +61,12 @@ class WireRunnableTask(WireData):
             print(f"  force: {str(self.force)}")
         elif self.name == "image update":
             print(f"  format: {self.format}")
+        elif (
+            self.name == 'image build environment creation'
+            or self.name == 'image build environment update'
+        ):
+            print(f"  format: {self.format}")
+            print(f"  environment: {self.environment}")
 
 
 class WireArtefact(WireData):

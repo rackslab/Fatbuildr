@@ -63,3 +63,45 @@ class ImageUpdateTask(RunnableTask):
             self.id,
         )
         self.instance.images_mgr.update(self.format)
+
+
+class ImageEnvironmentCreationTask(RunnableTask):
+
+    TASK_NAME = 'image build environment creation'
+    EXFIELDS = {
+        ExportableTaskField('format'),
+        ExportableTaskField('environment'),
+    }
+
+    def __init__(self, task_id, place, instance, format, environment):
+        super().__init__(task_id, place, instance)
+        self.format = format
+        self.environment = environment
+
+    def run(self):
+        logger.info(
+            "Running image build environment creation task %s",
+            self.id,
+        )
+        self.instance.images_mgr.create_env(self.format, self.environment)
+
+
+class ImageEnvironmentUpdateTask(RunnableTask):
+
+    TASK_NAME = 'image build environment update'
+    EXFIELDS = {
+        ExportableTaskField('format'),
+        ExportableTaskField('environment'),
+    }
+
+    def __init__(self, task_id, place, instance, format, environment):
+        super().__init__(task_id, place, instance)
+        self.format = format
+        self.environment = environment
+
+    def run(self):
+        logger.info(
+            "Running image build environment update task %s",
+            self.id,
+        )
+        self.instance.images_mgr.update_env(self.format, self.environment)

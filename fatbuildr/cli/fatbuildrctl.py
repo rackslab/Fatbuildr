@@ -30,7 +30,6 @@ from . import FatbuildrCliRun
 from ..version import __version__
 from ..conf import RuntimeConfCtl
 from ..prefs import UserPreferences
-from ..images import ImagesManager
 from ..log import logr
 from ..protocols import ClientFactory
 from ..protocols.crawler import register_protocols
@@ -285,9 +284,21 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_images(self, args):
         logger.debug("running images task")
+
+        if (
+            not args.create
+            and not args.update
+            and not args.create_envs
+            and not args.update_envs
+        ):
+            print(
+                "An operation on the images must be specified, type "
+                f"'{progname()} images --help' for details"
+            )
+            sys.exit(1)
+
         connection = ClientFactory.get(self.host)
 
-        mgr = ImagesManager(self.conf, self.instance)
         if args.format:
             selected_formats = [args.format]
         else:
@@ -301,43 +312,47 @@ class Fatbuildrctl(FatbuildrCliRun):
                     self.instance, format, args.force
                 )
                 print(f"Submitted {format} image creation task {task_id}")
-            return
         elif args.update:
             for format in selected_formats:
                 task_id = connection.image_update(self.instance, format)
                 print(f"Submitted {format} image update task {task_id}")
-            return
         else:
-            print(
-                "An operation on the images must be specified, type "
-                f"'{progname()} images --help' for details"
-            )
-            sys.exit(1)
-
-        # At this stage, the operation is on build environments
-
-        for format in selected_formats:
-
-            distributions = connection.pipelines_format_distributions(
-                self.instance, format
-            )
-            if not distributions:
-                logger.info("No distribution defined for %s image", format)
-            envs = []
-            for distribution in distributions:
-                env = connection.pipelines_distribution_environment(
-                    self.instance, distribution
+            # At this stage, the operation is on build environments
+            for format in selected_formats:
+                distributions = connection.pipelines_format_distributions(
+                    self.instance, format
                 )
+                if not distributions:
+                    logger.info("No distribution defined for %s image", format)
+                envs = []
+                for distribution in distributions:
+                    env = connection.pipelines_distribution_environment(
+                        self.instance, distribution
+                    )
                 if env is not None:
                     envs.append(env)
-            logger.debug(
-                "Build environments found for format %s: %s", format, envs
-            )
+                logger.debug(
+                    "Build environments found for format %s: %s", format, envs
+                )
 
-            if args.create_envs:
-                mgr.create_envs(format, envs)
-            elif args.update_envs:
-                mgr.update_envs(format, envs)
+                if args.create_envs:
+                    for env in envs:
+                        task_id = connection.image_environment_create(
+                            self.instance, format, env
+                        )
+                        print(
+                            f"Submitted {format} build environment creation "
+                            f"task {task_id}"
+                        )
+                elif args.update_envs:
+                    for env in envs:
+                        task_id = connection.image_environment_update(
+                            self.instance, format, env
+                        )
+                        print(
+                            f"Submitted {format} build environment update "
+                            f"task {task_id}"
+                        )
 
     def _run_keyring(self, args):
         logger.debug("running keyring operation")

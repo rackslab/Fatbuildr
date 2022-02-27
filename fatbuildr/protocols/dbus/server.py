@@ -258,6 +258,22 @@ class FatbuildrInterface(InterfaceTemplate):
         """Submit an image update task and returns the task id."""
         return self.implementation.image_update(instance, format)
 
+    def ImageEnvironmentCreate(
+        self, instance: Str, format: Str, environment: Str
+    ) -> Str:
+        """Submit an image build environment creation task and returns the task id."""
+        return self.implementation.image_environment_create(
+            instance, format, environment
+        )
+
+    def ImageEnvironmentUpdate(
+        self, instance: Str, format: Str, environment: Str
+    ) -> Str:
+        """Submit an image build environment update task and returns the task id."""
+        return self.implementation.image_environment_update(
+            instance, format, environment
+        )
+
 
 class FatbuildrMultiplexer(object):
     """The implementation of Fatbuildr Manager."""
@@ -458,6 +474,22 @@ class FatbuildrMultiplexer(object):
     def image_update(self, instance: Str, format: Str) -> Str:
         self.timer.reset()
         return self._instances[instance].tasks_mgr.submit_image_update(format)
+
+    def image_environment_create(
+        self, instance: Str, format: Str, environment: Str
+    ) -> Str:
+        self.timer.reset()
+        return self._instances[
+            instance
+        ].tasks_mgr.submit_image_environment_create(format, environment)
+
+    def image_environment_update(
+        self, instance: Str, format: Str, environment: Str
+    ) -> Str:
+        self.timer.reset()
+        return self._instances[
+            instance
+        ].tasks_mgr.submit_image_environment_update(format, environment)
 
 
 class DbusServer(object):

@@ -32,7 +32,12 @@ from ..log import logr
 from ..builds.factory import BuildFactory
 from .registry import RegistryArtefactDeletionTask
 from .keyring import KeyringCreationTask
-from .images import ImageCreationTask, ImageUpdateTask
+from .images import (
+    ImageCreationTask,
+    ImageUpdateTask,
+    ImageEnvironmentCreationTask,
+    ImageEnvironmentUpdateTask,
+)
 
 logger = logr(__name__)
 
@@ -143,6 +148,31 @@ class ServerTasksManager:
         task = ImageUpdateTask(task_id, place, self.instance, format)
         self.queue.put(task)
         logger.info("Image update task %s submitted in queue", task.id)
+        return task_id
+
+    def submit_image_environment_create(self, format, environment):
+        task_id = str(uuid.uuid4())  # generate task ID
+        place = Path(self.conf.dirs.queue, task_id)
+        task = ImageEnvironmentCreationTask(
+            task_id, place, self.instance, format, environment
+        )
+        self.queue.put(task)
+        logger.info(
+            "Image build environment creation task %s submitted in queue",
+            task.id,
+        )
+        return task_id
+
+    def submit_image_environment_update(self, format, environment):
+        task_id = str(uuid.uuid4())  # generate task ID
+        place = Path(self.conf.dirs.queue, task_id)
+        task = ImageEnvironmentUpdateTask(
+            task_id, place, self.instance, format, environment
+        )
+        self.queue.put(task)
+        logger.info(
+            "Image build environment update task %s submitted in queue", task.id
+        )
         return task_id
 
     def submit_build(

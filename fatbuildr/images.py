@@ -161,28 +161,34 @@ class ImagesManager(object):
             )
         img.update()
 
-    def create_envs(self, format, environments):
-        """Creates all given build environment in image for the given format."""
-        logger.info("Creating build environments for format %s", format)
+    def create_env(self, format, environment):
+        """Creates given build environment in image for the given format."""
+        logger.info(
+            "Creating build environment %s for format %s", environment, format
+        )
         img = Image(self.conf, self.instance, format)
 
-        for environment in environments:
-            build_env = BuildEnv(self.conf, img, environment)
-            build_env.create()
+        build_env = BuildEnv(self.conf, img, environment)
+        build_env.create()
 
         logger.info(
-            "All build environments have been created for format %s", format
+            "Build environment %s has been created for format %s",
+            environment,
+            format,
         )
 
-    def update_envs(self, format, environments):
-        """Updates all given build environment in image for the given format."""
-        logger.info("Updating build environments for format %s", format)
+    def update_env(self, format, environment):
+        """Updates given build environment in image for the given format."""
+        logger.info(
+            "Updating build environment %s for format %s", environment, format
+        )
         img = Image(self.conf, self.instance, format)
 
-        for environment in environments:
-            build_env = BuildEnv(self.conf, img, environment)
-            build_env.update()
+        build_env = BuildEnv(self.conf, img, environment)
+        build_env.update()
 
         logger.info(
-            "All build environment have been updated for format %s", format
+            "Build environment %s has been updated for format %s",
+            environment,
+            format,
         )
