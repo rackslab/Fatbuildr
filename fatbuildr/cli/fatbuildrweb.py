@@ -31,7 +31,6 @@ logger = logr(__name__)
 
 class FatbuildrWeb(FatbuildrCliRun):
     def __init__(self):
-        super().__init__()
         parser = argparse.ArgumentParser(
             description='Fatbuilrdr web interface.'
         )
@@ -58,7 +57,7 @@ class FatbuildrWeb(FatbuildrCliRun):
         self.app.run()
 
     def load(self, args):
-        super().load()
+        super().load_conf()
 
         register_protocols()
 

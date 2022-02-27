@@ -28,7 +28,6 @@ from datetime import datetime
 
 from . import FatbuildrCliRun
 from ..version import __version__
-from ..conf import RuntimeConfCtl
 from ..prefs import UserPreferences
 from ..log import logr
 from ..protocols import ClientFactory
@@ -81,8 +80,6 @@ def prepare_tarball(basedir, subdir):
 
 class Fatbuildrctl(FatbuildrCliRun):
     def __init__(self):
-        super().__init__()
-
         parser = argparse.ArgumentParser(
             description='Do something with fatbuildr.'
         )
@@ -243,18 +240,14 @@ class Fatbuildrctl(FatbuildrCliRun):
         args = parser.parse_args()
 
         logger.setup(args.debug or args.fulldebug, args.fulldebug)
-        self.conf = RuntimeConfCtl()
         self.load(args)
 
         # run the method corresponding to the provided action
         args.func(args)
 
     def load(self, args):
-        """Load main configuration file and user preferences, then set common
+        """Register protocols and load user preferences, then set common
         parameters accordingly."""
-
-        # Load main configuration
-        super().load()
 
         # load all tasks and exportable types structures in protocol
         register_protocols()

@@ -37,8 +37,6 @@ logger = logr(__name__)
 
 class Fatbuildrd(FatbuildrCliRun):
     def __init__(self):
-        super().__init__()
-
         parser = argparse.ArgumentParser(
             description='Do something with fatbuildr.'
         )
@@ -68,7 +66,7 @@ class Fatbuildrd(FatbuildrCliRun):
         self._run()
 
     def load(self):
-        super().load()
+        super().load_conf()
 
         # set debug level on root logger if set in conf file
         if self.conf.run.debug or self.conf.run.fulldebug:

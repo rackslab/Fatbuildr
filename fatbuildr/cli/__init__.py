@@ -33,11 +33,7 @@ class FatbuildrCliRun(object):
         atexit.register(CleanupRegistry.clean)
         run = cls()
 
-    def __init__(self):
-
-        self.conf = None
-
-    def load(self):
+    def load_conf(self):
 
         try:
             self.conf.load()  # load configuration file

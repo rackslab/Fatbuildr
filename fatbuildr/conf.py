@@ -237,19 +237,6 @@ class RuntimeConfApp(object):
         pass
 
 
-class RuntimeSubConfCtl(RuntimeConfApp):
-    """Runtime sub-configuration class to ctl parameters."""
-
-    def __init__(self):
-        super().__init__()
-
-    def load(self, config):
-        pass
-
-    def dump(self):
-        pass
-
-
 class RuntimeSubConfd(RuntimeConfApp):
     """Runtime sub-configuration class to fatbuildrd parameters."""
 
@@ -347,13 +334,6 @@ class RuntimeConf(object):
         self.deb.dump()
         self.rpm.dump()
         self.osi.dump()
-
-
-class RuntimeConfCtl(RuntimeConf):
-    """Runtime configuration class for FatbuildrCtl application."""
-
-    def __init__(self):
-        super().__init__(RuntimeSubConfCtl())
 
 
 class RuntimeConfd(RuntimeConf):
