@@ -29,7 +29,7 @@ class ContainerRunner(object):
     def __init__(self, conf):
         self.conf = conf
 
-    def run(
+    def __call__(
         self,
         image,
         cmd,

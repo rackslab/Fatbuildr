@@ -94,4 +94,4 @@ class RunnableTask:
 
     def cruncmd(self, image, cmd, init=False, **kwargs):
         """Run command in container and log output in build log file."""
-        self.instance.crun.run(image, cmd, init=init, log=self.log, **kwargs)
+        self.instance.crun(image, cmd, init=init, log=self.log, **kwargs)
