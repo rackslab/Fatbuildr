@@ -60,44 +60,44 @@ class WebApp(Flask):
         )
         self.add_instance_url_rule(
             '/registry/',
-            view_func=views.registry_formats,
+            view_func=views.registry,
             defaults={'output': 'html'},
         )
         self.add_instance_url_rule(
             '/registry.json',
-            view_func=views.registry_formats,
+            view_func=views.registry,
             defaults={'output': 'json'},
         )
         self.add_instance_url_rule(
             '/registry/<string:fmt>/',
-            view_func=views.format_distributions,
+            view_func=views.format,
             defaults={'output': 'html'},
         )
         self.add_instance_url_rule(
             '/registry/<string:fmt>.json',
-            view_func=views.format_distributions,
+            view_func=views.format,
             defaults={'output': 'json'},
         )
         self.add_instance_url_rule(
             '/registry/<string:fmt>/<string:distribution>/',
-            view_func=views.distribution_derivatives,
+            view_func=views.distribution,
             defaults={'output': 'html'},
         )
         self.add_instance_url_rule(
             '/registry/<string:fmt>/<string:distribution>.json',
-            view_func=views.distribution_derivatives,
+            view_func=views.distribution,
             defaults={'output': 'json'},
         )
         self.add_instance_url_rule(
             '/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>/',
-            view_func=views.derivative_artefacts,
+            view_func=views.derivative,
             defaults={'output': 'html'},
         )
         self.add_instance_url_rule(
             '/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>.json',
-            view_func=views.derivative_artefacts,
+            view_func=views.derivative,
             defaults={'output': 'json'},
         )
         self.add_instance_url_rule(

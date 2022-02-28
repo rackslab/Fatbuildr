@@ -11,5 +11,5 @@
   </li>
 {% endfor %}
 </ul>
-<a href="{{ url_for('derivative_artefacts', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='json') }}">JSON</a>
+<a href="{{ url_for('derivative', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='json') }}">JSON</a>
 {% endblock %}

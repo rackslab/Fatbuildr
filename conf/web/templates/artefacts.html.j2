@@ -3,11 +3,11 @@
 {% block content %}
 <h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ artefact }} artefact</h1>
 {% for format, distributions in results.items() %}
-  <h2><a href="{{ url_for('format_distributions', instance=instance, fmt=format, output='html') }}">{{ format }}</a></h2>
+  <h2><a href="{{ url_for('format', instance=instance, fmt=format, output='html') }}">{{ format }}</a></h2>
   {% for distribution, derivatives in distributions.items() %}
-    <h3><a href="{{ url_for('distribution_derivatives', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}</a></h3>
+    <h3><a href="{{ url_for('distribution', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}</a></h3>
     {% for derivative, artefacts in derivatives.items() %}
-      <h4><a href="{{ url_for('derivative_artefacts', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='html') }}">{{ derivative }}</a></h4>
+      <h4><a href="{{ url_for('derivative', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='html') }}">{{ derivative }}</a></h4>
       <ul>
       {% for artefact in artefacts %}
         <li>

@@ -100,18 +100,18 @@ def index(output='html'):
         return render_template('index.html.j2', instances=instances)
 
 
-def registry_formats(instance, output='html'):
+def registry(instance, output='html'):
     connection = ClientFactory.get('local')
     formats = connection.formats(instance)
     if output == 'json':
         return jsonify(formats)
     else:
         return render_template(
-            'instance.html.j2', instance=instance, formats=formats
+            'registry.html.j2', instance=instance, formats=formats
         )
 
 
-def format_distributions(instance, fmt, output='html'):
+def format(instance, fmt, output='html'):
     connection = ClientFactory.get('local')
     distributions = connection.distributions(instance, fmt)
     if output == 'json':
@@ -125,7 +125,7 @@ def format_distributions(instance, fmt, output='html'):
         )
 
 
-def distribution_derivatives(instance, fmt, distribution, output='html'):
+def distribution(instance, fmt, distribution, output='html'):
     connection = ClientFactory.get('local')
     derivatives = connection.derivatives(instance, fmt, distribution)
     if output == 'json':
@@ -141,9 +141,7 @@ def distribution_derivatives(instance, fmt, distribution, output='html'):
         )
 
 
-def derivative_artefacts(
-    instance, fmt, distribution, derivative, output='html'
-):
+def derivative(instance, fmt, distribution, derivative, output='html'):
     connection = ClientFactory.get('local')
     artefacts = connection.artefacts(instance, fmt, distribution, derivative)
     if output == 'json':
