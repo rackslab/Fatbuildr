@@ -32,7 +32,6 @@ from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artefact import ArtefactDefs
 from ..cache import CacheArtefact
-from ..images import Image, BuildEnv
 from ..log import logr
 
 logger = logr(__name__)
@@ -83,7 +82,7 @@ class ArtefactBuild(RunnableTask):
         self.derivatives = self.instance.pipelines.recursive_derivatives(
             self.derivative
         )
-        self.image = Image(conf, self.instance.id, self.format)
+        self.image = self.instance.images_mgr.image(self.format)
         # Get the build environment corresponding to the distribution
         build_env = self.instance.pipelines.dist_env(self.distribution)
         logger.debug(
@@ -91,7 +90,7 @@ class ArtefactBuild(RunnableTask):
             self.distribution,
             build_env,
         )
-        self.env = BuildEnv(conf, self.image, build_env)
+        self.env = self.instance.images_mgr.build_env(self.format, build_env)
         self.defs = None  # loaded in prepare()
 
     def __getattr__(self, name):

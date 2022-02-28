@@ -127,6 +127,12 @@ class ImagesManager(object):
         self.conf = conf
         self.instance = instance
 
+    def image(self, format):
+        return Image(self.conf, self.instance, format)
+
+    def build_env(self, format, name):
+        return BuildEnv(self.conf, self.image(format), name)
+
     def create(self, task, format, force):
         """Creates image for the given format."""
         if not os.path.exists(self.conf.images.storage):
@@ -135,7 +141,7 @@ class ImagesManager(object):
             )
             os.mkdir(self.conf.images.storage)
 
-        img = Image(self.conf, self.instance, format)
+        img = self.image(format)
 
         if img.exists and not force:
             raise RuntimeError(
@@ -151,7 +157,7 @@ class ImagesManager(object):
 
     def update(self, task, format):
         """Updates image for the given format."""
-        img = Image(self.conf, self.instance, format)
+        img = self.image(format)
         if not img.exists:
             raise RuntimeError(
                 f"Image {img.path} does not exist, create it first"
@@ -163,9 +169,7 @@ class ImagesManager(object):
         logger.info(
             "Creating build environment %s for format %s", environment, format
         )
-        img = Image(self.conf, self.instance, format)
-
-        build_env = BuildEnv(self.conf, img, environment)
+        build_env = self.build_env(format, environment)
         build_env.create(task)
 
         logger.info(
@@ -179,9 +183,7 @@ class ImagesManager(object):
         logger.info(
             "Updating build environment %s for format %s", environment, format
         )
-        img = Image(self.conf, self.instance, format)
-
-        build_env = BuildEnv(self.conf, img, environment)
+        build_env = self.build_env(format, environment)
         build_env.update(task)
 
         logger.info(
