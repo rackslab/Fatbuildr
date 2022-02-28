@@ -1,7 +1,7 @@
 {% extends "layout/base.html.j2" %}
-{% block title %}{{ instance }} > {{ format }}{% endblock %}
+{% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }}{% endblock %}
 {% block content %}
-<h1>{{ instance }} > {{ format }} > {{ distribution }} > derivatives</h1>
+<h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > {{ distribution }} > derivatives</h1>
 <ul>
 {% for derivative in derivatives %}
   <li><a href="{{ url_for('derivative_artefacts', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='html') }}">{{ derivative }}<a></li>

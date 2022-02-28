@@ -1,7 +1,7 @@
 {% extends "layout/base.html.j2" %}
-{% block title %}{{ instance }} > {{ format }}{% endblock %}
+{% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }}{% endblock %}
 {% block content %}
-<h1>{{ instance }} > {{ format }} > distributions</h1>
+<h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > distributions</h1>
 <ul>
 {% for distribution in distributions %}
   <li><a href="{{ url_for('distribution_derivatives', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}<a></li>

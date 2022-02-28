@@ -1,7 +1,7 @@
 {% extends "layout/base.html.j2" %}
-{% block title %}{{ instance }} > {{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} source artefact{% endblock %}
+{% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} source artefact{% endblock %}
 {% block content %}
-<h1>{{ instance }} > {{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} source artefact</h1>
+<h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} source artefact</h1>
 Binary artefacts:
 <ul>
 {% for binary in binaries %}

@@ -145,6 +145,7 @@ class WebApp(Flask):
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
         self.config['UPLOAD_FOLDER'] = self.conf.dirs.tmp
         self.config['REGISTRY_FOLDER'] = self.conf.dirs.registry
+        self.config['INSTANCE'] = self.instance
 
     @property
     def allinstances(self):
