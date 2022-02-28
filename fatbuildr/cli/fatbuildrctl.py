@@ -307,18 +307,21 @@ class Fatbuildrctl(FatbuildrCliRun):
         # check if operation is on images and run it
         if args.create:
             for format in selected_formats:
-                task_id = connection.image_create(
-                    self.instance, format, args.force
+                self._submit_watch(
+                    connection.image_create,
+                    f"{format} image creation",
+                    args.watch,
+                    format,
+                    args.force,
                 )
-                print(f"Submitted {format} image creation task {task_id}")
-                if args.watch:
-                    self._watch_task(task_id)
         elif args.update:
             for format in selected_formats:
-                task_id = connection.image_update(self.instance, format)
-                print(f"Submitted {format} image update task {task_id}")
-                if args.watch:
-                    self._watch_task(task_id)
+                self._submit_watch(
+                    connection.image_update,
+                    f"{format} image update",
+                    args.watch,
+                    format,
+                )
         else:
             # At this stage, the operation is on build environments
             for format in selected_formats:
@@ -340,26 +343,22 @@ class Fatbuildrctl(FatbuildrCliRun):
 
                 if args.create_envs:
                     for env in envs:
-                        task_id = connection.image_environment_create(
-                            self.instance, format, env
+                        self._submit_watch(
+                            connection.image_environment_create,
+                            f"{format} {env} build environment creation",
+                            args.watch,
+                            format,
+                            env,
                         )
-                        print(
-                            f"Submitted {format} build environment creation "
-                            f"task {task_id}"
-                        )
-                        if args.watch:
-                            self._watch_task(task_id)
                 elif args.update_envs:
                     for env in envs:
-                        task_id = connection.image_environment_update(
-                            self.instance, format, env
+                        self._submit_watch(
+                            connection.image_environment_update,
+                            f"{format} {env} build environment update",
+                            args.watch,
+                            format,
+                            env,
                         )
-                        print(
-                            f"Submitted {format} build environment update "
-                            f"task {task_id}"
-                        )
-                        if args.watch:
-                            self._watch_task(task_id)
 
     def _run_keyring(self, args):
         logger.debug("running keyring operation")
@@ -544,8 +543,10 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         try:
             tarball = prepare_tarball(basedir, subdir)
-            task_id = connection.submit(
-                self.instance,
+            self._submit_watch(
+                connection.submit,
+                f"{args.artefact} build",
+                args.watch,
                 format,
                 distribution,
                 args.derivative,
@@ -558,9 +559,6 @@ class Fatbuildrctl(FatbuildrCliRun):
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))
             sys.exit(1)
-        logger.info("Task %s submitted", task_id)
-        if args.watch:
-            self._watch_task(task_id)
 
     def _run_list(self, args):
         logger.debug("running list")
@@ -582,6 +580,12 @@ class Fatbuildrctl(FatbuildrCliRun):
         except RuntimeError as err:
             logger.error("Error while listing tasks: %s", err)
             sys.exit(1)
+
+    def _submit_watch(self, caller, task_name, watch, *args):
+        task_id = caller(self.instance, *args)
+        print(f"Submitted {task_name} task {task_id}")
+        if watch:
+            self._watch_task(task_id)
 
     def _watch_task(self, task_id):
         connection = ClientFactory.get(self.host)
