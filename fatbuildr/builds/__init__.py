@@ -33,7 +33,6 @@ from ..cleanup import CleanupRegistry
 from ..artefact import ArtefactDefs
 from ..cache import CacheArtefact
 from ..images import Image, BuildEnv
-from ..utils import runcmd
 from ..log import logr
 
 logger = logr(__name__)
@@ -212,6 +211,4 @@ class ArtefactBuild(RunnableTask):
         # not exist. Then check it really exists, then bind-mount it.
         if self.registry.exists:
             _binds.append(self.registry.path)
-        super().cruncmd(
-            self.image, cmd, init=False, binds=_binds, **kwargs
-        )
+        super().cruncmd(self.image, cmd, init=False, binds=_binds, **kwargs)
