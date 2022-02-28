@@ -4,8 +4,8 @@
 <h1>{{ instance }} > {{ format }} > distributions</h1>
 <ul>
 {% for distribution in distributions %}
-  <li><a href="{{ distribution }}/">{{ distribution }}<a></li>
+  <li><a href="{{ url_for('distribution_derivatives', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}<a></li>
 {% endfor %}
 </ul>
-<a href="../{{ format }}.json">JSON</a>
+<a href="{{ url_for('format_distributions', instance=instance, fmt=format, output='json') }}">JSON</a>
 {% endblock %}

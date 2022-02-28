@@ -3,15 +3,15 @@
 {% block content %}
 <h1>{{ instance }} > {{ artefact }} artefact</h1>
 {% for format, distributions in results.items() %}
-  <h2><a href="/{{ instance }}/registry/{{ format }}">{{ format }}</a></h2>
+  <h2><a href="{{ url_for('format_distributions', instance=instance, fmt=format, output='html') }}">{{ format }}</a></h2>
   {% for distribution, derivatives in distributions.items() %}
-    <h3><a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}">{{ distribution }}</a></h3>
+    <h3><a href="{{ url_for('distribution_derivatives', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}</a></h3>
     {% for derivative, artefacts in derivatives.items() %}
-      <h4><a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ derivative }}">{{ derivative }}</a></h4>
+      <h4><a href="{{ url_for('derivative_artefacts', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='html') }}">{{ derivative }}</a></h4>
       <ul>
       {% for artefact in artefacts %}
         <li>
-          <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ derivative }}/{{ artefact.architecture }}/{{ artefact.name }}">
+          <a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=artefact.architecture, artefact=artefact.name, output='html') }}">
           {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
           </a>
         </li>
@@ -20,5 +20,5 @@
     {% endfor %}
   {% endfor %}
 {% endfor %}
-<a href="{{ artefact }}.json">JSON</a>
+<a href="{{ url_for('artefacts', instance=instance, artefact=artefact, output='json') }}">JSON</a>
 {% endblock %}

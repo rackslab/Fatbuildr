@@ -3,7 +3,7 @@
 {% block content %}
 <h1>{{ instance }} > {{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} binary artefact</h1>
 Source artefact:
-<a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ derivative }}/{{ source.architecture }}/{{ source.name }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }}
+<a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=source.architecture, artefact=source.name, output='html') }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }}
 {% include 'partials/changelog.html.j2' %}
-<a href="../{{ artefact }}.json">JSON</a>
+<a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=architecture, artefact=artefact, output='json') }}">JSON</a>
 {% endblock %}

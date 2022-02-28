@@ -4,9 +4,9 @@
 <h1>{{ instance }} > formats</h1>
 <ul>
 {% for _format in formats %}
-  <li><a href="{{ _format}}/">{{ _format }}<a></li>
+  <li><a href="{{ url_for('format_distributions', instance=instance, fmt=_format, output='html') }}">{{ _format }}<a></li>
 {% endfor %}
 </ul>
-<a href="../keyring.asc">keyring</a><br/>
-<a href="../registry.json">JSON</a>
+<a href="{{ url_for('keyring', instance=instance) }}">keyring</a><br/>
+<a href="{{ url_for('registry_formats', instance=instance, output='json') }}">JSON</a>
 {% endblock %}

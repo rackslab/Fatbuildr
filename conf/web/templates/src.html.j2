@@ -5,9 +5,9 @@
 Binary artefacts:
 <ul>
 {% for binary in binaries %}
-  <li><a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ derivative }}/{{ binary.architecture }}/{{ binary.name }}">{{ binary.name }}</a> {{ binary.architecture }} {{ binary.version }}</li>
+  <li><a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=binary.architecture, artefact=binary.name, output='html') }}">{{ binary.name }}</a> {{ binary.architecture }} {{ binary.version }}</li>
 {% endfor %}
 </ul>
 {% include 'partials/changelog.html.j2' %}
-<a href="../{{ artefact }}.json">JSON</a>
+<a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=architecture, artefact=artefact, output='json') }}">JSON</a>
 {% endblock %}

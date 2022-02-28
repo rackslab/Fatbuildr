@@ -5,11 +5,11 @@
 <ul>
 {% for artefact in artefacts %}
   <li>
-    <a href="/{{ instance }}/registry/{{ format }}/{{ distribution }}/{{ derivative}}/{{ artefact.architecture }}/{{ artefact.name }}">
+    <a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=artefact.architecture, artefact=artefact.name, output='html') }}">
       {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
     </a>
   </li>
 {% endfor %}
 </ul>
-<a href="../{{ derivative }}.json">JSON</a>
+<a href="{{ url_for('derivative_artefacts', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='json') }}">JSON</a>
 {% endblock %}

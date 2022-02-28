@@ -34,115 +34,130 @@ def timestamp_iso(value):
 
 
 class WebApp(Flask):
-    def __init__(self, conf):
+    def __init__(self, conf, instance):
         super().__init__('fatbuildr')
         self.conf = conf
+        self.instance = instance
         self.add_url_rule('/version', view_func=views.version)
-        self.add_url_rule(
-            '/<instance>/instance.json',
+
+        if self.allinstances:
+            self.add_url_rule(
+                '/', view_func=views.index, defaults={'output': 'html'}
+            )
+            self.add_url_rule(
+                '/instances.json',
+                view_func=views.index,
+                defaults={'output': 'json'},
+            )
+
+        self.add_instance_url_rule(
+            '/instance.json',
             view_func=views.instance,
         )
-        self.add_url_rule(
-            '/<instance>/pipelines/formats.json',
+        self.add_instance_url_rule(
+            '/pipelines/formats.json',
             view_func=views.pipelines_formats,
         )
-        self.add_url_rule('/', view_func=views.index)
-        self.add_url_rule(
-            '/instances.json',
-            view_func=views.index,
-            defaults={'output': 'json'},
+        self.add_instance_url_rule(
+            '/registry/',
+            view_func=views.registry_formats,
+            defaults={'output': 'html'},
         )
-        self.add_url_rule(
-            '/<string:instance>/registry/', view_func=views.registry_formats
-        )
-        self.add_url_rule(
-            '/<string:instance>/registry.json',
+        self.add_instance_url_rule(
+            '/registry.json',
             view_func=views.registry_formats,
             defaults={'output': 'json'},
         )
-        self.add_url_rule(
-            '/<string:instance>/registry/<string:fmt>/',
+        self.add_instance_url_rule(
+            '/registry/<string:fmt>/',
             view_func=views.format_distributions,
+            defaults={'output': 'html'},
         )
-        self.add_url_rule(
-            '/<string:instance>/registry/<string:fmt>.json',
+        self.add_instance_url_rule(
+            '/registry/<string:fmt>.json',
             view_func=views.format_distributions,
             defaults={'output': 'json'},
         )
-        self.add_url_rule(
-            '/<string:instance>/registry/<string:fmt>/'
-            '<string:distribution>/',
+        self.add_instance_url_rule(
+            '/registry/<string:fmt>/<string:distribution>/',
             view_func=views.distribution_derivatives,
+            defaults={'output': 'html'},
         )
-        self.add_url_rule(
-            '/<string:instance>/registry/<string:fmt>/'
-            '<string:distribution>.json',
+        self.add_instance_url_rule(
+            '/registry/<string:fmt>/<string:distribution>.json',
             view_func=views.distribution_derivatives,
             defaults={'output': 'json'},
         )
-        self.add_url_rule(
-            '/<string:instance>/registry/<string:fmt>/'
+        self.add_instance_url_rule(
+            '/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>/',
             view_func=views.derivative_artefacts,
+            defaults={'output': 'html'},
         )
-        self.add_url_rule(
-            '/<string:instance>/registry/<string:fmt>/'
+        self.add_instance_url_rule(
+            '/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>.json',
             view_func=views.derivative_artefacts,
             defaults={'output': 'json'},
         )
-        self.add_url_rule(
-            '/<string:instance>/registry/<string:fmt>/'
+        self.add_instance_url_rule(
+            '/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>/<string:architecture>/'
             '<string:artefact>/',
             view_func=views.artefact,
+            defaults={'output': 'html'},
         )
-        self.add_url_rule(
-            '/<string:instance>/registry/<string:fmt>/'
+        self.add_instance_url_rule(
+            '/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>/<string:architecture>/'
             '<string:artefact>.json',
             view_func=views.artefact,
             defaults={'output': 'json'},
         )
-        self.add_url_rule(
-            '/<string:instance>/artefacts/<string:artefact>',
+        self.add_instance_url_rule(
+            '/artefacts/<string:artefact>',
             view_func=views.artefacts,
+            defaults={'output': 'html'},
         )
-        self.add_url_rule(
-            '/<string:instance>/artefacts/<string:artefact>.json',
+        self.add_instance_url_rule(
+            '/artefacts/<string:artefact>.json',
             view_func=views.artefacts,
             defaults={'output': 'json'},
         )
-
-        self.add_url_rule(
-            '/<string:instance>/submit',
+        self.add_instance_url_rule(
+            '/submit',
             view_func=views.submit,
             methods=['POST'],
         )
-        self.add_url_rule(
-            '/<string:instance>/running.json', view_func=views.running
-        )
-        self.add_url_rule(
-            '/<string:instance>/queue.json', view_func=views.queue
-        )
-        self.add_url_rule(
-            '/<string:instance>/tasks/<string:task_id>.json',
+        self.add_instance_url_rule('/running.json', view_func=views.running)
+        self.add_instance_url_rule('/queue.json', view_func=views.queue)
+        self.add_instance_url_rule(
+            '/tasks/<string:task_id>.json',
             view_func=views.task,
         )
-        self.add_url_rule(
-            '/<string:instance>/watch/<string:task_id>.log',
+        self.add_instance_url_rule(
+            '/watch/<string:task_id>.log',
             view_func=views.watch,
         )
-        self.add_url_rule(
-            '/<string:instance>/<path:filename>', view_func=views.content
-        )
-        self.add_url_rule(
-            '/<string:instance>/keyring.asc', view_func=views.keyring
-        )
+        self.add_instance_url_rule('/<path:filename>', view_func=views.content)
+        self.add_instance_url_rule('/keyring.asc', view_func=views.keyring)
 
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
         self.config['UPLOAD_FOLDER'] = self.conf.dirs.tmp
         self.config['REGISTRY_FOLDER'] = self.conf.dirs.registry
+
+    @property
+    def allinstances(self):
+        return self.instance == 'all'
+
+    def add_instance_url_rule(self, path, **kwargs):
+        if not self.allinstances:
+            if not 'defaults' in kwargs:
+                kwargs['defaults'] = {}
+            kwargs['defaults']['instance'] = self.instance
+            self.add_url_rule(path, **kwargs)
+        else:
+            self.add_url_rule('/<string:instance>' + path, **kwargs)
 
     def run(self):
         super().run(host=self.conf.run.host, debug=self.conf.run.debug)

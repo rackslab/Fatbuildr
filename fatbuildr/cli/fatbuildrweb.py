@@ -47,13 +47,19 @@ class FatbuildrWeb(FatbuildrCliRun):
             action='store_true',
             help="Enable debug mode",
         )
+        parser.add_argument(
+            '-i',
+            '--instance',
+            help="Instance to serve (default: %(default)s)",
+            default='all',
+        )
         args = parser.parse_args()
 
         logger.setup(args.debug, fulldebug=False)
 
         self.conf = RuntimeConfWeb()
         self.load(args)
-        self.app = WebApp(self.conf)
+        self.app = WebApp(self.conf, args.instance)
         self.app.run()
 
     def load(self, args):
