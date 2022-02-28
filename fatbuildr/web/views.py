@@ -221,7 +221,7 @@ def artefact(
         )
 
 
-def artefacts(instance, artefact, output='html'):
+def search(instance, artefact, output='html'):
     connection = ClientFactory.get('local')
     formats = connection.formats(instance)
     results = {}
@@ -235,7 +235,7 @@ def artefacts(instance, artefact, output='html'):
                     instance, fmt, distribution, derivative
                 )
                 for _artefact in artefacts:
-                    if artefact == _artefact.name:
+                    if artefact in _artefact.name:
                         if fmt not in results:
                             results[fmt] = {}
                         if distribution not in results[fmt]:
@@ -256,7 +256,7 @@ def artefacts(instance, artefact, output='html'):
         return jsonify(results)
     else:
         return render_template(
-            'artefacts.html.j2',
+            'search.html.j2',
             instance=instance,
             artefact=artefact,
             results=results,

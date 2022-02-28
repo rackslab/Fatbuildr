@@ -20,5 +20,5 @@
     {% endfor %}
   {% endfor %}
 {% endfor %}
-<a href="{{ url_for('artefacts', instance=instance, artefact=artefact, output='json') }}">JSON</a>
+<a href="{{ url_for('search', instance=instance, artefact=artefact, output='json') }}">JSON</a>
 {% endblock %}
