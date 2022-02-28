@@ -4,7 +4,7 @@
 <h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > distributions</h1>
 <ul>
 {% for distribution in distributions %}
-  <li><a href="{{ url_for('distribution_derivatives', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}<a></li>
+  <li><a href="{{ url_for('distribution_derivatives', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}</a></li>
 {% endfor %}
 </ul>
 <a href="{{ url_for('format_distributions', instance=instance, fmt=format, output='json') }}">JSON</a>

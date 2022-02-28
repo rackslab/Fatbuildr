@@ -4,7 +4,7 @@
 <h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}formats</h1>
 <ul>
 {% for _format in formats %}
-  <li><a href="{{ url_for('format_distributions', instance=instance, fmt=_format, output='html') }}">{{ _format }}<a></li>
+  <li><a href="{{ url_for('format_distributions', instance=instance, fmt=_format, output='html') }}">{{ _format }}</a></li>
 {% endfor %}
 </ul>
 <a href="{{ url_for('keyring', instance=instance) }}">keyring</a><br/>
