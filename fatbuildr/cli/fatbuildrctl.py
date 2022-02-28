@@ -335,8 +335,8 @@ class Fatbuildrctl(FatbuildrCliRun):
                     env = connection.pipelines_distribution_environment(
                         self.instance, distribution
                     )
-                if env is not None:
-                    envs.append(env)
+                    if env is not None:
+                        envs.append(env)
                 logger.debug(
                     "Build environments found for format %s: %s", format, envs
                 )
