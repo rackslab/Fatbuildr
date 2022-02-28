@@ -46,6 +46,17 @@ class Image(object):
 
     def create(self, task, force):
         """Create the image."""
+        logger.info("Creating image for %s format", self.format)
+
+        if self.exists and not force:
+            raise RuntimeError(
+                f"Image {self.def_path} already exists, use force to ignore"
+            )
+
+        if not self.def_exists:
+            raise RuntimeError(
+                f"Unable to find image definition file {self.def_path}"
+            )
 
         # ensure instance images directory is present
         _dirname = os.path.dirname(self.path)
@@ -69,6 +80,10 @@ class Image(object):
 
     def update(self, task):
         logger.info("Updating image for %s format", self.format)
+        if not self.exists:
+            raise RuntimeError(
+                f"Image {self.path} does not exist, create it first"
+            )
         cmds = [
             _cmd.strip()
             for _cmd in getattr(self.conf, self.format).img_update_cmds.split(
@@ -142,33 +157,15 @@ class ImagesManager(object):
             os.mkdir(self.conf.images.storage)
 
         img = self.image(format)
-
-        if img.exists and not force:
-            raise RuntimeError(
-                f"Image {img.def_path} already exists, use force to ignore"
-            )
-
-        if not img.def_exists:
-            raise RuntimeError(
-                f"Unable to find image definition file {img.def_path}"
-            )
-
         img.create(task, force)
 
     def update(self, task, format):
         """Updates image for the given format."""
         img = self.image(format)
-        if not img.exists:
-            raise RuntimeError(
-                f"Image {img.path} does not exist, create it first"
-            )
         img.update(task)
 
     def create_env(self, task, format, environment):
         """Creates given build environment in image for the given format."""
-        logger.info(
-            "Creating build environment %s for format %s", environment, format
-        )
         build_env = self.build_env(format, environment)
         build_env.create(task)
 
@@ -180,9 +177,6 @@ class ImagesManager(object):
 
     def update_env(self, task, format, environment):
         """Updates given build environment in image for the given format."""
-        logger.info(
-            "Updating build environment %s for format %s", environment, format
-        )
         build_env = self.build_env(format, environment)
         build_env.update(task)
 
