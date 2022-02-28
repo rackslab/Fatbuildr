@@ -106,8 +106,17 @@ def registry(instance, output='html'):
     if output == 'json':
         return jsonify(formats)
     else:
+        # add informations about tasks in HTML page
+        pending = connection.queue(instance)
+        running = connection.running(instance)
+        archives = connection.archives(instance, 10)
         return render_template(
-            'registry.html.j2', instance=instance, formats=formats
+            'registry.html.j2',
+            instance=instance,
+            formats=formats,
+            pending=pending,
+            running=running,
+            archives=archives,
         )
 
 

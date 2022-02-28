@@ -7,6 +7,34 @@
   <li><a href="{{ url_for('format', instance=instance, fmt=_format, output='html') }}">{{ _format }}</a></li>
 {% endfor %}
 </ul>
+
+<h1>Tasks</h2>
+<h2>Running</h2>
+{% if running %}
+<a href="{{ url_for('watch', instance=instance, task_id=running.id) }}">{{ running.id }}</a> [{{ running.name }}] {{ running.submission }}
+{% else %}
+∅
+{% endif %}
+<h2>Pending</h2>
+{% if not pending %}
+∅
+{% else %}
+<ul>
+  {% for task in pending %}
+    <li>{{ task.id }} [{{ task.name }}] {{ task.submission }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
+<h2>Finished</h2>
+{% if not archives %}
+∅
+{% else %}
+<ul>
+  {% for task in archives %}
+    <li><a href="{{ url_for('watch', instance=instance, task_id=task.id) }}">{{ task.id }}</a> [{{ task.name }}] {{ task.submission }}</li>
+  {% endfor %}
+</ul>
+{% endif %}
 <a href="{{ url_for('keyring', instance=instance) }}">keyring</a><br/>
 <a href="{{ url_for('registry', instance=instance, output='json') }}">JSON</a>
 {% endblock %}
