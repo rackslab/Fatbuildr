@@ -61,8 +61,8 @@ class TaskForm:
 
 class ArchivedTask(RunnableTask):
     def __init__(self, task_id, place, instance, **kwargs):
+        self.TASK_NAME = kwargs['name']
         super().__init__(
-            kwargs['name'],
             task_id,
             place,
             instance,
