@@ -22,7 +22,7 @@ from dasbus.server.interface import dbus_interface
 from dasbus.server.property import emits_properties_changed
 from dasbus.server.template import InterfaceTemplate
 from dasbus.signal import Signal
-from dasbus.typing import Structure, List, Str, Bool
+from dasbus.typing import Structure, List, Str, Int, Bool
 from dasbus.xml import XMLGenerator
 
 from . import (
@@ -101,21 +101,21 @@ class FatbuildrInterface(InterfaceTemplate):
         )
 
     def Queue(self, instance: Str) -> List[Structure]:
-        """The list of builds in queue."""
+        """The list of tasks in queue."""
         return DbusRunnableTask.to_structure_list(
             self.implementation.queue(instance)
         )
 
     def Running(self, instance: Str) -> Structure:
-        """The currently running build"""
+        """The currently running task"""
         return DbusRunnableTask.to_structure(
             self.implementation.running(instance)
         )
 
-    def Archives(self, instance: Str) -> List[Structure]:
-        """The list of builds in queue."""
+    def Archives(self, instance: Str, limit: Int) -> List[Structure]:
+        """The list of last limit tasks in archives."""
         return DbusRunnableTask.to_structure_list(
-            self.implementation.archives(instance)
+            self.implementation.archives(instance, limit)
         )
 
     def Formats(self, instance: Str) -> List[Str]:
@@ -334,10 +334,10 @@ class FatbuildrMultiplexer(object):
             raise ErrorNoRunningTask()
         return self._instances[instance].tasks_mgr.running
 
-    def archives(self, instance):
+    def archives(self, instance, limit):
         """The list of archived builds."""
         self.timer.reset()
-        return self._instances[instance].archives_mgr.dump()
+        return self._instances[instance].archives_mgr.dump(limit)
 
     def formats(self, instance: Str):
         self.timer.reset()

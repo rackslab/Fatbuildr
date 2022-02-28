@@ -102,8 +102,8 @@ class ArchivesManager:
         form = TaskForm(**fields)
         form.save(dest)
 
-    def dump(self):
-        """Returns all tasks found in archives directory."""
+    def dump(self, limit):
+        """Returns up to limit last tasks found in archives directory."""
         _archives = []
 
         for task_dir in self.path.iterdir():
@@ -128,4 +128,9 @@ class ArchivesManager:
                     task_dir,
                     err,
                 )
-        return _archives
+        # sort archives by submission date, from the most recent to the oldest
+        _archives.sort(key=lambda x: x.submission, reverse=True)
+        if limit:
+            return _archives[:limit]
+        else:
+            return _archives

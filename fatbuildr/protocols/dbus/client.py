@@ -150,9 +150,9 @@ class DbusClient(object):
         except ErrorNoRunningTask:
             return None
 
-    def archives(self, instance):
+    def archives(self, instance, limit):
         return DbusRunnableTask.from_structure_list(
-            self.proxy.Archives(instance)
+            self.proxy.Archives(instance, limit)
         )
 
     def get(self, instance, task_id):
@@ -162,7 +162,7 @@ class DbusClient(object):
         _running = self.running(instance)
         if _running and _running.id == task_id:
             return _running
-        for _task in self.archives(instance):
+        for _task in self.archives(instance, limit=0):
             if _task.id == task_id:
                 return _task
         raise RuntimeError("Unable to find task %s on server" % (build_id))

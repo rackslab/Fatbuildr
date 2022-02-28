@@ -623,7 +623,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_archives(self, args):
         connection = ClientFactory.get(self.host)
-        archives = connection.archives(self.instance)
+        archives = connection.archives(self.instance, 10)
         if not archives:
             print("No archive found")
             return
