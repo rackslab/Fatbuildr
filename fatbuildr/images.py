@@ -148,40 +148,10 @@ class ImagesManager(object):
     def build_env(self, format, name):
         return BuildEnv(self.conf, self.image(format), name)
 
-    def create(self, task, format, force):
-        """Creates image for the given format."""
+    def prepare(self):
+        """Creates images storage directory if it is missing."""
         if not os.path.exists(self.conf.images.storage):
             logger.debug(
                 "Creating missing images directory %s", self.conf.images.storage
             )
             os.mkdir(self.conf.images.storage)
-
-        img = self.image(format)
-        img.create(task, force)
-
-    def update(self, task, format):
-        """Updates image for the given format."""
-        img = self.image(format)
-        img.update(task)
-
-    def create_env(self, task, format, environment):
-        """Creates given build environment in image for the given format."""
-        build_env = self.build_env(format, environment)
-        build_env.create(task)
-
-        logger.info(
-            "Build environment %s has been created for format %s",
-            environment,
-            format,
-        )
-
-    def update_env(self, task, format, environment):
-        """Updates given build environment in image for the given format."""
-        build_env = self.build_env(format, environment)
-        build_env.update(task)
-
-        logger.info(
-            "Build environment %s has been updated for format %s",
-            environment,
-            format,
-        )
