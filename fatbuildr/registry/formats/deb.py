@@ -87,7 +87,7 @@ class RegistryDeb(Registry):
         components = list(set(self.components + build.derivatives))
         with open(dists_path, 'w+') as fh:
             fh.write(
-                Templeter.frender(
+                Templeter().frender(
                     dists_tpl_path,
                     distributions=distributions,
                     components=components,

@@ -106,7 +106,12 @@ class ArtefactBuildRpm(ArtefactBuild):
             "Generate RPM spec file %s based on %s", spec_path, spec_tpl_path
         )
         with open(spec_path, 'w+') as fh:
-            fh.write(Templeter.frender(spec_tpl_path, pkg=self))
+            fh.write(
+                Templeter().frender(
+                    spec_tpl_path,
+                    pkg=self,
+                )
+            )
 
         # run SRPM build
         cmd = [

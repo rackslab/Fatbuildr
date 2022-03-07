@@ -66,13 +66,17 @@ class Image(object):
             os.chmod(_dirname, 0o755)  # be umask agnostic
 
         logger.info("Creating image for %s format", self.format)
-        cmd = Templeter.srender(
-            self.conf.images.create_cmd,
-            format=self.format,
-            definition=self.def_path,
-            dirpath=os.path.dirname(self.path),
-            path=self.path,
-        ).split(' ')
+        cmd = (
+            Templeter()
+            .srender(
+                self.conf.images.create_cmd,
+                format=self.format,
+                definition=self.def_path,
+                dirpath=os.path.dirname(self.path),
+                path=self.path,
+            )
+            .split(' ')
+        )
         if force:
             cmd.insert(1, '--force')
 
@@ -115,7 +119,7 @@ class BuildEnv(object):
                 "for this format"
             )
 
-        cmd = Templeter.srender(
+        cmd = Templeter().srender(
             getattr(self.conf, self.image.format).init_cmd,
             environment=self.name,
         )
@@ -128,7 +132,7 @@ class BuildEnv(object):
             self.image.format,
         )
         cmds = [
-            Templeter.srender(_cmd.strip(), environment=self.name)
+            Templeter().srender(_cmd.strip(), environment=self.name)
             for _cmd in getattr(
                 self.conf, self.image.format
             ).env_update_cmds.split('&&')

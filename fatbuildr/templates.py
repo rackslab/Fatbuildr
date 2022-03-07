@@ -26,19 +26,19 @@ from .log import logr
 logger = logr(__name__)
 
 
-class Templeter(object):
+class Templeter:
     """Class to abstract backend templating library."""
 
-    @staticmethod
-    def srender(str, **kwargs):
-        """Render a string template."""
-        return jinja2.Template(str).render(kwargs)
+    def __init__(self):
+        self.env = jinja2.Environment()
 
-    @staticmethod
-    def frender(path, **kwargs):
+    def srender(self, str, **kwargs):
+        """Render a string template."""
+        return self.env.from_string(str).render(kwargs)
+
+    def frender(self, path, **kwargs):
         """Render a file template."""
         dirpath = os.path.dirname(path)
         tplfile = os.path.basename(path)
-        env = jinja2.Environment(loader=jinja2.FileSystemLoader(dirpath))
-        tpl = env.get_template(tplfile)
-        return tpl.render(kwargs)
+        self.env.loader = jinja2.FileSystemLoader(dirpath)
+        return self.env.get_template(tplfile).render(kwargs)
