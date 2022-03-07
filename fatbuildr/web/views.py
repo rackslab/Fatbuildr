@@ -146,7 +146,6 @@ def distribution(instance, fmt, distribution, output='html'):
             format=fmt,
             distribution=distribution,
             derivatives=derivatives,
-            artefacts=artefacts,
         )
 
 
