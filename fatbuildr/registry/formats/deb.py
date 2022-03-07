@@ -23,7 +23,7 @@ import email
 
 from debian import deb822, changelog, debfile
 
-from . import Registry, RegistryArtefact, ChangelogEntry
+from . import Registry, ArtefactVersion, RegistryArtefact, ChangelogEntry
 from ...templates import Templeter
 from ...utils import runcmd
 from ...log import logr
@@ -220,6 +220,32 @@ class RegistryDeb(Registry):
                 continue
             return RegistryArtefact(source, 'src', version)
 
+    def source_version(self, distribution, derivative, artefact):
+        """Returns the version of the given source package name, or None if not
+        found."""
+        cmd = [
+            'reprepro',
+            '--basedir',
+            self.path,
+            '--component',
+            derivative,
+            '--list-format',
+            '${$architecture}|${version}\n',
+            'list',
+            distribution,
+            artefact,
+        ]
+        repo_list_proc = runcmd(cmd)
+        lines = repo_list_proc.stdout.decode().strip().split('\n')
+        for line in lines:
+            if not line:
+                continue
+            (arch, version) = line.split('|')
+            if arch != 'source':  # skip binary package
+                continue
+            return ArtefactVersion(version)
+        return None
+
     def _package_dsc_path(self, distribution, derivative, src_artefact):
         """Returns the path to the dsc file of the given deb source package."""
         cmd = [
@@ -287,6 +313,8 @@ class RegistryDeb(Registry):
         )
 
     def _extract_archive_changelog(self, arch_path):
+        """Returns the content of the debian changelog file of the given
+        archive file."""
         logger.debug("Extracting debian changelog from archive %s", arch_path)
         try:
             archive = tarfile.open(arch_path)
@@ -295,18 +323,25 @@ class RegistryDeb(Registry):
         logger.debug("Files in archives: %s", archive.getnames())
         if 'debian/changelog' in archive.getnames():
             fobj = archive.extractfile('debian/changelog')
-            return DebChangelog(fobj.read())
+            return fobj.read()
         raise RuntimeError(
             f"Unable to find debian changelog file in archive {arch_path}"
         )
 
-    def _src_changelog(self, distribution, derivative, src_artefact):
-        """Returns the changelog of a deb source package."""
+    def source_changelog(self, distribution, derivative, src_artefact):
+        """Returns the content of the given deb source package changelog file
+        as bytes."""
         dsc_path = self._package_dsc_path(
             distribution, derivative, src_artefact
         )
         arch_path = self._debian_archive_path(dsc_path)
-        return self._extract_archive_changelog(arch_path).entries()
+        return self._extract_archive_changelog(arch_path)
+
+    def _src_changelog(self, distribution, derivative, src_artefact):
+        """Returns the list of ChangelogEntry of the given deb source package."""
+        return DebChangelog(
+            self.source_changelog(distribution, derivative, src_artefact)
+        ).entries()
 
     def _bin_changelog(
         self, distribution, derivative, architecture, bin_artefact

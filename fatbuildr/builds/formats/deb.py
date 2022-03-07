@@ -111,11 +111,36 @@ class ArtefactBuildDeb(ArtefactBuild):
         )
         shutil.copytree(deb_code_from, deb_code_to)
 
-        # generate changelog
-        logger.info("Generating changelog")
+        # Check if existing source package and get version
+        existing_version = self.registry.source_version(
+            self.distribution, self.derivative, self.artefact
+        )
+        if existing_version:
+            logger.info(
+                "Found existing version %s, extracting changelog file",
+                existing_version.full,
+            )
+            # extract existing source package changelog
+            with open(tarball_subdir.joinpath('debian/changelog'), 'wb+') as fh:
+                fh.write(
+                    self.registry.source_changelog(
+                        self.distribution, self.derivative, self.artefact
+                    )
+                )
+
+        # Compare existing version with the target version
+        if existing_version == self.version:
+            logger.info(
+                "Incrementing build number of existing version %s",
+                existing_version.full,
+            )
+            # use the increment build ID of the existing version
+            self.version.build = existing_version.build + 1
+
+        # Add the new entry to the changelog
+        logger.info("Adding entry to changelog")
         cmd = [
             'debchange',
-            '--create',
             '--package',
             self.artefact,
             '--newversion',
@@ -124,6 +149,12 @@ class ArtefactBuildDeb(ArtefactBuild):
             self.distribution,
             self.message,
         ]
+
+        # If the changelog does not exist yet (ie. not extracted from existing
+        # source package), add create argument to ask debchanges for changelog
+        # file creation.
+        if not existing_version:
+            cmd.insert(1, '--create')
 
         _envs = ['DEBEMAIL=' + self.email, 'DEBFULLNAME=' + self.user]
         self.cruncmd(cmd, chdir=tarball_subdir, envs=_envs)
