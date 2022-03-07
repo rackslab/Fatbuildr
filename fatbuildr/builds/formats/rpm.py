@@ -106,6 +106,8 @@ class ArtefactBuildRpm(ArtefactBuild):
                 Templeter().frender(
                     spec_tpl_path,
                     pkg=self,
+                    version=self.version.main,
+                    release=self.version.fullrelease,
                 )
             )
 
