@@ -18,6 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
+import re
 
 from ...protocols.exports import ExportableType, ExportableField
 
@@ -43,6 +44,49 @@ class Registry:
 
     def artefact(self, distributions):
         raise NotImplementedError
+
+
+class ArtefactVersion:
+    VERSION_REGEX = r'(?P<main>.+)-(?P<release>.+)'
+    RELEASE_REGEX = r'(?P<release>.+?)(\+build(?P<build>\d+))?(\.(?P<dist>.+))?'
+
+    def __init__(self, value):
+        version_re = re.match(self.VERSION_REGEX, value)
+        if not version_re:
+            raise RuntimeError(f"Unable to parse version {value}")
+        self.main = version_re.group('main')
+        release = version_re.group('release')
+        release_re = re.match(self.RELEASE_REGEX, release)
+        self.release = release_re.group('release')
+        if release_re.group('build'):
+            self.build = int(release_re.group('build'))
+        else:
+            self.build = -1
+        self.dist = release_re.group('dist')
+
+    def __eq__(self, other):
+        """Compares two versions, without considering the build number."""
+        return (
+            self.main == other.main
+            and self.release == other.release
+            and self.dist == other.dist
+        )
+
+    @property
+    def full(self):
+        """Returns the full version as a string."""
+        return f"{self.main}-{self.fullrelease}"
+
+    @property
+    def fullrelease(self):
+        """Returns the release as a string, including dist and build if
+        defined."""
+        result = self.release
+        if self.build >= 0:
+            result += f"+build{self.build}"
+        if self.dist is not None:
+            result += f".{self.dist}"
+        return result
 
 
 class RegistryArtefact(ExportableType):

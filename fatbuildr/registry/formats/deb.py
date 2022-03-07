@@ -124,7 +124,7 @@ class RegistryDeb(Registry):
         if repo_list.stdout.decode() == build.fullversion:
             raise RuntimeError(
                 f"package {build.artefact} already present in distribution "
-                f"{build.distribution} with version {build.fullversion}",
+                f"{build.distribution} with version {build.version.full}",
             )
 
         for changes_path in build.place.glob('*.changes'):

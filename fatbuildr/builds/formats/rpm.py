@@ -62,19 +62,12 @@ class ArtefactBuildRpm(ArtefactBuild):
         self.format = 'rpm'
 
     @property
-    def release(self):
-        # suffix artefact release with distribution
-        return super().release + '.' + self.distribution
-
-    @property
     def spec_basename(self):
         return self.artefact + '.spec'
 
     @property
     def srpm_filename(self):
-        return (
-            self.artefact + '-' + self.version + '-' + self.release + '.src.rpm'
-        )
+        return self.artefact + '-' + self.version.full + '.src.rpm'
 
     @property
     def srpm_path(self):
@@ -92,6 +85,9 @@ class ArtefactBuildRpm(ArtefactBuild):
             self.artefact,
             self.env.name,
         )
+
+        # Add distribution to targeted version
+        self.version.dist = self.distribution
 
         # Generate spec file base on template
         spec_tpl_path = self.place.joinpath('rpm', self.spec_basename)

@@ -31,6 +31,7 @@ from ..protocols.exports import ExportableTaskField
 from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artefact import ArtefactDefs
+from ..registry.formats import ArtefactVersion
 from ..cache import CacheArtefact
 from ..log import logr
 
@@ -92,6 +93,7 @@ class ArtefactBuild(RunnableTask):
         )
         self.env = self.instance.images_mgr.build_env(self.format, build_env)
         self.defs = None  # loaded in prepare()
+        self.version = None  # initialized in prepare(), after defs are loaded
 
     def __getattr__(self, name):
         # try in defs
@@ -104,24 +106,12 @@ class ArtefactBuild(RunnableTask):
             )
 
     @property
-    def version(self):
-        return self.defs.version(self.derivative)
-
-    @property
-    def release(self):
-        return self.defs.release(self.format)
-
-    @property
     def has_buildargs(self):
         return self.defs.has_buildargs(self.format)
 
     @property
     def buildargs(self):
         return self.defs.buildargs(self.format)
-
-    @property
-    def fullversion(self):
-        return self.defs.fullversion(self.format, self.derivative)
 
     @property
     def upstream_tarball(self):
@@ -173,6 +163,11 @@ class ArtefactBuild(RunnableTask):
 
         # load defs
         self.defs = ArtefactDefs(self.place)
+
+        # define targeted version
+        self.version = ArtefactVersion(
+            f"{self.defs.version(self.derivative)}-{self.defs.release(self.format)}"
+        )
 
         if not self.defs.has_tarball:
             # This artefact does not need upstream tarball, nothing more to do

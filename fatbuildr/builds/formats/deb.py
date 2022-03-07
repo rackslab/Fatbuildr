@@ -119,17 +119,18 @@ class ArtefactBuildDeb(ArtefactBuild):
             '--package',
             self.artefact,
             '--newversion',
-            self.fullversion,
+            self.version.full,
             '--distribution',
             self.distribution,
             self.message,
         ]
+
         _envs = ['DEBEMAIL=' + self.email, 'DEBFULLNAME=' + self.user]
         self.cruncmd(cmd, chdir=tarball_subdir, envs=_envs)
 
         #  add symlink to tarball
         orig_tarball_path = self.place.joinpath(
-            f"{self.artefact}_{self.version}.orig.tar.{self.tarball_ext}",
+            f"{self.artefact}_{self.version.main}.orig.tar.{self.tarball_ext}",
         )
         logger.debug(
             "Creating symlink %s → %s",
@@ -158,7 +159,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             fh.write(self.instance.keyring.export())
 
         dsc_path = self.place.joinpath(
-            self.artefact + '_' + self.fullversion + '.dsc'
+            self.artefact + '_' + self.version.full + '.dsc'
         )
         cmd = [
             'cowbuilder',

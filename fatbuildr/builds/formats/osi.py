@@ -80,7 +80,7 @@ class ArtefactBuildOsi(ArtefactBuild):
             '--image-id',
             self.artefact,
             '--image-version',
-            self.version,
+            self.version.main,
             '--checksum',
         ]
         self.cruncmd(cmd)
