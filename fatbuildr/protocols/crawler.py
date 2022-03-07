@@ -22,7 +22,7 @@ from ..protocols.exports import ProtocolRegistry
 # tasks
 from ..builds import ArtefactBuild
 from ..tasks.registry import RegistryArtefactDeletionTask
-from ..tasks.keyring import KeyringCreationTask
+from ..tasks.keyring import KeyringCreationTask, KeyringRenewalTask
 from ..tasks.images import (
     ImageCreationTask,
     ImageUpdateTask,
@@ -43,6 +43,7 @@ def register_protocols():
         ArtefactBuild,
         RegistryArtefactDeletionTask,
         KeyringCreationTask,
+        KeyringRenewalTask,
         ImageCreationTask,
         ImageUpdateTask,
         ImageEnvironmentCreationTask,

@@ -206,6 +206,9 @@ class DbusClient(object):
     def keyring_create(self, instance):
         return self.proxy.KeyringCreate(instance)
 
+    def keyring_renew(self, instance, duration):
+        return self.proxy.KeyringRenew(instance, duration)
+
     def keyring(self, instance):
         return DbusKeyring.from_structure(self.proxy.Keyring(instance))
 

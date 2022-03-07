@@ -31,7 +31,7 @@ from ..log import logr
 
 from ..builds.factory import BuildFactory
 from .registry import RegistryArtefactDeletionTask
-from .keyring import KeyringCreationTask
+from .keyring import KeyringCreationTask, KeyringRenewalTask
 from .images import (
     ImageCreationTask,
     ImageUpdateTask,
@@ -132,6 +132,14 @@ class ServerTasksManager:
         task = KeyringCreationTask(task_id, place, self.instance)
         self.queue.put(task)
         logger.info("Keyring creation task %s submitted in queue", task.id)
+        return task_id
+
+    def submit_keyring_renewal(self, duration):
+        task_id = str(uuid.uuid4())  # generate task ID
+        place = Path(self.conf.dirs.queue, task_id)
+        task = KeyringRenewalTask(task_id, place, self.instance, duration)
+        self.queue.put(task)
+        logger.info("Keyring renewal task %s submitted in queue", task.id)
         return task_id
 
     def submit_image_create(self, format, force):

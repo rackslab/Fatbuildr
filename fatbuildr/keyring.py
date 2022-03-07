@@ -254,6 +254,51 @@ class InstanceKeyring:
                     "Error while loading keyring %s: %s", self.homedir, err
                 )
 
+    def _passphrase_cb(self, hint, dest, prev_bad, hook=None):
+        """Method with signature expected by gpg Context.set_passphrase_db()
+        func"""
+        return self.passphrase.encode()
+
+    def _renew_key(self, ctx, key, duration, subkey=False):
+        """Extend either master or subkey in the given context for the given
+        duration using interactive key editor."""
+        commands = ["expire", duration, "save", "quit"]
+        if subkey:
+            commands.insert(0, "key 1")
+
+        cmd_id = 0
+
+        def edit_fnc(keyword, args):
+            nonlocal cmd_id
+            if 'GET' not in keyword:
+                return None
+            try:
+                cmd = commands[cmd_id]
+                logger.debug("Sending interactive command %s", cmd)
+                cmd_id += 1
+                return cmd
+            except EOFError:
+                return "quit"
+
+        ctx.interact(key, edit_fnc)
+
+    def renew(self, duration):
+        """Extend keyring expiry date with the given duration, for both the
+        masterkey and the subkey."""
+        with gpg.Context(
+            home_dir=self.homedir,
+            pinentry_mode=gpg.constants.PINENTRY_MODE_LOOPBACK,
+        ) as ctx:
+            ctx.set_passphrase_cb(self._passphrase_cb)
+            keys = list(ctx.keylist())
+            if len(keys) == 0:
+                raise RuntimeError("No GPG key found in keyring")
+            if len(keys) > 1:
+                raise RuntimeError("More than one GPG key found in keyring")
+            key = keys[0]
+            self._renew_key(ctx, key, duration)
+            self._renew_key(ctx, key, duration, subkey=True)
+
     def load_agent(self):
         """Load GPG signing subkey in gpg-agent so reprepro can use the key
         non-interactively."""

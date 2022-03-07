@@ -168,6 +168,10 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_keyring.add_argument(
             '--export', action='store_true', help='Export keyring'
         )
+        parser_keyring.add_argument(
+            '--renew', help='Extend expiry date for a new duration'
+        )
+
         parser_keyring.set_defaults(func=self._run_keyring)
 
         # Parser for the build command
@@ -366,6 +370,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         if args.create:
             task_id = connection.keyring_create(self.instance)
             print(f"Submitted keyring creation task {task_id}")
+        elif args.renew:
+            task_id = connection.keyring_renew(self.instance, args.renew)
+            print(f"Submitted keyring renewal task {task_id}")
         elif args.show:
             keyring = connection.keyring(self.instance)
             keyring.report()

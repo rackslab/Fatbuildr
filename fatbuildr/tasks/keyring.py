@@ -18,6 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 from . import RunnableTask
+from ..protocols.exports import ExportableTaskField
 from ..log import logr
 
 logger = logr(__name__)
@@ -37,3 +38,22 @@ class KeyringCreationTask(RunnableTask):
             self.id,
         )
         self.instance.keyring.create()
+
+
+class KeyringRenewalTask(RunnableTask):
+
+    TASK_NAME = 'keyring renewal'
+    EXFIELDS = {
+        ExportableTaskField('duration'),
+    }
+
+    def __init__(self, task_id, place, instance, duration):
+        super().__init__(task_id, place, instance, duration)
+        self.duration = duration
+
+    def run(self):
+        logger.info(
+            "Running keyring renewal task %s",
+            self.id,
+        )
+        self.instance.keyring.renew(self.duration)

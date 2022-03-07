@@ -243,6 +243,10 @@ class FatbuildrInterface(InterfaceTemplate):
         """Create instance keyring."""
         return self.implementation.keyring_create(instance)
 
+    def KeyringRenew(self, instance: Str, duration: Str) -> Str:
+        """Extend instance keyring expiry with new duration."""
+        return self.implementation.keyring_renew(instance, duration)
+
     def Keyring(self, instance: Str) -> Structure:
         return DbusKeyring.to_structure(self.implementation.keyring(instance))
 
@@ -454,6 +458,13 @@ class FatbuildrMultiplexer(object):
         """Submit a new task to create keyring."""
         self.timer.reset()
         return self._instances[instance].tasks_mgr.submit_keyring_create()
+
+    def keyring_renew(self, instance: Str, duration: Str):
+        """Submit a new task to renew keyring."""
+        self.timer.reset()
+        return self._instances[instance].tasks_mgr.submit_keyring_renewal(
+            duration
+        )
 
     def keyring(self, instance: Str):
         """Returns masterkey information."""

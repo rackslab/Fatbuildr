@@ -67,6 +67,8 @@ class WireRunnableTask(WireData):
         ):
             print(f"  format: {self.format}")
             print(f"  environment: {self.environment}")
+        elif self.name == "keyring renewal":
+            print(f"  duration: {self.duration}")
 
 
 class WireArtefact(WireData):
