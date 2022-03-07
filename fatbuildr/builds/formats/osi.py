@@ -21,7 +21,6 @@ import os
 import glob
 
 from .. import ArtefactBuild
-from ...templates import Templeter
 from ...log import logr
 
 logger = logr(__name__)
