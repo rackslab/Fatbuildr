@@ -94,6 +94,9 @@ class ArtefactBuild(RunnableTask):
         self.env = self.instance.images_mgr.build_env(self.format, build_env)
         self.defs = None  # loaded in prepare()
         self.version = None  # initialized in prepare(), after defs are loaded
+        # Path the upstream tarball, initialized in prepare(), after optional
+        # pre-script is processed.
+        self.tarball = None
 
     def __getattr__(self, name):
         # try in defs
@@ -174,29 +177,79 @@ class ArtefactBuild(RunnableTask):
             # here
             return
 
-        if self.cache.has_tarball:
-            # The upstream tarball if already in cache, nothing more to do here
-            return
+        if not self.cache.has_tarball:
+            #  actual download and write in cache
+            dl = requests.get(self.upstream_tarball, allow_redirects=True)
+            open(self.cache.tarball_path, 'wb').write(dl.content)
 
-        #  actual download and write in cache
-        dl = requests.get(self.upstream_tarball, allow_redirects=True)
-        open(self.cache.tarball_path, 'wb').write(dl.content)
+            # verify checksum after download
+            with open(self.cache.tarball_path, "rb") as fh:
+                tarball_hash = ArtefactBuild.hasher(self.checksum_format)
+                while chunk := fh.read(8192):
+                    tarball_hash.update(chunk)
 
-        # verify checksum after download
-        with open(self.cache.tarball_path, "rb") as fh:
-            tarball_hash = ArtefactBuild.hasher(self.checksum_format)
-            while chunk := fh.read(8192):
-                tarball_hash.update(chunk)
-
-        if tarball_hash.hexdigest() != self.checksum_value:
-            raise RuntimeError(
-                "%s checksum do not match: %s != %s"
-                % (
-                    self.checksum_format,
-                    tarball_hash.hexdigest(),
-                    self.checksum_value,
+            if tarball_hash.hexdigest() != self.checksum_value:
+                raise RuntimeError(
+                    "%s checksum do not match: %s != %s"
+                    % (
+                        self.checksum_format,
+                        tarball_hash.hexdigest(),
+                        self.checksum_value,
+                    )
                 )
+
+        # Handle pre script if present
+        pre_script_path = self.place.joinpath('pre.sh')
+        if pre_script_path.exists():
+            logger.info("Pre script is present, modifying the upstream tarball")
+            # Extract the upstream tarball, run pre.sh in extracted directory,
+            # and re-generate the tarball.
+
+            # Create temporary upstream directory
+            upstream_dir = self.place.joinpath('upstream')
+            upstream_dir.mkdir()
+            with tarfile.open(self.cache.tarball_path) as tar:
+                tar.extractall(upstream_dir)
+                tarball_subdir_info = tar.getmembers()[0]
+                if not tarball_subdir_info.isdir():
+                    raise RuntimeError(
+                        f"unable to define tarball {self.cache.tarball_path} "
+                        "subdirectory"
+                    )
+                old_tarball_subdir = upstream_dir.joinpath(
+                    tarball_subdir_info.name
+                )
+
+            # Run pre script in archives directory
+            cmd = ['/bin/bash', str(pre_script_path)]
+            self.cruncmd(cmd, chdir=old_tarball_subdir)
+
+            # Increment main version
+            self.version.main += '+mod'
+
+            # rename tarball sub-directory to match new archive name
+            new_tarball_subdir = upstream_dir.joinpath(
+                f"{self.artefact}-{self.version.main}"
             )
+            old_tarball_subdir.rename(new_tarball_subdir)
+
+            # Generate the new modified tarball
+            mod_tarball_path = self.place.joinpath(
+                f"{self.artefact}-{self.version.main}.tar.xz"
+            )
+            logger.info("Generating modified tarball %s", str(mod_tarball_path))
+            with tarfile.open(mod_tarball_path, 'w:xz') as tar:
+                tar.add(
+                    new_tarball_subdir,
+                    arcname=new_tarball_subdir.relative_to(upstream_dir),
+                )
+            self.tarball = mod_tarball_path
+
+            # Remove temporary upstream directory
+            shutil.rmtree(upstream_dir)
+        else:
+            logger.info("Artefact tarball is %s", self.cache.tarball_path)
+            self.tarball = Path(self.cache.tarball_path)
 
     def cruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""

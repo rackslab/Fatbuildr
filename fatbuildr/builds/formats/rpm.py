@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import glob
 from datetime import datetime
+from pathlib import Path
 
 from .. import ArtefactBuild
 from ...registry.formats import ChangelogEntry
@@ -167,6 +167,7 @@ class ArtefactBuildRpm(ArtefactBuild):
                     pkg=self,
                     version=self.version.main,
                     release=self.version.fullrelease,
+                    source=self.tarball.name,
                     changelog=changelog,
                 )
             )
@@ -178,7 +179,7 @@ class ArtefactBuildRpm(ArtefactBuild):
             self.env.name,
             '--buildsrpm',
             '--sources',
-            self.cache.dir,
+            self.tarball.parent,
             '--spec',
             str(spec_path),
             '--resultdir',

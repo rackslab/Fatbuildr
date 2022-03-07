@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import mimetypes
 import tarfile
 import shutil
@@ -71,7 +70,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             'gzip': 'gz',
             'xz': 'xz',
         }
-        return exts[mimetypes.guess_type(self.cache.tarball_path)[1]]
+        return exts[mimetypes.guess_type(str(self.tarball))[1]]
 
     def build(self):
         self._build_src()
@@ -87,15 +86,12 @@ class ArtefactBuildDeb(ArtefactBuild):
         )
 
         # extract tarball in build place
-        logger.debug(
-            "Extracting tarball %s in %s", self.cache.tarball_path, self.place
-        )
-        tar = tarfile.open(self.cache.tarball_path, 'r:' + self.tarball_ext)
+        logger.debug("Extracting tarball %s in %s", self.tarball, self.place)
+        tar = tarfile.open(self.tarball, 'r:' + self.tarball_ext)
         tarball_subdir_info = tar.getmembers()[0]
         if not tarball_subdir_info.isdir():
             raise RuntimeError(
-                f"unable to define tarball {self.cache.tarball_path} "
-                "subdirectory"
+                f"unable to define tarball {self.tarball} " "subdirectory"
             )
         tarball_subdir = self.place.joinpath(tarball_subdir_info.name)
         tar.extractall(path=self.place)
@@ -166,9 +162,9 @@ class ArtefactBuildDeb(ArtefactBuild):
         logger.debug(
             "Creating symlink %s → %s",
             orig_tarball_path,
-            self.cache.tarball_path,
+            self.tarball,
         )
-        os.symlink(self.cache.tarball_path, orig_tarball_path)
+        self.tarball.symlink_to(orig_tarball_path)
 
         # build source package
         logger.info("Building source package")
