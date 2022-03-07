@@ -19,12 +19,30 @@
 
 import os
 import glob
+from datetime import datetime
 
 from .. import ArtefactBuild
+from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
 from ...log import logr
 
 logger = logr(__name__)
+
+# String template for changelog in RPM spec file
+CHANGELOG_TPL = """
+%changelog
+{%- for entry in changelog %}
+* {{ entry.date|timestamp_rpmdate }} {{ entry.author }} {{ entry.version }}
+  {%- for change in entry.changes %}
+- {{ change }}
+  {%- endfor %}
+{% endfor %}
+"""
+
+# Jinja2 filter to convert timestamp to date formatted for RPM spec file
+# changelog entries.
+def timestamp_rpmdate(value):
+    return datetime.fromtimestamp(value).strftime("%a %b %d %Y")
 
 
 class ArtefactBuildRpm(ArtefactBuild):
@@ -89,6 +107,47 @@ class ArtefactBuildRpm(ArtefactBuild):
         # Add distribution to targeted version
         self.version.dist = self.distribution
 
+        # Check if existing source package and get version
+        existing_version = self.registry.source_version(
+            self.distribution, self.derivative, self.artefact
+        )
+        if existing_version:
+            logger.info(
+                "Found existing version %s, extracting changelog entries",
+                existing_version.full,
+            )
+            # Source package is already present, get existing changelog
+            existing_changelog = self.registry.changelog(
+                self.distribution, self.derivative, 'src', self.artefact
+            )
+
+        # Compare existing version with the target version
+        if existing_version == self.version:
+            logger.info(
+                "Incrementing build number of existing version %s",
+                existing_version.full,
+            )
+            # use the increment existing version as new fullversion
+            self.version.build = existing_version.build + 1
+
+        # Generate a new list of ChangelogEntry, extended with existing entries
+        # if present.
+        new_changelog = [
+            ChangelogEntry(
+                self.version.full,
+                f"{self.user} <{self.email}>",
+                datetime.now().timestamp(),
+                [self.message],
+            )
+        ]
+        if existing_changelog:
+            new_changelog.extend(existing_changelog)
+
+        # Render changelog based on string template
+        templater = Templeter()
+        templater.env.filters["timestamp_rpmdate"] = timestamp_rpmdate
+        changelog = templater.srender(CHANGELOG_TPL, changelog=new_changelog)
+
         # Generate spec file base on template
         spec_tpl_path = self.place.joinpath('rpm', self.spec_basename)
         spec_path = self.place.joinpath(self.spec_basename)
@@ -108,6 +167,7 @@ class ArtefactBuildRpm(ArtefactBuild):
                     pkg=self,
                     version=self.version.main,
                     release=self.version.fullrelease,
+                    changelog=changelog,
                 )
             )
 
