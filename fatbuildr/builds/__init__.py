@@ -213,8 +213,8 @@ class ArtefactBuild(RunnableTask):
                 tarball_subdir_info = tar.getmembers()[0]
                 if not tarball_subdir_info.isdir():
                     raise RuntimeError(
-                        f"unable to define tarball {self.cache.tarball_path} "
-                        "subdirectory"
+                        "unable to define tarball "
+                        f"{str(self.cache.tarball_path)} subdirectory"
                     )
                 old_tarball_subdir = upstream_dir.joinpath(
                     tarball_subdir_info.name
@@ -248,8 +248,8 @@ class ArtefactBuild(RunnableTask):
             # Remove temporary upstream directory
             shutil.rmtree(upstream_dir)
         else:
-            logger.info("Artefact tarball is %s", self.cache.tarball_path)
-            self.tarball = Path(self.cache.tarball_path)
+            logger.info("Artefact tarball is %s", str(self.cache.tarball_path))
+            self.tarball = self.cache.tarball_path
 
     def cruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
