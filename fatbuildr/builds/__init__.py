@@ -202,22 +202,16 @@ class ArtefactBuild(RunnableTask):
         pre_script_path = self.place.joinpath('pre.sh')
         if pre_script_path.exists():
             logger.info("Pre script is present, modifying the upstream tarball")
-            # Extract the upstream tarball, run pre.sh in extracted directory,
-            # and re-generate the tarball.
 
             # Create temporary upstream directory
             upstream_dir = self.place.joinpath('upstream')
             upstream_dir.mkdir()
+
+            # Extract original upstream tarball (and get the subdir)
             with tarfile.open(self.cache.tarball_path) as tar:
                 tar.extractall(upstream_dir)
-                tarball_subdir_info = tar.getmembers()[0]
-                if not tarball_subdir_info.isdir():
-                    raise RuntimeError(
-                        "unable to define tarball "
-                        f"{str(self.cache.tarball_path)} subdirectory"
-                    )
                 old_tarball_subdir = upstream_dir.joinpath(
-                    tarball_subdir_info.name
+                    self._tar_subdir(tar)
                 )
 
             # Run pre script in archives directory
@@ -259,3 +253,14 @@ class ArtefactBuild(RunnableTask):
         if self.registry.exists:
             _binds.append(self.registry.path)
         super().cruncmd(self.image, cmd, init=False, binds=_binds, **kwargs)
+
+    @staticmethod
+    def _tar_subdir(tar):
+        """Returns the name of the subdirectory of the root of the given
+        tarball, or raise RuntimeError if not found."""
+        subdir = tar.getmembers()[0]
+        if not subdir.isdir():
+            raise RuntimeError(
+                f"unable to define tarball {tar.name} subdirectory"
+            )
+        return subdir.name

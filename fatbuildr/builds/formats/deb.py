@@ -88,12 +88,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         # extract tarball in build place
         logger.debug("Extracting tarball %s in %s", self.tarball, self.place)
         tar = tarfile.open(self.tarball, 'r:' + self.tarball_ext)
-        tarball_subdir_info = tar.getmembers()[0]
-        if not tarball_subdir_info.isdir():
-            raise RuntimeError(
-                f"unable to define tarball {self.tarball} " "subdirectory"
-            )
-        tarball_subdir = self.place.joinpath(tarball_subdir_info.name)
+        tarball_subdir = self.place.joinpath(self._tar_subdir(tar))
         tar.extractall(path=self.place)
         tar.close()
 
