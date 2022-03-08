@@ -17,9 +17,9 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import tarfile
 import email
+from pathlib import Path
 
 from debian import deb822, changelog, debfile
 
@@ -41,21 +41,21 @@ class RegistryDeb(Registry):
 
     @property
     def path(self):
-        return os.path.join(self.instance_dir, 'deb')
+        return self.instance_dir.joinpath('deb')
 
     @property
     def distributions(self):
-        dists_path = os.path.join(self.path, 'dists')
-        if not os.path.exists(dists_path):
+        dists_path = self.path.joinpath('dists')
+        if not dists_path.exists():
             return []
-        return os.listdir(dists_path)
+        return [item.name for item in dists_path.iterdir()]
 
     @property
     def components(self):
-        pool_path = os.path.join(self.path, 'pool')
-        if not os.path.exists(pool_path):
+        pool_path = self.path.joinpath('pool')
+        if not pool_path.exists():
             return []
-        return os.listdir(pool_path)
+        return [item.name for item in pool_path.iterdir()]
 
     def derivatives(self, distribution):
         return self.components
@@ -70,17 +70,17 @@ class RegistryDeb(Registry):
         )
 
         # load reprepro distributions template
-        dists_tpl_path = os.path.join(
-            self.conf.registry.conf, 'apt', 'distributions.j2'
+        dists_tpl_path = self.conf.registry.conf.joinpath(
+            'apt', 'distributions.j2'
         )
-        dists_path = os.path.join(self.path, 'conf', 'distributions')
+        dists_path = self.path.joinpath('conf', 'distributions')
 
         # create parent directory recursively, if not present
-        if not os.path.exists(os.path.dirname(dists_path)):
-            os.makedirs(os.path.dirname(dists_path))
+        if not dists_path.parent.exists():
+            dists_path.parent.mkdir(parents=True)
 
         # generate reprepro distributions file
-        logger.debug("Generating distribution file %s" % (dists_path))
+        logger.debug("Generating distribution file %s", dists_path)
         # Combine existing distributions in repository with build distribution
         # to define resulting list of distributions.
         distributions = list(set(self.distributions + [build.distribution]))
@@ -132,7 +132,7 @@ class RegistryDeb(Registry):
             # part of binary changes.
             if changes_path.match('*_source.changes'):
                 continue
-            logger.debug("Publishing deb changes file %s" % (changes_path))
+            logger.debug("Publishing deb changes file %s", changes_path)
             cmd = [
                 'reprepro',
                 '--verbose',
@@ -144,7 +144,9 @@ class RegistryDeb(Registry):
                 build.distribution,
                 changes_path,
             ]
-            build.runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})
+            build.runcmd(
+                cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)}
+            )
 
     def artefacts(self, distribution, derivative):
         """Returns the list of artefacts in deb repository."""
@@ -266,7 +268,7 @@ class RegistryDeb(Registry):
             (arch, pkg_path) = line.split('|')
             if arch != 'source':  # skip binary package
                 continue
-            return pkg_path
+            return Path(pkg_path)
         raise RuntimeError(
             f"Unable to find dsc path for deb source package {src_artefact}"
         )
@@ -293,7 +295,7 @@ class RegistryDeb(Registry):
             (arch, pkg_path) = line.split('|')
             if arch != architecture:  # skip binary package
                 continue
-            return pkg_path
+            return Path(pkg_path)
         raise RuntimeError(
             f"Unable to find deb path for deb binary package {bin_artefact}"
         )
@@ -306,7 +308,7 @@ class RegistryDeb(Registry):
         for arch in dsc['Files']:
             if '.orig.' in arch['name']:  # skip orig archive
                 continue
-            return os.path.join(os.path.dirname(dsc_path), arch['name'])
+            return dsc_path.parent.joinpath(arch['name'])
         raise RuntimeError(
             "Unable to define debian archive path in deb dsc "
             f"file {dsc_path}"
@@ -377,7 +379,9 @@ class RegistryDeb(Registry):
             distribution,
             artefact.name,
         ]
-        proc = runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})
+        proc = runcmd(
+            cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)}
+        )
 
     @staticmethod
     def debarch(arch):

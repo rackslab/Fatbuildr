@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import shutil
 import re
 
@@ -37,17 +36,19 @@ class RegistryOsi(Registry):
 
     @property
     def path(self):
-        return os.path.join(self.instance_dir, 'osi')
+        return self.instance_dir.joinpath('osi')
 
     @property
     def distributions(self):
-        return os.listdir(self.path)
+        return [item.name for item in self.path.iterdir()]
 
     def derivatives(self, distribution):
-        return os.listdir(os.path.join(self.path, distribution))
+        return [
+            item.name for item in self.path.joinpath(distribution).iterdir()
+        ]
 
     def derivative_path(self, distribution, derivative):
-        return os.path.join(self.path, distribution, derivative)
+        return self.path.joinpath(distribution, derivative)
 
     def publish(self, build):
         """Publish OSI images."""
@@ -57,40 +58,39 @@ class RegistryOsi(Registry):
         derivative_path = self.derivative_path(
             build.distribution, build.derivative
         )
-        dist_path = os.path.dirname(derivative_path)
-        registry_path = os.path.dirname(dist_path)
+        dist_path = derivative_path.parent
+        registry_path = dist_path.parent
 
         # ensure registry (ie. osi) directory exists
         RegistryOsi.ensure_directory(registry_path)
         RegistryOsi.ensure_directory(dist_path)
         RegistryOsi.ensure_directory(derivative_path)
 
-        built_files = RegistryOsi.CHECKSUMS_FILES
-        built_files.extend(
-            [os.path.basename(_path) for _path in build.place.glob('*.tar.*')]
-        )
-        logger.debug("Found files: %s" % (' '.join(built_files)))
+        built_files = [
+            build.place.joinpath(_path) for _path in RegistryOsi.CHECKSUMS_FILES
+        ]
+        built_files.extend([_path for _path in build.place.glob('*.tar.*')])
+        logger.debug("Found files: %s", ' '.join(built_files.name))
 
-        for fpath in built_files:
-            src = build.place.joinpath(fpath)
-            dst = os.path.join(derivative_path, fpath)
-            logger.debug("Copying file %s to %s" % (src, dst))
+        for src in built_files:
+            dst = derivative_path.joinpath(fpath)
+            logger.debug("Copying file %s to %s", src, dst)
             shutil.copyfile(src, dst)
 
     def _artefacts_filter(self, distribution, derivative, name_filter=None):
         artefacts = []
-        for _path in os.listdir(self.derivative_path(distribution, derivative)):
-            if _path in RegistryOsi.CHECKSUMS_FILES:
+        for _path in self.derivative_path(distribution, derivative).iterdir():
+            if _path.name in RegistryOsi.CHECKSUMS_FILES:
                 continue
-            if _path.endswith('.manifest'):
+            if _path.suffix == '.manifest':
                 continue
             f_re = re.match(
-                r'(?P<name>.+)_(?P<version>\d+)\.(?P<arch>.+)', _path
+                r'(?P<name>.+)_(?P<version>\d+)\.(?P<arch>.+)', _path.name
             )
             if not f_re:
                 logger.warning(
-                    "File %s does not match OSI artefact regular "
-                    "expression" % (_path)
+                    "File %s does not match OSI artefact regular " "expression",
+                    _path.name,
                 )
                 continue
             # skip if it does not match the filter
@@ -129,28 +129,27 @@ class RegistryOsi(Registry):
         return []
 
     def delete_artefact(self, distribution, derivative, artefact):
-        path = os.path.join(
-            self.derivative_path(distribution, derivative),
-            f"{artefact.name}_{artefact.version}.{artefact.architecture}",
+        path = self.derivative_path(distribution, derivative).joinpath(
+            f"{artefact.name}_{artefact.version}.{artefact.architecture}"
         )
         # delete the image if found
-        if os.path.exists(path):
+        if path.exists():
             logger.info("Deleting OSI file %s", path)
-            os.remove(path)
+            path.unlink()
         else:
             logger.warning("Unable to find OSI file %s", path)
         # delete the manifest if found
-        manifest = path + '.manifest'
-        if os.path.exists(manifest):
+        manifest = path.with_suffix('.manifest')
+        if manifest.exists():
             logger.info("Deleting OSI manifest file %s", manifest)
-            os.remove(manifest)
+            manifest.unlink()
         else:
             logger.warning("Unable to find OSI manifest file %s", manifest)
 
     @staticmethod
     def ensure_directory(path):
         """Create a directory with 0755 mode if it does not exist."""
-        if not os.path.exists(path):
-            logger.info("Creating directory %s" % (path))
-            os.mkdir(path)
-            os.chmod(path, 0o755)
+        if not path.exists():
+            logger.info("Creating directory %s", path)
+            path.mkdir()
+            path.chmod(0o755)

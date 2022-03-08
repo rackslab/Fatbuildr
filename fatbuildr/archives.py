@@ -77,7 +77,7 @@ class ArchivedTask(RunnableTask):
 class ArchivesManager:
     def __init__(self, conf, instance):
         self.instance = instance
-        self.path = Path(conf.dirs.archives, instance.id)
+        self.path = conf.dirs.archives.joinpath(instance.id)
 
     def save_task(self, task):
         if not self.path.exists:

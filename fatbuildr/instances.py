@@ -174,7 +174,7 @@ class Instances(metaclass=Singleton):
 
     def __init__(self, conf):
         self.conf = conf
-        self.dir = Path(conf.dirs.instances)
+        self.dir = conf.dirs.instances
         self._instances = {}
 
     def load(self):

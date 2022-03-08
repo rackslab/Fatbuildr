@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import re
 
 from ...protocols.exports import ExportableType, ExportableField
@@ -29,7 +28,7 @@ class Registry:
     def __init__(self, conf, instance):
         self.conf = conf
         self.instance = instance
-        self.instance_dir = os.path.join(conf.dirs.registry, instance.id)
+        self.instance_dir = conf.dirs.registry.joinpath(instance.id)
 
     @property
     def distributions(self):
@@ -37,7 +36,7 @@ class Registry:
 
     @property
     def exists(self):
-        return os.path.exists(self.path)
+        return self.path.exists()
 
     def publish(self, build):
         raise NotImplementedError

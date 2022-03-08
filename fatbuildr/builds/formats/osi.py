@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import glob
 
 from .. import ArtefactBuild
@@ -104,4 +103,4 @@ class ArtefactBuildOsi(ArtefactBuild):
             self.instance.keyring.masterkey.userid,
             str(checksum_path),
         ]
-        self.runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})
+        self.runcmd(cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)})

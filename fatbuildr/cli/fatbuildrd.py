@@ -19,7 +19,6 @@
 
 import argparse
 import threading
-import os
 import shutil
 
 from . import FatbuildrCliRun
@@ -174,7 +173,6 @@ class Fatbuildrd(FatbuildrCliRun):
 
     def clear_orphaned_builds(self):
         """Remove all build directories in queue directory."""
-        for build_id in os.listdir(self.conf.dirs.queue):
-            logger.warning("Removing orphaned build %s", build_id)
-            build_dir = os.path.join(self.conf.dirs.queue, build_id)
-            shutil.rmtree(build_dir)
+        for build_path in self.conf.dirs.queue.iterdir():
+            logger.warning("Removing orphaned build %s", build_path.name)
+            shutil.rmtree(build_path)

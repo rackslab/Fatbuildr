@@ -18,7 +18,6 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import os
-from pathlib import Path
 
 from .log import logr
 
@@ -27,7 +26,7 @@ logger = logr(__name__)
 
 class CacheArtefact(object):
     def __init__(self, conf, instance, build):
-        self.instance_dir = Path(conf.dirs.cache, instance)
+        self.instance_dir = conf.dirs.cache.joinpath(instance)
         self.dir = self.instance_dir.joinpath(build.artefact)
         self.build = build
 
@@ -42,12 +41,12 @@ class CacheArtefact(object):
     def ensure(self):
         if not self.instance_dir.exists():
             logger.info(
-                "Creating instance cache directory %s", str(self.instance_dir)
+                "Creating instance cache directory %s", self.instance_dir
             )
             self.instance_dir.mkdir()
             self.instance_dir.chmod(0o755)  # be umask agnostic
 
         if not self.dir.exists():
-            logger.info("Creating artefact cache directory %s", str(self.dir))
+            logger.info("Creating artefact cache directory %s", self.dir)
             self.dir.mkdir()
             self.dir.chmod(0o755)  # be umask agnostic

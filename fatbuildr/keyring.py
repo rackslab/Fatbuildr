@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-
-import os
 import string
 import secrets
 from datetime import datetime
@@ -177,8 +175,8 @@ class InstanceKeyring:
 
         self.conf = conf
         self.instance = instance
-        self.homedir = os.path.join(self.conf.keyring.storage, instance.id)
-        self.passphrase_path = os.path.join(self.homedir, 'passphrase')
+        self.homedir = self.conf.keyring.storage.joinpath(instance.id)
+        self.passphrase_path = self.homedir.joinpath('passphrase')
         self.algorithm = self.conf.keyring.type + str(self.conf.keyring.size)
         if type(self.conf.keyring.expires) is bool:
             self.expires = self.conf.keyring.expires
@@ -196,56 +194,54 @@ class InstanceKeyring:
     def create(self):
 
         # create homedir is missing
-        if not os.path.exists(self.homedir):
-            logger.info("Creating keyring directory %s" % (self.homedir))
-            os.mkdir(self.homedir)
+        if not self.homedir.exists():
+            logger.info("Creating keyring directory %s", self.homedir)
+            self.homedir.mkdir()
             # restrict access to keyring to root
-            os.chmod(self.homedir, 0o700)
+            self.homedir.chmod(0o700)
 
         # check if key already exist
-        with gpg.Context(home_dir=self.homedir) as ctx:
+        with gpg.Context(home_dir=str(self.homedir)) as ctx:
             if any(ctx.keylist()):
                 raise RuntimeError(f"GPG key in {self.homedir} already exists.")
 
         # generate random passphrase and save it in file
-        logger.info("Generating random passphrase in %s" % (self.homedir))
+        logger.info("Generating random passphrase in %s", self.homedir)
         alphabet = string.ascii_letters + string.digits
         passphrase = ''.join(secrets.choice(alphabet) for i in range(32))
         with open(self.passphrase_path, 'w+') as fh:
             fh.write(passphrase)
-        os.chmod(
-            self.passphrase_path, 0o400
-        )  # restrict access to root read-only
+        # restrict access to root read-only
+        self.passphrase_path.chmod(0o400)
 
         # generate GPG key with its subkey
-        logger.info("Generating GPG key in %s" % (self.homedir))
-        with gpg.Context(home_dir=self.homedir) as ctx:
+        logger.info("Generating GPG key in %s", self.homedir)
+        with gpg.Context(home_dir=str(self.homedir)) as ctx:
             self.masterkey.create(ctx, self.instance.userid)
             logger.info(
-                "Key generated for user '{0}' with fingerprint {1}".format(
-                    self.masterkey.userid, self.masterkey.fingerprint
-                )
+                "Key generated for user '%s' with fingerprint %s",
+                self.masterkey.userid,
+                self.masterkey.fingerprint,
             )
             self.masterkey.subkey.create(ctx)
             logger.info(
-                "Subkey generated for signature with fingerprint {0}".format(
-                    self.masterkey.subkey.fingerprint
-                )
+                "Subkey generated for signature with fingerprint %s",
+                self.masterkey.subkey.fingerprint,
             )
 
     def load(self):
-        with gpg.Context(home_dir=self.homedir) as ctx:
+        with gpg.Context(home_dir=str(self.homedir)) as ctx:
             try:
                 self.masterkey.load_from_keyring(ctx)
             except RuntimeError as err:
                 logger.error(
-                    "Error while loading keyring %s: %s" % (self.homedir, err)
+                    "Error while loading keyring %s: %s", self.homedir, err
                 )
 
     def export(self):
         """Return string representation of armored public key of the keyring
         masterkey."""
-        with gpg.Context(home_dir=self.homedir, armor=True) as ctx:
+        with gpg.Context(home_dir=str(self.homedir), armor=True) as ctx:
             try:
                 self.masterkey.load_from_keyring(ctx)
                 return ctx.key_export(self.masterkey.fingerprint).decode()
@@ -286,7 +282,7 @@ class InstanceKeyring:
         """Extend keyring expiry date with the given duration, for both the
         masterkey and the subkey."""
         with gpg.Context(
-            home_dir=self.homedir,
+            home_dir=str(self.homedir),
             pinentry_mode=gpg.constants.PINENTRY_MODE_LOOPBACK,
         ) as ctx:
             ctx.set_passphrase_cb(self._passphrase_cb)
@@ -305,9 +301,15 @@ class InstanceKeyring:
 
         # First stop agent if running (ie. socket is present), as it may not
         # has been started to allow preset.
-        gpgagent_sock_path = os.path.join(self.homedir, 'S.gpg-agent')
-        if os.path.exists(gpgagent_sock_path):
-            cmd = ['gpgconf', '--kill', '--homedir', self.homedir, 'gpg-agent']
+        gpgagent_sock_path = self.homedir.joinpath('S.gpg-agent')
+        if gpgagent_sock_path.exists():
+            cmd = [
+                'gpgconf',
+                '--kill',
+                '--homedir',
+                self.homedir,
+                'gpg-agent',
+            ]
             runcmd(cmd)
 
         # Start agent with --allow-preset-passphrase so the key can be loaded
@@ -328,5 +330,7 @@ class InstanceKeyring:
             self.masterkey.subkey.keygrip,
         ]
         runcmd(
-            cmd, env={'GNUPGHOME': self.homedir}, input=self.passphrase.encode()
+            cmd,
+            env={'GNUPGHOME': str(self.homedir)},
+            input=self.passphrase.encode(),
         )

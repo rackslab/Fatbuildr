@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import tempfile
 import hashlib
 import shutil
@@ -210,7 +209,7 @@ class ArtefactBuild(RunnableTask):
                 )
 
             # Run pre script in archives directory
-            cmd = ['/bin/bash', str(pre_script_path)]
+            cmd = ['/bin/bash', pre_script_path]
             self.cruncmd(cmd, chdir=old_tarball_subdir)
 
             # Increment main version
@@ -226,7 +225,7 @@ class ArtefactBuild(RunnableTask):
             mod_tarball_path = self.place.joinpath(
                 f"{self.artefact}-{self.version.main}.tar.xz"
             )
-            logger.info("Generating modified tarball %s", str(mod_tarball_path))
+            logger.info("Generating modified tarball %s", mod_tarball_path)
             with tarfile.open(mod_tarball_path, 'w:xz') as tar:
                 tar.add(
                     new_tarball_subdir,
@@ -237,12 +236,12 @@ class ArtefactBuild(RunnableTask):
             # Remove temporary upstream directory
             shutil.rmtree(upstream_dir)
         else:
-            logger.info("Artefact tarball is %s", str(self.cache.tarball_path))
+            logger.info("Artefact tarball is %s", self.cache.tarball_path)
             self.tarball = self.cache.tarball_path
 
     def cruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
-        _binds = [str(self.place), self.cache.dir]
+        _binds = [self.place, self.cache.dir]
         # Before the first artefact is actually published, the registry does
         # not exist. Then check it really exists, then bind-mount it.
         if self.registry.exists:

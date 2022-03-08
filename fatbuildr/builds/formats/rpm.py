@@ -181,9 +181,9 @@ class ArtefactBuildRpm(ArtefactBuild):
             '--sources',
             self.tarball.parent,
             '--spec',
-            str(spec_path),
+            spec_path,
             '--resultdir',
-            str(self.place),
+            self.place,
         ]
         self.cruncmd(cmd)
 
@@ -215,11 +215,11 @@ class ArtefactBuildRpm(ArtefactBuild):
             '--plugin-option',
             f"fatbuildr_derivatives:derivatives={','.join(self.derivatives)}",
             '--plugin-option',
-            f"fatbuildr_derivatives:keyring={str(keyring_path)}",
+            f"fatbuildr_derivatives:keyring={keyring_path}",
             '--resultdir',
-            str(self.place),
+            self.place,
             '--rebuild',
-            str(self.srpm_path),
+            self.srpm_path,
         ]
 
         # Add additional build args if defined
@@ -245,6 +245,8 @@ class ArtefactBuildRpm(ArtefactBuild):
                 '--define',
                 '%_gpg_name ' + self.instance.keyring.masterkey.userid,
                 '--addsign',
-                str(rpm_path),
+                rpm_path,
             ]
-            self.runcmd(cmd, env={'GNUPGHOME': self.instance.keyring.homedir})
+            self.runcmd(
+                cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)}
+            )

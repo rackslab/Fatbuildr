@@ -159,7 +159,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             orig_tarball_path,
             self.tarball,
         )
-        self.tarball.symlink_to(orig_tarball_path)
+        orig_tarball_path.symlink_to(self.tarball)
 
         # build source package
         logger.info("Building source package")

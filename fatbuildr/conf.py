@@ -19,6 +19,7 @@
 
 import configparser
 import re
+from pathlib import Path
 
 from .log import logr
 
@@ -39,12 +40,12 @@ class RuntimeSubConfDirs(object):
 
     def load(self, config):
         section = 'dirs'
-        self.instances = config.get(section, 'instances')
-        self.queue = config.get(section, 'queue')
-        self.archives = config.get(section, 'archives')
-        self.registry = config.get(section, 'registry')
-        self.cache = config.get(section, 'cache')
-        self.tmp = config.get(section, 'tmp')
+        self.instances = Path(config.get(section, 'instances'))
+        self.queue = Path(config.get(section, 'queue'))
+        self.archives = Path(config.get(section, 'archives'))
+        self.registry = Path(config.get(section, 'registry'))
+        self.cache = Path(config.get(section, 'cache'))
+        self.tmp = Path(config.get(section, 'tmp'))
 
     def dump(self):
         logger.debug("[dirs]")
@@ -68,8 +69,8 @@ class RuntimeSubConfImages(object):
 
     def load(self, config):
         section = 'images'
-        self.storage = config.get(section, 'storage')
-        self.defs = config.get(section, 'defs')
+        self.storage = Path(config.get(section, 'storage'))
+        self.defs = Path(config.get(section, 'defs'))
         self.formats = config.get(section, 'formats').split(',')
         self.create_cmd = config.get(section, 'create_cmd')
 
@@ -89,7 +90,7 @@ class RuntimeSubConfRegistry(object):
 
     def load(self, config):
         section = 'registry'
-        self.conf = config.get(section, 'conf')
+        self.conf = Path(config.get(section, 'conf'))
 
     def dump(self):
         logger.debug("[registry]")
@@ -149,7 +150,7 @@ class RuntimeSubConfKeyring(object):
 
     def load(self, config):
         section = 'keyring'
-        self.storage = config.get(section, 'storage')
+        self.storage = Path(config.get(section, 'storage'))
         self.type = config.get(section, 'type')
         self.size = config.getint(section, 'size')
         try:

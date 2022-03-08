@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-
 from .formats.deb import RegistryDeb
 from .formats.rpm import RegistryRpm
 from .formats.osi import RegistryOsi
@@ -37,9 +35,12 @@ class RegistryManager:
         self.instance = instance
 
     def formats(self):
-        return os.listdir(
-            os.path.join(self.conf.dirs.registry, self.instance.id)
-        )
+        return [
+            item.name
+            for item in self.conf.dirs.registry.joinpath(
+                self.instance.id
+            ).iterdir()
+        ]
 
     def distributions(self, fmt):
         registry = self.factory(fmt)

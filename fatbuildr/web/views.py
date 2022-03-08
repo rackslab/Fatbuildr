@@ -17,9 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import io
-from pathlib import Path
 
 from flask import (
     request,
@@ -273,7 +271,7 @@ def search(instance, artefact, output='html'):
 
 def submit(instance):
     tarball = request.files['tarball']
-    tarball_path = Path(current_app.config['UPLOAD_FOLDER']).joinpath(
+    tarball_path = current_app.config['UPLOAD_FOLDER'].joinpath(
         secure_filename(tarball.filename)
     )
     tarball.save(tarball_path)
@@ -337,6 +335,6 @@ def keyring(instance):
 
 def content(instance, filename):
     return send_from_directory(
-        os.path.join(current_app.config['REGISTRY_FOLDER'], instance),
+        current_app.config['REGISTRY_FOLDER'].joinpath(instance),
         filename,
     )

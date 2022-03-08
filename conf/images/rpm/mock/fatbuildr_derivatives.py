@@ -18,7 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 # our imports
 
-import os
+from pathlib import Path
 
 from mockbuild.mounts import BindMountPoint
 from mockbuild.trace_decorator import getLog, traceLog
@@ -49,34 +49,29 @@ class FatbuildrDerivatives:
     def _PreInitHook(self):
         getLog().info("enabled FatbuildrDerivatives plugin")
 
+        repo = Path(self.opts['repo'])
+
         if self.buildroot.is_bootstrap:
             # During the boostrap phase, add bind-mount of the repo directory in
             # the final chroot, if it exists.
-            if os.path.exists(self.opts['repo']):
-                mountpoint = self.buildroot.make_chroot_path(self.opts['repo'])
+            if repo.exists():
+                mountpoint = self.buildroot.make_chroot_path(str(repo))
                 self.buildroot.mounts.add(
-                    BindMountPoint(
-                        srcpath=self.opts['repo'], bindpath=mountpoint
-                    )
+                    BindMountPoint(srcpath=repo, bindpath=mountpoint)
                 )
-                getLog().info(
-                    "Add bind-mount of %s in chroot", self.opts['repo']
-                )
+                getLog().info("Add bind-mount of %s in chroot", repo)
             else:
                 getLog().info(
                     "Skipping bind-mount of %s in chroot because unexisting",
-                    self.opts['repo'],
+                    repo,
                 )
         else:
             # In the final chroot, add all the build derivatives repositories in
             # dnf configuration file content, with descending priorities.
             priority = 50  # first derivative priority
             for derivative in reversed(self.opts['derivatives'].split(',')):
-                repos_dir = (
-                    f"{self.opts['repo']}/{self.opts['distribution']}/"
-                    f"{derivative}"
-                )
-                if not os.path.exists(repos_dir):
+                repos_dir = repo.joinpath(self.opts['distribution'], derivative)
+                if not repos_dir.exists():
                     getLog().info(
                         "skipping derivative %s as %s directory does not exist",
                         derivative,

@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
 import tempfile
 import uuid
 import shutil
@@ -112,7 +111,7 @@ class ServerTasksManager:
         self, format, distribution, derivative, artefact
     ):
         task_id = str(uuid.uuid4())  # generate task ID
-        place = Path(self.conf.dirs.queue, task_id)
+        place = self.conf.dirs.queue.joinpath(task_id)
         task = RegistryArtefactDeletionTask(
             task_id,
             place,
@@ -128,7 +127,7 @@ class ServerTasksManager:
 
     def submit_keyring_create(self):
         task_id = str(uuid.uuid4())  # generate task ID
-        place = Path(self.conf.dirs.queue, task_id)
+        place = self.conf.dirs.queue.joinpath(task_id)
         task = KeyringCreationTask(task_id, place, self.instance)
         self.queue.put(task)
         logger.info("Keyring creation task %s submitted in queue", task.id)
@@ -136,7 +135,7 @@ class ServerTasksManager:
 
     def submit_keyring_renewal(self, duration):
         task_id = str(uuid.uuid4())  # generate task ID
-        place = Path(self.conf.dirs.queue, task_id)
+        place = self.conf.dirs.queue.joinpath(task_id)
         task = KeyringRenewalTask(task_id, place, self.instance, duration)
         self.queue.put(task)
         logger.info("Keyring renewal task %s submitted in queue", task.id)
@@ -144,7 +143,7 @@ class ServerTasksManager:
 
     def submit_image_create(self, format, force):
         task_id = str(uuid.uuid4())  # generate task ID
-        place = Path(self.conf.dirs.queue, task_id)
+        place = self.conf.dirs.queue.joinpath(task_id)
         task = ImageCreationTask(task_id, place, self.instance, format, force)
         self.queue.put(task)
         logger.info("Image creation task %s submitted in queue", task.id)
@@ -152,7 +151,7 @@ class ServerTasksManager:
 
     def submit_image_update(self, format):
         task_id = str(uuid.uuid4())  # generate task ID
-        place = Path(self.conf.dirs.queue, task_id)
+        place = self.conf.dirs.queue.joinpath(task_id)
         task = ImageUpdateTask(task_id, place, self.instance, format)
         self.queue.put(task)
         logger.info("Image update task %s submitted in queue", task.id)
@@ -160,7 +159,7 @@ class ServerTasksManager:
 
     def submit_image_environment_create(self, format, environment):
         task_id = str(uuid.uuid4())  # generate task ID
-        place = Path(self.conf.dirs.queue, task_id)
+        place = self.conf.dirs.queue.joinpath(task_id)
         task = ImageEnvironmentCreationTask(
             task_id, place, self.instance, format, environment
         )
@@ -173,7 +172,7 @@ class ServerTasksManager:
 
     def submit_image_environment_update(self, format, environment):
         task_id = str(uuid.uuid4())  # generate task ID
-        place = Path(self.conf.dirs.queue, task_id)
+        place = self.conf.dirs.queue.joinpath(task_id)
         task = ImageEnvironmentUpdateTask(
             task_id, place, self.instance, format, environment
         )
@@ -197,7 +196,7 @@ class ServerTasksManager:
         """Generate the build ID and place in queue."""
 
         task_id = str(uuid.uuid4())  # generate task ID
-        place = Path(self.conf.dirs.queue, task_id)
+        place = self.conf.dirs.queue.joinpath(task_id)
         try:
             build = BuildFactory.generate(
                 task_id,

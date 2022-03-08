@@ -17,9 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-import sys
-
 from .templates import Templeter
 from .utils import runcmd
 from .log import logr
@@ -31,18 +28,20 @@ class Image(object):
     def __init__(self, conf, instance, fmt):
         self.conf = conf
         self.format = fmt
-        self.path = os.path.join(
-            conf.images.storage, instance, self.format + '.img'
+        self.path = conf.images.storage.joinpath(
+            instance, self.format
+        ).with_suffix('.img')
+        self.def_path = conf.images.defs.joinpath(self.format).with_suffix(
+            '.mkosi'
         )
-        self.def_path = os.path.join(conf.images.defs, self.format + '.mkosi')
 
     @property
     def exists(self):
-        return os.path.exists(self.path)
+        return self.path.exists()
 
     @property
     def def_exists(self):
-        return os.path.exists(self.def_path)
+        return self.def_path.exists()
 
     def create(self, task, force):
         """Create the image."""
@@ -59,11 +58,11 @@ class Image(object):
             )
 
         # ensure instance images directory is present
-        _dirname = os.path.dirname(self.path)
-        if not os.path.exists(_dirname):
+        _dirname = self.path.parent
+        if not _dirname.exists():
             logger.info("Creating instance image directory %s", _dirname)
-            os.mkdir(_dirname)
-            os.chmod(_dirname, 0o755)  # be umask agnostic
+            _dirname.mkdir()
+            _dirname.chmod(0o755)  # be umask agnostic
 
         logger.info("Creating image for %s format", self.format)
         cmd = (
@@ -71,9 +70,9 @@ class Image(object):
             .srender(
                 self.conf.images.create_cmd,
                 format=self.format,
-                definition=self.def_path,
-                dirpath=os.path.dirname(self.path),
-                path=self.path,
+                definition=str(self.def_path),
+                dirpath=str(self.path.parent),
+                path=str(self.path),
             )
             .split(' ')
         )
@@ -154,8 +153,8 @@ class ImagesManager(object):
 
     def prepare(self):
         """Creates images storage directory if it is missing."""
-        if not os.path.exists(self.conf.images.storage):
+        if not self.conf.images.storage.exists():
             logger.debug(
                 "Creating missing images directory %s", self.conf.images.storage
             )
-            os.mkdir(self.conf.images.storage)
+            self.conf.images.storage.mkdir()

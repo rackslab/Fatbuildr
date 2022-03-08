@@ -39,7 +39,7 @@ logger = logr(__name__)
 
 def progname():
     """Return the name of the program."""
-    return os.path.basename(sys.argv[0])
+    return Path(sys.argv[0]).name
 
 
 def default_user_pref():

@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import os
-
 import jinja2
 
 from .log import logr
@@ -38,7 +36,5 @@ class Templeter:
 
     def frender(self, path, **kwargs):
         """Render a file template."""
-        dirpath = os.path.dirname(path)
-        tplfile = os.path.basename(path)
-        self.env.loader = jinja2.FileSystemLoader(dirpath)
-        return self.env.get_template(tplfile).render(kwargs)
+        self.env.loader = jinja2.FileSystemLoader(path.parent)
+        return self.env.get_template(path.name).render(kwargs)
