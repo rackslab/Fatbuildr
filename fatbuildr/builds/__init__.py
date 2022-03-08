@@ -104,8 +104,7 @@ class ArtefactBuild(RunnableTask):
             return getattr(self.defs, name)
         except AttributeError:
             raise AttributeError(
-                "%s does not have %s attribute"
-                % (self.__class__.__name__, name)
+                f"{self.__class__.__name__} does not have {name} attribute"
             )
 
     @property
@@ -129,7 +128,7 @@ class ArtefactBuild(RunnableTask):
         return self.defs.checksum_value(self.derivative)
 
     def run(self):
-        logger.info("Running build %s" % (self.id))
+        logger.info("Running build %s", self.id)
         self.prepare()
         self.build()
         self.registry.publish(self)
@@ -142,7 +141,7 @@ class ArtefactBuild(RunnableTask):
         elif hash_format == 'sha256':
             return hashlib.sha256()
         else:
-            raise RuntimeError("Unsupported hash format %s" % (hash_format))
+            raise RuntimeError(f"Unsupported hash format {hash_format}")
 
     def prepare(self):
         """Extract input tarball and, if not present in cache, download the
@@ -190,12 +189,8 @@ class ArtefactBuild(RunnableTask):
 
             if tarball_hash.hexdigest() != self.checksum_value:
                 raise RuntimeError(
-                    "%s checksum do not match: %s != %s"
-                    % (
-                        self.checksum_format,
-                        tarball_hash.hexdigest(),
-                        self.checksum_value,
-                    )
+                    f"{self.checksum_format} checksum do not match: "
+                    f"{tarball_hash.hexdigest()} != {self.checksum_value}"
                 )
 
         # Handle pre script if present
