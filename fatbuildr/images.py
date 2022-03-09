@@ -31,6 +31,8 @@ class Image(object):
         self.path = conf.images.storage.joinpath(
             instance, self.format
         ).with_suffix('.img')
+        self.format_libdir = conf.images.defs.joinpath(self.format)
+        self.common_libdir = conf.images.defs.joinpath('common')
         self.def_path = conf.images.defs.joinpath(self.format).with_suffix(
             '.mkosi'
         )
@@ -144,10 +146,6 @@ class ImagesManager(object):
     def __init__(self, conf, instance):
         self.conf = conf
         self.instance = instance
-
-    @property
-    def defs_path(self):
-        return self.conf.images.defs
 
     def image(self, format):
         return Image(self.conf, self.instance, format)

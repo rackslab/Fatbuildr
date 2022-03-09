@@ -209,9 +209,7 @@ class ArtefactBuild(RunnableTask):
                 )
 
             # Run pre script in archives directory using the wrapper
-            wrapper_path = self.instance.images_mgr.defs_path.joinpath(
-                'common', 'pre-wrapper.sh'
-            )
+            wrapper_path = self.image.common_libdir.joinpath('pre-wrapper.sh')
             cmd = ['/bin/bash', wrapper_path, pre_script_path]
             self.cruncmd(cmd, chdir=old_tarball_subdir)
 
