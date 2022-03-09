@@ -63,6 +63,11 @@ class ErrorNoRunningTask(DBusError):
     pass
 
 
+@dbus_error("ErrorNoKeyring", namespace=REGISTER_NAMESPACE)
+class ErrorNoKeyring(DBusError):
+    pass
+
+
 # Utilities to manipulate TYPES_MAP
 
 

@@ -375,7 +375,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             print(f"Submitted keyring renewal task {task_id}")
         elif args.show:
             keyring = connection.keyring(self.instance)
-            keyring.report()
+            if keyring:
+                keyring.report()
+            else:
+                print(f"No keyring available in instance {self.instance}")
         elif args.export:
             print(connection.keyring_export(self.instance), end='')
         else:

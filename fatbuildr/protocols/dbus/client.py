@@ -27,6 +27,7 @@ from . import (
     DbusChangelogEntry,
     DbusKeyring,
     ErrorNoRunningTask,
+    ErrorNoKeyring,
 )
 
 
@@ -210,7 +211,10 @@ class DbusClient(object):
         return self.proxy.KeyringRenew(instance, duration)
 
     def keyring(self, instance):
-        return DbusKeyring.from_structure(self.proxy.Keyring(instance))
+        try:
+            return DbusKeyring.from_structure(self.proxy.Keyring(instance))
+        except ErrorNoKeyring:
+            return None
 
     def keyring_export(self, instance):
         return self.proxy.KeyringExport(instance)

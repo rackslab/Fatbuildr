@@ -34,6 +34,7 @@ from . import (
     DbusChangelogEntry,
     DbusKeyring,
     ErrorNoRunningTask,
+    ErrorNoKeyring,
 )
 from ...log import logr
 
@@ -248,7 +249,12 @@ class FatbuildrInterface(InterfaceTemplate):
         return self.implementation.keyring_renew(instance, duration)
 
     def Keyring(self, instance: Str) -> Structure:
-        return DbusKeyring.to_structure(self.implementation.keyring(instance))
+        try:
+            return DbusKeyring.to_structure(
+                self.implementation.keyring(instance)
+            )
+        except AttributeError:
+            raise ErrorNoKeyring()
 
     def KeyringExport(self, instance: Str) -> Str:
         """Returns armored public key of instance keyring."""
