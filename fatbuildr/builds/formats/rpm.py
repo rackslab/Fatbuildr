@@ -38,6 +38,18 @@ CHANGELOG_TPL = """
 {% endfor %}
 """
 
+PATCHES_DECL_TPL = """
+{% for patch in patches %}
+Patch{{ loop.index0 }}: {{ patch.name }}
+{% endfor %}
+"""
+
+PATCHES_PREP_TPL = """
+{% for patch in patches %}
+%patch{{ loop.index0 }} -p1
+{% endfor %}
+"""
+
 # Jinja2 filter to convert timestamp to date formatted for RPM spec file
 # changelog entries.
 def timestamp_rpmdate(value):
@@ -106,6 +118,22 @@ class ArtefactBuildRpm(ArtefactBuild):
         # Add distribution to targeted version
         self.version.dist = self.distribution
 
+        # Initialize templater
+        templater = Templeter()
+
+        # Generate patches templates
+        patches_from = self.place.joinpath('patches')
+        patches_decl = ""
+        patches_prep = ""
+        if patches_from.exists():
+            # Get list of patches
+            patches = [item for item in patches_from.iterdir()]
+            # Move patches at the root of build place
+            for patch in patches:
+                patch.rename(self.place.joinpath(patch.name))
+            patches_decl = templater.srender(PATCHES_DECL_TPL, patches=patches)
+            patches_prep = templater.srender(PATCHES_PREP_TPL, patches=patches)
+
         # Check if existing source package and get version
         existing_version = self.registry.source_version(
             self.distribution, self.derivative, self.artefact
@@ -143,11 +171,10 @@ class ArtefactBuildRpm(ArtefactBuild):
             new_changelog.extend(existing_changelog)
 
         # Render changelog based on string template
-        templater = Templeter()
         templater.env.filters["timestamp_rpmdate"] = timestamp_rpmdate
         changelog = templater.srender(CHANGELOG_TPL, changelog=new_changelog)
 
-        # Generate spec file base on template
+        # Generate spec file based on template
         spec_tpl_path = self.place.joinpath('rpm', self.spec_basename)
         spec_path = self.place.joinpath(self.spec_basename)
 
@@ -161,15 +188,25 @@ class ArtefactBuildRpm(ArtefactBuild):
         )
         with open(spec_path, 'w+') as fh:
             fh.write(
-                Templeter().frender(
+                templater.frender(
                     spec_tpl_path,
                     pkg=self,
                     version=self.version.main,
                     release=self.version.fullrelease,
                     source=self.tarball.name,
+                    patches=patches_decl,
+                    prep_patches=patches_prep,
                     changelog=changelog,
                 )
             )
+
+        # Check the tarball is in build place (ie. not in cache), or create
+        # symlink otherwise, so the source tarball given to mock is always in
+        # the same directory as the patches, when patches are provided.
+        if not self.tarball.is_relative_to(self.place):
+            source = self.place.joinpath(self.tarball.name)
+            logger.info("Creating symlink %s → %s", source, self.tarball)
+            source.symlink_to(self.tarball)
 
         # run SRPM build
         cmd = [
@@ -178,12 +215,23 @@ class ArtefactBuildRpm(ArtefactBuild):
             self.env.name,
             '--buildsrpm',
             '--sources',
-            self.tarball.parent,
+            self.place,
             '--spec',
             spec_path,
             '--resultdir',
             self.place,
         ]
+
+        # If the source tarball is in build place (ie. in cache),
+        # bind-mount the tarball directory in mock environment so rpmbuild can
+        # access to the target of the tarball symlink in build place.
+        if not self.tarball.is_relative_to(self.place):
+            cmd[3:3] = [
+                '--plugin-option',
+                "bind_mount:dirs="
+                f"[(\"{self.tarball.parent}\",\"{self.tarball.parent}\")]",
+            ]
+
         self.cruncmd(cmd)
 
     def _build_bin(self):

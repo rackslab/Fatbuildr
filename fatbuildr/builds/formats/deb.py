@@ -102,6 +102,28 @@ class ArtefactBuildDeb(ArtefactBuild):
         )
         shutil.copytree(deb_code_from, deb_code_to)
 
+        # Generate patches tree if patches are provided
+        patches_from = self.place.joinpath('patches')
+        if patches_from.exists():
+            logger.info("Generating debian patches tree")
+            patches = [item for item in patches_from.iterdir()]
+            patches_to = tarball_subdir.joinpath('debian', 'patches')
+
+            # Create debian patches subdir
+            patches_to.mkdir()
+            patches_to.chmod(0o755)
+
+            # Move patches in debian patches subdir
+            for patch in patches:
+                patch.rename(patches_to.joinpath(patch.name))
+
+            # Generate patches series file
+            logger.debug(
+                "Generating series files with following patches: %s", patches
+            )
+            with open(patches_to.joinpath('series'), 'w+') as fh:
+                fh.writelines([path.name for path in patches])
+
         # Check if existing source package and get version
         existing_version = self.registry.source_version(
             self.distribution, self.derivative, self.artefact
