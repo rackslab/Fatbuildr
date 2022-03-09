@@ -49,19 +49,19 @@ class ContainerRunner(object):
         ]
 
         # Bind-mount image format subdir if it exists
-        img_dir_path = f"/usr/lib/fatbuildr/images/{image.format}"
-        if os.path.exists(img_dir_path):
-            _cmd.extend(['--bind', img_dir_path])
+        img_defs_path = self.conf.images.defs.joinpath(image.format)
+        if img_defs_path.exists():
+            _cmd.extend(['--bind', img_defs_path])
 
         # add init_opts if init is True
         if init:
-            _cmd.extend(self.conf.init_opts)
+            _cmd.extend(self.conf.containers.init_opts)
         # add opts in args
         if opts is not None:
             _cmd.extend(opts)
         # add opts from conf
-        if self.conf.opts is not None:
-            _cmd.extend(self.conf.opts)
+        if self.conf.containers.opts is not None:
+            _cmd.extend(self.conf.containers.opts)
         for _bind in binds:
             _cmd.extend(['--bind', _bind])
         if chdir is not None:

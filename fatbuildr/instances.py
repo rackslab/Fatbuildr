@@ -143,7 +143,7 @@ class RunningInstance(ExportableType):
         self.archives_mgr = ArchivesManager(self.conf, self)
         self.images_mgr = ImagesManager(self.conf, self.id)
         self.keyring = InstanceKeyring(self.conf, self)
-        self.crun = ContainerRunner(self.conf.containers)
+        self.crun = ContainerRunner(self.conf)
         self.keyring.load()
 
     @property
