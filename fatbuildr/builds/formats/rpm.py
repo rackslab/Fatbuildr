@@ -121,14 +121,14 @@ class ArtefactBuildRpm(ArtefactBuild):
                 self.distribution, self.derivative, 'src', self.artefact
             )
 
-        # Compare existing version with the target version
-        if existing_version == self.version:
-            logger.info(
-                "Incrementing build number of existing version %s",
-                existing_version.full,
-            )
-            # use the increment existing version as new fullversion
-            self.version.build = existing_version.build + 1
+            # Compare existing version with the target version
+            if existing_version == self.version:
+                logger.info(
+                    "Incrementing build number of existing version %s",
+                    existing_version.full,
+                )
+                # use the increment existing version as new fullversion
+                self.version.build = existing_version.build + 1
 
         # Generate a new list of ChangelogEntry, extended with existing entries
         # if present.
@@ -140,7 +140,7 @@ class ArtefactBuildRpm(ArtefactBuild):
                 [self.message],
             )
         ]
-        if existing_changelog:
+        if existing_version:
             new_changelog.extend(existing_changelog)
 
         # Render changelog based on string template

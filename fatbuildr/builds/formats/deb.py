@@ -119,14 +119,14 @@ class ArtefactBuildDeb(ArtefactBuild):
                     )
                 )
 
-        # Compare existing version with the target version
-        if existing_version == self.version:
-            logger.info(
-                "Incrementing build number of existing version %s",
-                existing_version.full,
-            )
-            # use the increment build ID of the existing version
-            self.version.build = existing_version.build + 1
+            # Compare existing version with the target version
+            if existing_version == self.version:
+                logger.info(
+                    "Incrementing build number of existing version %s",
+                    existing_version.full,
+                )
+                # increment build ID above the existing version
+                self.version.build = existing_version.build + 1
 
         # Add the new entry to the changelog
         logger.info("Adding entry to changelog")
