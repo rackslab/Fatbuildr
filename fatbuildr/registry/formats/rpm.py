@@ -101,7 +101,14 @@ class RegistryRpm(Registry):
         paths = []
         repo_path = self.repo_path(distribution, derivative)
         md = cr.Metadata()
-        md.locate_and_load_xml(str(self.repo_path(distribution, derivative)))
+        try:
+            md.locate_and_load_xml(
+                str(self.repo_path(distribution, derivative))
+            )
+        except OSError:
+            # If packages Metadata is not found, createrepo_c raises an OSError.
+            # In this case, the repository is necessarily empty.
+            return []
         for key in md.keys():
             pkg = md.get(key)
             if (pkg.arch == 'src' and pkg.name == artefact) or (
@@ -115,7 +122,14 @@ class RegistryRpm(Registry):
         """Returns the list of artefacts in rpm repository."""
         artefacts = []
         md = cr.Metadata()
-        md.locate_and_load_xml(str(self.repo_path(distribution, derivative)))
+        try:
+            md.locate_and_load_xml(
+                str(self.repo_path(distribution, derivative))
+            )
+        except OSError:
+            # If packages Metadata is not found, createrepo_c raises an OSError.
+            # In this case, the repository is necessarily empty.
+            return []
         for key in md.keys():
             pkg = md.get(key)
             artefacts.append(
@@ -170,7 +184,14 @@ class RegistryRpm(Registry):
         """Returns the version of the given source package name, or None if not
         found."""
         md = cr.Metadata()
-        md.locate_and_load_xml(str(self.repo_path(distribution, derivative)))
+        try:
+            md.locate_and_load_xml(
+                str(self.repo_path(distribution, derivative))
+            )
+        except OSError:
+            # If packages Metadata is not found, createrepo_c raises an OSError.
+            # In this case, the repository is necessarily empty.
+            return None
         for key in md.keys():
             pkg = md.get(key)
             if pkg.name != artefact:
