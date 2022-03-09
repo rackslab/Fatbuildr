@@ -48,10 +48,14 @@ class ContainerRunner(object):
             image.path,
         ]
 
-        # Bind-mount image format subdir if it exists
-        img_defs_path = self.conf.images.defs.joinpath(image.format)
-        if img_defs_path.exists():
-            _cmd.extend(['--bind', img_defs_path])
+        # Bind-mount image format and common subdirs if they exist
+        paths = [
+            self.conf.images.defs.joinpath(subdir)
+            for subdir in [image.format, 'common']
+        ]
+        for path in paths:
+            if path.exists():
+                _cmd.extend(['--bind', path])
 
         # add init_opts if init is True
         if init:
