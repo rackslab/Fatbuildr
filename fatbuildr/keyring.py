@@ -295,6 +295,9 @@ class InstanceKeyring:
             self._renew_key(ctx, key, duration)
             self._renew_key(ctx, key, duration, subkey=True)
 
+        # reload the keyring to get changes
+        self.load()
+
     def load_agent(self):
         """Load GPG signing subkey in gpg-agent so reprepro can use the key
         non-interactively."""
