@@ -57,6 +57,10 @@ class RegistryDeb(Registry):
             return []
         return [item.name for item in pool_path.iterdir()]
 
+    @property
+    def dists_conf(self):
+        return self.path.joinpath('conf', 'distributions')
+
     def derivatives(self, distribution):
         return self.components
 
@@ -73,19 +77,18 @@ class RegistryDeb(Registry):
         dists_tpl_path = self.conf.registry.conf.joinpath(
             'apt', 'distributions.j2'
         )
-        dists_path = self.path.joinpath('conf', 'distributions')
 
         # create parent directory recursively, if not present
-        if not dists_path.parent.exists():
-            dists_path.parent.mkdir(parents=True)
+        if not self.dists_conf.parent.exists():
+            self.dists_conf.parent.mkdir(parents=True)
 
         # generate reprepro distributions file
-        logger.debug("Generating distribution file %s", dists_path)
+        logger.debug("Generating distribution file %s", self.dists_conf)
         # Combine existing distributions in repository with build distribution
         # to define resulting list of distributions.
         distributions = list(set(self.distributions + [build.distribution]))
         components = list(set(self.components + build.derivatives))
-        with open(dists_path, 'w+') as fh:
+        with open(self.dists_conf, 'w+') as fh:
             fh.write(
                 Templeter().frender(
                     dists_tpl_path,
@@ -150,6 +153,12 @@ class RegistryDeb(Registry):
 
     def artefacts(self, distribution, derivative):
         """Returns the list of artefacts in deb repository."""
+
+        # Check if repository distributions configuration file exists. If this
+        # file does not exist, the repository is necessarily empty.
+        if not self.dists_conf.exists():
+            return []
+
         artefacts = []
         cmd = [
             'reprepro',
@@ -225,6 +234,11 @@ class RegistryDeb(Registry):
     def source_version(self, distribution, derivative, artefact):
         """Returns the version of the given source package name, or None if not
         found."""
+        # Check if repository distributions configuration file exists. If this
+        # file does not exist, the repository is necessarily empty.
+        if not self.dists_conf.exists():
+            return None
+
         cmd = [
             'reprepro',
             '--basedir',
