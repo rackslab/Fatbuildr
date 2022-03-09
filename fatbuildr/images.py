@@ -145,6 +145,10 @@ class ImagesManager(object):
         self.conf = conf
         self.instance = instance
 
+    @property
+    def defs_path(self):
+        return self.conf.images.defs
+
     def image(self, format):
         return Image(self.conf, self.instance, format)
 
