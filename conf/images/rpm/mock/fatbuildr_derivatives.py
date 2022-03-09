@@ -71,9 +71,10 @@ class FatbuildrDerivatives:
             priority = 50  # first derivative priority
             for derivative in reversed(self.opts['derivatives'].split(',')):
                 repos_dir = repo.joinpath(self.opts['distribution'], derivative)
-                if not repos_dir.exists():
+                if not repos_dir.joinpath('repodata', 'repomd.xml').exists():
                     getLog().info(
-                        "skipping derivative %s as %s directory does not exist",
+                        "skipping derivative %s as %s repository metadata does "
+                        "not exist",
                         derivative,
                         repos_dir,
                     )
