@@ -116,7 +116,7 @@ class ArtefactBuild(RunnableTask):
 
     @property
     def upstream_tarball(self):
-        return self.defs.tarball(self)
+        return self.defs.tarball(self.version.main)
 
     @property
     def checksum_format(self):

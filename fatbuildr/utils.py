@@ -19,6 +19,9 @@
 
 import shlex
 import subprocess
+import hashlib
+
+import requests
 
 from .log import logr
 
@@ -55,3 +58,42 @@ def runcmd(cmd, log=None, **kwargs):
             error += f": {proc.stderr.decode()}"
         raise RuntimeError(error)
     return proc
+
+
+def dl_file(url, path):
+    #  actual download and write in cache
+    logger.debug("Downloading tarball %s and save in %s", url, path)
+    dl = requests.get(url, allow_redirects=True)
+    open(path, 'wb').write(dl.content)
+
+
+def hasher(format):
+    """Return the hashlib object corresponding to the given hash format."""
+    if format == 'sha1':
+        return hashlib.sha1()
+    elif format == 'sha256':
+        return hashlib.sha256()
+    else:
+        raise RuntimeError(f"Unsupported hash format {format}")
+
+
+def verify_checksum(path, format, value):
+    f_hash = hasher(format)
+
+    with open(path, "rb") as fh:
+        while chunk := fh.read(8192):
+            f_hash.update(chunk)
+
+    if f_hash.hexdigest() != value:
+        raise RuntimeError(
+            f"{format} checksum do not match: {f_hash.hexdigest()} != {value}"
+        )
+
+
+def tar_subdir(tar):
+    """Returns the name of the subdirectory of the root of the given tarball,
+    or raise RuntimeError if not found."""
+    subdir = tar.getmembers()[0]
+    if not subdir.isdir():
+        raise RuntimeError(f"unable to define tarball {tar.name} subdirectory")
+    return subdir.name

@@ -36,6 +36,7 @@ setup(name='Fatbuildr',
                         'yaml',
                         'createrepo-c',
                         'Flask',
+                        'pygit2',
                         'python-debian' ],
       entry_points = {
           'console_scripts': [

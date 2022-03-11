@@ -33,6 +33,7 @@ from ..log import logr
 from ..protocols import ClientFactory
 from ..protocols.crawler import register_protocols
 from ..artefact import ArtefactDefs
+from ..patches import PatchQueue
 
 logger = logr(__name__)
 
@@ -213,6 +214,30 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_list = subparsers.add_parser('list', help='List tasks')
         parser_list.set_defaults(func=self._run_list)
 
+        # Parser for the patches command
+        parser_patches = subparsers.add_parser(
+            'patches', help='Manage artefact patch queue'
+        )
+        parser_patches.add_argument(
+            '-a', '--artefact', help='Artefact name', required=True
+        )
+        parser_patches.add_argument(
+            '--derivative',
+            help='Distribution derivative',
+            default='main',
+        )
+        parser_patches.add_argument(
+            '-b',
+            '--basedir',
+            help='Artefacts definitions directory',
+        )
+        parser_patches.add_argument(
+            '-s', '--subdir', help='Artefact subdirectory'
+        )
+        parser_patches.add_argument('-n', '--name', help='Maintainer name')
+        parser_patches.add_argument('-e', '--email', help='Maintainer email')
+        parser_patches.set_defaults(func=self._run_patches)
+
         # Parser for the watch command
         parser_watch = subparsers.add_parser('watch', help='Watch task')
         parser_watch.add_argument('-t', '--task', help='ID of task to watch')
@@ -388,15 +413,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
             sys.exit(1)
 
-    def _run_build(self, args):
-        logger.debug(
-            "running build for artefact: %s instance: %s"
-            % (args.artefact, self.instance)
-        )
-
-        connection = ClientFactory.get(self.host)
-
-        # Set basedir with args, prefs descending priority, or fail
+    def _get_basedir(self, args):
+        """Returns the basedir based on args and prefs descending priority, or
+        fail with return code 1 and error message."""
         if args.basedir is None:
             if self.prefs.basedir is None:
                 print(
@@ -406,11 +425,21 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
                 sys.exit(1)
             else:
-                basedir = self.prefs.basedir
+                return self.prefs.basedir
         else:
-            basedir = args.basedir
+            return args.basedir
 
-        # Set user name with args, prefs descending priority, or fail
+    def _get_subdir(self, args):
+        """Returns the subdir, which defaults to artefact name if not provided
+        in arguments."""
+        if args.subdir is None:
+            return args.artefact
+        else:
+            return args.subdir
+
+    def _get_user_name(self, args):
+        """Returns the user name based on args and prefs descending priority,
+        or fail with return code 1 and error message."""
         if args.name is None:
             if self.prefs.user_name is None:
                 print(
@@ -420,11 +449,13 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
                 sys.exit(1)
             else:
-                user_name = self.prefs.user_name
+                return self.prefs.user_name
         else:
-            user_name = args.name
+            return args.name
 
-        # Set user email with args, prefs descending priority, or fail
+    def _get_user_email(self, args):
+        """Returns the user email based on args and prefs descending priority,
+        or fail with return code 1 and error message."""
         if args.email is None:
             if self.prefs.user_email is None:
                 print(
@@ -434,31 +465,16 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
                 sys.exit(1)
             else:
-                user_email = self.prefs.user_email
+                return self.prefs.user_email
         else:
-            user_email = args.email
+            return args.email
 
-        # Set build_msg with args, prefs descending priority, or fail
-        if args.msg is None:
-            if self.prefs.message is None:
-                print(
-                    "The build message must be defined for build operations, "
-                    "either with --msg argument or through user "
-                    "preferences file."
-                )
-                sys.exit(1)
-            else:
-                build_msg = self.prefs.message
-        else:
-            build_msg = args.msg
-
-        # Set subdir, which defaults to artefact name
-        if args.subdir is None:
-            subdir = args.artefact
-        else:
-            subdir = args.subdir
-
-        defs = ArtefactDefs(Path(basedir, subdir))
+    def _get_format_distribution(self, connection, defs, args):
+        """Defines format and distribution of the build or pq, given the
+        provided arguments, artefact definition and instance pipelines. It
+        tries to guess as much missing information as possible. It also
+        performs some coherency checks, the program is left with return code 1
+        and a meaningfull message when error is detected."""
 
         format = None
         distribution = None
@@ -551,6 +567,41 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
             sys.exit(1)
 
+        return (format, distribution)
+
+    def _run_build(self, args):
+        logger.debug(
+            "running build for artefact: %s instance: %s"
+            % (args.artefact, self.instance)
+        )
+
+        connection = ClientFactory.get(self.host)
+
+        basedir = self._get_basedir(args)
+        subdir = self._get_subdir(args)
+        defs = ArtefactDefs(Path(basedir, subdir))
+
+        user_name = self._get_user_name(args)
+        user_email = self._get_user_email(args)
+
+        # Set build_msg with args, prefs descending priority, or fail
+        if args.msg is None:
+            if self.prefs.message is None:
+                print(
+                    "The build message must be defined for build operations, "
+                    "either with --msg argument or through user "
+                    "preferences file."
+                )
+                sys.exit(1)
+            else:
+                build_msg = self.prefs.message
+        else:
+            build_msg = args.msg
+
+        (format, distribution) = self._get_format_distribution(
+            connection, defs, args
+        )
+
         try:
             tarball = prepare_tarball(basedir, subdir)
             self._submit_watch(
@@ -590,6 +641,24 @@ class Fatbuildrctl(FatbuildrCliRun):
         except RuntimeError as err:
             logger.error("Error while listing tasks: %s", err)
             sys.exit(1)
+
+    def _run_patches(self, args):
+
+        basedir = self._get_basedir(args)
+        subdir = self._get_subdir(args)
+        defs = ArtefactDefs(Path(basedir, subdir))
+        user_name = self._get_user_name(args)
+        user_email = self._get_user_email(args)
+        patch_queue = PatchQueue(
+            basedir,
+            subdir,
+            args.derivative,
+            args.artefact,
+            defs,
+            user_name,
+            user_email,
+        )
+        patch_queue.run()
 
     def _submit_watch(self, caller, task_name, watch, *args):
         task_id = caller(self.instance, *args)

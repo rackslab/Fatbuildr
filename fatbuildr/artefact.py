@@ -78,10 +78,8 @@ class ArtefactDefs:
     def fullversion(self, fmt, derivative):
         return self.version(derivative) + '-' + self.release(fmt)
 
-    def tarball(self, obj):
-        return Templeter().srender(
-            self.meta['tarball'], version=obj.version.main
-        )
+    def tarball(self, version):
+        return Templeter().srender(self.meta['tarball'], version=version)
 
     def has_buildargs(self, fmt):
         return 'buildargs' in self.meta[fmt]
