@@ -242,7 +242,11 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         # Parser for the watch command
         parser_watch = subparsers.add_parser('watch', help='Watch task')
-        parser_watch.add_argument('-t', '--task', help='ID of task to watch')
+        parser_watch.add_argument(
+            'task',
+            help='ID of task to watch (default: running task)',
+            nargs='?',
+        )
         parser_watch.set_defaults(func=self._run_watch)
 
         # Parser for the archives command
@@ -688,7 +692,18 @@ class Fatbuildrctl(FatbuildrCliRun):
             pass
 
     def _run_watch(self, args):
-        self._watch_task(args.task)
+        if not args.task:
+            connection = ClientFactory.get(self.uri)
+            running = connection.running()
+            if not running:
+                logger.error(
+                    "No running task found, please give a task ID to watch."
+                )
+                sys.exit(1)
+            task_id = running.id
+        else:
+            task_id = args.task
+        self._watch_task(task_id)
 
     def _run_archives(self, args):
         connection = ClientFactory.get(self.uri)
