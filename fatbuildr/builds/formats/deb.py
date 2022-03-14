@@ -119,9 +119,7 @@ class ArtefactBuildDeb(ArtefactBuild):
                 patch.rename(patches_to.joinpath(patch.name))
 
             # Generate patches series file
-            logger.debug(
-                "Generating series files with following patches: %s", patches
-            )
+            logger.debug("Generating patches series files with patches")
             with open(patches_to.joinpath('series'), 'w+') as fh:
                 fh.writelines([path.name + '\n' for path in patches])
 
