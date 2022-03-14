@@ -162,19 +162,14 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_keyring = subparsers.add_parser(
             'keyring', help='Manage signing keyring'
         )
+        parser_keyring.add_argument('--duration', help='New duration for renew')
         parser_keyring.add_argument(
-            '--create', action='store_true', help='Create keyring'
+            'operation',
+            help='Operation on keyring (default: %(default)s)',
+            nargs='?',
+            choices=['show', 'export', 'create', 'renew'],
+            default='show',
         )
-        parser_keyring.add_argument(
-            '--show', action='store_true', help='Show keyring information'
-        )
-        parser_keyring.add_argument(
-            '--export', action='store_true', help='Export keyring'
-        )
-        parser_keyring.add_argument(
-            '--renew', help='Extend expiry date for a new duration'
-        )
-
         parser_keyring.set_defaults(func=self._run_keyring)
 
         # Parser for the build command
@@ -399,26 +394,31 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_keyring(self, args):
         logger.debug("running keyring operation")
-        if args.create:
+        if args.operation == 'create':
             task_id = self.connection.keyring_create()
             print(f"Submitted keyring creation task {task_id}")
-        elif args.renew:
-            task_id = self.connection.keyring_renew(args.renew)
+        elif args.operation == 'renew':
+            if not args.duration:
+                logger.error(
+                    "Duration must be given to renew keyring, type '%s '"
+                    "keyring --help' for details",
+                    progname(),
+                )
+                sys.exit(1)
+            task_id = self.connection.keyring_renew(args.duration)
             print(f"Submitted keyring renewal task {task_id}")
-        elif args.show:
+        elif args.operation == 'show':
             keyring = self.connection.keyring()
             if keyring:
                 keyring.report()
             else:
                 print(f"No keyring available on URI {self.uri}")
-        elif args.export:
+        elif args.operation == 'export':
             print(self.connection.keyring_export(), end='')
         else:
-            print(
-                "An operation on the keyring must be specified, type "
-                f"'{progname()} keyring --help' for details"
+            NotImplementedError(
+                f"Unsupported keyring operation {args.operation}"
             )
-            sys.exit(1)
 
     def _get_basedir(self, args):
         """Returns the basedir based on args and prefs descending priority, or
