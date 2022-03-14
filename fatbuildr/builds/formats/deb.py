@@ -104,10 +104,11 @@ class ArtefactBuildDeb(ArtefactBuild):
         shutil.copytree(deb_code_from, deb_code_to)
 
         # Generate patches tree if patches are provided
-        patches_from = self.place.joinpath('patches')
-        if patches_from.exists():
+
+        if self.has_patches:
             logger.info("Generating debian patches tree")
-            patches = sorted([item for item in patches_from.iterdir()])
+
+            patches = self.patches
             patches_to = tarball_subdir.joinpath('debian', 'patches')
 
             # Create debian patches subdir

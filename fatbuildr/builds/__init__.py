@@ -125,6 +125,23 @@ class ArtefactBuild(RunnableTask):
     def checksum_value(self):
         return self.defs.checksum_value(self.derivative)
 
+    @property
+    def patches_dir(self):
+        """Returns the Path to the artefact patches directory."""
+        return self.place.joinpath('patches')
+
+    @property
+    def patches(self):
+        """Returns the sorted list of Path of patches found in artefact patches
+        directory."""
+        return sorted([item for item in self.patches_dir.iterdir()])
+
+    @property
+    def has_patches(self):
+        """Returns True if artefact patches directory exists, False
+        otherwise."""
+        return self.patches_dir.exists()
+
     def run(self):
         logger.info("Running build %s", self.id)
         self.prepare()
@@ -193,8 +210,8 @@ class ArtefactBuild(RunnableTask):
             git = GitRepository(tarball_subdir, self.user, self.email)
 
             # import existing patches in queue
-            patches_dir = self.place.joinpath('patches')
-            git.import_patches(patches_dir)
+            if self.has_patches:
+                git.import_patches(self.patches_dir)
 
             # Run pre script in archives directory using the wrapper
             wrapper_path = self.image.common_libdir.joinpath('pre-wrapper.sh')
@@ -203,7 +220,7 @@ class ArtefactBuild(RunnableTask):
 
             # export git repo diff in patch queue
             git.commit_export(
-                patches_dir,
+                self.patches_dir,
                 9999,
                 'fatbuildr-prescript',
                 self.user,

@@ -122,13 +122,12 @@ class ArtefactBuildRpm(ArtefactBuild):
         templater = Templeter()
 
         # Generate patches templates
-        patches_from = self.place.joinpath('patches')
         patches_decl = ""
         patches_prep = ""
-        if patches_from.exists():
-            # Get list of patches
-            patches = sorted([item for item in patches_from.iterdir()])
+
+        if self.has_patches:
             # Move patches at the root of build place
+            patches = self.patches
             for patch in patches:
                 patch.rename(self.place.joinpath(patch.name))
             patches_decl = templater.srender(PATCHES_DECL_TPL, patches=patches)
