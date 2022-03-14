@@ -127,7 +127,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         patches_prep = ""
         if patches_from.exists():
             # Get list of patches
-            patches = [item for item in patches_from.iterdir()]
+            patches = sorted([item for item in patches_from.iterdir()])
             # Move patches at the root of build place
             for patch in patches:
                 patch.rename(self.place.joinpath(patch.name))

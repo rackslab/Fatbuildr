@@ -107,7 +107,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         patches_from = self.place.joinpath('patches')
         if patches_from.exists():
             logger.info("Generating debian patches tree")
-            patches = [item for item in patches_from.iterdir()]
+            patches = sorted([item for item in patches_from.iterdir()])
             patches_to = tarball_subdir.joinpath('debian', 'patches')
 
             # Create debian patches subdir
