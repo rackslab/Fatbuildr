@@ -123,7 +123,7 @@ class ArtefactBuildDeb(ArtefactBuild):
                 "Generating series files with following patches: %s", patches
             )
             with open(patches_to.joinpath('series'), 'w+') as fh:
-                fh.writelines([path.name for path in patches])
+                fh.writelines([path.name + '\n' for path in patches])
 
         # Check if existing source package and get version
         existing_version = self.registry.source_version(
