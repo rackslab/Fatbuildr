@@ -22,6 +22,7 @@ import tarfile
 import shutil
 
 from .. import ArtefactBuild
+from ...utils import tar_subdir
 from ...log import logr
 
 logger = logr(__name__)
@@ -88,7 +89,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         # extract tarball in build place
         logger.debug("Extracting tarball %s in %s", self.tarball, self.place)
         tar = tarfile.open(self.tarball, 'r:' + self.tarball_ext)
-        tarball_subdir = self.place.joinpath(self._tar_subdir(tar))
+        tarball_subdir = self.place.joinpath(tar_subdir(tar))
         tar.extractall(path=self.place)
         tar.close()
 
