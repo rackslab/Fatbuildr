@@ -283,8 +283,21 @@ class Fatbuildrctl(FatbuildrCliRun):
         logger.setup(args.debug or args.fulldebug, args.fulldebug)
         self.load(args)
 
+        # Connection to fatbuildrd, initialized when needed in connection property
+        # method.
+        self._connection = None
+
         # run the method corresponding to the provided action
         args.func(args)
+
+    @property
+    def connection(self):
+        """Returns the already established connection or creates a new
+        connection and returns it."""
+        if self._connection:
+            return self._connection
+        self._connection = ClientFactory.get(self.uri)
+        return self._connection
 
     def load(self, args):
         """Register protocols and load user preferences, then set common
@@ -322,19 +335,17 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
             sys.exit(1)
 
-        connection = ClientFactory.get(self.uri)
-
         if args.format:
             selected_formats = [args.format]
         else:
-            selected_formats = connection.pipelines_formats()
+            selected_formats = self.connection.pipelines_formats()
         logger.debug("Selected formats: %s", selected_formats)
 
         # check if operation is on images and run it
         if args.create:
             for format in selected_formats:
                 self._submit_watch(
-                    connection.image_create,
+                    self.connection.image_create,
                     f"{format} image creation",
                     args.watch,
                     format,
@@ -343,7 +354,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         elif args.update:
             for format in selected_formats:
                 self._submit_watch(
-                    connection.image_update,
+                    self.connection.image_update,
                     f"{format} image update",
                     args.watch,
                     format,
@@ -351,14 +362,14 @@ class Fatbuildrctl(FatbuildrCliRun):
         else:
             # At this stage, the operation is on build environments
             for format in selected_formats:
-                distributions = connection.pipelines_format_distributions(
+                distributions = self.connection.pipelines_format_distributions(
                     format
                 )
                 if not distributions:
                     logger.info("No distribution defined for %s image", format)
                 envs = []
                 for distribution in distributions:
-                    env = connection.pipelines_distribution_environment(
+                    env = self.connection.pipelines_distribution_environment(
                         distribution
                     )
                     if env is not None:
@@ -370,7 +381,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 if args.create_envs:
                     for env in envs:
                         self._submit_watch(
-                            connection.image_environment_create,
+                            self.connection.image_environment_create,
                             f"{format} {env} build environment creation",
                             args.watch,
                             format,
@@ -379,7 +390,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 elif args.update_envs:
                     for env in envs:
                         self._submit_watch(
-                            connection.image_environment_update,
+                            self.connection.image_environment_update,
                             f"{format} {env} build environment update",
                             args.watch,
                             format,
@@ -388,21 +399,20 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_keyring(self, args):
         logger.debug("running keyring operation")
-        connection = ClientFactory.get(self.uri)
         if args.create:
-            task_id = connection.keyring_create()
+            task_id = self.connection.keyring_create()
             print(f"Submitted keyring creation task {task_id}")
         elif args.renew:
-            task_id = connection.keyring_renew(args.renew)
+            task_id = self.connection.keyring_renew(args.renew)
             print(f"Submitted keyring renewal task {task_id}")
         elif args.show:
-            keyring = connection.keyring()
+            keyring = self.connection.keyring()
             if keyring:
                 keyring.report()
             else:
                 print(f"No keyring available on URI {self.uri}")
         elif args.export:
-            print(connection.keyring_export(), end='')
+            print(self.connection.keyring_export(), end='')
         else:
             print(
                 "An operation on the keyring must be specified, type "
@@ -466,7 +476,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         else:
             return args.email
 
-    def _get_format_distribution(self, connection, defs, args):
+    def _get_format_distribution(self, defs, args):
         """Defines format and distribution of the build or pq, given the
         provided arguments, artefact definition and server pipelines. It
         tries to guess as much missing information as possible. It also
@@ -478,7 +488,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         if args.distribution:
             distribution = args.distribution
-            dist_fmt = connection.pipelines_distribution_format(
+            dist_fmt = self.connection.pipelines_distribution_format(
                 args.distribution
             )
             # if format is also given, check it matches
@@ -518,7 +528,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
             sys.exit(1)
         elif not args.distribution:
-            format_dists = connection.pipelines_format_distributions(format)
+            format_dists = self.connection.pipelines_format_distributions(
+                format
+            )
             # check if there is not more than one distribution for this format
             if len(format_dists) > 1:
                 logger.error(
@@ -552,7 +564,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             sys.exit(1)
 
         # check format is accepted for this derivative
-        if format not in connection.pipelines_derivative_formats(
+        if format not in self.connection.pipelines_derivative_formats(
             args.derivative
         ):
             logger.error(
@@ -568,8 +580,6 @@ class Fatbuildrctl(FatbuildrCliRun):
         logger.debug(
             "running build for artefact: %s uri: %s", args.artefact, self.uri
         )
-
-        connection = ClientFactory.get(self.uri)
 
         basedir = self._get_basedir(args)
         subdir = self._get_subdir(args)
@@ -592,14 +602,12 @@ class Fatbuildrctl(FatbuildrCliRun):
         else:
             build_msg = args.msg
 
-        (format, distribution) = self._get_format_distribution(
-            connection, defs, args
-        )
+        (format, distribution) = self._get_format_distribution(defs, args)
 
         try:
             tarball = prepare_tarball(basedir, subdir)
             self._submit_watch(
-                connection.submit,
+                self.connection.submit,
                 f"{args.artefact} build",
                 args.watch,
                 format,
@@ -617,16 +625,15 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_list(self, args):
         logger.debug("running list")
-        connection = ClientFactory.get(self.uri)
         try:
-            running = connection.running()
+            running = self.connection.running()
             if running:
                 print("Running tasks:")
                 running.report()
             else:
                 print("No running task")
 
-            queue = connection.queue()
+            queue = self.connection.queue()
             if queue:
                 print("Pending tasks:")
                 for task in queue:
@@ -661,9 +668,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             self._watch_task(task_id)
 
     def _watch_task(self, task_id):
-        connection = ClientFactory.get(self.uri)
         try:
-            task = connection.get(task_id)
+            task = self.connection.get(task_id)
         except RuntimeError as err:
             logger.error(err)
             sys.exit(1)
@@ -679,9 +685,9 @@ class Fatbuildrctl(FatbuildrCliRun):
                 warned_pending = True
             time.sleep(1)
             # poll task state again
-            task = connection.get(task_id)
+            task = self.connection.get(task_id)
         try:
-            for line in connection.watch(task):
+            for line in self.connection.watch(task):
                 print(line, end='')
         except KeyboardInterrupt:
             # Leave gracefully after a keyboard interrupt (eg. ^c)
@@ -693,8 +699,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_watch(self, args):
         if not args.task:
-            connection = ClientFactory.get(self.uri)
-            running = connection.running()
+            running = self.connection.running()
             if not running:
                 logger.error(
                     "No running task found, please give a task ID to watch."
@@ -706,8 +711,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         self._watch_task(task_id)
 
     def _run_archives(self, args):
-        connection = ClientFactory.get(self.uri)
-        archives = connection.archives(10)
+        archives = self.connection.archives(10)
         if not archives:
             print("No archive found")
             return
@@ -716,9 +720,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             archive.report()
 
     def _run_registry(self, args):
-        connection = ClientFactory.get(self.uri)
-        _fmt = connection.pipelines_distribution_format(args.distribution)
-        artefacts = connection.artefacts(
+        _fmt = self.connection.pipelines_distribution_format(args.distribution)
+        artefacts = self.connection.artefacts(
             _fmt, args.distribution, args.derivative
         )
         if args.artefact:
@@ -743,7 +746,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 artefact.report()
         elif args.operation == 'delete':
             for artefact in artefacts:
-                task_id = connection.delete_artefact(
+                task_id = self.connection.delete_artefact(
                     _fmt,
                     args.distribution,
                     args.derivative,
