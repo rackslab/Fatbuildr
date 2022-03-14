@@ -173,7 +173,7 @@ class DbusClient(object):
         for _task in self.archives(limit=0):
             if _task.id == task_id:
                 return _task
-        raise RuntimeError(f"Unable to find task {build_id} on server")
+        raise RuntimeError(f"Unable to find task {task_id} on server")
 
     def watch(self, task):
         """Dbus clients run on the same host as the server, they access the
