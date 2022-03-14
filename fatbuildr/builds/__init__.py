@@ -216,7 +216,7 @@ class ArtefactBuild(RunnableTask):
             # Run pre script in archives directory using the wrapper
             wrapper_path = self.image.common_libdir.joinpath('pre-wrapper.sh')
             cmd = ['/bin/bash', wrapper_path, pre_script_path]
-            self.cruncmd(cmd, chdir=tarball_subdir)
+            self.cruncmd(cmd, chdir=tarball_subdir, readonly=True)
 
             # export git repo diff in patch queue
             git.commit_export(

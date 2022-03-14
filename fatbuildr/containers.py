@@ -39,6 +39,7 @@ class ContainerRunner(object):
         chdir=None,
         envs=[],
         log=None,
+        readonly=False,
     ):
         """Generic fully featured method to run command in container using
         systemd-nspawn."""
@@ -47,6 +48,17 @@ class ContainerRunner(object):
             '--directory',
             image.path,
         ]
+
+        if readonly:
+            # Use --volatile=state option that mounts the image read-only with
+            # a tmpfs for /var (data are lost after container shutdown). This
+            # prevents the command from altering the image.
+            #
+            # Unfortunately, systemd-nspawn --read-only does not work with
+            # --bind mounts, it fails with the following error:
+            #
+            # Failed to create mount point [/mnt/point]: Read-only file system
+            _cmd.append('--volatile=state')
 
         # Bind-mount image format and common libdirs if they exist
         for path in [image.format_libdir, image.common_libdir]:
