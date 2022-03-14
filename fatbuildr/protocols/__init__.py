@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+from urllib.parse import urlparse
+
 from .dbus.client import DbusClient
 from .http.client import HttpClient
 
@@ -25,11 +27,17 @@ from .dbus.server import DbusServer
 
 class ClientFactory(object):
     @staticmethod
-    def get(host):
-        if host == 'local':
-            return DbusClient()
+    def get(address):
+        uri = urlparse(address)
+        instance = uri.path.strip('/')
+        if uri.scheme == 'dbus':
+            if not instance:
+                raise RuntimeError("Instance must be defined in Dbus URI")
+            return DbusClient(instance)
+        elif uri.scheme in ['http', 'https']:
+            return HttpClient(address)
         else:
-            return HttpClient(host)
+            raise RuntimeError(f"unsupported URI {uri}")
 
 
 class ServerFactory(object):

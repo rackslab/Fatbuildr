@@ -29,8 +29,7 @@ class UserPreferences:
 
         self.user_name = None
         self.user_email = None
-        self.host = None
-        self.instance = None
+        self.uri = None
         self.basedir = None
         self.message = None
 
@@ -47,8 +46,7 @@ class UserPreferences:
 
         self.user_name = config.get('user', 'name', fallback=None)
         self.user_email = config.get('user', 'email', fallback=None)
-        self.host = config.get('prefs', 'host', fallback=None)
-        self.instance = config.get('prefs', 'instance', fallback=None)
+        self.uri = config.get('prefs', 'uri', fallback=None)
         self.basedir = config.get('prefs', 'basedir', fallback=None)
         self.message = config.get('prefs', 'message', fallback=None)
 
@@ -60,7 +58,6 @@ class UserPreferences:
         logger.debug("   name: %s", self.user_name)
         logger.debug("   email: %s", self.user_email)
         logger.debug(" [prefs]")
-        logger.debug("   host: %s", self.host)
-        logger.debug("   instance: %s", self.instance)
+        logger.debug("   uri: %s", self.uri)
         logger.debug("   basedir: %s", self.basedir)
         logger.debug("   message: %s", self.message)

@@ -39,41 +39,43 @@ from ..protocols.http import (
 )
 
 
+def get_connection(instance='default'):
+    return ClientFactory.get('dbus://system/' + instance)
+
+
 def version():
     return f"Fatbuildr v{__version__}"
 
 
 def instance(instance):
-    connection = ClientFactory.get('local')
+    connection = get_connection(instance)
     _instance = connection.instance(instance)
     return jsonify(JsonInstance.export(_instance))
 
 
 def pipelines_formats(instance):
-    connection = ClientFactory.get('local')
+    connection = get_connection(instance)
     result = {}
 
     filter_format = request.args.get('format')
     filter_distribution = request.args.get('distribution')
     filter_environment = request.args.get('environment')
 
-    formats = connection.pipelines_formats(instance)
+    formats = connection.pipelines_formats()
     for format in formats:
         if filter_format and format != filter_format:
             continue
-        distributions = connection.pipelines_format_distributions(
-            instance, format
-        )
+        distributions = connection.pipelines_format_distributions(format)
         for distribution in distributions:
             if filter_distribution and distribution != filter_distribution:
                 continue
             environment = connection.pipelines_distribution_environment(
-                instance, distribution
+                distribution
             )
             if filter_environment and environment != filter_environment:
                 continue
             derivatives = connection.pipelines_distribution_derivatives(
-                instance, distribution
+                distribution
             )
             if format not in result:
                 result[format] = []
@@ -88,7 +90,7 @@ def pipelines_formats(instance):
 
 
 def index(output='html'):
-    connection = ClientFactory.get('local')
+    connection = get_connection()
     instances = connection.instances()
     if output == 'json':
         return jsonify(
@@ -99,15 +101,15 @@ def index(output='html'):
 
 
 def registry(instance, output='html'):
-    connection = ClientFactory.get('local')
-    formats = connection.formats(instance)
+    connection = get_connection(instance)
+    formats = connection.formats()
     if output == 'json':
         return jsonify(formats)
     else:
         # add informations about tasks in HTML page
-        pending = connection.queue(instance)
-        running = connection.running(instance)
-        archives = connection.archives(instance, 10)
+        pending = connection.queue()
+        running = connection.running()
+        archives = connection.archives(10)
         return render_template(
             'registry.html.j2',
             instance=instance,
@@ -119,8 +121,8 @@ def registry(instance, output='html'):
 
 
 def format(instance, fmt, output='html'):
-    connection = ClientFactory.get('local')
-    distributions = connection.distributions(instance, fmt)
+    connection = get_connection(instance)
+    distributions = connection.distributions(fmt)
     if output == 'json':
         return jsonify(distributions)
     else:
@@ -133,8 +135,8 @@ def format(instance, fmt, output='html'):
 
 
 def distribution(instance, fmt, distribution, output='html'):
-    connection = ClientFactory.get('local')
-    derivatives = connection.derivatives(instance, fmt, distribution)
+    connection = get_connection(instance)
+    derivatives = connection.derivatives(fmt, distribution)
     if output == 'json':
         return jsonify(derivatives)
     else:
@@ -148,8 +150,8 @@ def distribution(instance, fmt, distribution, output='html'):
 
 
 def derivative(instance, fmt, distribution, derivative, output='html'):
-    connection = ClientFactory.get('local')
-    artefacts = connection.artefacts(instance, fmt, distribution, derivative)
+    connection = get_connection(instance)
+    artefacts = connection.artefacts(fmt, distribution, derivative)
     if output == 'json':
         return jsonify([vars(artefact) for artefact in artefacts])
     else:
@@ -172,21 +174,21 @@ def artefact(
     artefact,
     output='html',
 ):
-    connection = ClientFactory.get('local')
+    connection = get_connection(instance)
     if architecture == 'src':
         source = None
         binaries = connection.artefact_bins(
-            instance, fmt, distribution, derivative, artefact
+            fmt, distribution, derivative, artefact
         )
         template = 'src.html.j2'
     else:
         source = connection.artefact_src(
-            instance, fmt, distribution, derivative, artefact
+            fmt, distribution, derivative, artefact
         )
         binaries = []
         template = 'bin.html.j2'
     changelog = connection.changelog(
-        instance, fmt, distribution, derivative, architecture, artefact
+        fmt, distribution, derivative, architecture, artefact
     )
 
     if output == 'json':
@@ -228,18 +230,16 @@ def artefact(
 
 
 def search(instance, artefact, output='html'):
-    connection = ClientFactory.get('local')
-    formats = connection.formats(instance)
+    connection = get_connection(instance)
+    formats = connection.formats()
     results = {}
 
     for fmt in formats:
-        distributions = connection.distributions(instance, fmt)
+        distributions = connection.distributions(fmt)
         for distribution in distributions:
-            derivatives = connection.derivatives(instance, fmt, distribution)
+            derivatives = connection.derivatives(fmt, distribution)
             for derivative in derivatives:
-                artefacts = connection.artefacts(
-                    instance, fmt, distribution, derivative
-                )
+                artefacts = connection.artefacts(fmt, distribution, derivative)
                 for _artefact in artefacts:
                     if artefact in _artefact.name:
                         if fmt not in results:
@@ -276,9 +276,8 @@ def submit(instance):
     )
     tarball.save(tarball_path)
 
-    connection = ClientFactory.get('local')
+    connection = get_connection(instance)
     task_id = connection.submit(
-        instance,
         request.form['format'],
         request.form['distribution'],
         request.form['derivative'],
@@ -292,38 +291,38 @@ def submit(instance):
 
 
 def running(instance):
-    connection = ClientFactory.get('local')
-    running = connection.running(instance)
+    connection = get_connection(instance)
+    running = connection.running()
     if running:
         return jsonify(JsonRunnableTask.export(running))
     return jsonify(None)
 
 
 def queue(instance):
-    connection = ClientFactory.get('local')
-    tasks = connection.queue(instance)
+    connection = get_connection(instance)
+    tasks = connection.queue()
     return jsonify([JsonRunnableTask.export(task) for task in tasks])
 
 
 def task(instance, task_id):
-    connection = ClientFactory.get('local')
-    task = connection.get(instance, task_id)
+    connection = get_connection(instance)
+    task = connection.get(task_id)
     return jsonify(JsonRunnableTask.export(task))
 
 
 def watch(instance, task_id):
     """Stream lines obtained by DbusClient.watch() generator."""
-    connection = ClientFactory.get('local')
-    task = connection.get(instance, task_id)
+    connection = get_connection(instance)
+    task = connection.get(task_id)
     return current_app.response_class(
-        connection.watch(instance, task), mimetype='text/plain'
+        connection.watch(task), mimetype='text/plain'
     )
 
 
 def keyring(instance):
-    connection = ClientFactory.get('local')
+    connection = get_connection(instance)
     mem = io.BytesIO()
-    mem.write(connection.keyring_export(instance).encode())
+    mem.write(connection.keyring_export().encode())
     mem.seek(0)
     return send_file(
         mem,

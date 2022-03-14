@@ -32,10 +32,11 @@ from . import (
 
 
 class DbusClient(object):
-    def __init__(self):
+    def __init__(self, instance):
+        self.instance = instance
         self.proxy = REGISTER.get_proxy()
 
-    # instances
+    # instances and pipelines
 
     def instances(self):
         return DbusInstance.from_structure_list(self.proxy.Instances)
@@ -43,84 +44,86 @@ class DbusClient(object):
     def instance(self, id):
         return DbusInstance.from_structure(self.proxy.Instance(id))
 
-    def pipelines_formats(self, instance):
-        return self.proxy.PipelinesFormats(instance)
+    def pipelines_formats(self):
+        return self.proxy.PipelinesFormats(self.instance)
 
-    def pipelines_format_distributions(self, instance, format):
-        return self.proxy.PipelinesFormatDistributions(instance, format)
+    def pipelines_format_distributions(self, format):
+        return self.proxy.PipelinesFormatDistributions(self.instance, format)
 
-    def pipelines_distribution_format(self, instance, distribution):
-        return self.proxy.PipelinesDistributionFormat(instance, distribution)
-
-    def pipelines_distribution_derivatives(self, instance, distribution):
-        return self.proxy.PipelinesDistributionDerivatives(
-            instance, distribution
+    def pipelines_distribution_format(self, distribution):
+        return self.proxy.PipelinesDistributionFormat(
+            self.instance, distribution
         )
 
-    def pipelines_distribution_environment(self, instance, distribution):
+    def pipelines_distribution_derivatives(self, distribution):
+        return self.proxy.PipelinesDistributionDerivatives(
+            self.instance, distribution
+        )
+
+    def pipelines_distribution_environment(self, distribution):
         env = self.proxy.PipelinesDistributionEnvironment(
-            instance, distribution
+            self.instance, distribution
         )
         if env == 'none':
             return None
         return env
 
-    def pipelines_derivative_formats(self, instance, derivative):
-        return self.proxy.PipelinesDerivativeFormats(instance, derivative)
+    def pipelines_derivative_formats(self, derivative):
+        return self.proxy.PipelinesDerivativeFormats(self.instance, derivative)
 
     # registries
 
-    def formats(self, instance):
-        return self.proxy.Formats(instance)
+    def formats(self):
+        return self.proxy.Formats(self.instance)
 
-    def distributions(self, instance, fmt):
-        return self.proxy.Distributions(instance, fmt)
+    def distributions(self, fmt):
+        return self.proxy.Distributions(self.instance, fmt)
 
-    def derivatives(self, instance, fmt, distribution):
-        return self.proxy.Derivatives(instance, fmt, distribution)
+    def derivatives(self, fmt, distribution):
+        return self.proxy.Derivatives(self.instance, fmt, distribution)
 
-    def artefacts(self, instance, fmt, distribution, derivative):
+    def artefacts(self, fmt, distribution, derivative):
         return DbusArtefact.from_structure_list(
-            self.proxy.Artefacts(instance, fmt, distribution, derivative)
+            self.proxy.Artefacts(self.instance, fmt, distribution, derivative)
         )
 
-    def delete_artefact(
-        self, instance, fmt, distribution, derivative, artefact
-    ):
+    def delete_artefact(self, fmt, distribution, derivative, artefact):
         return self.proxy.ArtefactDelete(
-            instance,
+            self.instance,
             fmt,
             distribution,
             derivative,
             DbusArtefact.to_structure(artefact),
         )
 
-    def artefact_bins(self, instance, fmt, distribution, derivative, artefact):
+    def artefact_bins(self, fmt, distribution, derivative, artefact):
         return DbusArtefact.from_structure_list(
             self.proxy.ArtefactBinaries(
-                instance, fmt, distribution, derivative, artefact
+                self.instance, fmt, distribution, derivative, artefact
             )
         )
 
-    def artefact_src(self, instance, fmt, distribution, derivative, artefact):
+    def artefact_src(self, fmt, distribution, derivative, artefact):
         return DbusArtefact.from_structure(
             self.proxy.ArtefactSource(
-                instance, fmt, distribution, derivative, artefact
+                self.instance, fmt, distribution, derivative, artefact
             )
         )
 
-    def changelog(
-        self, instance, fmt, distribution, derivative, architecture, artefact
-    ):
+    def changelog(self, fmt, distribution, derivative, architecture, artefact):
         return DbusChangelogEntry.from_structure_list(
             self.proxy.Changelog(
-                instance, fmt, distribution, derivative, architecture, artefact
+                self.instance,
+                fmt,
+                distribution,
+                derivative,
+                architecture,
+                artefact,
             )
         )
 
     def submit(
         self,
-        instance,
         format,
         distribution,
         derivative,
@@ -131,7 +134,7 @@ class DbusClient(object):
         tarball,
     ):
         return self.proxy.Submit(
-            instance,
+            self.instance,
             format,
             distribution,
             derivative,
@@ -142,33 +145,37 @@ class DbusClient(object):
             str(tarball),
         )
 
-    def queue(self, instance):
-        return DbusRunnableTask.from_structure_list(self.proxy.Queue(instance))
+    def queue(self):
+        return DbusRunnableTask.from_structure_list(
+            self.proxy.Queue(self.instance)
+        )
 
-    def running(self, instance):
+    def running(self):
         try:
-            return DbusRunnableTask.from_structure(self.proxy.Running(instance))
+            return DbusRunnableTask.from_structure(
+                self.proxy.Running(self.instance)
+            )
         except ErrorNoRunningTask:
             return None
 
-    def archives(self, instance, limit):
+    def archives(self, limit):
         return DbusRunnableTask.from_structure_list(
-            self.proxy.Archives(instance, limit)
+            self.proxy.Archives(self.instance, limit)
         )
 
-    def get(self, instance, task_id):
-        for _task in self.queue(instance):
+    def get(self, task_id):
+        for _task in self.queue():
             if _task.id == task_id:
                 return _task
-        _running = self.running(instance)
+        _running = self.running()
         if _running and _running.id == task_id:
             return _running
-        for _task in self.archives(instance, limit=0):
+        for _task in self.archives(limit=0):
             if _task.id == task_id:
                 return _task
-        raise RuntimeError("Unable to find task %s on server" % (build_id))
+        raise RuntimeError(f"Unable to find task {build_id} on server")
 
-    def watch(self, instance, task):
+    def watch(self, task):
         """Dbus clients run on the same host as the server, they access the
         tasks log files directly."""
         assert hasattr(task, 'logfile')
@@ -204,31 +211,35 @@ class DbusClient(object):
 
     # keyring
 
-    def keyring_create(self, instance):
-        return self.proxy.KeyringCreate(instance)
+    def keyring_create(self):
+        return self.proxy.KeyringCreate(self.instance)
 
-    def keyring_renew(self, instance, duration):
-        return self.proxy.KeyringRenew(instance, duration)
+    def keyring_renew(self, duration):
+        return self.proxy.KeyringRenew(self.instance, duration)
 
-    def keyring(self, instance):
+    def keyring(self):
         try:
-            return DbusKeyring.from_structure(self.proxy.Keyring(instance))
+            return DbusKeyring.from_structure(self.proxy.Keyring(self.instance))
         except ErrorNoKeyring:
             return None
 
-    def keyring_export(self, instance):
-        return self.proxy.KeyringExport(instance)
+    def keyring_export(self):
+        return self.proxy.KeyringExport(self.instance)
 
     # images
 
-    def image_create(self, instance, format, force):
-        return self.proxy.ImageCreate(instance, format, force)
+    def image_create(self, format, force):
+        return self.proxy.ImageCreate(self.instance, format, force)
 
-    def image_update(self, instance, format):
-        return self.proxy.ImageUpdate(instance, format)
+    def image_update(self, format):
+        return self.proxy.ImageUpdate(self.instance, format)
 
-    def image_environment_create(self, instance, format, environment):
-        return self.proxy.ImageEnvironmentCreate(instance, format, environment)
+    def image_environment_create(self, format, environment):
+        return self.proxy.ImageEnvironmentCreate(
+            self.instance, format, environment
+        )
 
-    def image_environment_update(self, instance, format, environment):
-        return self.proxy.ImageEnvironmentUpdate(instance, format, environment)
+    def image_environment_update(self, format, environment):
+        return self.proxy.ImageEnvironmentUpdate(
+            self.instance, format, environment
+        )
