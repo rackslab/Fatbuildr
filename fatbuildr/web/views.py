@@ -229,10 +229,12 @@ def artefact(
         )
 
 
-def search(instance, artefact, output='html'):
+def search(instance, output='html'):
     connection = get_connection(instance)
     formats = connection.formats()
     results = {}
+
+    artefact = request.args.get('artefact')
 
     for fmt in formats:
         distributions = connection.distributions(fmt)

@@ -115,12 +115,12 @@ class WebApp(Flask):
             defaults={'output': 'json'},
         )
         self.add_instance_url_rule(
-            '/search/<string:artefact>',
+            '/search',
             view_func=views.search,
             defaults={'output': 'html'},
         )
         self.add_instance_url_rule(
-            '/search/<string:artefact>.json',
+            '/search.json',
             view_func=views.search,
             defaults={'output': 'json'},
         )
