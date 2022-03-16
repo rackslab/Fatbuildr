@@ -27,6 +27,7 @@ from .archives import ArchivesManager
 from .keyring import InstanceKeyring
 from .images import ImagesManager
 from .containers import ContainerRunner
+from .cache import CacheManager
 from .protocols.exports import ExportableType, ExportableField
 from .utils import Singleton
 from .log import logr
@@ -144,6 +145,7 @@ class RunningInstance(ExportableType):
         self.images_mgr = ImagesManager(self.conf, self.id)
         self.keyring = InstanceKeyring(self.conf, self)
         self.crun = ContainerRunner(self.conf)
+        self.cache = CacheManager(self.conf, self)
         self.keyring.load()
 
     @property

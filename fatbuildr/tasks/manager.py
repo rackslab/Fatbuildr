@@ -202,7 +202,6 @@ class ServerTasksManager:
                 task_id,
                 place,
                 self.instance,
-                self.conf,
                 format,
                 distribution,
                 derivative,

@@ -28,7 +28,6 @@ from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artefact import ArtefactDefs
 from ..registry.formats import ArtefactVersion
-from ..cache import CacheArtefact
 from ..git import GitRepository
 from ..utils import dl_file, verify_checksum, tar_subdir
 from ..log import logr
@@ -55,7 +54,6 @@ class ArtefactBuild(RunnableTask):
         task_id,
         place,
         instance,
-        conf,
         format,
         distribution,
         derivative,
@@ -74,7 +72,7 @@ class ArtefactBuild(RunnableTask):
         self.email = user_email
         self.message = message
         self.input_tarball = Path(tarball)
-        self.cache = CacheArtefact(conf, self.instance.id, self)
+        self.cache = self.instance.cache.artefact(self)
         self.registry = self.instance.registry_mgr.factory(self.format)
         # Get the recursive list of derivatives extended by the given
         # derivative.
@@ -182,15 +180,15 @@ class ArtefactBuild(RunnableTask):
             return
 
         if not self.cache.has_tarball:
-            dl_file(self.upstream_tarball, self.cache.tarball_path)
+            dl_file(self.upstream_tarball, self.cache.tarball)
             verify_checksum(
-                self.cache.tarball_path,
+                self.cache.tarball,
                 self.checksum_format,
                 self.checksum_value,
             )
 
-        logger.info("Artefact tarball is %s", self.cache.tarball_path)
-        self.tarball = self.cache.tarball_path
+        logger.info("Artefact tarball is %s", self.cache.tarball)
+        self.tarball = self.cache.tarball
 
         # Handle pre script if present
         pre_script_path = self.place.joinpath('pre.sh')
@@ -202,7 +200,7 @@ class ArtefactBuild(RunnableTask):
             upstream_dir.mkdir()
 
             # Extract original upstream tarball (and get the subdir)
-            with tarfile.open(self.cache.tarball_path) as tar:
+            with tarfile.open(self.cache.tarball) as tar:
                 tar.extractall(upstream_dir)
                 tarball_subdir = upstream_dir.joinpath(tar_subdir(tar))
 
