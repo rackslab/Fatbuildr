@@ -28,6 +28,7 @@ from . import (
     DbusKeyring,
     ErrorNoRunningTask,
     ErrorNoKeyring,
+    valueornull,
 )
 
 
@@ -132,6 +133,7 @@ class DbusClient(object):
         user_email,
         message,
         tarball,
+        src_tarball,
     ):
         return self.proxy.Build(
             self.instance,
@@ -143,6 +145,7 @@ class DbusClient(object):
             user_email,
             message,
             str(tarball),
+            str(valueornull(src_tarball)),
         )
 
     def queue(self):

@@ -82,6 +82,49 @@ def prepare_tarball(basedir, subdir):
     return tarball
 
 
+def source_tarball_filter(tarinfo):
+    """Custom tar add filter to filter out .git and debian subdirectory from
+    source tarball."""
+    if '/.git' in tarinfo.name or '/debian' in tarinfo.name:
+        return None
+    logger.debug("File added in archive: %s", tarinfo.name)
+    return tarinfo
+
+
+def prepare_source_tarball(artefact, path, version):
+    """Generates a source tarball for the given artefact, tagged with the given
+    main version, using sources in path."""
+
+    logger.info(
+        "Generating artefact %s source tarball version %s using directory %s",
+        artefact,
+        version,
+        path,
+    )
+    if not path.exists():
+        logger.error(
+            "Given source directory %s for artefact %s does not exists, leaving",
+            path,
+            artefact,
+        )
+        sys.exit(1)
+    subdir = f"{artefact}_{version}"
+    tarball = Path(tempfile._get_default_tempdir()).joinpath(
+        f"{artefact}_{version}.tar.xz"
+    )
+    logger.debug(
+        "Creating artefact %s source tarball %s with directory %s",
+        artefact,
+        tarball,
+        path,
+    )
+    with tarfile.open(tarball, 'x:xz') as tar:
+        tar.add(
+            path, arcname=subdir, recursive=True, filter=source_tarball_filter
+        )
+    return tarball
+
+
 class Fatbuildrctl(FatbuildrCliRun):
     def __init__(self):
         parser = argparse.ArgumentParser(
@@ -195,6 +238,18 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_build.add_argument(
             '-s', '--subdir', help='Artefact subdirectory'
+        )
+        parser_build.add_argument(
+            '--source-dir',
+            help=(
+                'Generate artefact source tarball using the source code in '
+                'this directory'
+            ),
+            type=Path,
+        )
+        parser_build.add_argument(
+            '--source-version',
+            help='Alternate version for generated artefact source tarball',
         )
         parser_build.add_argument('-n', '--name', help='Maintainer name')
         parser_build.add_argument('-e', '--email', help='Maintainer email')
@@ -604,6 +659,14 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         (format, distribution) = self._get_format_distribution(defs, args)
 
+        src_tarball = None
+        if args.source_dir:
+            src_tarball = prepare_source_tarball(
+                args.artefact,
+                args.source_dir,
+                args.source_version or defs.version(args.derivative),
+            )
+
         try:
             tarball = prepare_tarball(basedir, subdir)
             self._submit_watch(
@@ -618,6 +681,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 user_email,
                 build_msg,
                 tarball,
+                src_tarball,
             )
         except RuntimeError as err:
             logger.error("Error while submitting build: %s" % (err))

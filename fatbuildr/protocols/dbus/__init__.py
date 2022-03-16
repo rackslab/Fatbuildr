@@ -68,6 +68,21 @@ class ErrorNoKeyring(DBusError):
     pass
 
 
+# Utilities to handle null values
+
+
+def valueornull(value):
+    """Returns string 'null' if value is None, returns the value unmodified
+    otherwise."""
+    return value or 'null'
+
+
+def valueornone(value):
+    """Returns None if the value is the string 'null', returns the value
+    unmodified otherwise."""
+    return None if value == 'null' else value
+
+
 # Utilities to manipulate TYPES_MAP
 
 

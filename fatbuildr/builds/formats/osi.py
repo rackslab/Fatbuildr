@@ -41,6 +41,7 @@ class ArtefactBuildOsi(ArtefactBuild):
         user_email,
         message,
         tarball,
+        src_tarball,
     ):
         super().__init__(
             task_id,
@@ -54,6 +55,7 @@ class ArtefactBuildOsi(ArtefactBuild):
             user_email,
             message,
             tarball,
+            src_tarball,
         )
         self.format = 'osi'
 

@@ -49,10 +49,10 @@ class ArtefactDefs:
     @property
     def derivatives(self):
         results = []
-        if 'version' in self.meta:
-            results.append('main')
         if 'versions' in self.meta:
             results.extend(self.meta['versions'].keys())
+        else:
+            results.append('main')
         logger.debug("Supported derivatives: %s", results)
         return results
 

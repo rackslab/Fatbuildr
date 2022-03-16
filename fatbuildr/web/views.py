@@ -276,6 +276,14 @@ def build(instance):
     )
     tarball.save(tarball_path)
 
+    src_tarball_path = None
+    if 'source' in request.files:
+        src_tarball = request.files['source']
+        src_tarball_path = current_app.config['UPLOAD_FOLDER'].joinpath(
+            secure_filename(src_tarball.filename)
+        )
+        src_tarball.save(src_tarball_path)
+
     connection = get_connection(instance)
     task_id = connection.build(
         request.form['format'],
@@ -286,6 +294,7 @@ def build(instance):
         request.form['user_email'],
         request.form['message'],
         tarball_path,
+        src_tarball_path,
     )
     return jsonify({'task': task_id})
 

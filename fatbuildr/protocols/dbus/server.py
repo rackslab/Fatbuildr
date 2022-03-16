@@ -35,6 +35,7 @@ from . import (
     DbusKeyring,
     ErrorNoRunningTask,
     ErrorNoKeyring,
+    valueornone,
 )
 from ...log import logr
 
@@ -227,6 +228,7 @@ class FatbuildrInterface(InterfaceTemplate):
         user_email: Str,
         message: Str,
         tarball: Str,
+        src_tarball: Str,
     ) -> Str:
         """Submit a new build."""
         return self.implementation.submit(
@@ -240,6 +242,7 @@ class FatbuildrInterface(InterfaceTemplate):
             user_email,
             message,
             tarball,
+            valueornone(src_tarball),
         )
 
     def KeyringCreate(self, instance: Str) -> Str:

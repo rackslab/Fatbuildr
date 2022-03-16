@@ -62,6 +62,7 @@ class ArtefactBuild(RunnableTask):
         user_email,
         message,
         tarball,
+        src_tarball,
     ):
         super().__init__(task_id, place, instance)
         self.format = format
@@ -72,6 +73,7 @@ class ArtefactBuild(RunnableTask):
         self.email = user_email
         self.message = message
         self.input_tarball = Path(tarball)
+        self.src_tarball = Path(src_tarball) if src_tarball else None
         self.cache = self.instance.cache.artefact(self)
         self.registry = self.instance.registry_mgr.factory(self.format)
         # Get the recursive list of derivatives extended by the given
@@ -169,26 +171,54 @@ class ArtefactBuild(RunnableTask):
         # load defs
         self.defs = ArtefactDefs(self.place)
 
-        # define targeted version
-        self.version = ArtefactVersion(
-            f"{self.defs.version(self.derivative)}-{self.defs.release(self.format)}"
-        )
+        if self.src_tarball:
+            # If source tarball has been provided with the build request, use it.
+            src_tarball_target = self.place.joinpath(self.src_tarball.name)
+            logger.info("Using provided source tarball %s", src_tarball_target)
+            # Move the source tarball in build place
+            self.src_tarball.rename(src_tarball_target)
 
-        if not self.defs.has_tarball:
-            # This artefact does not need upstream tarball, nothing more to do
-            # here
-            return
-
-        if not self.cache.has_tarball:
-            dl_file(self.upstream_tarball, self.cache.tarball)
-            verify_checksum(
-                self.cache.tarball,
-                self.checksum_format,
-                self.checksum_value,
+            # The main version of the artefact is extract from the the source
+            # tarball name, it is prefixed by artefact name followed by
+            # underscore, it is suffixed by the extension'.tar.xz'.
+            main_version_str = self.src_tarball.name[
+                len(self.artefact) + 1 : -7
+            ]
+            logger.debug(
+                "Artefact main version extracted from source tarball name: %s",
+                main_version_str,
             )
+            self.version = ArtefactVersion(
+                f"{main_version_str}-{self.defs.release(self.format)}"
+            )
+            self.tarball = src_tarball_target
+        elif not self.defs.has_tarball:
+            # This artefact is not defined with an upstream tarball URL and the
+            # user did not provide source tarball within the build request,
+            # there is nothing more to do here
+            return
+        else:
+            # If the source tarball has not been provided and the artefact is
+            # defined with a source tarball URL, it is downloaded in cache (if
+            # not already present) using this URL.
 
-        logger.info("Artefact tarball is %s", self.cache.tarball)
-        self.tarball = self.cache.tarball
+            # The targeted version is fully defined based on definition
+            self.version = ArtefactVersion(
+                f"{self.defs.version(self.derivative)}-{self.defs.release(self.format)}"
+            )
+            if not self.cache.has_tarball:
+                dl_file(self.upstream_tarball, self.cache.tarball)
+                verify_checksum(
+                    self.cache.tarball,
+                    self.checksum_format,
+                    self.checksum_value,
+                )
+
+            logger.info(
+                "Using artefact source tarball from cache %s",
+                self.cache.tarball,
+            )
+            self.tarball = self.cache.tarball
 
         # Handle pre script if present
         pre_script_path = self.place.joinpath('pre.sh')
@@ -200,7 +230,7 @@ class ArtefactBuild(RunnableTask):
             upstream_dir.mkdir()
 
             # Extract original upstream tarball (and get the subdir)
-            with tarfile.open(self.cache.tarball) as tar:
+            with tarfile.open(self.tarball) as tar:
                 tar.extractall(upstream_dir)
                 tarball_subdir = upstream_dir.joinpath(tar_subdir(tar))
 

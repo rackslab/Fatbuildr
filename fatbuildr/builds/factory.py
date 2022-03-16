@@ -43,6 +43,7 @@ class BuildFactory(object):
         user_email,
         message,
         tarball,
+        src_tarball,
     ):
         """Generate a BuildArtefact from a new request."""
         if not format in BuildFactory._formats:
@@ -59,4 +60,5 @@ class BuildFactory(object):
             user_email,
             message,
             tarball,
+            src_tarball,
         )

@@ -71,9 +71,15 @@ class HttpClient:
         user_email,
         message,
         tarball,
+        source_tarball,
     ):
         url = f"{self.uri}/build"
         logger.debug("Submitting build request to %s", url)
+
+        files = {'tarball': open(tarball, 'rb')}
+        if source_tarball:
+            files['source'] = open(source_tarball, 'rb')
+
         response = requests.post(
             url,
             data={
@@ -85,13 +91,15 @@ class HttpClient:
                 'user_email': user_email,
                 'message': message,
             },
-            files={
-                'tarball': open(tarball, 'rb'),
-            },
+            files=files,
         )
 
-        # Delete the tarball as it is not accessed by the http server.
+        # Delete the tarball (and the source tarball if defined) as it is not
+        # accessed by the http server.
         tarball.unlink()
+
+        if source_tarball:
+            source_tarball.unlink()
 
         return response.json()['task']
 
