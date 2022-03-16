@@ -155,4 +155,10 @@ class GitRepository:
         self._commit(author, email, title, meta)
 
         last_commit = self._repo[self._repo.head.target]
+
+        # Create patches directory if if does not exist.
+        if not patches_dir.exists():
+            logger.debug("Creating patches directory %s", patches_dir)
+            patches_dir.mkdir()
+
         self._export_commit(patches_dir, index, last_commit)
