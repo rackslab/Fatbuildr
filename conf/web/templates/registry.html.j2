@@ -1,7 +1,12 @@
 {% extends "layout/base.html.j2" %}
 {% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }}{% else %}formats{% endif %}{% endblock %}
 {% block content %}
-<h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}formats</h1>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    {% if config['INSTANCE'] == 'all' %}<li class="breadcrumb-item active" aria-current="page">{{ instance }}</li>{% endif %}
+  </ol>
+</nav>
+<h1>Formats</h1>
 <ul>
 {% for _format in formats %}
   <li><a href="{{ url_for('format', instance=instance, fmt=_format, output='html') }}">{{ _format }}</a></li>

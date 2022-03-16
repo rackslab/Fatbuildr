@@ -1,7 +1,17 @@
 {% extends "layout/base.html.j2" %}
 {% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} binary artefact{% endblock %}
 {% block content %}
-<h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} binary artefact</h1>
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    {% if config['INSTANCE'] == 'all' %}<li class="breadcrumb-item"><a href="{{ url_for('registry', instance=instance, output='html') }}">{{ instance }}</a></li>{% endif %}
+    <li class="breadcrumb-item"><a href="{{ url_for('format', instance=instance, fmt=format, output='html') }}">{{ format }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('distribution', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}</a></li>
+    <li class="breadcrumb-item"><a href="{{ url_for('derivative', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='html') }}">{{ derivative }}</a></li>
+    <li class="breadcrumb-item active" aria-current="page">{{ artefact }} binary artefact</li>
+  </ol>
+</nav>
+
+<h1>{{ artefact }} binary artefact</h1>
 Source artefact:
 <a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=source.architecture, artefact=source.name, output='html') }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }}
 {% include 'partials/changelog.html.j2' %}

@@ -1,7 +1,15 @@
 {% extends "layout/base.html.j2" %}
 {% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }}{% endblock %}
 {% block content %}
-<h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > distributions</h1>
+
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    {% if config['INSTANCE'] == 'all' %}<li class="breadcrumb-item"><a href="{{ url_for('registry', instance=instance, output='html') }}">{{ instance }}</a></li>{% endif %}
+    <li class="breadcrumb-item active" aria-current="page">{{ format }}</li>
+  </ol>
+</nav>
+
+<h1>Distributions</h1>
 <ul>
 {% for distribution in distributions %}
   <li><a href="{{ url_for('distribution', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}</a></li>
