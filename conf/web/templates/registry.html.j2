@@ -8,7 +8,7 @@
 {% endfor %}
 </ul>
 
-<h1>Tasks</h2>
+<h1>Tasks</h1>
 <h2>Running</h2>
 {% if running %}
 <a href="{{ url_for('watch', instance=instance, task_id=running.id) }}">{{ running.id }}</a> [{{ running.name }}] {{ running.submission }}
