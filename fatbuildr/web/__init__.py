@@ -35,7 +35,7 @@ def timestamp_iso(value):
 
 class WebApp(Flask):
     def __init__(self, conf, instance):
-        super().__init__('fatbuildr')
+        super().__init__('fatbuildr', static_folder=conf.run.static)
         self.conf = conf
         self.instance = instance
         self.add_url_rule('/version', view_func=views.version)

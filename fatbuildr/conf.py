@@ -266,6 +266,7 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         self.host = None
         self.vendor_templates = None
         self.templates = None
+        self.static = None
 
     def load(self, config):
         section = 'web'
@@ -273,13 +274,14 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         self.host = config.get(section, 'host')
         self.vendor_templates = config.get(section, 'vendor_templates')
         self.templates = config.get(section, 'templates')
+        self.static = config.get(section, 'static')
 
     def dump(self):
         logger.debug("[web]")
         logger.debug("  debug: %s" % (self.debug))
         logger.debug("  host: %s" % (self.host))
         logger.debug("  vendor_templates: %s" % (self.vendor_templates))
-        logger.debug("  templates: %s" % (self.templates))
+        logger.debug("  static: %s" % (self.static))
 
 
 class RuntimeConf(object):
