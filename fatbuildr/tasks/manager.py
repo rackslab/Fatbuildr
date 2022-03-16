@@ -27,6 +27,7 @@ from collections import deque
 from pathlib import Path
 
 from ..log import logr
+from ..protocols.exports import ProtocolRegistry
 
 from ..builds.factory import BuildFactory
 from .registry import RegistryArtefactDeletionTask
@@ -97,6 +98,7 @@ class ServerTasksManager:
         self.instance = instance
         self.queue = QueueManager()
         self.running = None
+        self.registry = ProtocolRegistry()
         # register all types of tasks with their exportable fields
 
     @property
@@ -107,117 +109,21 @@ class ServerTasksManager:
         """Interrupt thread blocked in self.pick()->self.queue.get(timeout)."""
         self.queue.interrupt_get()
 
-    def submit_artefact_deletion(
-        self, format, distribution, derivative, artefact
-    ):
-        task_id = str(uuid.uuid4())  # generate task ID
-        place = self.conf.dirs.queue.joinpath(task_id)
-        task = RegistryArtefactDeletionTask(
-            task_id,
-            place,
-            self.instance,
-            format,
-            distribution,
-            derivative,
-            artefact,
-        )
-        self.queue.put(task)
-        logger.info("Artefact deletion task %s submitted in queue", task.id)
-        return task_id
-
-    def submit_keyring_create(self):
-        task_id = str(uuid.uuid4())  # generate task ID
-        place = self.conf.dirs.queue.joinpath(task_id)
-        task = KeyringCreationTask(task_id, place, self.instance)
-        self.queue.put(task)
-        logger.info("Keyring creation task %s submitted in queue", task.id)
-        return task_id
-
-    def submit_keyring_renewal(self, duration):
-        task_id = str(uuid.uuid4())  # generate task ID
-        place = self.conf.dirs.queue.joinpath(task_id)
-        task = KeyringRenewalTask(task_id, place, self.instance, duration)
-        self.queue.put(task)
-        logger.info("Keyring renewal task %s submitted in queue", task.id)
-        return task_id
-
-    def submit_image_create(self, format, force):
-        task_id = str(uuid.uuid4())  # generate task ID
-        place = self.conf.dirs.queue.joinpath(task_id)
-        task = ImageCreationTask(task_id, place, self.instance, format, force)
-        self.queue.put(task)
-        logger.info("Image creation task %s submitted in queue", task.id)
-        return task_id
-
-    def submit_image_update(self, format):
-        task_id = str(uuid.uuid4())  # generate task ID
-        place = self.conf.dirs.queue.joinpath(task_id)
-        task = ImageUpdateTask(task_id, place, self.instance, format)
-        self.queue.put(task)
-        logger.info("Image update task %s submitted in queue", task.id)
-        return task_id
-
-    def submit_image_environment_create(self, format, environment):
-        task_id = str(uuid.uuid4())  # generate task ID
-        place = self.conf.dirs.queue.joinpath(task_id)
-        task = ImageEnvironmentCreationTask(
-            task_id, place, self.instance, format, environment
-        )
-        self.queue.put(task)
-        logger.info(
-            "Image build environment creation task %s submitted in queue",
-            task.id,
-        )
-        return task_id
-
-    def submit_image_environment_update(self, format, environment):
-        task_id = str(uuid.uuid4())  # generate task ID
-        place = self.conf.dirs.queue.joinpath(task_id)
-        task = ImageEnvironmentUpdateTask(
-            task_id, place, self.instance, format, environment
-        )
-        self.queue.put(task)
-        logger.info(
-            "Image build environment update task %s submitted in queue", task.id
-        )
-        return task_id
-
-    def submit_build(
-        self,
-        format,
-        distribution,
-        derivative,
-        artefact,
-        user_name,
-        user_email,
-        msg,
-        tarball,
-    ):
-        """Generate the build ID and place in queue."""
+    def submit(self, name, *args):
 
         task_id = str(uuid.uuid4())  # generate task ID
         place = self.conf.dirs.queue.joinpath(task_id)
         try:
-            build = BuildFactory.generate(
-                task_id,
-                place,
-                self.instance,
-                format,
-                distribution,
-                derivative,
-                artefact,
-                user_name,
-                user_email,
-                msg,
-                tarball,
+            task = self.registry.task_loader(name)(
+                task_id, place, self.instance, *args
             )
         except RuntimeError as err:
             logger.error(
-                "unable to generate build request %s: %s", task_id, err
+                "Unable to load %s task request %s: %s", name, task_id, err
             )
             return None
-        self.queue.put(build)
-        logger.info("Build %s submitted in queue" % (build.id))
+        self.queue.put(task)
+        logger.info("%s task %s submitted in queue", name.capitalize(), task.id)
         return task_id
 
     def pick(self, timeout):

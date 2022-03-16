@@ -158,12 +158,13 @@ class FatbuildrInterface(InterfaceTemplate):
         artefact: Structure,
     ) -> Str:
         """Submit artefact deletion task."""
-        return self.implementation.artefact_delete(
+        return self.implementation.submit(
             instance,
+            'artefact deletion',
             fmt,
             distribution,
             derivative,
-            DbusArtefact.from_structure(artefact),
+            DbusArtefact.from_structure(artefact).to_native(),
         )
 
     def ArtefactBinaries(
@@ -215,7 +216,7 @@ class FatbuildrInterface(InterfaceTemplate):
             )
         )
 
-    def Submit(
+    def Build(
         self,
         instance: Str,
         format: Str,
@@ -230,6 +231,7 @@ class FatbuildrInterface(InterfaceTemplate):
         """Submit a new build."""
         return self.implementation.submit(
             instance,
+            'artefact build',
             format,
             distribution,
             derivative,
@@ -242,11 +244,11 @@ class FatbuildrInterface(InterfaceTemplate):
 
     def KeyringCreate(self, instance: Str) -> Str:
         """Create instance keyring."""
-        return self.implementation.keyring_create(instance)
+        return self.implementation.submit(instance, 'keyring creation')
 
     def KeyringRenew(self, instance: Str, duration: Str) -> Str:
         """Extend instance keyring expiry with new duration."""
-        return self.implementation.keyring_renew(instance, duration)
+        return self.implementation.submit(instance, 'keyring renewal', duration)
 
     def Keyring(self, instance: Str) -> Structure:
         try:
@@ -262,26 +264,28 @@ class FatbuildrInterface(InterfaceTemplate):
 
     def ImageCreate(self, instance: Str, format: Str, force: Bool) -> Str:
         """Submit an image creation task and returns the task id."""
-        return self.implementation.image_create(instance, format, force)
+        return self.implementation.submit(
+            instance, 'image creation', format, force
+        )
 
     def ImageUpdate(self, instance: Str, format: Str) -> Str:
         """Submit an image update task and returns the task id."""
-        return self.implementation.image_update(instance, format)
+        return self.implementation.submit(instance, 'image update', format)
 
     def ImageEnvironmentCreate(
         self, instance: Str, format: Str, environment: Str
     ) -> Str:
         """Submit an image build environment creation task and returns the task id."""
-        return self.implementation.image_environment_create(
-            instance, format, environment
+        return self.implementation.submit(
+            instance, 'image build environment creation', format, environment
         )
 
     def ImageEnvironmentUpdate(
         self, instance: Str, format: Str, environment: Str
     ) -> Str:
         """Submit an image build environment update task and returns the task id."""
-        return self.implementation.image_environment_update(
-            instance, format, environment
+        return self.implementation.submit(
+            instance, 'image build environment update', format, environment
         )
 
 
@@ -372,22 +376,6 @@ class FatbuildrMultiplexer(object):
             fmt, distribution, derivative
         )
 
-    def artefact_delete(
-        self,
-        instance: Str,
-        fmt: Str,
-        distribution: Str,
-        derivative: Str,
-        artefact: Structure,
-    ):
-        self.timer.reset()
-        return self._instances[instance].tasks_mgr.submit_artefact_deletion(
-            fmt,
-            distribution,
-            derivative,
-            artefact.to_native(),
-        )
-
     def artefact_bins(
         self,
         instance: Str,
@@ -434,43 +422,11 @@ class FatbuildrMultiplexer(object):
             fmt, distribution, derivative, architecture, artefact
         )
 
-    def submit(
-        self,
-        instance: Str,
-        format: Str,
-        distribution: Str,
-        derivative: Str,
-        artefact: Str,
-        user_name: Str,
-        user_email: Str,
-        message: Str,
-        tarball: Str,
-    ):
-        """Submit a new build."""
+    def submit(self, instance: Str, task: Str, *args):
+        """Submit a new task and returns its ID."""
         self.timer.reset()
-        task_id = self._instances[instance].tasks_mgr.submit_build(
-            format,
-            distribution,
-            derivative,
-            artefact,
-            user_name,
-            user_email,
-            message,
-            tarball,
-        )
+        task_id = self._instances[instance].tasks_mgr.submit(task, *args)
         return task_id
-
-    def keyring_create(self, instance: Str):
-        """Submit a new task to create keyring."""
-        self.timer.reset()
-        return self._instances[instance].tasks_mgr.submit_keyring_create()
-
-    def keyring_renew(self, instance: Str, duration: Str):
-        """Submit a new task to renew keyring."""
-        self.timer.reset()
-        return self._instances[instance].tasks_mgr.submit_keyring_renewal(
-            duration
-        )
 
     def keyring(self, instance: Str):
         """Returns masterkey information."""
@@ -481,32 +437,6 @@ class FatbuildrMultiplexer(object):
         """Returns armored public key of instance keyring."""
         self.timer.reset()
         return self._instances[instance].keyring.export()
-
-    def image_create(self, instance: Str, format: Str, force: Bool) -> Str:
-        self.timer.reset()
-        return self._instances[instance].tasks_mgr.submit_image_create(
-            format, force
-        )
-
-    def image_update(self, instance: Str, format: Str) -> Str:
-        self.timer.reset()
-        return self._instances[instance].tasks_mgr.submit_image_update(format)
-
-    def image_environment_create(
-        self, instance: Str, format: Str, environment: Str
-    ) -> Str:
-        self.timer.reset()
-        return self._instances[
-            instance
-        ].tasks_mgr.submit_image_environment_create(format, environment)
-
-    def image_environment_update(
-        self, instance: Str, format: Str, environment: Str
-    ) -> Str:
-        self.timer.reset()
-        return self._instances[
-            instance
-        ].tasks_mgr.submit_image_environment_update(format, environment)
 
 
 class DbusServer(object):

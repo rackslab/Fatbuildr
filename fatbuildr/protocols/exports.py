@@ -81,11 +81,17 @@ class ProtocolRegistry(metaclass=Singleton):
         self._tasks = {}
         self._types = {}
 
-    def register_task(self, task):
-        self._tasks[task.TASK_NAME] = task.BASEFIELDS | task.EXFIELDS
+    def register_task(self, task, loader=None):
+        self._tasks[task.TASK_NAME] = {
+            'loader': loader or task,
+            'fields': task.BASEFIELDS | task.EXFIELDS,
+        }
 
     def task_fields(self, task):
-        return self._tasks[task]
+        return self._tasks[task]['fields']
+
+    def task_loader(self, task):
+        return self._tasks[task]['loader']
 
     def register_type(self, type):
         self._types[type.__name__] = {'loader': type, 'fields': type.EXFIELDS}

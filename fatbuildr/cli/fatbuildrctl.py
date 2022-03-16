@@ -607,7 +607,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         try:
             tarball = prepare_tarball(basedir, subdir)
             self._submit_watch(
-                self.connection.submit,
+                self.connection.build,
                 f"{args.artefact} build",
                 args.watch,
                 format,

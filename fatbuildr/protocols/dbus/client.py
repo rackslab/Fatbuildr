@@ -122,7 +122,7 @@ class DbusClient(object):
             )
         )
 
-    def submit(
+    def build(
         self,
         format,
         distribution,
@@ -133,7 +133,7 @@ class DbusClient(object):
         message,
         tarball,
     ):
-        return self.proxy.Submit(
+        return self.proxy.Build(
             self.instance,
             format,
             distribution,

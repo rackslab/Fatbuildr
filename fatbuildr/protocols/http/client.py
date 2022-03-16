@@ -61,7 +61,7 @@ class HttpClient:
         formats = response.json()
         return list(formats.keys())
 
-    def submit(
+    def build(
         self,
         format,
         distribution,
@@ -72,7 +72,7 @@ class HttpClient:
         message,
         tarball,
     ):
-        url = f"{self.uri}/submit"
+        url = f"{self.uri}/build"
         logger.debug("Submitting build request to %s", url)
         response = requests.post(
             url,

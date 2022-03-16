@@ -125,8 +125,8 @@ class WebApp(Flask):
             defaults={'output': 'json'},
         )
         self.add_instance_url_rule(
-            '/submit',
-            view_func=views.submit,
+            '/build',
+            view_func=views.build,
             methods=['POST'],
         )
         self.add_instance_url_rule('/running.json', view_func=views.running)

@@ -269,7 +269,7 @@ def search(instance, artefact, output='html'):
         )
 
 
-def submit(instance):
+def build(instance):
     tarball = request.files['tarball']
     tarball_path = current_app.config['UPLOAD_FOLDER'].joinpath(
         secure_filename(tarball.filename)
@@ -277,7 +277,7 @@ def submit(instance):
     tarball.save(tarball_path)
 
     connection = get_connection(instance)
-    task_id = connection.submit(
+    task_id = connection.build(
         request.form['format'],
         request.form['distribution'],
         request.form['derivative'],
