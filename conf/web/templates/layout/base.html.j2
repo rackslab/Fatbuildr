@@ -11,7 +11,21 @@
     <link rel="manifest" href="{{ url_for('static', filename='favicon/site.webmanifest') }}">
   </head>
   <body>
-    {% block content %}{% endblock %}
+    <div class="col-lg-8 mx-auto p-3 py-md-5">
+      <header class="d-flex align-items-center pb-3 mb-5 border-bottom">
+        <a href="/" class="d-flex align-items-center text-dark text-decoration-none">
+          <img src="{{ url_for('static', filename='logo/fatbuildr_logo_small_nobanner.png') }}"/>
+          <span class="fs-4">Fatbuildr</span>
+        </a>
+      </header>
+
+      <main>
+        {% block content %}{% endblock %}
+      </main>
+      <footer class="pt-5 my-5 text-muted border-top">
+        Created by Fatbuildr
+      </footer>
+    </div>
     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
   </body>
 </html>
