@@ -128,6 +128,12 @@ class ArchivesManager:
                     task_dir,
                     err,
                 )
+            except KeyError as err:
+                logger.error(
+                    "Unable to load unsupported task %s: %s",
+                    task_dir,
+                    err,
+                )
         # sort archives by submission date, from the most recent to the oldest
         _archives.sort(key=lambda x: x.submission, reverse=True)
         if limit:
