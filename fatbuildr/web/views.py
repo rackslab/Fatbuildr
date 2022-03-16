@@ -26,6 +26,7 @@ from flask import (
     current_app,
     send_from_directory,
     send_file,
+    abort,
 )
 from werkzeug.utils import secure_filename
 
@@ -37,6 +38,10 @@ from ..protocols.http import (
     JsonArtefact,
     JsonChangelogEntry,
 )
+
+
+def error_bad_request(e):
+    return render_template('error.html.j2', error="bad request (400)"), 400
 
 
 def get_connection(instance='default'):
@@ -235,6 +240,9 @@ def search(instance, output='html'):
     results = {}
 
     artefact = request.args.get('artefact')
+
+    if not artefact:
+        abort(400)
 
     for fmt in formats:
         distributions = connection.distributions(fmt)
