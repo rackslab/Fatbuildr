@@ -29,7 +29,7 @@ class ServiceManager:
     def __init__(self):
         self.socket = socket.socket(socket.AF_UNIX, socket.SOCK_DGRAM)
         addr = os.getenv('NOTIFY_SOCKET')
-        logger.debug("Found NOTIFY_SOCKET: %s" % (addr))
+        logger.debug("Found NOTIFY_SOCKET: %s", addr)
         self.socket.connect(addr)
 
     def _notify(self, state):

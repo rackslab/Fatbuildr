@@ -54,7 +54,7 @@ class InstancePipelines:
                 return format
         raise RuntimeError(
             "Unable to find format corresponding to "
-            "distribution %s" % (distribution)
+            f"distribution {distribution}"
         )
 
     def dist_env(self, distribution):
@@ -66,7 +66,7 @@ class InstancePipelines:
                 return dists[distribution]
         raise RuntimeError(
             "Unable to find environment corresponding "
-            "to distribution %s" % (distribution)
+            f"to distribution {distribution}"
         )
 
     def dist_derivatives(self, distribution):
@@ -154,7 +154,7 @@ class RunningInstance(ExportableType):
 
     @classmethod
     def load(cls, conf, path):
-        logger.debug("Loading instances definitions from %s" % (path))
+        logger.debug("Loading instances definitions from %s", path)
         with open(path) as fh:
             defs = yaml.safe_load(fh)
         derivatives = None

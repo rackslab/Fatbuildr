@@ -131,7 +131,7 @@ class Fatbuildrd(FatbuildrCliRun):
                     self.timer.register_worker(instance.id)
                     instance.tasks_mgr.run(task)
             except RuntimeError as err:
-                logger.error("Error while processing task: %s" % (err))
+                logger.error("Error while processing task: %s", err)
             if instance.tasks_mgr.queue.empty():
                 # release the timer to allow other threads to leave
                 self.timer.unregister_worker(instance.id)

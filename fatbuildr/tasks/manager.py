@@ -133,11 +133,11 @@ class ServerTasksManager:
         if not task:
             return None
 
-        logger.info("Picking up task %s from queue" % (task.id))
+        logger.info("Picking up task %s from queue", task.id)
 
         self.running = task
         self.queue.release()
-        logger.info("Task %s removed from queue" % (task.id))
+        logger.info("Task %s removed from queue", task.id)
         return task
 
     def run(self, task):

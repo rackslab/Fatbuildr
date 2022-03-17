@@ -566,20 +566,23 @@ class Fatbuildrctl(FatbuildrCliRun):
                 logger.error(
                     "There is more than one supported format for "
                     "artefact %s, at least the format must be "
-                    "specified" % (args.artefact)
+                    "specified",
+                    args.artefact,
                 )
                 sys.exit(1)
             if supported_fmts:
                 format = supported_fmts[0]
                 logger.debug(
-                    "Format %s has been selected for artefact %s"
-                    % (format, args.artefact)
+                    "Format %s has been selected for artefact %s",
+                    format,
+                    args.artefact,
                 )
 
         if not format:
             logger.error(
                 "Unable to define format of artefact %s, either the "
-                "distribution or the format must be specified" % (args.artefact)
+                "distribution or the format must be specified",
+                args.artefact,
             )
             sys.exit(1)
         elif not args.distribution:
@@ -591,13 +594,15 @@ class Fatbuildrctl(FatbuildrCliRun):
                 logger.error(
                     "There is more than one distribution for the "
                     "format %s in pipelines definition, the "
-                    "distribution must be specified" % (format)
+                    "distribution must be specified",
+                    format,
                 )
                 sys.exit(1)
             distribution = format_dists[0]
             logger.debug(
-                "Distribution %s has been selected for format %s"
-                % (distribution, format)
+                "Distribution %s has been selected for format %s",
+                distribution,
+                format,
             )
 
         # check artefact accepts this format
@@ -684,7 +689,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 src_tarball,
             )
         except RuntimeError as err:
-            logger.error("Error while submitting build: %s" % (err))
+            logger.error("Error while submitting build: %s", err)
             sys.exit(1)
 
     def _run_list(self, args):

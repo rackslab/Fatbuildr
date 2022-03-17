@@ -94,7 +94,7 @@ class KeyringSubKey(KeyringKey, ExportableType):
         self._key = ctx.get_key(gen.fpr).subkeys[1]
 
     def load_from_keyring(self, _subkey):
-        logger.debug("Loading subkey from keyring %s" % (self.keyring.homedir))
+        logger.debug("Loading subkey from keyring %s", self.keyring.homedir)
         self._key = _subkey
 
 
@@ -120,7 +120,7 @@ class KeyringMasterKey(KeyringKey, ExportableType):
     def userid(self):
         if len(self._masterkey.uids) != 1:
             raise ValueError(
-                "Multiple uids attached to key %s" % (self.fingerprint)
+                f"Multiple uids attached to key {self.fingerprint}"
             )
         return self._masterkey.uids[0].uid
 

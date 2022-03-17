@@ -32,22 +32,22 @@ class CleanupRegistry(object):
 
     @classmethod
     def add_tmpdir(cls, tmpdir):
-        logger.debug("Registering tmpdir %s" % (tmpdir))
+        logger.debug("Registering tmpdir %s", tmpdir)
         cls._tmpdirs.append(tmpdir)
 
     @classmethod
     def del_tmpdir(cls, tmpdir):
-        logger.debug("Unregistering tmpdir %s" % (tmpdir))
+        logger.debug("Unregistering tmpdir %s", tmpdir)
         cls._tmpdirs.remove(tmpdir)
 
     @classmethod
     def clean(cls):
         for _dir in cls._tmpdirs:
             if os.path.exists(_dir):
-                logger.debug("Removing temporary directory %s" % (_dir))
+                logger.debug("Removing temporary directory %s", _dir)
                 shutil.rmtree(_dir)
             else:
                 logger.warning(
-                    "Temporary directory %s registered for removal does not exist"
-                    % (_dir)
+                    "Temporary directory %s registered for removal does not exist",
+                    _dir,
                 )

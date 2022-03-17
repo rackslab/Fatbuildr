@@ -29,8 +29,8 @@ class ANSIStyle:
     def start(self):
         bg_s = ""
         if self.bg is not None:
-            bg_s = "\033[48;5;%sm" % (self.bg)
-        return bg_s + "\033[38;5;%sm" % (self.fg)
+            bg_s = f"\033[48;5;{self.bg}m"
+        return bg_s + f"\033[38;5;{self.fg}m"
 
     @property
     def end(self):
@@ -105,7 +105,7 @@ class Log(logging.Logger):
             return TTYFormatter(debug)
         else:
             raise RuntimeError(
-                "Unable to define log formatter for module %s" % (self.name)
+                f"Unable to define log formatter for module {self.name}"
             )
 
     def setup(self, debug: bool, fulldebug: bool):

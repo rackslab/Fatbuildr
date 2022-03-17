@@ -75,5 +75,5 @@ class RegistryManager:
     def factory(self, fmt):
         """Instanciate the appropriate Registry for the given format."""
         if not fmt in RegistryManager._formats:
-            raise RuntimeError("format %s unsupported by registries" % (fmt))
+            raise RuntimeError(f"format {fmt} unsupported by registries")
         return RegistryManager._formats[fmt](self.conf, self.instance)

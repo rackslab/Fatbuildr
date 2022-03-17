@@ -38,5 +38,5 @@ class FatbuildrCliRun(object):
         try:
             self.conf.load()  # load configuration file
         except ValueError as err:
-            logger.error("Error while loading configuration: %s" % (err))
+            logger.error("Error while loading configuration: %s", err)
             sys.exit(1)

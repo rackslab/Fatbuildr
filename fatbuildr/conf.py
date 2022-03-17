@@ -49,12 +49,12 @@ class RuntimeSubConfDirs(object):
 
     def dump(self):
         logger.debug("[dirs]")
-        logger.debug("  instances: %s" % (self.instances))
-        logger.debug("  queue: %s" % (self.queue))
-        logger.debug("  archives: %s" % (self.archives))
-        logger.debug("  registry: %s" % (self.registry))
-        logger.debug("  cache: %s" % (self.cache))
-        logger.debug("  tmp: %s" % (self.tmp))
+        logger.debug("  instances: %s", self.instances)
+        logger.debug("  queue: %s", self.queue)
+        logger.debug("  archives: %s", self.archives)
+        logger.debug("  registry: %s", self.registry)
+        logger.debug("  cache: %s", self.cache)
+        logger.debug("  tmp: %s", self.tmp)
 
 
 class RuntimeSubConfImages(object):
@@ -76,9 +76,9 @@ class RuntimeSubConfImages(object):
 
     def dump(self):
         logger.debug("[images]")
-        logger.debug("  storage: %s" % (self.storage))
-        logger.debug("  defs: %s" % (self.defs))
-        logger.debug("  create_cmd: %s" % (self.create_cmd))
+        logger.debug("  storage: %s", self.storage)
+        logger.debug("  defs: %s", self.defs)
+        logger.debug("  create_cmd: %s", self.create_cmd)
 
 
 class RuntimeSubConfRegistry(object):
@@ -94,7 +94,7 @@ class RuntimeSubConfRegistry(object):
 
     def dump(self):
         logger.debug("[registry]")
-        logger.debug("  conf: %s" % (self.conf))
+        logger.debug("  conf: %s", self.conf)
 
 
 class RuntimeSubConfContainers(object):
@@ -121,8 +121,8 @@ class RuntimeSubConfContainers(object):
 
     def dump(self):
         logger.debug("[containers]")
-        logger.debug("  init_opts: %s" % (self.init_opts))
-        logger.debug("  opts: %s" % (self.opts))
+        logger.debug("  init_opts: %s", self.init_opts)
+        logger.debug("  opts: %s", self.opts)
 
 
 class RuntimeSubConfKeyring(object):
@@ -146,7 +146,7 @@ class RuntimeSubConfKeyring(object):
         elif unit == 'y':
             self.expires = quantity * 86400 * 365
         else:
-            raise ValueError("keyring expires unit '%s' is not valid" % (unit))
+            raise ValueError(f"keyring expires unit '{unit}' is not valid")
 
     def load(self, config):
         section = 'keyring'
@@ -165,10 +165,10 @@ class RuntimeSubConfKeyring(object):
 
     def dump(self):
         logger.debug("[keyring]")
-        logger.debug("  storage: %s" % (self.storage))
-        logger.debug("  type: %s" % (self.type))
-        logger.debug("  size: %s" % (self.size))
-        logger.debug("  expires: %s" % (str(self.expires)))
+        logger.debug("  storage: %s", self.storage)
+        logger.debug("  type: %s", self.type)
+        logger.debug("  size: %s", self.size)
+        logger.debug("  expires: %s", str(self.expires))
 
 
 class RuntimeSubConfFormatDeb(object):
@@ -188,8 +188,8 @@ class RuntimeSubConfFormatDeb(object):
 
     def dump(self):
         logger.debug("[format:deb]")
-        logger.debug("  init_cmd: %s" % (self.init_cmd))
-        logger.debug("  env_update_cmds: %s" % (self.env_update_cmds))
+        logger.debug("  init_cmd: %s", self.init_cmd)
+        logger.debug("  env_update_cmds: %s", self.env_update_cmds)
 
 
 class RuntimeSubConfFormatRpm(object):
@@ -209,9 +209,9 @@ class RuntimeSubConfFormatRpm(object):
 
     def dump(self):
         logger.debug("[format:rpm]")
-        logger.debug("  init_cmd: %s" % (self.init_cmd))
-        logger.debug("  img_update_cmds: %s" % (self.img_update_cmds))
-        logger.debug("  env_update_cmds: %s" % (self.env_update_cmds))
+        logger.debug("  init_cmd: %s", self.init_cmd)
+        logger.debug("  img_update_cmds: %s", self.img_update_cmds)
+        logger.debug("  env_update_cmds: %s", self.env_update_cmds)
 
 
 class RuntimeSubConfFormatOsi(object):
@@ -228,7 +228,7 @@ class RuntimeSubConfFormatOsi(object):
 
     def dump(self):
         logger.debug("[format:osi]")
-        logger.debug("  img_update_cmds: %s" % (self.img_update_cmds))
+        logger.debug("  img_update_cmds: %s", self.img_update_cmds)
 
 
 class RuntimeConfApp(object):
@@ -253,8 +253,8 @@ class RuntimeSubConfd(RuntimeConfApp):
 
     def dump(self):
         logger.debug("[daemon]")
-        logger.debug("  debug: %s" % (self.debug))
-        logger.debug("  fulldebug: %s" % (self.fulldebug))
+        logger.debug("  debug: %s", self.debug)
+        logger.debug("  fulldebug: %s", self.fulldebug)
 
 
 class RuntimeSubConfWeb(RuntimeConfApp):
@@ -278,10 +278,10 @@ class RuntimeSubConfWeb(RuntimeConfApp):
 
     def dump(self):
         logger.debug("[web]")
-        logger.debug("  debug: %s" % (self.debug))
-        logger.debug("  host: %s" % (self.host))
-        logger.debug("  vendor_templates: %s" % (self.vendor_templates))
-        logger.debug("  static: %s" % (self.static))
+        logger.debug("  debug: %s", self.debug)
+        logger.debug("  host: %s", self.host)
+        logger.debug("  vendor_templates: %s", self.vendor_templates)
+        logger.debug("  static: %s", self.static)
 
 
 class RuntimeConf(object):
@@ -306,12 +306,10 @@ class RuntimeConf(object):
         # configuration file
         vendor_conf_path = '/usr/lib/fatbuildr/fatbuildr.ini'
         site_conf_path = '/etc/fatbuildr/fatbuildr.ini'
-        logger.debug(
-            "Loading vendor configuration file %s" % (vendor_conf_path)
-        )
+        logger.debug("Loading vendor configuration file %s", vendor_conf_path)
         self.config.read_file(open(vendor_conf_path))
         logger.debug(
-            "Loading site specific configuration file %s" % (site_conf_path)
+            "Loading site specific configuration file %s", site_conf_path
         )
         self.config.read_file(open(site_conf_path))
         self.run.load(self.config)

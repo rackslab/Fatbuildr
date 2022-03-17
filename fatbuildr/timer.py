@@ -69,11 +69,11 @@ class ServerTimer:
         with self._cond:
             if not self._workers:
                 return True
-            logger.debug("Waiting for timer lock for %f seconds" % (timeout))
+            logger.debug("Waiting for timer lock for %f seconds", timeout)
             return self._cond.wait(timeout)
 
     def wait(self, timeout):
         notask = self.waitnotask(timeout=timeout)
         if notask and self.remaining:
-            logger.debug("Waiting for %f seconds" % (self.remaining))
+            logger.debug("Waiting for %f seconds", self.remaining)
             self.event.wait(timeout=self.remaining)
