@@ -26,6 +26,7 @@ from debian import deb822, changelog, debfile
 from . import Registry, ArtefactVersion, RegistryArtefact, ChangelogEntry
 from ...templates import Templeter
 from ...utils import runcmd
+from ...specifics import ArchMap
 from ...log import logr
 
 logger = logr(__name__)
@@ -33,8 +34,6 @@ logger = logr(__name__)
 
 class RegistryDeb(Registry):
     """Registry for Deb format (aka. APT repository)."""
-
-    ARCH_MAP = [('src', 'source')]
 
     def __init__(self, conf, instance):
         super().__init__(conf, instance)
@@ -88,11 +87,16 @@ class RegistryDeb(Registry):
         # to define resulting list of distributions.
         distributions = list(set(self.distributions + [build.distribution]))
         components = list(set(self.components + build.derivatives))
+        architectures = [
+            ArchMap('deb').native(architecture)
+            for architecture in self.instance.pipelines.architectures
+        ]
         with open(self.dists_conf, 'w+') as fh:
             fh.write(
                 Templeter().frender(
                     dists_tpl_path,
                     distributions=distributions,
+                    architectures=architectures,
                     components=components,
                     key=self.instance.keyring.masterkey.subkey.fingerprint,
                     instance=self.instance.name,
@@ -178,7 +182,7 @@ class RegistryDeb(Registry):
                 continue
             (name, arch, version) = line.split('|')
             artefacts.append(
-                RegistryArtefact(name, RegistryDeb.fatarch(arch), version)
+                RegistryArtefact(name, ArchMap('deb').normalized(arch), version)
             )
         return artefacts
 
@@ -393,7 +397,7 @@ class RegistryDeb(Registry):
             '--component',
             derivative,
             '--architecture',
-            RegistryDeb.debarch(artefact.architecture),
+            ArchMap('deb').native(artefact.architecture),
             'remove',
             distribution,
             artefact.name,
@@ -401,20 +405,6 @@ class RegistryDeb(Registry):
         proc = runcmd(
             cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)}
         )
-
-    @staticmethod
-    def debarch(arch):
-        for fatarch, debarch in RegistryDeb.ARCH_MAP:
-            if arch == fatarch:
-                return debarch
-        return arch
-
-    @staticmethod
-    def fatarch(arch):
-        for fatarch, debarch in RegistryDeb.ARCH_MAP:
-            if arch == debarch:
-                return fatarch
-        return arch
 
 
 class DebChangelog(changelog.Changelog):

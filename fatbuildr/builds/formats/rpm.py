@@ -66,6 +66,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         instance,
         format,
         distribution,
+        architectures,
         derivative,
         artefact,
         user_name,
@@ -80,6 +81,7 @@ class ArtefactBuildRpm(ArtefactBuild):
             instance,
             format,
             distribution,
+            architectures,
             derivative,
             artefact,
             user_name,
@@ -104,15 +106,16 @@ class ArtefactBuildRpm(ArtefactBuild):
 
     def build(self):
         self._build_src()
-        self._build_bin()
+        for architecture in self.architectures:
+            self._build_bin(architecture)
 
     def _build_src(self):
         """Build source SRPM"""
 
         logger.info(
-            "Building source RPM for %s in environment %s",
+            "Building source RPM for %s in build environment %s",
             self.artefact,
-            self.env.name,
+            self.host_env,
         )
 
         # Add distribution to targeted version
@@ -211,7 +214,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         cmd = [
             'mock',
             '--root',
-            self.env.name,
+            self.host_env.name,
             '--buildsrpm',
             '--sources',
             self.place,
@@ -233,13 +236,16 @@ class ArtefactBuildRpm(ArtefactBuild):
 
         self.cruncmd(cmd)
 
-    def _build_bin(self):
+    def _build_bin(self, architecture):
         """Build binary RPM"""
 
+        env = self.instance.images_mgr.build_env(
+            self.format, self.env_name, architecture
+        )
         logger.info(
-            "Building binary RPM based on %s in environment %s",
+            "Building binary RPM based on %s in build environment %s",
             self.srpm_path,
-            self.env.name,
+            env,
         )
 
         # Save keyring in build place so dnf can check signatures of
@@ -251,7 +257,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         cmd = [
             'mock',
             '--root',
-            self.env.name,
+            env.name,
             '--enable-plugin',
             'fatbuildr_derivatives',
             '--plugin-option',

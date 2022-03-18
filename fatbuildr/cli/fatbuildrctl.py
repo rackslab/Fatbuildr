@@ -125,6 +125,37 @@ def prepare_source_tarball(artefact, path, version):
     return tarball
 
 
+def artefact_arch_dependent(artefact, basedir, subdir, format):
+    """Returns True if the artefact is architecture dependent, False otherwise.
+    To be determined, the corresponding parameters are checked in control file
+    for Deb packages or in spec file for RPM packages. For other formats, it
+    is always False (ie. independent from the architecture)."""
+    if format == 'deb':
+        check_file = Path(basedir, subdir, format, 'control')
+        with open(check_file, 'r') as fh:
+            for line in fh:
+                if line.startswith('Architecture:') and not line.startswith(
+                    'Architecture: all'
+                ):
+                    logger.debug("Found Architecture != all")
+                    return True
+        logger.debug("Only found Architecture == all")
+        return False
+    elif format == 'rpm':
+        check_file = Path(basedir, subdir, format, f"{artefact}.spec")
+        with open(check_file, 'r') as fh:
+            for line in fg:
+                if (
+                    line.replace(' ', '')
+                    .replace('\t', '')
+                    .startswith('BuildArch:noarch')
+                ):
+                    return False
+        return True
+    else:
+        return False
+
+
 class Fatbuildrctl(FatbuildrCliRun):
     def __init__(self):
         parser = argparse.ArgumentParser(
@@ -427,25 +458,35 @@ class Fatbuildrctl(FatbuildrCliRun):
                 logger.debug(
                     "Build environments found for format %s: %s", format, envs
                 )
+                architectures = self.connection.pipelines_architectures()
+                logger.debug(
+                    "Architectures defined in pipelines: %s", architectures
+                )
 
                 if args.create_envs:
                     for env in envs:
-                        self._submit_watch(
-                            self.connection.image_environment_create,
-                            f"{format} {env} build environment creation",
-                            args.watch,
-                            format,
-                            env,
-                        )
+                        for architecture in architectures:
+                            self._submit_watch(
+                                self.connection.image_environment_create,
+                                f"{format} {env}-{architecture} build "
+                                "environment creation",
+                                args.watch,
+                                format,
+                                env,
+                                architecture,
+                            )
                 elif args.update_envs:
                     for env in envs:
-                        self._submit_watch(
-                            self.connection.image_environment_update,
-                            f"{format} {env} build environment update",
-                            args.watch,
-                            format,
-                            env,
-                        )
+                        for architecture in archictectures:
+                            self._submit_watch(
+                                self.connection.image_environment_update,
+                                f"{format} {env}-{architecture} build "
+                                "environment update",
+                                args.watch,
+                                format,
+                                env,
+                                architecture,
+                            )
 
     def _run_keyring(self, args):
         logger.debug("running keyring operation")
@@ -664,6 +705,29 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         (format, distribution) = self._get_format_distribution(defs, args)
 
+        architectures = self.connection.pipelines_architectures()
+        logger.debug(
+            "Architectures defined in pipelines: %s", architectures
+        )
+        arch_dependent = artefact_arch_dependent(
+            args.artefact, basedir, subdir, format
+        )
+        logger.debug(
+            "Artefact %s is %sarchitecture dependent",
+            args.artefact,
+            'NOT ' if not arch_dependent else '',
+        )
+
+        if not arch_dependent:
+            # If the artefact is artefact is architecture independant,
+            # arbitrarily pick up the first architecture defined in
+            # pipelines.
+            selected_architectures = [architectures[0]]
+        else:
+            selected_architectures = architectures
+
+        logger.debug("Selected architectures: %s", selected_architectures)
+
         src_tarball = None
         if args.source_dir:
             src_tarball = prepare_source_tarball(
@@ -680,6 +744,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 args.watch,
                 format,
                 distribution,
+                selected_architectures,
                 args.derivative,
                 args.artefact,
                 user_name,

@@ -74,12 +74,16 @@ class ImageEnvironmentCreationTask(RunnableTask):
     EXFIELDS = {
         ExportableTaskField('format'),
         ExportableTaskField('environment'),
+        ExportableTaskField('architecture'),
     }
 
-    def __init__(self, task_id, place, instance, format, environment):
+    def __init__(
+        self, task_id, place, instance, format, environment, architecture
+    ):
         super().__init__(task_id, place, instance)
         self.format = format
         self.environment = environment
+        self.architecture = architecture
 
     def run(self):
         logger.info(
@@ -87,7 +91,7 @@ class ImageEnvironmentCreationTask(RunnableTask):
             self.id,
         )
         build_env = self.instance.images_mgr.build_env(
-            self.format, self.environment
+            self.format, self.environment, self.architecture
         )
         build_env.create(self)
 
@@ -98,12 +102,16 @@ class ImageEnvironmentUpdateTask(RunnableTask):
     EXFIELDS = {
         ExportableTaskField('format'),
         ExportableTaskField('environment'),
+        ExportableTaskField('architecture'),
     }
 
-    def __init__(self, task_id, place, instance, format, environment):
+    def __init__(
+        self, task_id, place, instance, format, environment, architecture
+    ):
         super().__init__(task_id, place, instance)
         self.format = format
         self.environment = environment
+        self.architecture = architecture
 
     def run(self):
         logger.info(
@@ -111,6 +119,6 @@ class ImageEnvironmentUpdateTask(RunnableTask):
             self.id,
         )
         build_env = self.instance.images_mgr.build_env(
-            self.format, self.environment
+            self.format, self.environment, self.architecture
         )
         build_env.update(self)

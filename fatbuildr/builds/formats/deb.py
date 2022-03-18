@@ -38,6 +38,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         instance,
         format,
         distribution,
+        architectures,
         derivative,
         artefact,
         user_name,
@@ -52,6 +53,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             instance,
             format,
             distribution,
+            architectures,
             derivative,
             artefact,
             user_name,
@@ -75,15 +77,15 @@ class ArtefactBuildDeb(ArtefactBuild):
 
     def build(self):
         self._build_src()
-        self._build_bin()
+        for architecture in self.architectures:
+            self._build_bin(architecture)
 
     def _build_src(self):
         """Build deb source package."""
 
         logger.info(
-            "Building source Deb packages for %s in %s",
+            "Building source Deb packages for %s",
             self.artefact,
-            self.env.name,
         )
 
         # extract tarball in build place
@@ -188,12 +190,16 @@ class ArtefactBuildDeb(ArtefactBuild):
         cmd = ['dpkg-source', '--build', tarball_subdir]
         self.cruncmd(cmd, chdir=str(self.place))
 
-    def _build_bin(self):
+    def _build_bin(self, architecture):
         """Build deb packages binary package."""
+
+        env = self.instance.images_mgr.build_env(
+            self.format, self.env_name, architecture
+        )
         logger.info(
-            "Building binary Deb packages for %s in %s",
+            "Building binary Deb packages for %s in build environment %s",
             self.artefact,
-            self.env.name,
+            env,
         )
 
         # Save keyring in build place to cowbuilder can check signatures of
@@ -215,7 +221,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             '--bindmounts',
             str(self.place),  # for local repos keyring
             '--basepath',
-            '/var/cache/pbuilder/' + self.distribution,
+            f"/var/cache/pbuilder/{env.name}",
             '--buildresult',
             str(self.place),
             dsc_path,

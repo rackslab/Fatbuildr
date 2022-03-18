@@ -8,7 +8,7 @@ Format=directory
 [Content]
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
-Packages=mock,man-db
+Packages=mock,qemu-user-static,man-db
 # Work-around for bug https://github.com/systemd/mkosi/issues/644
 WithNetwork=true
 PostInstallationScript=/usr/lib/fatbuildr/images/scripts/rpmdb-release.sh

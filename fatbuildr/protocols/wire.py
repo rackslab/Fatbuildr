@@ -47,6 +47,7 @@ class WireRunnableTask(WireData):
             print(f"  user: {self.user}")
             print(f"  email: {self.email}")
             print(f"  distribution: {self.distribution}")
+            print(f"  architectures: {' '.join(self.architectures)}")
             print(f"  derivative: {self.derivative}")
             print(f"  format: {self.format}")
             print(f"  artefact: {self.artefact}")
@@ -67,6 +68,7 @@ class WireRunnableTask(WireData):
         ):
             print(f"  format: {self.format}")
             print(f"  environment: {self.environment}")
+            print(f"  architecture: {self.architecture}")
         elif self.name == "keyring renewal":
             print(f"  duration: {self.duration}")
 

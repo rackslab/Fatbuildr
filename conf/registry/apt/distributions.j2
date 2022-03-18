@@ -3,7 +3,7 @@
 Origin: {{ instance }}
 Label: {{ instance }}
 Codename: {{ distribution }}
-Architectures: amd64 source
+Architectures: {{ architectures|join(' ') }} source
 Components: {{ components|join(' ') }}
 Description: {{ instance }} Deb {{ distribution }} packages
 SignWith: {{ key }}

@@ -20,6 +20,7 @@
 import shlex
 import subprocess
 import hashlib
+import platform
 
 import requests
 
@@ -97,3 +98,7 @@ def tar_subdir(tar):
     if not subdir.isdir():
         raise RuntimeError(f"unable to define tarball {tar.name} subdirectory")
     return subdir.name
+
+
+def host_architecture():
+    return platform.machine()

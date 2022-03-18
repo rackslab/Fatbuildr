@@ -59,6 +59,10 @@ class FatbuildrInterface(InterfaceTemplate):
         """Returns the list of formats defined in pipelines of the given instance."""
         return self.implementation.pipelines_formats(instance)
 
+    def PipelinesArchitectures(self, instance: Str) -> List[Str]:
+        """Returns the list of architectures defined in pipelines of the given instance."""
+        return self.implementation.pipelines_architectures(instance)
+
     def PipelinesFormatDistributions(
         self, instance: Str, format: Str
     ) -> List[Str]:
@@ -222,6 +226,7 @@ class FatbuildrInterface(InterfaceTemplate):
         instance: Str,
         format: Str,
         distribution: Str,
+        architectures: List[Str],
         derivative: Str,
         artefact: Str,
         user_name: Str,
@@ -236,6 +241,7 @@ class FatbuildrInterface(InterfaceTemplate):
             'artefact build',
             format,
             distribution,
+            architectures,
             derivative,
             artefact,
             user_name,
@@ -276,19 +282,27 @@ class FatbuildrInterface(InterfaceTemplate):
         return self.implementation.submit(instance, 'image update', format)
 
     def ImageEnvironmentCreate(
-        self, instance: Str, format: Str, environment: Str
+        self, instance: Str, format: Str, environment: Str, architecture: Str
     ) -> Str:
         """Submit an image build environment creation task and returns the task id."""
         return self.implementation.submit(
-            instance, 'image build environment creation', format, environment
+            instance,
+            'image build environment creation',
+            format,
+            environment,
+            architecture,
         )
 
     def ImageEnvironmentUpdate(
-        self, instance: Str, format: Str, environment: Str
+        self, instance: Str, format: Str, environment: Str, architecture: Str
     ) -> Str:
         """Submit an image build environment update task and returns the task id."""
         return self.implementation.submit(
-            instance, 'image build environment update', format, environment
+            instance,
+            'image build environment update',
+            format,
+            environment,
+            architecture,
         )
 
 
@@ -310,6 +324,10 @@ class FatbuildrMultiplexer(object):
     def pipelines_formats(self, instance: Str):
         self.timer.reset()
         return self._instances[instance].pipelines.formats
+
+    def pipelines_architectures(self, instance: Str):
+        self.timer.reset()
+        return self._instances[instance].pipelines.architectures
 
     def pipelines_format_distributions(self, instance: Str, format: Str):
         self.timer.reset()

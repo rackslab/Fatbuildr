@@ -8,4 +8,4 @@ Format=directory
 [Content]
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
-Packages=cowbuilder,devscripts,neovim,man-db,less
+Packages=cowbuilder,qemu-user-static,devscripts,neovim,man-db,less

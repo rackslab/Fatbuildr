@@ -29,7 +29,7 @@ from ..cleanup import CleanupRegistry
 from ..artefact import ArtefactDefs
 from ..registry.formats import ArtefactVersion
 from ..git import GitRepository
-from ..utils import dl_file, verify_checksum, tar_subdir
+from ..utils import dl_file, verify_checksum, tar_subdir, host_architecture
 from ..log import logr
 
 logger = logr(__name__)
@@ -42,6 +42,7 @@ class ArtefactBuild(RunnableTask):
     EXFIELDS = {
         ExportableTaskField('format'),
         ExportableTaskField('distribution'),
+        ExportableTaskField('architectures', list[str]),
         ExportableTaskField('derivative'),
         ExportableTaskField('artefact'),
         ExportableTaskField('user'),
@@ -56,6 +57,7 @@ class ArtefactBuild(RunnableTask):
         instance,
         format,
         distribution,
+        architectures,
         derivative,
         artefact,
         user_name,
@@ -67,6 +69,7 @@ class ArtefactBuild(RunnableTask):
         super().__init__(task_id, place, instance)
         self.format = format
         self.distribution = distribution
+        self.architectures = architectures
         self.derivative = derivative
         self.artefact = artefact
         self.user = user_name
@@ -82,14 +85,16 @@ class ArtefactBuild(RunnableTask):
             self.derivative
         )
         self.image = self.instance.images_mgr.image(self.format)
-        # Get the build environment corresponding to the distribution
-        build_env = self.instance.pipelines.dist_env(self.distribution)
+        # Get the build environment name corresponding to the distribution
+        self.env_name = self.instance.pipelines.dist_env(self.distribution)
         logger.debug(
             "Build environment selected for distribution %s: %s",
             self.distribution,
-            build_env,
+            self.env_name,
         )
-        self.env = self.instance.images_mgr.build_env(self.format, build_env)
+        self.host_env = self.instance.images_mgr.build_env(
+            self.format, self.env_name, host_architecture()
+        )
         self.defs = None  # loaded in prepare()
         self.version = None  # initialized in prepare(), after defs are loaded
         # Path the upstream tarball, initialized in prepare(), after optional

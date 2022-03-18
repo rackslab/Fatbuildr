@@ -48,6 +48,9 @@ class DbusClient(object):
     def pipelines_formats(self):
         return self.proxy.PipelinesFormats(self.instance)
 
+    def pipelines_architectures(self):
+        return self.proxy.PipelinesArchitectures(self.instance)
+
     def pipelines_format_distributions(self, format):
         return self.proxy.PipelinesFormatDistributions(self.instance, format)
 
@@ -127,6 +130,7 @@ class DbusClient(object):
         self,
         format,
         distribution,
+        architectures,
         derivative,
         artefact,
         user_name,
@@ -139,6 +143,7 @@ class DbusClient(object):
             self.instance,
             format,
             distribution,
+            architectures,
             derivative,
             artefact,
             user_name,
@@ -237,12 +242,12 @@ class DbusClient(object):
     def image_update(self, format):
         return self.proxy.ImageUpdate(self.instance, format)
 
-    def image_environment_create(self, format, environment):
+    def image_environment_create(self, format, environment, architecture):
         return self.proxy.ImageEnvironmentCreate(
-            self.instance, format, environment
+            self.instance, format, environment, architecture
         )
 
-    def image_environment_update(self, format, environment):
+    def image_environment_update(self, format, environment, architecture):
         return self.proxy.ImageEnvironmentUpdate(
-            self.instance, format, environment
+            self.instance, format, environment, architecture
         )

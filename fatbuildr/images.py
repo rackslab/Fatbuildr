@@ -19,6 +19,7 @@
 
 from .templates import Templeter
 from .utils import runcmd
+from .specifics import ArchMap
 from .log import logr
 
 logger = logr(__name__)
@@ -100,40 +101,61 @@ class Image(object):
 
 
 class BuildEnv(object):
-    def __init__(self, conf, image, name):
+    def __init__(self, conf, image, environment, architecture):
         self.conf = conf
         self.image = image
-        self.name = name
+        self.environment = environment
+        self.architecture = architecture
+
+    def __str__(self):
+        return f"{self.environment}-{self.architecture}"
+
+    @property
+    def name(self):
+        return f"{self.environment}-{self.native_architecture}"
+
+    @property
+    def native_architecture(self):
+        return ArchMap(self.image.format).native(self.architecture)
 
     def create(self, task):
         logger.info(
-            "Creating build environment %s in %s image",
-            self.name,
+            "Creating build environment %s for architecture %s in %s image",
+            self.environment,
+            self.architecture,
             self.image.format,
         )
 
         # check init_cmd is defined for this format
         if getattr(self.conf, self.image.format).init_cmd is None:
             raise RuntimeError(
-                f"Unable to create build environment {self.name} in "
-                f"{self.image.format} image because init_cmd is not defined "
-                "for this format"
+                f"Unable to create build environment {self.name} for "
+                f"architecture {self.architecture} in {self.image.format} "
+                "image because init_cmd is not defined for this format"
             )
 
         cmd = Templeter().srender(
             getattr(self.conf, self.image.format).init_cmd,
-            environment=self.name,
+            environment=self.environment,
+            architecture=self.native_architecture,
+            name=self.name,
         )
         task.cruncmd(self.image, cmd, init=True)
 
     def update(self, task):
         logger.info(
-            "Updating build environment %s in %s image",
+            "Updating build environment %s for architecture %s in %s image",
             self.name,
+            self.architecture,
             self.image.format,
         )
         cmds = [
-            Templeter().srender(_cmd.strip(), environment=self.name)
+            Templeter().srender(
+                _cmd.strip(),
+                environment=self.environment,
+                architecture=self.native_architecture,
+                name=self.name,
+            )
             for _cmd in getattr(
                 self.conf, self.image.format
             ).env_update_cmds.split('&&')
@@ -150,8 +172,8 @@ class ImagesManager(object):
     def image(self, format):
         return Image(self.conf, self.instance, format)
 
-    def build_env(self, format, name):
-        return BuildEnv(self.conf, self.image(format), name)
+    def build_env(self, format, name, architecture):
+        return BuildEnv(self.conf, self.image(format), name, architecture)
 
     def prepare(self):
         """Creates images storage directory if it is missing."""

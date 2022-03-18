@@ -29,7 +29,7 @@ from .images import ImagesManager
 from .containers import ContainerRunner
 from .cache import CacheManager
 from .protocols.exports import ExportableType, ExportableField
-from .utils import Singleton
+from .utils import Singleton, host_architecture
 from .log import logr
 
 logger = logr(__name__)
@@ -38,8 +38,9 @@ logger = logr(__name__)
 class InstancePipelines:
     """Class to manipulate instance pipelines."""
 
-    def __init__(self, formats, derivatives):
+    def __init__(self, architectures, formats, derivatives):
         self._formats = formats
+        self.architectures = architectures
         self.derivatives = derivatives
 
     @property
@@ -160,7 +161,20 @@ class RunningInstance(ExportableType):
         derivatives = None
         if 'derivatives' in defs:
             derivatives = defs['derivatives']
-        pipelines = InstancePipelines(defs['formats'], derivatives)
+
+        architectures = defs.get('architectures', [])
+        # Ensure the host architecture is present, at the first position of the
+        # list. For this, the host architecture is first removed for this list
+        # (if present) and inserted at position 0.
+        try:
+            architectures.remove(host_architecture())
+        except ValueError:
+            pass
+        architectures.insert(0, host_architecture())
+
+        pipelines = InstancePipelines(
+            architectures, defs['formats'], derivatives
+        )
         return cls(
             conf,
             path.stem,
