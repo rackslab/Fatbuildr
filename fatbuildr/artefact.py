@@ -25,6 +25,79 @@ from .log import logr
 logger = logr(__name__)
 
 
+class ArtefactAbstractDefs:
+    def __init__(self, place, artefact):
+        self.place = place
+        self.artefact = artefact
+
+    @property
+    def architecture_dependent(self):
+        return False
+
+
+class ArtefactDebDefs(ArtefactAbstractDefs):
+    @property
+    def architecture_dependent(self):
+        """Returns true if the Debian source package is architecture dependent,
+        or False otherwise.
+
+        To determine the value, the Architecture parameter is checked for all
+        declared binary packages. If at least one binary package is not
+        'Architecture: all', the source package as a whole is considered
+        architecture dependent."""
+        check_file = self.place.joinpath('control')
+        with open(check_file, 'r') as fh:
+            for line in fh:
+                if line.startswith('Architecture:') and not line.startswith(
+                    'Architecture: all'
+                ):
+                    return True
+        return False
+
+
+class ArtefactRpmDefs(ArtefactAbstractDefs):
+    @property
+    def architecture_dependent(self):
+        """Returns true if the RPM source package is architecture dependent, or
+        False otherwise.
+
+        To determine the value, the BuildArch parameter is checked in RPM spec
+        file. Unless BuildArch is set to noarch, the source package is
+        considered architecture dependent."""
+        check_file = self.place.joinpath(f"{self.artefact}.spec")
+        with open(check_file, 'r') as fh:
+            for line in fg:
+                if (
+                    line.replace(' ', '')
+                    .replace('\t', '')
+                    .startswith('BuildArch:noarch')
+                ):
+                    return False
+        return True
+
+
+class ArtefactOsiDefs(ArtefactAbstractDefs):
+    pass
+
+
+class ArtefactFormatDefs:
+
+    _formats = {
+        'deb': ArtefactDebDefs,
+        'rpm': ArtefactRpmDefs,
+        'osi': ArtefactOsiDefs,
+    }
+
+    @staticmethod
+    def get(place, artefact, format):
+        """Generate a BuildArtefact from a new request."""
+        if not format in ArtefactFormatDefs._formats:
+            raise RuntimeError(
+                f"artefact definition format {format} is not supported"
+            )
+        return ArtefactFormatDefs._formats[format](place.joinpath(format), artefact)
+
+
 class ArtefactDefs:
     """Class to manipulate an artefact metadata definitions."""
 

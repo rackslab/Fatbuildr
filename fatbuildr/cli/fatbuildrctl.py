@@ -32,7 +32,7 @@ from ..prefs import UserPreferences
 from ..log import logr
 from ..protocols import ClientFactory
 from ..protocols.crawler import register_protocols
-from ..artefact import ArtefactDefs
+from ..artefact import ArtefactDefs, ArtefactFormatDefs
 from ..patches import PatchQueue
 
 logger = logr(__name__)
@@ -123,37 +123,6 @@ def prepare_source_tarball(artefact, path, version):
             path, arcname=subdir, recursive=True, filter=source_tarball_filter
         )
     return tarball
-
-
-def artefact_arch_dependent(artefact, basedir, subdir, format):
-    """Returns True if the artefact is architecture dependent, False otherwise.
-    To be determined, the corresponding parameters are checked in control file
-    for Deb packages or in spec file for RPM packages. For other formats, it
-    is always False (ie. independent from the architecture)."""
-    if format == 'deb':
-        check_file = Path(basedir, subdir, format, 'control')
-        with open(check_file, 'r') as fh:
-            for line in fh:
-                if line.startswith('Architecture:') and not line.startswith(
-                    'Architecture: all'
-                ):
-                    logger.debug("Found Architecture != all")
-                    return True
-        logger.debug("Only found Architecture == all")
-        return False
-    elif format == 'rpm':
-        check_file = Path(basedir, subdir, format, f"{artefact}.spec")
-        with open(check_file, 'r') as fh:
-            for line in fg:
-                if (
-                    line.replace(' ', '')
-                    .replace('\t', '')
-                    .startswith('BuildArch:noarch')
-                ):
-                    return False
-        return True
-    else:
-        return False
 
 
 class Fatbuildrctl(FatbuildrCliRun):
@@ -706,12 +675,10 @@ class Fatbuildrctl(FatbuildrCliRun):
         (format, distribution) = self._get_format_distribution(defs, args)
 
         architectures = self.connection.pipelines_architectures()
-        logger.debug(
-            "Architectures defined in pipelines: %s", architectures
-        )
-        arch_dependent = artefact_arch_dependent(
-            args.artefact, basedir, subdir, format
-        )
+        logger.debug("Architectures defined in pipelines: %s", architectures)
+        arch_dependent = ArtefactFormatDefs.get(
+            Path(basedir, subdir), args.artefact, format
+        ).architecture_dependent
         logger.debug(
             "Artefact %s is %sarchitecture dependent",
             args.artefact,
