@@ -239,6 +239,11 @@ class RegistryDeb(Registry):
         if not self.dists_conf.exists():
             return None
 
+        # Check if the derivative exists in the repository. If not, the
+        # associated component pool is necessarily empty.
+        if derivative not in self.derivatives(distribution):
+            return None
+
         cmd = [
             'reprepro',
             '--basedir',
