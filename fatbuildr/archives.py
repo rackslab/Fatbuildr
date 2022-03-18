@@ -128,7 +128,7 @@ class ArchivesManager:
                     task_dir,
                     err,
                 )
-            except KeyError as err:
+            except (AttributeError, KeyError) as err:
                 logger.error(
                     "Unable to load unsupported task %s: %s",
                     task_dir,
