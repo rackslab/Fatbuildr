@@ -124,15 +124,6 @@ class RegistryDeb(Registry):
             build.distribution,
             build.artefact,
         ]
-        # build.runcmd() is not used here because we want to capture and parse
-        # output here, and it writes the output to the build log file.
-        repo_list = runcmd(cmd)
-
-        if repo_list.stdout.decode() == build.fullversion:
-            raise RuntimeError(
-                f"package {build.artefact} already present in distribution "
-                f"{build.distribution} with version {build.version.full}",
-            )
 
         for changes_path in build.place.glob('*.changes'):
             # Skip source changes, source package is published in repository as
