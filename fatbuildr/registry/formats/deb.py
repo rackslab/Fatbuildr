@@ -402,6 +402,20 @@ class RegistryDeb(Registry):
         # load the keyring agent
         self.instance.keyring.load_agent()
 
+        if artefact.architecture == 'noarch':
+            # If the architecture is noarch (ie. binary architecture
+            # independant package), the package is duplicated in all
+            # architectures on the deb repository. We must explicitely ask
+            # reprepro to remove the package from all architectures.
+            _archs = '|'.join(
+                [
+                    ArchMap('deb').native(arch)
+                    for arch in self.instance.pipelines.architectures
+                ]
+            )
+        else:
+            _archs = ArchMap('deb').native(artefact.architecture)
+
         cmd = [
             'reprepro',
             '--basedir',
@@ -409,7 +423,7 @@ class RegistryDeb(Registry):
             '--component',
             derivative,
             '--architecture',
-            ArchMap('deb').native(artefact.architecture),
+            _archs,
             'remove',
             distribution,
             artefact.name,
