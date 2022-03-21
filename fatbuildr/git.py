@@ -73,6 +73,10 @@ class GitRepository:
         """Import patches in patches_dir sorted by name into successive
         commits."""
 
+        # If the patches directory does not exist, nothing to do here
+        if not patches_dir.exists():
+            return
+
         sorted_patches = sorted([patch for patch in patches_dir.iterdir()])
 
         for patch in sorted_patches:
@@ -110,6 +114,10 @@ class GitRepository:
     def export_queue(self, patches_dir):
         """Export all commits in the repository into successive patches in
         patches_dir."""
+
+        # Create destination patches directory if it does not exist yet
+        if not patches_dir.exists():
+            patches_dir.mkdir()
 
         # Remove all existing patches
         for patch in patches_dir.iterdir():
