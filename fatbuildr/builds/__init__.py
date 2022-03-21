@@ -119,8 +119,12 @@ class ArtefactBuild(RunnableTask):
         return self.defs.buildargs(self.format)
 
     @property
-    def upstream_tarball(self):
-        return self.defs.tarball(self.version.main)
+    def tarball_url(self):
+        return self.defs.tarball_url(self.version.main)
+
+    @property
+    def tarball_filename(self):
+        return self.defs.tarball_filename(self.version.main)
 
     @property
     def checksum_format(self):
@@ -212,7 +216,7 @@ class ArtefactBuild(RunnableTask):
                 f"{self.defs.version(self.derivative)}-{self.defs.release(self.format)}"
             )
             if not self.cache.has_tarball:
-                dl_file(self.upstream_tarball, self.cache.tarball)
+                dl_file(self.tarball_url, self.cache.tarball)
                 verify_checksum(
                     self.cache.tarball,
                     self.checksum_format,

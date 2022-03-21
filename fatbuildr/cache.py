@@ -31,7 +31,7 @@ class CacheArtefact(object):
 
     @property
     def tarball(self):
-        return self.dir.joinpath(os.path.basename(self.build.upstream_tarball))
+        return self.dir.joinpath(self.build.tarball_filename)
 
     @property
     def has_tarball(self):

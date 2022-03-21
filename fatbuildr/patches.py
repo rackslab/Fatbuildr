@@ -66,7 +66,7 @@ class PatchQueue:
     def run(self):
         logger.debug("Running patch queue for artefact %s", self.artefact)
 
-        tarball_url = self.defs.tarball(self.version)
+        tarball_url = self.defs.tarball_url(self.version)
 
         cache_dir = default_user_cache().expanduser()
 
@@ -76,7 +76,9 @@ class PatchQueue:
             cache_dir.mkdir()
 
         # define tarball path in user local cache
-        tarball_path = cache_dir.joinpath(os.path.basename(tarball_url))
+        tarball_path = cache_dir.joinpath(
+            self.defs.tarball_filename(self.version)
+        )
 
         # download and save tarball in user cache
         if not tarball_path.exists():

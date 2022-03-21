@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import os
+
 import yaml
 
 from .templates import Templeter
@@ -66,7 +68,7 @@ class ArtefactRpmDefs(ArtefactAbstractDefs):
         considered architecture dependent."""
         check_file = self.place.joinpath(f"{self.artefact}.spec")
         with open(check_file, 'r') as fh:
-            for line in fg:
+            for line in fh:
                 if (
                     line.replace(' ', '')
                     .replace('\t', '')
@@ -95,7 +97,9 @@ class ArtefactFormatDefs:
             raise RuntimeError(
                 f"artefact definition format {format} is not supported"
             )
-        return ArtefactFormatDefs._formats[format](place.joinpath(format), artefact)
+        return ArtefactFormatDefs._formats[format](
+            place.joinpath(format), artefact
+        )
 
 
 class ArtefactDefs:
@@ -151,8 +155,17 @@ class ArtefactDefs:
     def fullversion(self, fmt, derivative):
         return self.version(derivative) + '-' + self.release(fmt)
 
-    def tarball(self, version):
-        return Templeter().srender(self.meta['tarball'], version=version)
+    def tarball_url(self, version):
+        tarball = Templeter().srender(self.meta['tarball'], version=version)
+        if '!' in tarball:
+            return tarball.split('!')[0]
+        return tarball
+
+    def tarball_filename(self, version):
+        tarball = Templeter().srender(self.meta['tarball'], version=version)
+        if '!' in tarball:
+            return tarball.split('!')[1]
+        return os.path.basename(tarball)
 
     def has_buildargs(self, fmt):
         return 'buildargs' in self.meta[fmt]
