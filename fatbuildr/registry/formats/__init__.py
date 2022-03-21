@@ -101,6 +101,13 @@ class RegistryArtefact(ExportableType):
         self.architecture = architecture
         self.version = version
 
+    def __eq__(self, other):
+        return (
+            self.name == other.name
+            and self.architecture == other.architecture
+            and self.version == other.version
+        )
+
 
 class ChangelogEntry(ExportableType):
 

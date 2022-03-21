@@ -162,7 +162,7 @@ class RegistryDeb(Registry):
             '--component',
             derivative,
             '--list-format',
-            '${package}|${$architecture}|${version}\n',
+            '${package}|${Architecture}|${$architecture}|${version}\n',
             'list',
             distribution,
         ]
@@ -171,10 +171,21 @@ class RegistryDeb(Registry):
         for line in lines:
             if not line:
                 continue
-            (name, arch, version) = line.split('|')
-            artefacts.append(
-                RegistryArtefact(name, ArchMap('deb').normalized(arch), version)
+            (name, arch, locarch, version) = line.split('|')
+            if locarch == 'source':
+                _arch = locarch
+            else:
+                _arch = arch
+            artefact = RegistryArtefact(
+                name, ArchMap('deb').normalized(_arch), version
             )
+            # Architecture independant packages can appear multiple times in
+            # reprepro command output as their duplicated for every
+            # ${$architecture} in repository. We check the RegistryArtefact
+            # is not already present in list to avoid duplicated entries in
+            # resulting list.
+            if artefact not in artefacts:
+                artefacts.append(artefact)
         return artefacts
 
     def artefact_bins(self, distribution, derivative, src_artefact):
@@ -188,19 +199,28 @@ class RegistryDeb(Registry):
             '--component',
             derivative,
             '--list-format',
-            '${package}|${$architecture}|${$source}|${version}\n',
+            '${package}|${Architecture}|${$architecture}|${$source}|${version}\n',
             'list',
             distribution,
         ]
         repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
-            (name, arch, source, version) = line.split('|')
-            if arch == 'source':  # skip non-binary package
+            (name, arch, locarch, source, version) = line.split('|')
+            if locarch == 'source':  # skip non-binary package
                 continue
             if source != src_artefact:
                 continue
-            artefacts.append(RegistryArtefact(name, arch, version))
+            artefact = RegistryArtefact(
+                name, ArchMap('deb').normalized(arch), version
+            )
+            # Architecture independant packages can appear multiple times in
+            # reprepro command output as their duplicated for every
+            # ${$architecture} in repository. We check the RegistryArtefact
+            # is not already present in list to avoid duplicated entries in
+            # resulting list.
+            if artefact not in artefacts:
+                artefacts.append(artefact)
         return artefacts
 
     def artefact_src(self, distribution, derivative, bin_artefact):
@@ -221,8 +241,8 @@ class RegistryDeb(Registry):
         repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
-            (arch, source, version) = line.split('|')
-            if arch == 'source':  # skip source package
+            (locarch, source, version) = line.split('|')
+            if locarch == 'source':  # skip source package
                 continue
             return RegistryArtefact(source, 'src', version)
 
@@ -256,8 +276,8 @@ class RegistryDeb(Registry):
         for line in lines:
             if not line:
                 continue
-            (arch, version) = line.split('|')
-            if arch != 'source':  # skip binary package
+            (locarch, version) = line.split('|')
+            if locarch != 'source':  # skip binary package
                 continue
             return ArtefactVersion(version)
         return None
@@ -279,8 +299,8 @@ class RegistryDeb(Registry):
         repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
-            (arch, pkg_path) = line.split('|')
-            if arch != 'source':  # skip binary package
+            (locarch, pkg_path) = line.split('|')
+            if locarch != 'source':  # skip binary package
                 continue
             return Path(pkg_path)
         raise RuntimeError(
@@ -298,7 +318,7 @@ class RegistryDeb(Registry):
             '--component',
             derivative,
             '--list-format',
-            '${$architecture}|${$fullfilename}\n',
+            '${Architecture}|${$fullfilename}\n',
             'list',
             distribution,
             bin_artefact,
@@ -307,7 +327,8 @@ class RegistryDeb(Registry):
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
             (arch, pkg_path) = line.split('|')
-            if arch != architecture:  # skip binary package
+            # check architecture matches
+            if arch != ArchMap('deb').native(architecture):
                 continue
             return Path(pkg_path)
         raise RuntimeError(
