@@ -35,10 +35,6 @@ class RegistryRpm(Registry):
         super().__init__(conf, instance, 'rpm')
 
     @property
-    def path(self):
-        return self.instance_dir.joinpath('rpm')
-
-    @property
     def distributions(self):
         return [item.name for item in self.path.iterdir()]
 

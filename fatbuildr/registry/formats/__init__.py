@@ -30,11 +30,16 @@ class Registry:
         self.conf = conf
         self.instance = instance
         self.instance_dir = conf.dirs.registry.joinpath(instance.id)
+        self.format = format
         self.archmap = ArchMap(format)
 
     @property
     def distributions(self):
         raise NotImplementedError
+
+    @property
+    def path(self):
+        return self.instance_dir.joinpath(self.format)
 
     @property
     def exists(self):

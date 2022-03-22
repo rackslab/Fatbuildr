@@ -38,10 +38,6 @@ class RegistryDeb(Registry):
         super().__init__(conf, instance, 'deb')
 
     @property
-    def path(self):
-        return self.instance_dir.joinpath('deb')
-
-    @property
     def distributions(self):
         dists_path = self.path.joinpath('dists')
         if not dists_path.exists():

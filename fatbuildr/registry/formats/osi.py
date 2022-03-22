@@ -35,10 +35,6 @@ class RegistryOsi(Registry):
         super().__init__(conf, instance, 'osi')
 
     @property
-    def path(self):
-        return self.instance_dir.joinpath('osi')
-
-    @property
     def distributions(self):
         return [item.name for item in self.path.iterdir()]
 
