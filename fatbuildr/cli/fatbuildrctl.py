@@ -446,7 +446,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                             )
                 elif args.update_envs:
                     for env in envs:
-                        for architecture in archictectures:
+                        for architecture in architectures:
                             self._submit_watch(
                                 self.connection.image_environment_update,
                                 f"{format} {env}-{architecture} build "
