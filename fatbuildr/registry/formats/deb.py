@@ -26,7 +26,6 @@ from debian import deb822, changelog, debfile
 from . import Registry, ArtefactVersion, RegistryArtefact, ChangelogEntry
 from ...templates import Templeter
 from ...utils import runcmd
-from ...specifics import ArchMap
 from ...log import logr
 
 logger = logr(__name__)
@@ -36,7 +35,7 @@ class RegistryDeb(Registry):
     """Registry for Deb format (aka. APT repository)."""
 
     def __init__(self, conf, instance):
-        super().__init__(conf, instance)
+        super().__init__(conf, instance, 'deb')
 
     @property
     def path(self):
@@ -88,7 +87,7 @@ class RegistryDeb(Registry):
         distributions = list(set(self.distributions + [build.distribution]))
         components = list(set(self.components + build.derivatives))
         architectures = [
-            ArchMap('deb').native(architecture)
+            self.archmap.native(architecture)
             for architecture in self.instance.pipelines.architectures
         ]
         with open(self.dists_conf, 'w+') as fh:
@@ -177,7 +176,7 @@ class RegistryDeb(Registry):
             else:
                 _arch = arch
             artefact = RegistryArtefact(
-                name, ArchMap('deb').normalized(_arch), version
+                name, self.archmap.normalized(_arch), version
             )
             # Architecture independant packages can appear multiple times in
             # reprepro command output as their duplicated for every
@@ -212,7 +211,7 @@ class RegistryDeb(Registry):
             if source != src_artefact:
                 continue
             artefact = RegistryArtefact(
-                name, ArchMap('deb').normalized(arch), version
+                name, self.archmap.normalized(arch), version
             )
             # Architecture independant packages can appear multiple times in
             # reprepro command output as their duplicated for every
@@ -328,7 +327,7 @@ class RegistryDeb(Registry):
         for line in lines:
             (arch, pkg_path) = line.split('|')
             # check architecture matches
-            if arch != ArchMap('deb').native(architecture):
+            if arch != self.archmap.native(architecture):
                 continue
             return Path(pkg_path)
         raise RuntimeError(
@@ -409,12 +408,12 @@ class RegistryDeb(Registry):
             # reprepro to remove the package from all architectures.
             _archs = '|'.join(
                 [
-                    ArchMap('deb').native(arch)
+                    self.archmap.native(arch)
                     for arch in self.instance.pipelines.architectures
                 ]
             )
         else:
-            _archs = ArchMap('deb').native(artefact.architecture)
+            _archs = self.archmap.native(artefact.architecture)
 
         cmd = [
             'reprepro',

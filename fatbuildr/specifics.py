@@ -18,6 +18,8 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 
+# Map fatbuildr normalized architectures with format native architectures.
+
 _FORMATS_ARCH_MAP = {
     'deb': [
         ('src', 'source'),
@@ -27,23 +29,41 @@ _FORMATS_ARCH_MAP = {
     ]
 }
 
+# Map fatbuildr normalized architectures with repository architectures, for
+# each format.
+
+_FORMATS_ARCH_DIR = {
+    'rpm': [
+        ('src', 'source'),
+    ]
+}
+
 
 class ArchMap:
     def __init__(self, format):
         self.format = format
 
-    def native(self, arch):
-        if self.format not in _FORMATS_ARCH_MAP:
+    def _native(self, formats_map, arch):
+        if self.format not in formats_map:
             return arch
-        for normalized, native in _FORMATS_ARCH_MAP[self.format]:
+        for normalized, native in formats_map[self.format]:
             if arch == normalized:
                 return native
         return arch
 
-    def normalized(self, arch):
-        if self.format not in _FORMATS_ARCH_MAP:
+    def _normalized(self, formats_map, arch):
+        if self.format not in formats_map:
             return arch
-        for normalized, native in _FORMATS_ARCH_MAP[self.format]:
+        for normalized, native in formats_map[self.format]:
             if arch == native:
                 return normalized
         return arch
+
+    def native(self, arch):
+        return self._native(_FORMATS_ARCH_MAP, arch)
+
+    def normalized(self, arch):
+        return self._normalized(_FORMATS_ARCH_MAP, arch)
+
+    def nativedir(self, arch):
+        return self._native(_FORMATS_ARCH_DIR, arch)

@@ -32,7 +32,7 @@ class RegistryOsi(Registry):
     CHECKSUMS_FILES = ['SHA256SUMS', 'SHA256SUMS.gpg']
 
     def __init__(self, conf, instance):
-        super().__init__(conf, instance)
+        super().__init__(conf, instance, 'osi')
 
     @property
     def path(self):

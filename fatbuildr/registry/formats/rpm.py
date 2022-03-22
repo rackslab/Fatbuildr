@@ -23,7 +23,7 @@ import createrepo_c as cr
 
 from . import Registry, ArtefactVersion, RegistryArtefact, ChangelogEntry
 from ...log import logr
-from ...utils import runcmd
+from ...utils import runcmd, host_architecture
 
 logger = logr(__name__)
 
@@ -32,7 +32,7 @@ class RegistryRpm(Registry):
     """Registry for Rpm format (aka. yum/dnf repository)."""
 
     def __init__(self, conf, instance):
-        super().__init__(conf, instance)
+        super().__init__(conf, instance, 'rpm')
 
     @property
     def path(self):
@@ -48,19 +48,80 @@ class RegistryRpm(Registry):
     def dist_path(self, distribution):
         return self.path.joinpath(distribution)
 
-    def repo_path(self, distribution, derivative):
-        return self.dist_path(distribution).joinpath(derivative)
+    def repo_path(self, distribution, derivative, architecture):
+        """Returns the path to the repository for the given distribution,
+        derivative and normalized architecture."""
+        # If the given architecture is noarch, arbitrarily return the path of
+        # the host architecture repository.
+        if architecture == 'noarch':
+            _arch = host_architecture()
+        else:
+            _arch = architecture
+        return self.dist_path(distribution).joinpath(
+            derivative, self.archmap.nativedir(_arch)
+        )
 
-    def pkg_dir(self, distribution, derivative):
-        return self.repo_path(distribution, derivative).joinpath('Packages')
+    def pkg_dir(self, distribution, derivative, architecture):
+        return self.repo_path(distribution, derivative, architecture).joinpath(
+            'Packages'
+        )
 
-    def _mk_missing_repo_dirs(self, distribution, derivative):
-        """Create pkg_dir if it does not exists, considering pkg_dir is a
-        subdirectory of repo_dir."""
-        pkg_dir = self.pkg_dir(distribution, derivative)
-        if not pkg_dir.exists():
-            logger.info("Creating missing package directory %s", pkg_dir)
-            pkg_dir.mkdir(parents=True)
+    def available_arch_dirs(self, distribution, derivative):
+        """Returns the list of Path of existing architectures repositories for
+        the given distribution and derivative."""
+        return [
+            path
+            for path in self.dist_path(distribution)
+            .joinpath(derivative)
+            .iterdir()
+        ]
+
+    def _mk_missing_dirs(self, path):
+        """Create directory at path if it does not exists, with all its
+        parents."""
+        if not path.exists():
+            logger.info("Creating missing directory %s", path)
+            path.mkdir(parents=True)
+
+    def _publish_rpm_arch(self, build, rpm, arch):
+        # Search for older versions of package and remove them.
+        repo_path = self.repo_path(build.distribution, build.derivative, arch)
+        for path in self.packages_paths(
+            build.distribution, build.derivative, arch, build.artefact
+        ):
+            logger.debug("Removing replaced RPM %s", path)
+            if not path.exists():
+                logger.warning(
+                    "Replaced RPM file %s not found, unable to delete",
+                    path,
+                )
+                continue
+            path.unlink()
+
+        pkg_dir = self.pkg_dir(build.distribution, build.derivative, arch)
+        self._mk_missing_dirs(pkg_dir)
+        logger.debug("Copying RPM %s to %s", rpm, pkg_dir)
+        shutil.copy(rpm, pkg_dir)
+
+        logger.debug("Updating metadata of RPM repository %s", repo_path)
+        cmd = ['createrepo_c', '--update', repo_path]
+        build.runcmd(cmd)
+
+    def _publish_rpm(self, build, rpm):
+        logger.info("Publishing RPM %s", rpm)
+
+        pkg_arch = rpm.suffixes[-2].lstrip('.')
+        if self.archmap.normalized(pkg_arch) == 'noarch':
+            # Architecture independent packages must be deployed and duplicated
+            # in all supported architectures repositories.
+            archs = self.instance.pipelines.architectures
+        else:
+            archs = [self.archmap.normalized(pkg_arch)]
+
+        logger.debug("Selected repositories architectures: %s", ' '.join(archs))
+
+        for arch in archs:
+            self._publish_rpm_arch(build, rpm, arch)
 
     def publish(self, build):
         """Publish RPM (including SRPM) in yum/dnf repository."""
@@ -71,41 +132,22 @@ class RegistryRpm(Registry):
             build.distribution,
         )
 
-        dist_path = self.repo_path(build.distribution, build.derivative)
-        pkg_dir = self.pkg_dir(build.distribution, build.derivative)
+        for rpm in build.place.glob('*.rpm'):
+            self._publish_rpm(build, rpm)
 
-        self._mk_missing_repo_dirs(build.distribution, build.derivative)
-
-        # Search for older versions of package and remove them.
-        paths = self.packages_paths(
-            build.distribution, build.derivative, build.artefact
-        )
-        for path in paths:
-            rpm_path = self.repo_path(
-                build.distribution, build.derivative
-            ).joinpath(path)
-            logger.debug("Removing replaced RPM %s", rpm_path)
-            rpm_path.unlink()
-
-        for rpm_path in build.place.glob('*.rpm'):
-            logger.debug("Copying RPM %s to %s", rpm_path, pkg_dir)
-            shutil.copy(rpm_path, pkg_dir)
-
-        logger.debug("Updating metadata of RPM repository %s", dist_path)
-        cmd = ['createrepo_c', '--update', dist_path]
-        build.runcmd(cmd)
-
-    def packages_paths(self, distribution, derivative, artefact):
+    def packages_paths(self, distribution, derivative, architecture, artefact):
         """Returns the list of paths of all binary RPM generated by the given
         source artefact and the path to the corresponding source RPM."""
         paths = []
-        repo_path = self.repo_path(distribution, derivative)
+        repo_path = self.repo_path(distribution, derivative, architecture)
         md = cr.Metadata()
         try:
-            md.locate_and_load_xml(
-                str(self.repo_path(distribution, derivative))
-            )
+            md.locate_and_load_xml(str(repo_path))
         except OSError:
+            logger.warning(
+                "Unable to load RPM repository metadata in directory %s",
+                repo_path,
+            )
             # If packages Metadata is not found, createrepo_c raises an OSError.
             # In this case, the repository is necessarily empty.
             return []
@@ -121,64 +163,79 @@ class RegistryRpm(Registry):
     def artefacts(self, distribution, derivative):
         """Returns the list of artefacts in rpm repository."""
         artefacts = []
-        md = cr.Metadata()
-        try:
-            md.locate_and_load_xml(
-                str(self.repo_path(distribution, derivative))
-            )
-        except OSError:
-            # If packages Metadata is not found, createrepo_c raises an OSError.
-            # In this case, the repository is necessarily empty.
-            return []
-        for key in md.keys():
-            pkg = md.get(key)
-            artefacts.append(
-                RegistryArtefact(
+        for arch_dir in self.available_arch_dirs(distribution, derivative):
+            md = cr.Metadata()
+            try:
+                md.locate_and_load_xml(str(arch_dir))
+            except OSError:
+                logger.warning(
+                    "Unable to load RPM repository metadata in directory %s",
+                    arch_dir,
+                )
+                # If packages Metadata is not found, createrepo_c raises an OSError.
+                # In this case, the repository is necessarily empty.
+                return []
+            for key in md.keys():
+                pkg = md.get(key)
+                artefact = RegistryArtefact(
                     pkg.name, pkg.arch, pkg.version + '-' + pkg.release
                 )
-            )
+                # Architecture independant packages can be duplicated in
+                # multiple architectures repositories. We check the
+                # RegistryArtefact is not already present in list to avoid
+                # duplicated entries in resulting list.
+                if artefact not in artefacts:
+                    artefacts.append(artefact)
         return artefacts
 
     def artefact_bins(self, distribution, derivative, src_artefact):
         """Returns the list of binary RPM generated by the given source RPM."""
         artefacts = []
-        md = cr.Metadata()
-        md.locate_and_load_xml(str(self.repo_path(distribution, derivative)))
-        for key in md.keys():
-            pkg = md.get(key)
-            if pkg.arch == 'src':  # skip non-binary package
-                continue
-            # The createrepo_c library gives access to full the source RPM
-            # filename, including its version and its extension. We must
-            # extract the source package name out of this filename.
-            source = pkg.rpm_sourcerpm.rsplit('-', 2)[0]
-            if source != src_artefact:
-                continue
-            artefacts.append(
-                RegistryArtefact(
+        for arch_dir in self.available_arch_dirs(distribution, derivative):
+            md = cr.Metadata()
+            md.locate_and_load_xml(str(arch_dir))
+            for key in md.keys():
+                pkg = md.get(key)
+                if pkg.arch == 'src':  # skip non-binary package
+                    continue
+                # The createrepo_c library gives access to full the source RPM
+                # filename, including its version and its extension. We must
+                # extract the source package name out of this filename.
+                source = pkg.rpm_sourcerpm.rsplit('-', 2)[0]
+                if source != src_artefact:
+                    continue
+                artefact = RegistryArtefact(
                     pkg.name, pkg.arch, pkg.version + '-' + pkg.release
                 )
-            )
+                # Architecture independant packages can be duplicated in
+                # multiple architectures repositories. We check the
+                # RegistryArtefact is not already present in list to avoid
+                # duplicated entries in resulting list.
+                if artefact not in artefacts:
+                    artefacts.append(artefact)
         return artefacts
 
     def artefact_src(self, distribution, derivative, bin_artefact):
-        md = cr.Metadata()
-        md.locate_and_load_xml(str(self.repo_path(distribution, derivative)))
-        for key in md.keys():
-            pkg = md.get(key)
-            if pkg.name != bin_artefact:
-                continue
-            if pkg.arch == 'src':  # skip non-binary package
-                continue
-            # The createrepo_c library gives access to the full source RPM
-            # filename, including its version and its extension. We must
-            # extract the source package name out of this filename.
-            srcrpm_components = pkg.rpm_sourcerpm.rsplit('-', 2)
-            src_name = srcrpm_components[0]
-            # For source version, extract the version and the release with
-            # .src.rpm suffix removed.
-            src_version = srcrpm_components[1] + '-' + srcrpm_components[2][:-8]
-            return RegistryArtefact(src_name, 'src', src_version)
+        for arch_dir in self.available_arch_dirs(distribution, derivative):
+            md = cr.Metadata()
+            md.locate_and_load_xml(str(arch_dir))
+            for key in md.keys():
+                pkg = md.get(key)
+                if pkg.name != bin_artefact:
+                    continue
+                if pkg.arch == 'src':  # skip non-binary package
+                    continue
+                # The createrepo_c library gives access to the full source RPM
+                # filename, including its version and its extension. We must
+                # extract the source package name out of this filename.
+                srcrpm_components = pkg.rpm_sourcerpm.rsplit('-', 2)
+                src_name = srcrpm_components[0]
+                # For source version, extract the version and the release with
+                # .src.rpm suffix removed.
+                src_version = (
+                    srcrpm_components[1] + '-' + srcrpm_components[2][:-8]
+                )
+                return RegistryArtefact(src_name, 'src', src_version)
 
     def source_version(self, distribution, derivative, artefact):
         """Returns the version of the given source package name, or None if not
@@ -186,7 +243,7 @@ class RegistryRpm(Registry):
         md = cr.Metadata()
         try:
             md.locate_and_load_xml(
-                str(self.repo_path(distribution, derivative))
+                str(self.repo_path(distribution, derivative, 'src'))
             )
         except OSError:
             # If packages Metadata is not found, createrepo_c raises an OSError.
@@ -204,7 +261,9 @@ class RegistryRpm(Registry):
     def changelog(self, distribution, derivative, architecture, artefact):
         """Returns the changelog of a RPM source package."""
         md = cr.Metadata()
-        md.locate_and_load_xml(str(self.repo_path(distribution, derivative)))
+        md.locate_and_load_xml(
+            str(self.repo_path(distribution, derivative, architecture))
+        )
         for key in md.keys():
             pkg = md.get(key)
             if pkg.name != artefact:
@@ -214,32 +273,48 @@ class RegistryRpm(Registry):
             return RpmChangelog(pkg.changelogs).entries()
 
     def delete_artefact(self, distribution, derivative, artefact):
-        md = cr.Metadata()
-        md.locate_and_load_xml(str(self.repo_path(distribution, derivative)))
-        for key in md.keys():
-            pkg = md.get(key)
-            if pkg.name == artefact.name and pkg.arch == artefact.architecture:
-                pkg_path = self.repo_path(distribution, derivative).joinpath(
-                    pkg.location_href
-                )
-                logger.info("Deleting RPM package %s", pkg_path)
-                if not pkg_path.exists():
-                    logger.warning(
-                        "RPM file %s not found, unable to delete", pkg_path
-                    )
-                else:
-                    pkg_path.unlink()
 
-        logger.info(
-            "Updating metadata of RPM repository %s",
-            self.repo_path(distribution, derivative),
-        )
-        cmd = [
-            'createrepo_c',
-            '--update',
-            self.repo_path(distribution, derivative),
-        ]
-        runcmd(cmd)
+        if artefact.architecture == 'noarch':
+            # If the architecture is noarch (ie. binary architecture
+            # independant package), the package might be duplicated in all
+            # architectures repositories. We must explicitely loop over all
+            # architectures to fully remove the binary package.
+            archs = [
+                self.archmap.native(arch)
+                for arch in self.instance.pipelines.architectures
+            ]
+        else:
+            archs = [self.archmap.native(artefact.architecture)]
+
+        for arch in archs:
+            md = cr.Metadata()
+            repo_path = self.repo_path(distribution, derivative, arch)
+            md.locate_and_load_xml(str(repo_path))
+            for key in md.keys():
+                pkg = md.get(key)
+                if (
+                    pkg.name == artefact.name
+                    and pkg.arch == artefact.architecture
+                ):
+                    pkg_path = repo_path.joinpath(pkg.location_href)
+                    logger.info("Deleting RPM package %s", pkg_path)
+                    if not pkg_path.exists():
+                        logger.warning(
+                            "RPM file %s not found, unable to delete", pkg_path
+                        )
+                    else:
+                        pkg_path.unlink()
+
+            logger.info(
+                "Updating metadata of RPM repository %s",
+                repo_path,
+            )
+            cmd = [
+                'createrepo_c',
+                '--update',
+                repo_path,
+            ]
+            runcmd(cmd)
 
 
 class RpmChangelog:

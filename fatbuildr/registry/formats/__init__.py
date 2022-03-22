@@ -19,16 +19,18 @@
 
 import re
 
+from ...specifics import ArchMap
 from ...protocols.exports import ExportableType, ExportableField
 
 
 class Registry:
     """Abstract Registry class, parent of all specific Registry classes."""
 
-    def __init__(self, conf, instance):
+    def __init__(self, conf, instance, format):
         self.conf = conf
         self.instance = instance
         self.instance_dir = conf.dirs.registry.joinpath(instance.id)
+        self.archmap = ArchMap(format)
 
     @property
     def distributions(self):
