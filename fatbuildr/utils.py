@@ -41,7 +41,7 @@ class Singleton(type):
 
 
 def shelljoin(cmd):
-    return " ".join(shlex.quote(str(x)) for x in cmd)
+    return " ".join(shlex.quote(str(x).replace('\n', '\\n')) for x in cmd)
 
 
 def runcmd(cmd, log=None, **kwargs):
