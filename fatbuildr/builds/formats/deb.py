@@ -221,7 +221,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             '--bindmounts',
             str(self.place),  # for local repos keyring
             '--basepath',
-            f"/var/cache/pbuilder/{env.name}",
+            env.path,
             '--buildresult',
             str(self.place),
             dsc_path,

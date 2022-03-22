@@ -111,6 +111,12 @@ class BuildEnv(object):
         return f"{self.environment}-{self.architecture}"
 
     @property
+    def path(self):
+        env_path = getattr(self.conf, self.image.format).env_path
+        if env_path:
+            return Templeter().srender(env_path, name=self.name)
+
+    @property
     def name(self):
         return f"{self.environment}-{self.native_architecture}"
 
@@ -139,6 +145,7 @@ class BuildEnv(object):
             environment=self.environment,
             architecture=self.native_architecture,
             name=self.name,
+            path=self.path,
         )
         task.cruncmd(self.image, cmd, init=True)
 
@@ -155,6 +162,7 @@ class BuildEnv(object):
                 environment=self.environment,
                 architecture=self.native_architecture,
                 name=self.name,
+                path=self.path,
             )
             for _cmd in getattr(
                 self.conf, self.image.format
