@@ -28,6 +28,7 @@ from . import (
     DbusKeyring,
     ErrorNoRunningTask,
     ErrorNoKeyring,
+    ErrorArtefactNotFound,
     valueornull,
 )
 
@@ -108,11 +109,14 @@ class DbusClient(object):
         )
 
     def artefact_src(self, fmt, distribution, derivative, artefact):
-        return DbusArtefact.from_structure(
-            self.proxy.ArtefactSource(
-                self.instance, fmt, distribution, derivative, artefact
+        try:
+            return DbusArtefact.from_structure(
+                self.proxy.ArtefactSource(
+                    self.instance, fmt, distribution, derivative, artefact
+                )
             )
-        )
+        except ErrorArtefactNotFound:
+            return None
 
     def changelog(self, fmt, distribution, derivative, architecture, artefact):
         return DbusChangelogEntry.from_structure_list(

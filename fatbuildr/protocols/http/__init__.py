@@ -55,6 +55,11 @@ class JsonData:
 
     @classmethod
     def export(cls, fields, obj):
+
+        # If object is None, export it as None value
+        if obj is None:
+            return None
+
         result = {}
         for field in fields:
             wire_value = getattr(obj, field.name)

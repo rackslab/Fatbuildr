@@ -68,6 +68,11 @@ class ErrorNoKeyring(DBusError):
     pass
 
 
+@dbus_error("ErrorArtefactNotFound", namespace=REGISTER_NAMESPACE)
+class ErrorArtefactNotFound(DBusError):
+    pass
+
+
 # Utilities to handle null values
 
 

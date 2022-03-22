@@ -197,7 +197,7 @@ def artefact(
     )
 
     if output == 'json':
-        if source:
+        if architecture != 'src':
             return jsonify(
                 {
                     'artefact': artefact,
