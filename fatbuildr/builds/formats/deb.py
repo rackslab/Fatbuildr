@@ -215,7 +215,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             'cowbuilder',
             '--build',
             '--hookdir',
-            '/usr/lib/fatbuildr/images/deb/hooks',
+            self.image.format_libdir.joinpath('hooks'),
             '--distribution',
             self.distribution,
             '--bindmounts',
