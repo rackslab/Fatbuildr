@@ -20,6 +20,7 @@
 import argparse
 import threading
 import shutil
+import time
 
 from . import FatbuildrCliRun
 from ..version import __version__
@@ -132,6 +133,17 @@ class Fatbuildrd(FatbuildrCliRun):
                     instance.tasks_mgr.run(task)
             except RuntimeError as err:
                 logger.error("Error while processing task: %s", err)
+            if instance.tasks_mgr.queue.empty():
+                # If the queue is empty, wait for extra seconds in case a
+                # client submits successive tasks (ie. it waits for one task to
+                # finish before sending the following). If the queue is still
+                # empty after these extra seconds, we can consider the worker
+                # can release the timer and leave safely. If we release the
+                # timer right after finishing the last task, the client
+                # submitting successive tasks would trigger useless fatbuildrd
+                # stop/start.
+                logger.debug("Giving grace time before releasing timer")
+                time.sleep(3)
             if instance.tasks_mgr.queue.empty():
                 # release the timer to allow other threads to leave
                 self.timer.unregister_worker(instance.id)
