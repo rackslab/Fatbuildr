@@ -171,16 +171,21 @@ class Fatbuildrd(FatbuildrCliRun):
             self.sm.notify_watchdog()
             self.timer.wait(timeout=10)
 
-        logger.info("Timer is over, notifying all builder threads")
+        logger.info("Timer is over")
+
+        logger.info("Stopping the server thread")
+        # First stop server thread to avoid clients from submitting new tasks
+        self.server.quit()
+
+        logger.info("Notifying all worker threads to stop")
         for instance in self.instances:
             with instance.tasks_mgr.queue._count._cond:
                 logger.debug(
-                    "Interrupting %s instance build manager to stop waiting for tasks",
+                    "Interrupting %s instance tasks manager to stop waiting "
+                    "for tasks",
                     instance.id,
                 )
                 instance.tasks_mgr.interrupt()
-        logger.info("Stopping the server")
-        self.server.quit()
         logger.info("Leaving timer thread")
 
     def clear_orphaned_builds(self):
