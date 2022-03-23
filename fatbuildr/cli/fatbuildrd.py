@@ -90,14 +90,14 @@ class Fatbuildrd(FatbuildrCliRun):
         # load all tasks and exportable types structures in protocol
         register_protocols()
 
-        worker_threads = {}
+        self.workers = {}
         for instance in self.instances:
-            worker_threads[instance.id] = threading.Thread(
+            self.workers[instance.id] = threading.Thread(
                 target=self._worker,
                 args=(instance,),
                 name=f"worker-{instance.id}",
             )
-            worker_threads[instance.id].start()
+            self.workers[instance.id].start()
 
         server_thread = threading.Thread(target=self._server, name='server')
         server_thread.start()
@@ -107,7 +107,7 @@ class Fatbuildrd(FatbuildrCliRun):
 
         logger.debug("All threads are started")
 
-        for instance, thread in worker_threads.items():
+        for instance, thread in self.workers.items():
             thread.join()
         server_thread.join()
         timer_thread.join()
@@ -167,8 +167,20 @@ class Fatbuildrd(FatbuildrCliRun):
     def _timer(self):
         logger.info("Starting timer thread")
         while not self.timer.over:
-            # notify service manager watchdog fatbuildrd is alive
-            self.sm.notify_watchdog()
+            stateok = True
+            for instance, thread in self.workers.items():
+                if not thread.is_alive():
+                    logger.warning(
+                        "Detected dead %s thread, notifying service manager",
+                        thread.name,
+                    )
+                    stateok = False
+                    self.sm.set_status(f"Worker thread {thread.name} failed")
+                    self.sm.notify_error()
+            if stateok:
+                # If state is OK, notify service manager watchdog fatbuildrd is
+                # alive.
+                self.sm.notify_watchdog()
             self.timer.wait(timeout=10)
 
         logger.info("Timer is over")

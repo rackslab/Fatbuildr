@@ -35,6 +35,14 @@ class ServiceManager:
     def _notify(self, state):
         self.socket.sendall(state.encode())
 
+    def set_status(self, status):
+        logger.debug("Set new service status: %s", status)
+        self._notify(f"STATUS={status}")
+
+    def notify_error(self):
+        logger.debug("Notifying service manager for error")
+        self._notify('WATCHDOG=trigger')
+
     def notify_watchdog(self):
         logger.debug("Notifying service manager for watchdog")
         self._notify('WATCHDOG=1')
