@@ -84,4 +84,18 @@ class ContainerRunner(object):
             _cmd.extend(cmd.split(' '))
         else:
             _cmd.extend(cmd)
-        runcmd(_cmd, log=log)
+
+        # Environment is set with NOTIFY_SOCKET=/dev/null to prevent
+        # systemd-nspawn from notifying systemd its readiness. When
+        # systemd-nspawn is run by fatbuildrd service, systemd PID 1 does not
+        # expect notifications from systemd-nspawn, as it is not the main PID
+        # of the service. These notifications cause spurious warning messages
+        # from systemd in service logs, such as:
+        #
+        #   "Got notification message from PID xxx, but reception only
+        #    permitted for main PID"
+        #
+        # One solution is to tune environment to make systemd-nspawn sends its
+        # notifications elsewhere. Note that the purpose of systemd-nspawn
+        # --notify-ready=no is totally different.
+        runcmd(_cmd, env={'NOTIFY_SOCKET': '/dev/null'}, log=log)
