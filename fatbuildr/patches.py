@@ -45,16 +45,14 @@ def default_user_cache():
 class PatchQueue:
     def __init__(
         self,
-        basedir,
-        subdir,
+        apath,
         derivative,
         artefact,
         defs,
         user,
         email,
     ):
-        self.basedir = basedir
-        self.subdir = subdir
+        self.apath = apath
         self.derivative = derivative
         self.artefact = artefact
         self.defs = defs
@@ -105,7 +103,7 @@ class PatchQueue:
         self.git = GitRepository(repo_path, self.user, self.email)
 
         # import existing patches in queue
-        patches_dir = Path(self.basedir, self.subdir, 'patches')
+        patches_dir = self.apath.joinpath('patches')
         self.git.import_patches(patches_dir)
 
         # launch subshell and wait user to exit

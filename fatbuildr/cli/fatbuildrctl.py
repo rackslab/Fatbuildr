@@ -57,26 +57,24 @@ def default_user_pref():
         return Path(f"~/.config/{ini}")
 
 
-def prepare_tarball(basedir, subdir):
+def prepare_tarball(apath):
     # create tmp submission directory
     tarball = Path(tempfile._get_default_tempdir()).joinpath(
         f"fatbuildr-artefact-{next(tempfile._get_candidate_names())}.tar.xz"
     )
 
-    artefact_def_path = Path(basedir, subdir)
-    if not artefact_def_path.exists():
+    if not apath.exists():
         raise RuntimeError(
-            f"artefact definition directory {artefact_def_path} does not "
-            "exist",
+            f"artefact definition directory {apath} does not exist",
         )
 
     logger.debug(
         "Creating archive %s with artefact definition directory %s",
         tarball,
-        artefact_def_path,
+        apath,
     )
     tar = tarfile.open(tarball, 'x:xz')
-    tar.add(artefact_def_path, arcname='.', recursive=True)
+    tar.add(apath, arcname='.', recursive=True)
     tar.close()
 
     return tarball
@@ -509,6 +507,11 @@ class Fatbuildrctl(FatbuildrCliRun):
         else:
             return args.subdir
 
+    def _get_apath(self, args):
+        """Returns the Path to the artefact definition according to the
+        provided command line args."""
+        return Path(self._get_basedir(args), self._get_subdir(args))
+
     def _get_user_name(self, args):
         """Returns the user name based on args and prefs descending priority,
         or fail with return code 1 and error message."""
@@ -651,9 +654,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             "running build for artefact: %s uri: %s", args.artefact, self.uri
         )
 
-        basedir = self._get_basedir(args)
-        subdir = self._get_subdir(args)
-        defs = ArtefactDefs(Path(basedir, subdir))
+        apath = self._get_apath(args)
+        defs = ArtefactDefs(apath)
 
         user_name = self._get_user_name(args)
         user_email = self._get_user_email(args)
@@ -677,7 +679,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         architectures = self.connection.pipelines_architectures()
         logger.debug("Architectures defined in pipelines: %s", architectures)
         arch_dependent = ArtefactFormatDefs.get(
-            Path(basedir, subdir), args.artefact, format
+            apath, args.artefact, format
         ).architecture_dependent
         logger.debug(
             "Artefact %s is %sarchitecture dependent",
@@ -704,7 +706,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
 
         try:
-            tarball = prepare_tarball(basedir, subdir)
+            tarball = prepare_tarball(apath)
             self._submit_watch(
                 self.connection.build,
                 f"{args.artefact} build",
@@ -746,14 +748,12 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_patches(self, args):
 
-        basedir = self._get_basedir(args)
-        subdir = self._get_subdir(args)
-        defs = ArtefactDefs(Path(basedir, subdir))
+        apath = self._get_apath(args)
+        defs = ArtefactDefs(apath)
         user_name = self._get_user_name(args)
         user_email = self._get_user_email(args)
         patch_queue = PatchQueue(
-            basedir,
-            subdir,
+            apath,
             args.derivative,
             args.artefact,
             defs,
