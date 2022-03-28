@@ -17,8 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import tarfile
+from io import BytesIO
+
 from .templates import Templeter
-from .utils import runcmd
+from .utils import runcmd, current_user_group
 from .specifics import ArchMap
 from .log import logr
 
@@ -37,6 +40,7 @@ class Image(object):
         self.def_path = conf.images.defs.joinpath(self.format).with_suffix(
             '.mkosi'
         )
+        self.skel_path = conf.images.storage.joinpath('skeleton.tar.xz')
 
     @property
     def exists(self):
@@ -67,6 +71,35 @@ class Image(object):
             _dirname.mkdir()
             _dirname.chmod(0o755)  # be umask agnostic
 
+        # Generate skeleton archive with sysusers.d configuration file to
+        # create user/group running fatbuildrd, with the same UID/GID, inside
+        # the container.
+        #
+        # It is deployed using mkosi skeleton to make sure it is deployed
+        # before packages are installed in the container image, ie. before
+        # the first time systemd-sysusers is run, and prevent other sysusers
+        # from being created with the same UID/GID.
+        logger.info("Generating skeleton archive %s", self.skel_path)
+
+        # Remove existing skeleton archive if it has already been generated
+        # previously.
+        if self.skel_path.exists():
+            logger.debug(
+                "Removing existing skeleton archive %s", self.skel_path
+            )
+            self.skel_path.unlink()
+
+        with tarfile.open(self.skel_path, 'x:xz') as tar:
+            (uid, user, gid, group) = current_user_group()
+            content = (
+                f"g {group} {gid}\n"
+                f"u {user} {uid}:{gid} \"Fatbuildr user\"\n"
+            ).encode()
+            tarinfo = tarfile.TarInfo(name="usr/lib/sysusers.d/fatbuildr.conf")
+            tarinfo.size = len(content)
+            tarinfo.mode = 0o644
+            tar.addfile(tarinfo, BytesIO(content))
+
         logger.info("Creating image for %s format", self.format)
         cmd = (
             Templeter()
@@ -76,6 +109,7 @@ class Image(object):
                 definition=str(self.def_path),
                 dirpath=str(self.path.parent),
                 path=str(self.path),
+                skeleton=str(self.skel_path),
             )
             .split(' ')
         )
