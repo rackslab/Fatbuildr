@@ -23,6 +23,7 @@ from pathlib import Path
 from .. import ArtefactBuild
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
+from ...utils import current_user
 from ...log import logr
 
 logger = logr(__name__)
@@ -234,7 +235,7 @@ class ArtefactBuildRpm(ArtefactBuild):
                 f"[(\"{self.tarball.parent}\",\"{self.tarball.parent}\")]",
             ]
 
-        self.cruncmd(cmd)
+        self.cruncmd(cmd, user=current_user()[1])
 
     def _build_bin(self, architecture):
         """Build binary RPM"""
@@ -278,7 +279,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         if self.has_buildargs:
             cmd.extend(self.buildargs)
 
-        self.cruncmd(cmd)
+        self.cruncmd(cmd, user=current_user()[1])
 
         # Load keys in agent prior to signing
         self.instance.keyring.load_agent()
