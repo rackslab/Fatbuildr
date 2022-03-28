@@ -1,0 +1,54 @@
+/* Copyright (C) 2021 Rackslab
+ *
+ * This file is part of Fatbuildr.
+ *
+ * Fatbuildr is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * Fatbuildr is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
+ */
+
+#include <unistd.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#include <stdio.h>
+
+int main(int argc, char **argv) {
+    int status;
+    char *nargv[argc+1];
+    char *envp[] = { NULL };
+
+    nargv[0] = "#BIN#";
+
+    /* Recopy all arguments from 1 to last */
+    for (int i=1; i<argc; i++) {
+        nargv[i] = argv[i];
+    }
+    nargv[argc] = NULL;
+
+    if (fork() == 0) {
+        /* Become root before executing the command */
+        setuid(0);
+        setgid(0);
+        if(execve(nargv[0], nargv, envp))
+            perror("execve");
+        /* Exit code 255 if execve() fails */
+        return 255;
+    } else {
+        pid_t pid = wait(&status);
+        if(!WIFEXITED(status)) {
+            fprintf(stderr, "Program exited abnormally (%d)\n", pid);
+            return 255;
+        }
+        else
+            return WEXITSTATUS(status);
+    }
+}
