@@ -33,6 +33,7 @@ class ContainerRunner(object):
         cmd,
         init=False,
         opts=None,
+        user=None,
         binds=[],
         chdir=None,
         envs=[],
@@ -72,6 +73,8 @@ class ContainerRunner(object):
         # add opts from conf
         if self.conf.containers.opts is not None:
             _cmd.extend(self.conf.containers.opts)
+        if user is not None:
+            _cmd.extend(['--user', user])
         for _bind in binds:
             _cmd.extend(['--bind', _bind])
         if chdir is not None:
