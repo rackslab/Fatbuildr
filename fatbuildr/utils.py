@@ -21,6 +21,9 @@ import shlex
 import subprocess
 import hashlib
 import platform
+import os
+import pwd
+import grp
 
 import requests
 
@@ -102,3 +105,21 @@ def tar_subdir(tar):
 
 def host_architecture():
     return platform.machine()
+
+
+def current_user():
+    """Returns tuple (UID, username) of the currently running process."""
+    uid = os.getuid()
+    return (uid, pwd.getpwuid(uid)[0])
+
+
+def current_group():
+    """Returns tuple (GID, group) of the currently running process."""
+    gid = os.getgid()
+    return (gid, grp.getgrgid(gid)[0])
+
+
+def current_user_group():
+    """Returns tuple (UID, username, GID, group) of the currently running
+    process."""
+    return current_user() + current_group()
