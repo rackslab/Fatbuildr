@@ -1,8 +1,2 @@
-var/lib/fatbuildr
-var/lib/fatbuildr/images
-var/lib/fatbuildr/queue
-var/lib/fatbuildr/archives
-var/lib/fatbuildr/registry
-var/cache/fatbuildr
 etc/fatbuildr/web/templates
 etc/fatbuildr/instances.d
