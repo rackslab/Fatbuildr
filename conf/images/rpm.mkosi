@@ -11,5 +11,5 @@ WithDocs=yes
 Packages=mock,qemu-user-static,man-db
 # Work-around for bug https://github.com/systemd/mkosi/issues/644
 WithNetwork=true
-PostInstallationScript=/usr/lib/fatbuildr/images/scripts/rpmdb-release.sh
+PostInstallationScript=/usr/lib/fatbuildr/images/scripts/rpm-postinstall.sh
 FinalizeScript=/usr/lib/fatbuildr/images/scripts/install-mock-plugin.sh
