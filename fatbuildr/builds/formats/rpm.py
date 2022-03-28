@@ -23,7 +23,7 @@ from pathlib import Path
 from .. import ArtefactBuild
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
-from ...utils import current_user
+from ...utils import current_user, current_group
 from ...log import logr
 
 logger = logr(__name__)
@@ -216,6 +216,8 @@ class ArtefactBuildRpm(ArtefactBuild):
             'mock',
             '--root',
             self.host_env.name,
+            '--config-opts',
+            f"chrootgid={current_group()[0]}",
             '--buildsrpm',
             '--sources',
             self.place,
@@ -259,6 +261,8 @@ class ArtefactBuildRpm(ArtefactBuild):
             'mock',
             '--root',
             env.name,
+            '--config-opts',
+            f"chrootgid={current_group()[0]}",
             '--enable-plugin',
             'fatbuildr_derivatives',
             '--plugin-option',
