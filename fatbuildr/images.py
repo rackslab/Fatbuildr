@@ -21,7 +21,7 @@ import tarfile
 from io import BytesIO
 
 from .templates import Templeter
-from .utils import runcmd, current_user_group
+from .utils import runcmd, current_user_group, current_user
 from .specifics import ArchMap
 from .log import logr
 
@@ -182,7 +182,7 @@ class BuildEnv(object):
             name=self.name,
             path=self.path,
         )
-        task.cruncmd(self.image, cmd, init=True)
+        task.cruncmd(self.image, cmd, init=True, user=current_user()[1])
 
     def update(self, task):
         logger.info(
@@ -204,7 +204,7 @@ class BuildEnv(object):
             ).env_update_cmds.split('&&')
         ]
         for cmd in cmds:
-            task.cruncmd(self.image, cmd, init=True)
+            task.cruncmd(self.image, cmd, init=True, user=current_user()[1])
 
 
 class ImagesManager(object):
