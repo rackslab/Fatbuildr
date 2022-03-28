@@ -18,5 +18,5 @@
 [D-BUS Service]
 Name=org.rackslab.Fatbuildr
 Exec=/bin/false
-User=root
+User=fatbuildr
 SystemdService=fatbuildrd.service

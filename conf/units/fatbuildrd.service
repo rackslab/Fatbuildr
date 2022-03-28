@@ -1,11 +1,13 @@
 [Unit]
 Description=Fatbuildr build daemon
+After=systemd-sysusers.service
 
 [Service]
 BusName=org.rackslab.Fatbuildr
 ExecStart=/usr/bin/fatbuildrd
 WatchdogSec=3min
 Restart=on-failure
+User=fatbuildr
 
 [Install]
 WantedBy=multi-user.target
