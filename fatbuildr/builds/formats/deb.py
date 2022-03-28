@@ -20,6 +20,7 @@
 import mimetypes
 import tarfile
 import shutil
+import os
 
 from .. import ArtefactBuild
 from ...utils import tar_subdir
@@ -233,6 +234,11 @@ class ArtefactBuildDeb(ArtefactBuild):
         if self.registry.exists:
             cmd[6:6] = ['--bindmounts', self.registry.path]
 
+        # BUILDRESULT{UID,GID} environments variables are used by pbuilder. When
+        # defined, it chowns the build results to this UID/GID. As pbuilder is
+        # run as root in container, this mechanism is used to make fatbuildrd
+        # user ownership of build results, when build is successful.
+
         self.cruncmd(
             cmd,
             envs=[
@@ -240,5 +246,7 @@ class ArtefactBuildDeb(ArtefactBuild):
                 f"FATBUILDR_KEYRING={keyring_path}",
                 f"FATBUILDR_SOURCE={self.instance.name}",
                 f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
+                f"BUILDRESULTUID={os.getuid()}",
+                f"BUILDRESULTGID={os.getgid()}",
             ],
         )
