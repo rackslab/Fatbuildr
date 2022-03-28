@@ -18,6 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 from datetime import datetime
+from pathlib import Path
 
 from flask import Flask
 from flask.helpers import locked_cached_property
@@ -145,7 +146,7 @@ class WebApp(Flask):
         self.register_error_handler(400, views.error_bad_request)
 
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
-        self.config['UPLOAD_FOLDER'] = self.conf.dirs.tmp
+        self.config['UPLOAD_FOLDER'] = Path('/run/fatbuildr')
         self.config['REGISTRY_FOLDER'] = self.conf.dirs.registry
         self.config['INSTANCE'] = self.instance
 
