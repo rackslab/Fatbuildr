@@ -32,9 +32,15 @@ class Templeter:
 
     def srender(self, str, **kwargs):
         """Render a string template."""
-        return self.env.from_string(str).render(kwargs)
+        try:
+            return self.env.from_string(str).render(kwargs)
+        except jinja2.exceptions.TemplateSyntaxError as err:
+            raise RuntimeError(f"Unable to render template string {str}: {err}")
 
     def frender(self, path, **kwargs):
         """Render a file template."""
         self.env.loader = jinja2.FileSystemLoader(path.parent)
-        return self.env.get_template(path.name).render(kwargs)
+        try:
+            return self.env.get_template(path.name).render(kwargs)
+        except jinja2.exceptions.TemplateSyntaxError as err:
+            raise RuntimeError(f"Unable to render template file {path}: {err}")
