@@ -57,9 +57,17 @@ def default_user_pref():
         return Path(f"~/.config/{ini}")
 
 
-def prepare_tarball(apath):
-    # create tmp submission directory
-    tarball = Path(tempfile._get_default_tempdir()).joinpath(
+def prepare_tarball(apath, rundir: bool):
+    """Generates tarball container artefact definition. If rundir is True, the
+    tarball is generated in fatbuildrd system runtime directory. Otherwise, it
+    is generated in default temporary directory."""
+
+    if rundir:
+        base = Path('/run/fatbuildr')
+    else:
+        base = Path(tempfile._get_default_tempdir())
+
+    tarball = base.joinpath(
         f"fatbuildr-artefact-{next(tempfile._get_candidate_names())}.tar.xz"
     )
 
@@ -706,7 +714,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
 
         try:
-            tarball = prepare_tarball(apath)
+            # Prepare artefact definition tarball, in fatbuildrd runtime
+            # directory if connected to fatbuildrd through dbus.
+            tarball = prepare_tarball(apath, self.connection.scheme == 'dbus')
             self._submit_watch(
                 self.connection.build,
                 f"{args.artefact} build",
