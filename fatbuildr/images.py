@@ -110,6 +110,7 @@ class Image(object):
                 dirpath=str(self.path.parent),
                 path=str(self.path),
                 skeleton=str(self.skel_path),
+                user=user,
             )
             .split(' ')
         )
