@@ -17,6 +17,10 @@ User=fatbuildr
 RuntimeDirectory=fatbuildr
 RuntimeDirectoryMode=0770
 RuntimeDirectoryPreserve=yes
+# Ensure cache and state directories are created and owned by fatbuildr system
+# user before the service starts.
+StateDirectory=fatbuildr fatbuildr/queue fatbuidr/images fatbuidr/keyring fatbuildr/registry
+CacheDirectory=fatbuildr
 
 [Install]
 WantedBy=multi-user.target
