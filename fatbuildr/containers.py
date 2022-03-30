@@ -43,7 +43,7 @@ class ContainerRunner(object):
         """Generic fully featured method to run command in container using
         systemd-nspawn."""
         _cmd = [
-            '/usr/libexec/fatbuildr/u-nspawn',
+            self.conf.containers.exec,
             '--directory',
             image.path,
         ]
