@@ -31,11 +31,12 @@ from . import (
     ErrorArtefactNotFound,
     valueornull,
 )
+from ..client import AbstractClient
 
 
-class DbusClient(object):
-    def __init__(self, instance):
-        self.instance = instance
+class DbusClient(AbstractClient):
+    def __init__(self, uri, scheme, instance):
+        super().__init__(uri, scheme, instance)
         self.proxy = REGISTER.get_proxy()
 
     # instances and pipelines

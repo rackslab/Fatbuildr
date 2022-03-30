@@ -33,9 +33,9 @@ class ClientFactory(object):
         if uri.scheme == 'dbus':
             if not instance:
                 raise RuntimeError("Instance must be defined in Dbus URI")
-            return DbusClient(instance)
+            return DbusClient(address, uri.scheme, instance)
         elif uri.scheme in ['http', 'https']:
-            return HttpClient(address)
+            return HttpClient(address, uri.scheme, instance)
         else:
             raise RuntimeError(f"unsupported URI {uri}")
 
