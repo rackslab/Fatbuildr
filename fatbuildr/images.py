@@ -64,13 +64,6 @@ class Image(object):
                 f"Unable to find image definition file {self.def_path}"
             )
 
-        # ensure instance images directory is present
-        _dirname = self.path.parent
-        if not _dirname.exists():
-            logger.info("Creating instance image directory %s", _dirname)
-            _dirname.mkdir()
-            _dirname.chmod(0o755)  # be umask agnostic
-
         # Generate skeleton archive with sysusers.d configuration file to
         # create user/group running fatbuildrd, with the same UID/GID, inside
         # the container.
@@ -220,8 +213,8 @@ class ImagesManager(object):
 
     def prepare(self):
         """Creates images storage directory if it is missing."""
-        if not self.conf.images.storage.exists():
-            logger.debug(
-                "Creating missing images directory %s", self.conf.images.storage
-            )
-            self.conf.images.storage.mkdir()
+        path = self.conf.images.storage.joinpath(self.instance)
+        if not path.exists():
+            logger.info("Creating instance image directory %s", path)
+            path.mkdir()
+            path.chmod(0o755)  # be umask agnostic
