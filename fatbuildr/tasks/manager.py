@@ -99,7 +99,6 @@ class ServerTasksManager:
         self.queue = QueueManager()
         self.running = None
         self.registry = ProtocolRegistry()
-        # register all types of tasks with their exportable fields
 
     @property
     def empty(self):
