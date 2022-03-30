@@ -102,11 +102,13 @@ class RuntimeSubConfContainers(object):
 
     def __init__(self):
 
+        self.exec = None
         self.init_opts = None
         self.opts = None
 
     def load(self, config):
         section = 'containers'
+        self.exec = Path(config.get(section, 'exec'))
         # replace empty value by None for better semantic
         _init_opts = config.get(section, 'init_opts')
         if _init_opts == '':
@@ -121,6 +123,7 @@ class RuntimeSubConfContainers(object):
 
     def dump(self):
         logger.debug("[containers]")
+        logger.debug("  exec: %s", self.exec)
         logger.debug("  init_opts: %s", self.init_opts)
         logger.debug("  opts: %s", self.opts)
 
