@@ -20,14 +20,15 @@
 import requests
 
 from . import JsonInstance, JsonRunnableTask
+from ..client import AbstractClient
 from ...log import logr
 
 logger = logr(__name__)
 
 
-class HttpClient:
-    def __init__(self, uri):
-        self.uri = uri.rstrip('/')
+class HttpClient(AbstractClient):
+    def __init__(self, uri, scheme, instance):
+        super().__init__(uri, scheme, instance)
 
     def instance(self):
         url = f"{self.uri}/instance.json"
