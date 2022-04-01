@@ -1,0 +1,15 @@
+// Allow fatbuildr group members to perform all Fatbuildr actions
+
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.rackslab.Fatbuildr.view-task" ||
+         action.id == "org.rackslab.Fatbuildr.build" ||
+         action.id == "org.rackslab.Fatbuildr.view-pipeline" ||
+         action.id == "org.rackslab.Fatbuildr.view-registry" ||
+         action.id == "org.rackslab.Fatbuildr.edit-registry" ||
+         action.id == "org.rackslab.Fatbuildr.view-keyring" ||
+         action.id == "org.rackslab.Fatbuildr.edit-keyring" ||
+         action.id == "org.rackslab.Fatbuildr.manage-image") &&
+        subject.isInGroup ("fatbuildr")) {
+            return polkit.Result.YES;
+        }
+});
