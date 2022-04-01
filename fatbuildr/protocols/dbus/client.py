@@ -26,12 +26,26 @@ from . import (
     DbusArtefact,
     DbusChangelogEntry,
     DbusKeyring,
+    ErrorNotAuthorized,
     ErrorNoRunningTask,
     ErrorNoKeyring,
     ErrorArtefactNotFound,
     valueornull,
 )
 from ..client import AbstractClient
+
+
+def check_authorization(method):
+    """Decorator for DbusClient methods to catch ErrorNotAuthorized that could
+    be sent by DbusServer and transform them in generic PermissionError."""
+
+    def authorization_wrapper(*args, **kwargs):
+        try:
+            return method(*args, **kwargs)
+        except ErrorNotAuthorized as err:
+            raise PermissionError(err)
+
+    return authorization_wrapper
 
 
 class DbusClient(AbstractClient):
@@ -41,31 +55,39 @@ class DbusClient(AbstractClient):
 
     # instances and pipelines
 
+    @check_authorization
     def instances(self):
         return DbusInstance.from_structure_list(self.proxy.Instances)
 
+    @check_authorization
     def instance(self, id):
         return DbusInstance.from_structure(self.proxy.Instance(id))
 
+    @check_authorization
     def pipelines_formats(self):
         return self.proxy.PipelinesFormats(self.instance)
 
+    @check_authorization
     def pipelines_architectures(self):
         return self.proxy.PipelinesArchitectures(self.instance)
 
+    @check_authorization
     def pipelines_format_distributions(self, format):
         return self.proxy.PipelinesFormatDistributions(self.instance, format)
 
+    @check_authorization
     def pipelines_distribution_format(self, distribution):
         return self.proxy.PipelinesDistributionFormat(
             self.instance, distribution
         )
 
+    @check_authorization
     def pipelines_distribution_derivatives(self, distribution):
         return self.proxy.PipelinesDistributionDerivatives(
             self.instance, distribution
         )
 
+    @check_authorization
     def pipelines_distribution_environment(self, distribution):
         env = self.proxy.PipelinesDistributionEnvironment(
             self.instance, distribution
@@ -74,25 +96,31 @@ class DbusClient(AbstractClient):
             return None
         return env
 
+    @check_authorization
     def pipelines_derivative_formats(self, derivative):
         return self.proxy.PipelinesDerivativeFormats(self.instance, derivative)
 
     # registries
 
+    @check_authorization
     def formats(self):
         return self.proxy.Formats(self.instance)
 
+    @check_authorization
     def distributions(self, fmt):
         return self.proxy.Distributions(self.instance, fmt)
 
+    @check_authorization
     def derivatives(self, fmt, distribution):
         return self.proxy.Derivatives(self.instance, fmt, distribution)
 
+    @check_authorization
     def artefacts(self, fmt, distribution, derivative):
         return DbusArtefact.from_structure_list(
             self.proxy.Artefacts(self.instance, fmt, distribution, derivative)
         )
 
+    @check_authorization
     def delete_artefact(self, fmt, distribution, derivative, artefact):
         return self.proxy.ArtefactDelete(
             self.instance,
@@ -102,6 +130,7 @@ class DbusClient(AbstractClient):
             DbusArtefact.to_structure(artefact),
         )
 
+    @check_authorization
     def artefact_bins(self, fmt, distribution, derivative, artefact):
         return DbusArtefact.from_structure_list(
             self.proxy.ArtefactBinaries(
@@ -109,6 +138,7 @@ class DbusClient(AbstractClient):
             )
         )
 
+    @check_authorization
     def artefact_src(self, fmt, distribution, derivative, artefact):
         try:
             return DbusArtefact.from_structure(
@@ -119,6 +149,7 @@ class DbusClient(AbstractClient):
         except ErrorArtefactNotFound:
             return None
 
+    @check_authorization
     def changelog(self, fmt, distribution, derivative, architecture, artefact):
         return DbusChangelogEntry.from_structure_list(
             self.proxy.Changelog(
@@ -131,6 +162,7 @@ class DbusClient(AbstractClient):
             )
         )
 
+    @check_authorization
     def build(
         self,
         format,
@@ -158,11 +190,13 @@ class DbusClient(AbstractClient):
             str(valueornull(src_tarball)),
         )
 
+    @check_authorization
     def queue(self):
         return DbusRunnableTask.from_structure_list(
             self.proxy.Queue(self.instance)
         )
 
+    @check_authorization
     def running(self):
         try:
             return DbusRunnableTask.from_structure(
@@ -171,6 +205,7 @@ class DbusClient(AbstractClient):
         except ErrorNoRunningTask:
             return None
 
+    @check_authorization
     def archives(self, limit):
         return DbusRunnableTask.from_structure_list(
             self.proxy.Archives(self.instance, limit)
@@ -224,34 +259,42 @@ class DbusClient(AbstractClient):
 
     # keyring
 
+    @check_authorization
     def keyring_create(self):
         return self.proxy.KeyringCreate(self.instance)
 
+    @check_authorization
     def keyring_renew(self, duration):
         return self.proxy.KeyringRenew(self.instance, duration)
 
+    @check_authorization
     def keyring(self):
         try:
             return DbusKeyring.from_structure(self.proxy.Keyring(self.instance))
         except ErrorNoKeyring:
             return None
 
+    @check_authorization
     def keyring_export(self):
         return self.proxy.KeyringExport(self.instance)
 
     # images
 
+    @check_authorization
     def image_create(self, format, force):
         return self.proxy.ImageCreate(self.instance, format, force)
 
+    @check_authorization
     def image_update(self, format):
         return self.proxy.ImageUpdate(self.instance, format)
 
+    @check_authorization
     def image_environment_create(self, format, environment, architecture):
         return self.proxy.ImageEnvironmentCreate(
             self.instance, format, environment, architecture
         )
 
+    @check_authorization
     def image_environment_update(self, format, environment, architecture):
         return self.proxy.ImageEnvironmentUpdate(
             self.instance, format, environment, architecture
