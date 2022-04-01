@@ -1,0 +1,97 @@
+<?xml version="1.0" encoding="UTF-8"?> <!--*-nxml-*-->
+<!DOCTYPE policyconfig PUBLIC "-//freedesktop//DTD PolicyKit Policy Configuration 1.0//EN"
+        "http://www.freedesktop.org/standards/PolicyKit/1/policyconfig.dtd">
+
+<policyconfig>
+
+        <vendor>Fatbuildr</vendor>
+        <vendor_url>https://github.com/rackslab/fatbuildr</vendor_url>
+
+        <action id="org.rackslab.Fatbuildr.view-task">
+                <description>View Fatbuildr running, pending or archived task</description>
+                <message>Authentication is required to view Fatbuildr task</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+
+        <action id="org.rackslab.Fatbuildr.build">
+                <description>Submit build task to Fatbuildr</description>
+                <message>Authentication is required to submit build task to Fatbuildr</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+
+        <action id="org.rackslab.Fatbuildr.view-pipeline">
+                <description>View Fatbuildr pipeline definition</description>
+                <message>Authentication is required to view Fatbuildr pipeline definition</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+
+        <action id="org.rackslab.Fatbuildr.view-registry">
+                <description>View Fatbuildr registry content</description>
+                <message>Authentication is required to view Fatbuildr registry content</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+
+        <action id="org.rackslab.Fatbuildr.edit-registry">
+                <description>Edit Fatbuildr registry content</description>
+                <message>Authentication is required to edit Fatbuildr registry content</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+
+        <action id="org.rackslab.Fatbuildr.view-keyring">
+                <description>View Fatbuildr keyring</description>
+                <message>Authentication is required to view Fatbuildr keyring</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+
+        <action id="org.rackslab.Fatbuildr.edit-keyring">
+                <description>Edit Fatbuildr keyring</description>
+                <message>Authentication is required to edit Fatbuildr keyring</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+
+        <action id="org.rackslab.Fatbuildr.manage-image">
+                <description>Manage Fatbuildr images and build environments</description>
+                <message>Authentication is required to manage Fatbuildr images and build environments</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+</policyconfig>
