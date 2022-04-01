@@ -58,6 +58,11 @@ REGISTER = DBusServiceIdentifier(namespace=REGISTER_NAMESPACE, message_bus=BUS)
 dbus_error = get_error_decorator(ERROR_MAPPER)
 
 # Define errors.
+@dbus_error("ErrorNotAuthorized", namespace=REGISTER_NAMESPACE)
+class ErrorNotAuthorized(DBusError):
+    pass
+
+
 @dbus_error("ErrorNoRunningTask", namespace=REGISTER_NAMESPACE)
 class ErrorNoRunningTask(DBusError):
     pass
