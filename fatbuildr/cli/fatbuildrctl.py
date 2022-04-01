@@ -347,8 +347,13 @@ class Fatbuildrctl(FatbuildrCliRun):
         # method.
         self._connection = None
 
-        # run the method corresponding to the provided action
-        args.func(args)
+        # Run the method corresponding to the provided action, catching optional
+        # permission error returned by fatbuildrd.
+        try:
+            args.func(args)
+        except PermissionError as err:
+            logger.error("You are not authorized to %s", err)
+            sys.exit(1)
 
     @property
     def connection(self):
