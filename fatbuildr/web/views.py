@@ -267,7 +267,7 @@ def search(instance, output='html'):
             for distribution, derivatives in distributions.items():
                 for derivative, artefacts in derivatives.items():
                     results[fmt][distribution][derivative] = [
-                        JsonArtefact.export(_artefact) for artefact in artefacts
+                        JsonArtefact.export(_artefact) for _artefact in artefacts
                     ]
         return jsonify(results)
     else:
