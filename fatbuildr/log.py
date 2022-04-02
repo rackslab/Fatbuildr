@@ -97,9 +97,11 @@ class Log(logging.Logger):
         return self.isEnabledFor(logging.DEBUG)
 
     def formatter(self, debug):
-        if self.name == 'fatbuildr.cli.fatbuildrd':
-            return DaemonFormatter(debug)
-        if self.name == 'fatbuildr.cli.fatbuildrweb':
+        if self.name in [
+            'fatbuildr.cli.fatbuildrd',
+            'fatbuildr.cli.fatbuildrweb',
+            'fatbuildr.wsgi',
+        ]:
             return DaemonFormatter(debug)
         elif self.name == 'fatbuildr.cli.fatbuildrctl':
             return TTYFormatter(debug)
