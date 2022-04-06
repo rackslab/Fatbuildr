@@ -1,0 +1,12 @@
+= Quickstart
+
+WIP
+
+////
+Installation instructions cannot be defined at this stage as Fatbuildr
+distribution method has not be prepared yet.
+
+It is planned to build and distribute deb and RPM packages, this work is tracked
+in GitHub issues #4 and #5. This quickstart guide will be written once these
+issues are fixed.
+////

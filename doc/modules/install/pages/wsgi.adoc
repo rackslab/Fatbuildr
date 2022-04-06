@@ -1,0 +1,26 @@
+= Fatbuildrweb WSGI
+
+== Apache2
+
+[source,bash]
+----
+a2enmod wsgi
+----
+
+[source]
+----
+WSGIDaemonProcess fatbuildrweb-all user=fatbuildr group=fatbuildr locale=en_US.UTF-8 threads=5
+WSGIScriptAlias / /usr/lib/fatbuildr/wsgi/fatbuildrweb.wsgi
+WSGIPassAuthorization On
+
+<Directory /usr/lib/fatbuildr/wsgi>
+  WSGIProcessGroup fatbuildrweb-all
+  WSGIApplicationGroup %{GLOBAL}
+  Require all granted
+</Directory>
+----
+
+[source,bash]
+----
+systemctl restart apache2.service
+----

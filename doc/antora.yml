@@ -1,0 +1,13 @@
+name: fatbuildr
+title: Fatbuildr
+version: ~
+start_page: overview:start.adoc
+asciidoc:
+  attributes:
+    source-language: asciidoc@
+    table-caption: false
+nav:
+- modules/overview/nav.adoc
+- modules/install/nav.adoc
+- modules/usage/nav.adoc
+- modules/admin/nav.adoc

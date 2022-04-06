@@ -1,0 +1,201 @@
+= Artifact Definition Reference
+
+_Artifact definitions_ are required to build artifact with Fatbuildr. Artifact
+definition is basically a set of artifact metadata (_ex:_ versions, checksums,
+releases, etc) and build rules (_ex:_ packaging code).
+
+This sections explains how to write these artifact definitions.
+
+== Artifact Repository
+
+While Fatbuildr can naturally be used to build only one artifact, it is also
+designed to help maintaining a full set of artifacts in multiple formats in a
+consistent manner. In this case, it is recommended to maintain all artifacts
+definitions in one global directory designated as the _artifacts repository_.
+
+NOTE: In Fatbuildr, artefacts definitions are designed to be composed of mostly
+small text files. This makes source code management systems (such as Git)
+especially appropriate to track changes in _artifacts repositories_.
+
+In this artifacts repository, it is recommended to create one subdirectory per
+artifact. This subdirectory is intended to fully contain the definition of this
+artifact. For example, to maintain artifact definitions of _foo_, _bar_ and
+_baz_ artifacts, create the following layout of subdirectories:
+
+[source]
+----
+repository
+├── foo
+├── bar
+└── baz
+----
+
+While this setup in recommended in Fatbuildr artifact repositories, it is just a
+convention to simplify usage of `xref::fatbuildrctl.adoc[]` command.
+This layout is not enforced. You can adopt the layout of your choice, you may
+just have to provide `xref::fatbuildrctl.adoc[]` base directory and
+subdirectory options more often.
+
+== Artifact Definition
+
+An artifact definition directory are expected to contain multiple files and
+directories. These are described in the following subsections.
+
+=== Meta
+
+An artifact definition directory must contain a metadata file formatted in YAML
+and named `meta.yml`.
+
+This file can contain the following parameters:
+
+`version`:: A source version number (ex: `1.2.3`). This is the source version
+  used when building the artifact, as released by upstream developers. The
+  parameter can be used in place of more complex `versions` parameter when the
+  artifact is only intended to be built for default _main_ derivative.
+
+_Example_:::
+
+[source,yaml]
+----
+version: 1.2.3
+----
+
+`versions`:: This is an alternative to `version` parameter. The difference is
+  that it allows defining distinct versions for multiples derivatives. The
+  value must be a hash with derivatives names as keys and target source
+  version numbers as values.
+
+_Example_:::
+
+[source,yaml]
+----
+versions:
+  foo1: 1.2.3
+  foo2: 2.0.1
+----
+
+NOTE: Either `version` or `versions` parameters must be defined in most cases,
+unless users want to always specify the version at build time using the
+dedicated option of `xref::fatbuildrctl.adoc[] build` command (_ex:_
+for sofware never released by upstream developers).
+
+`tarball`:: Remote URL of the software source tarball. This URL is used to
+download the software source. The value can use `{{ version }}` placeholder.
+This is dynamically replaced by Fatbuildr with the target source version
+number (_ex:_ `1.2.3`). This parameter is required as soon as `version` or
+`versions` is defined.
+
+_Example_:::
+
+[source,yaml]
+----
+tarball: https://download.software.org/foo-{{ version }}.tar.xz
+----
+
+NOTE: Fatbuildr downloads the source tarball targeted by these URL and fills a
+cache. As long as the tarball is available in the cache (typically starting from
+the 2^nd^ build), Fatbuildr does not try to access the URL anymore. This notably
+makes Fatbuildr resilient to resources removed on remote servers and saves
+network bandwidth.
+
+`checksums`:: The checksums of software source tarball. The value is a hash with
+versions as keys (_ex:_ `1.2.3`), and a sub-hash as values. The sub-hash must
+contain the hash function as keys (_ex:_ `sha256` and the tarball resulting hash
+as values. The provided checksums are used by Fatbuildr to check integrity of
+downloaded tarballs.
+
+_Example_:::
+
+[source,yaml]
+----
+checksums:
+  1.2.3:
+    sha256: 4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865
+  2.0.1:
+    sha256: 53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3
+----
+
+Then, one parameter must be declared per format supported for this artifact. If
+one format is not declared in this file, Fatbuildr refuses to build the artifact
+in this missing format.
+
+The formats parameters contain a hash of parameters. Each format supports a
+different set of parameters:
+
+`deb`::
+
+`release`::: The release number of deb package, suffixed to the source version
+  number to compose the package number. This parameter is required. _Ex:_ `1` or
+  `2+beta1`.
+
+`rpm`::
+
+`release`::: The release number of deb package, suffixed with the distribution
+  name to the source version number to compose the package number. This
+  parameter is required. Ex: `1` or `2+beta1`.
+
+`buildargs`::: The build arguments provided to `rpmbuild` for the spec file.
+  This parameter is optional.
+
+`osi`:: The OSI format does support any additional parameter. It must be
+  declared with an empty hash (`{}`).
+
+_Example_:::
+
+[source,yaml]
+----
+rpm:
+  release: 1
+  buildargs: --with mysql
+deb:
+  release: 1
+osi: {}
+----
+
+For reference, here are some examples of full Artifact `meta.yml`:
+
+* With one version for _main_ derivative in RPM format only:
++
+[source,yaml]
+----
+version: 1.2.3
+tarball: https://download.software.org/foo-{{ version }}.tar.xz
+checksums:
+  1.2.3:
+    sha256: 4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865
+rpm:
+  release: 1
+----
+
+* With two versions for _foo1_ and _foo2_ derivatives in all supported formats:
++
+[source,yaml]
+----
+versions:
+  foo1: 1.2.3
+  foo2: 2.0.1
+tarball: https://download.software.org/foo-{{ version }}.tar.xz
+checksums:
+  1.2.3:
+    sha256: 4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865
+  2.0.1:
+    sha256: 53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3
+rpm:
+  release: 1
+  buildargs: --with mysql
+deb:
+  release: 1
+osi: {}
+----
+
+=== Deb packages
+
+=== RPM packages
+
+=== OSI images
+
+=== Patches
+
+=== Prescript
+
+toto

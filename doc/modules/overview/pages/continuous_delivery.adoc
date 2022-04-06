@@ -1,0 +1,18 @@
+= Continuous Develivery
+
+Continuous delivery is in the middle of CI/CD pipeline: after unit tests
+validation (CI), it is responsible of building the artifacts and perform
+essential system integration tests, ready for deployment (CD).
+
+.Integration of Fatbuildr in CI/CD pipeline
+image::fatbuildr_cicd_pipeline.svg[alt=Fatbuildr CI/CD pipeline,align=center]
+
+Continuous integration ensures software components work atomically, that all
+individual parts of the software produce expected results. However, unit tests
+do not test the software works in all supported heterogenous ecosystem, with
+different versions of OS distributions bundled with their specific stack of
+libraries and tools.
+
+Continuous delivery platforms provide solution to build and publish software
+artifacts for many software ecosystem and perform advanced system integration
+tests to secure deployments in heterogenous production environments.

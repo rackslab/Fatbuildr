@@ -1,0 +1,30 @@
+= Getting Started
+
+Fatbuildr is an open source xref:continuous_delivery.adoc[continuous delivery]
+solution. It takes software and artifact definitions inputs, then it builds
+artifacts based on definitions and publish them in registries.
+
+image::fatbuildr_overview.svg[alt=Fatbuildr Overview,width=500,align=center]
+
+Typically, Fatbuildr is used to build deb and RPM packages and publish them in
+APT and DNF repositories, or build containers images and publish them in
+containers registries.
+
+Fatbuildr manages artifacts definitions, build environments, the registries
+with their content and the signing keyring in a reproducible and automated
+manner. It helps organizations maintaining their software artifacts, including
+their dependencies, with high level of consistency and security.
+
+Fatbuildr currently supports the following artifacts formats:
+
+* RPM packages
+* Deb packages
+* https://github.com/systemd/mkosi[OSI] images
+
+The software is fully modular and extensible, more supported formats can be
+easily added.
+
+For more details, read the xref:what.adoc[full description] of Fatbuildr.
+
+For installation notes, checkout the
+xref:install:quickstart.adoc[quickstart guide]!

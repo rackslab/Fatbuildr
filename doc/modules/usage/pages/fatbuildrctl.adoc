@@ -1,0 +1,490 @@
+ifeval::["{backend}" != "manpage"]
+= Fatbuildrctl
+
+This section explains all `fatbuildrctl` command available options, with
+many examples and descriptions of its behaviours.
+
+endif::[]
+
+== Synopsis
+
+*fatbuildrctl* [_GENERAL OPTIONS_] COMMAND [_COMMAND OPTIONS_]
+
+== General Options
+
+*-h, --help*::
+  Show this help message and exit.
+
+*-v, --version*::
+  Show Fatbuildr version number and exit.
+
+*--debug*::
+  Enable debug mode with more messages in output.
+
+*--fulldebug*::
+  Enable debug mode in external libraries used by Fatbuildr. You should
+  probably not need this option, as it is designed for Fatbuildr developers.
+
+*--preferences*=_PREFERENCES_::
+  Path to user preference file (default: `~/.config/fatbuildr.ini`). Please
+  refer to <<man-pref,*PREFERENCES FILE*>> section for details about this file.
+
+*--uri*=_URI_::
+  URI of Fatbuildr server (default: `dbus://system/default`). Accepted schemes
+  are `dbus`, when interacting with local `fatbuildrd` service on D-Bus, or
+  `http(s)` when interacting with potentially remote `fatbuildrweb` proxy (ex:
+  `http://build.host/prod`).
++
+NOTE: When connecting to `fatbuildrweb` started in mono-instance mode, the URI
+does not contain the `fatbuildrd` instance name. In this case, the URI can be as
+simple as `http://build.host`.
+
+== Commands
+
+All commands accept *-h, --help* option to get details about available option
+for this particular command (_ex:_ `fatbuildrctl images --help`). Commands are
+listed in lexicographical order.
+
+*archives*::
+
+  List 10 last terminated archived tasks with their parameters.
+
+*build*::
+
+  Submit artifact build tasks.
++
+--
+This command accepts the following options:
+
+*-a, --artifact*=_ARTIFACT_::
+  Artifact to build.
+
+*-d, --distribution*=_DISTRIBUTION_::
+  Targeted distribution name for the built artifact. The format of the
+  resulting artifact is deduced from this distribution, based on instance
+  pipelines definitions.
+
+*-f, --format*=_FORMAT_::
+  Format of the resulting artifact. This is an alternative way to specify the
+  targeted distribution. It can be used when only one distribution is declared
+  for the given format in instance pipelines definitions. When multiple
+  distributions are declared for the given format, the command fails with an
+  error. When both *-f, --format* and *-d, --distribution* are specified but
+  distribution format and the given format do not match, the command also fails
+  with an error.
+
+*--derivative*=_DERIVATIVE_::
+  Name of distribution derivative (default: _main_)
+
+*-b, --basedir*=_BASEDIR_::
+  Artifacts definitions base directory. The _BASEDIR_ is used in combination
+  with _SUBDIR_ to define location of artifact definition. This parameter is
+  required unless it is defined in user preferences files (see
+  <<man-pref,*PREFERENCES FILE*>> for more details).
+
+*-s, --subdir*=_SUBDIR_::
+  Artifact definition subdirectory. Eventually, `fatbuildrctl` searches for the
+  artifact definition under the path composed by _BASEDIR_ concatenated with
+  _SUBDIR_. By default, _SUBDIR_ is the artifact name.
+
+*--source-dir*=_SOURCE_DIR_::
+  Generate artifact source tarball using the source code in directory
+  _SOURCE_DIR_, instead of using the source tarball from the URL defined in
+  `meta.yml` file in artifact definition directory. This option must be used
+  in combination with *--source-version* option.
+
+*--source-version*=_VERSION_::
+  The version number used to tag the artifact source tarball generated with
+  sources located in _SOURCE_DIR_. Alternate version for generated artifact
+  source tarball. The generated source tarball is named
+  _ARTEFACT_VERSION_.tar.xz, with a directory named _ARTEFACT-VERSION_ at
+  its root containing artifact source code. This option must be used in
+  combination with *--source-dir* option.
+
+*-n, --name*=_NAME_::
+  User name for artifact build changelog entry. This option is required, unless
+  the user name is defined in user preferences file (see
+  <<man-pref,*PREFERENCES FILE*>> for more details).
+
+*-e, --email*=_EMAIL_::
+  User email for artifact build changelog entry. This option is required, unless
+  the user email is defined in user preferences file (see
+  <<man-pref,*PREFERENCES FILE*>> for more details).
+
+*-m, --msg*=_MSG_::
+  Build message to set in artifact build changelog entry. This option is
+  required, unless a default build message is defined in user preferences file
+  (see <<man-pref,*PREFERENCES FILE*>> for more details).
+
+*-w, --watch*::
+  Wait for build task to run and print its output until it is over.
+
+NOTE: *-n, --name*, *-e, --email* and *-m, --msg* options are not actually used
+for _osi_ format artifacts as this format does not contain changelogs.
+
+*Examples:*
+
+`$ fatbuildrctl build --artifact foo --distribution bar`::
+  Submit task to build artifact _foo_ for distribution _bar_ (using _main_
+  default derivative). The format of the artifact is deduced from the
+  distribution, based on instance pipelines definitions. The base directory,
+  the default build message, the user name and email must be defined in user
+  preferences file. The artifact definition must be present in `foo/`
+  subdirectory of the base directory.
+
+`$ fatbuildrctl build --artifact foo --format rpm`::
+  Submit task to build artifact _foo_ to RPM format. The distribution is
+  deduced from the format. This works when only one distribution is declared
+  for the rpm format in instance pipelines definitions.
+
+`$ fatbuildrctl build --artifact foo --distribution bar --msg 'build foo for bar'`::
+  Submit task to build artifact _foo_ for distribution _bar_ with given message
+  in artifact changelog. The base directory, the user name and email must be
+  defined in user preferences file.
+
+`$ fatbuildrctl build --artifact foo --distribution bar --basedir ~/path/to/basedir --subdir pkg`::
+  Submit task to build artifact _foo_ for distribution _bar_ using artifact
+  definition located in `pkg/` subdirectory of `~/path/to/basedir` directory.
+  The default build message, the user name and email must be defined in user
+  preferences file.
+
+`$ fatbuildrctl build --artifact foo --distribution bar --derivative baz`::
+  Submit task to build artifact _foo_ for derivative _baz_ of distribution
+  _bar_. The _baz_ derivate must be declared in instance pipelines definitions
+  and `meta.yml` file of artifact definition directory.
+
+`$ fatbuildrctl build --artifact foo --distribution bar --watch`::
+  Submit task to build artifact _foo_ for distribution _bar_, then wait for the
+  build task to start and print its output until it is over.
+
+`$ fatbuildrctl build --artifact foo --distribution bar --source-dir ~/path/to/sources --source-version 1.2.3`::
+  Generate source tarball of artifact _foo_ with files located in directory
+  `~/path/to/sources` tagged with version _1.2.3_, then submit task to build
+  this artifact for distribution _bar_.
+--
+
+*images*::
+
+  Manage container images and build environments. One operation among
+  *--create*, *--update*, *--create-envs* or *--update-envs* must be specified.
++
+--
+The *images* command accepts the following option:
+
+*--create*::
+  Create container image. Unless `--format` filter is used, all images for all
+  formats declared in instance pipelines are created. One task per image is
+  created on server side.
+
+*--update*::
+  Update OS packages of container image. Unless `--format` filter is used, all
+  images for all formats declared in instance pipelines are updated. One task
+  per image is created on server side.
+
+*--create-envs*::
+  Create the build environments in the container images. Unless `--format`
+  filter is used, all build environments for all formats declared in instance
+  pipelines are created. One task per build environment is created on server
+  side.
+
+*--update-envs*::
+  Update the build environments in the container images. Unless `--format`
+  filter is used, all build environments for all formats declared in instance
+  pipelines are updated. One task per build environment is created on server
+  side.
+
+*--format*=_FORMAT_::
+  Filter operation on container image dedicated to format _FORMAT_.
+
+*--force*::
+  Force creation of container images even if already existing. Without this
+  option, creating container image that already exists gives an error. This
+  option is ignored with other command operations.
+
+*-w, --watch*::
+  Wait for task to run and print its output until it is over.
+
+*Examples:*
+
+`$ fatbuildrctl images --create`::
+  Create container images for all format declared in instance pipelines.
+
+`$ fatbuildrctl images --update --format rpm`::
+  Update container image for RPM format.
+--
+
+*keyring*::
+
+  Manage keyring.
++
+--
+NOTE: The keyrings managed by Fatbuildr are created with a masterkey and a
+signing subkey. This subkey is actually used to sign the artifacts and
+registries. The masterkey is only used to sign the subkey.
+
+NOTE: The keyring keys are encrypted on disks using a randomly generated
+passphrase. Fatbuildr users and administrators are not expected to know or
+manipulate this passphrase, it is managed transparently by Fatbuildr.
+
+This command accepts the following subcommands:
+
+*show*::
+  Print the keyring information including its subject, format, size,
+  fingerprint, expiration, etc. This is the default subcommand.
+
+*export*::
+  Print keyring public key in armoured format.
+
+*create*::
+  Submit keyring creation task. The key is created using the parameters defined
+  in Fatbuildr server configuration file. If the keyring already exists, it is
+  overwritten.
+
+*renew*::
+  Submit keyring renewal task. The new key expiry date is set using
+  *--duration* option.
+
+The *renew* subcommand accepts the following options:
+
+*--duration*=_DURATION_::
+  The validity duration of the renewed keyring. The duration accepts the
+  following time units: _w_ for weeks, _m_ for months, _y_ for years. The
+  default unit is a number of days. The special value 0 indicates no
+  expirary date. This option is required with *renew* subcommand. It is
+  silently ignored with other subcommands.
+
+*Examples:*
+
+`$ fatbuildrctl keyring`::
+`$ fatbuildrctl keyring show`::
+  Print keyring information, or report an error if the keyring does not exist.
+
+`$ fatbuildrctl keyring export`::
+  Print keyring public key in armoured format.
+
+`$ fatbuildrctl keyring create`::
+  Submit task to create the keyring.
+
+`$ fatbuildrctl keyring renew --duration 10`::
+  Submit task to set keyring expiry in 10 days from now.
+
+`$ fatbuildrctl keyring renew --duration 2y`::
+  Submit task to set keyring expiry in 2 years from now.
+
+`$ fatbuildrctl keyring renew --duration 0`::
+  Submit task to remove keyring expiry.
+--
+
+*list*::
+
+  List currently running and pending tasks with their parameters. This commands
+  does not accept any option.
+
+*patches*::
+
+  Manage artifact patch queue. This downloads artifact source code tarball,
+  selecting the version intended for the given derivative. Then, it creates a
+  temporary Git repository initialized with artifact source code in initial
+  commit and existing artifact patches into successive commits. After the Git
+  repository is initialized, a subshell is launched into it. You can then
+  modify existing patches by editing commit history, or add additional patches
+  with new commits. When the subshell is exited, the commit log is exported
+  into a set of patches for the artifact, and the temporary Git repository is
+  destroyed.
++
+--
+NOTE: The downloaded source code tarball is saved in user cache directory. If
+environment variable `$XDG_CACHE_HOME` is defined, it is honoured. Otherwise,
+the default user cache directory `~/.cache` is selected. Fatbuildr creates a
+dedicated `fatbuildr` subdirectory in this user cache directory where all source
+code tarballs are placed. If the downloaded source code tarball is already
+present in cache, it is used directly and additional download is avoided.
+
+This command accepts the following options:
+
+*-a, --artifact*=_ARTIFACT_::
+  Edit _ARTIFACT_ patch queue.
+
+*--derivative*=_DERIVATIVE_::
+  Select artifact source version intended for _DERIVATIVE_ (default: _main_).
+
+*-b, --basedir*=_BASEDIR_::
+  Artifacts definitions base directory. The _BASEDIR_ is used in combination
+  with _SUBDIR_ to define location of artifact definition. This parameter is
+  required unless it is defined in user preferences files (see
+  <<man-pref,*PREFERENCES FILE*>> for more details).
+
+*-s, --subdir*=_SUBDIR_::
+  Artifact definition subdirectory. Eventually, `fatbuildrctl` searches for the
+  artifact definition under the path composed by _BASEDIR_ concatenated with
+  _SUBDIR_. By default, _SUBDIR_ is the artifact name.
+
+*-n, --name*=_NAME_::
+  User name for temporary Git repository initial commit author and commiter.
+  This option is required, unless the user name is defined in user preferences
+  file (see <<man-pref,*PREFERENCES FILE*>> for more details).
+
+*-e, --email*=_EMAIL_::
+  User email for temporary Git repository initial commit author and commiter.
+  This option is required, unless the user email is defined in user preferences
+  file (see <<man-pref,*PREFERENCES FILE*>> for more details).
+
+*Examples:*
+
+`$ fatbuildrctl patches --artifact foo`::
+  Edit patch queue of artifact _foo_ (using version intended _main_ default
+  derivative). The base directory, the default build message, the user name and
+  email must be defined in user preferences file. The artifact definition must
+  be present in `foo/` subdirectory of the base directory.
+
+`$ fatbuildrctl patches --artifact foo --derivative bar`::
+  Edit patch queue of artifact _foo_ using version intended for _bar_
+  derivative.
+
+`$ fatbuildrctl patches --artifact foo --basedir ~/path/to/basedir --subdir pkg`::
+  Edit patch queue of artifact _foo_ using artifact definition located in `pkg/`
+  subdirectory of `~/path/to/basedir` directory.
+
+`$ fatbuildrctl patches --artifact foo --name 'John Doe' --email john@doe.org`::
+  Edit patch queue of artifact _foo_. This initial commit of temporary Git
+  repository will created using `John Doe <john@doe.org>` identity as author and
+  commiter.
+--
+
+*registry*::
+
+  Query and manage artifacts in registries.
++
+--
+This command accepts the following subcommands:
+
+*list*::
+  List artifacts matching given filters.
+
+*delete*::
+  Remove artifacts matching given filters from registry.
+
+The command accepts the following options:
+
+*-d, --distribution*=_DISTRIBUTION_::
+  Registry distribution name. This parameter is required. The format of the
+  artifact is deduced from the distribution, based on instance pipelines
+  definitions.
+
+*--derivative*=_DERIVATIVE_::
+  Registry distribution derivative name (default: _main_).
+
+*-a, --artifact*=_ARTIFACT_::
+  Part of artifact name. All artifacts whose name contains _ARTIFACT_ are
+  selected. By default, all artifacts are selected.
+
+*Examples:*
+
+`$ fatbuildrctl registry --distribution foo`::
+`$ fatbuildrctl registry --distribution foo list`::
+  List all artifacts found in distribution _foo_ (in _main_ default derivative).
+
+`$ fatbuildrctl registry --distribution foo --derivative bar`::
+  List all artifacts found in _bar_ derivative of distribution _foo_.
+
+`$ fatbuildrctl registry --distribution foo --artifact baz`::
+  List all artifacts whose in name contains _baz_ in distribution _foo_.
+
+`$ fatbuildrctl registry --distribution foo --artifact baz delete`::
+  Remove all artifacts whose in name contains _baz_ from distribution _foo_ (in
+  _main_ default derivative).
+--
+
+*watch*::
+
+  Get output of running and archived tasks.
++
+--
+This command accepts the following argument:
+
+*TASK*::
+  Get output of task _TASK_. By default, currently running task is selected.
+  When the selected task is running, its output is streamed until its end. If
+  _TASK_ is not found in pending, running and archived tasks, an error is
+  reported. If the argument is not given and no task is currently running, an
+  error is also reported. If _TASK_ is pending, the command waits for the task
+  to start.
+
+*Examples:*
+
+`$ fatbuildrctl watch`::
+  Get output of currently running task until its end.
+
+`$ fatbuildrctl watch a97737c0-5ecd-41d7-ba3a-ed46e03a2eb0`::
+  Get output of task a97737c0-5ecd-41d7-ba3a-ed46e03a2eb0.
+--
+
+[[man-pref]]
+== Preferences file
+
+To avoid specifying some options to `fatbuildrctl`, it is possible to define a
+preferences file with some defaults user settings.
+
+The path to this file can be provided to `fatbuildrctl` using
+*--preferences*=_PREFERENCES_ general option. By default, `fatbuildrctl` checks
+if `$XDG_CONFIG_HOME` environment variable is defined with an existing directory
+and search for a file named `fatbuildr.ini` inside this directory. If the
+environment variable is not defined, `fatbuildrctl` tries to load file
+`~/.config/fatbuildrctl.ini`.
+
+The preferences file is formatted as an INI file. It can contains two sections:
+
+*[user]*::
+
+  This section can contain the following parameters:
++
+--
+*name*::
+  User real name. When defined, it is used as default value for
+  *-n, --name*=_NAME_ option of *build* and *patches* commands.
+
+*email*::
+  User emame. When defined, it is used as default value for
+  *-e, --email*=_EMAIL_ option of *build* and *patches* commands.
+--
+
+*[prefs]*::
+
+  This section can contain the following parameters:
++
+--
+*uri*::
+  URI of Fatbuildr instance. When defined, it is used as default value for
+  *--uri*=_URI_ general option.
+
+*basedir*::
+  Path to artifact definition repository. When defined, it is used as default
+  value for *-b, --basedir*=_BASEDIR_ option of *build* and *patches*
+  commands.
+
+*message*::
+  Default build message. When defined, it is used as default value for
+  *-m, --msg*=_MSG_ option of *build* command.
+--
+
+This is a full example of a user preferences file:
+
+[source,ini]
+----
+[user]
+name = John Doe
+email = joe@doe.com
+
+[prefs]
+uri = http://build.host/dev
+basedir = /home/john/path/to/basedir
+message = Artifact maintenance build
+----
+
+== Exit status
+
+*0*::
+  `fatbuildrctl` has processed command with success.
+
+*1*::
+  `fatbuildrctl` encountered an error.

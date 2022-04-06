@@ -1,0 +1,24 @@
+= fatbuildrctl(1)
+Rackslab: https://rackslab.io
+v1.0.0
+:doctype: manpage
+:manmanual: FATBUILDRCTL
+:mansource: FATBUILDRCTL
+:man-linkstyle: pass:[blue R < >]
+
+== Name
+
+fatbuildrctl - Fatbuildr client
+
+include::../modules/usage/pages/fatbuildrctl.adoc[]
+
+== Resources
+
+Fatbuildr web site: https://github.com/rackslab/fatbuildr
+
+== Copying
+
+Copyright (C) 2021-2022 {author}. +
+
+Fatbuildr is distributed under the terms of the GNU General Public License v3.0
+or later (GPLv3+).

@@ -1,0 +1,59 @@
+= What is Fatbuildr?
+
+Fatbuildr is a fully-featured xref:continuous_delivery.adoc[continuous delivery]
+solution for GNU/Linux software environment. It builds software artifacts (ex:
+rpm/deb packages, containers) by following instructions described in
+user-provided _artifact definitions_.
+
+Fatbuildr manages all the complexity of secured software distribution:
+
+* Publication of artifacts in standards registries (ex: APT/DNF repositories)
+* Digital signatures of artifacts with secured cryptographic keys
+* Automatic removal of deprecated artifacts
+* Clean and updated build environments
+* Support of multiple hardware architectures (ex: ARM, x86_64)
+
+Fatbuildr can help organizations to:
+
+* Maintain a set of sofware artifacts with high-level of quality and consistency
+* Fully-adopt the best integration guidelines defined by the Linux distribution community
+* Control and manage software dependencies for all targeted environments
+* Check software compatibility with supported environments
+* Get reproducible builds
+
+Fatbuildr uses xref:architecture.adoc#components[multiple components
+architecture] to provide both a command-line interface (CLI) and a web
+interface. It also provides a xref:usage:api.adoc[REST API] for integration with
+other tools.
+
+It integrates the best-in-class tools developped by the free software community
+to manage Linux based build environments (ex: cowbuilder, mock) with help of
+xref:architecture.adoc#containers[Linux containers].
+
+All the operations are realized in the form of
+xref:architecture.adoc#tasks[generic _tasks_]. Tasks can perform various set of
+actions involved in software distribution (ex: build artifact, update build
+environment, create signing key, etc). All tasks operations are recorded and
+saved centrally for the purposes of accounting and observability.
+
+One installation of Fatbuildr can support
+xref:architecture.adoc#instances[multiples instances] in parallel. Each instance
+has its own set of build pipelines, keyring, registries, tasks, etc. It makes
+easy to define independent setups for developement, staging or production.
+
+Fatbuildr currently supports the following artifacts formats:
+
+* RPM packages
+* Deb packages
+* https://github.com/systemd/mkosi[OSI] images
+
+The software is fully modular and extensible, more supported formats can be
+easily added.
+
+Fatbuildr is designed to run in environments of all sizes, from developers'
+laptop to test local builds, to high-grade entreprise on-premise servers for
+centralized builds of a large developers team distributing software for large
+scale IT infrastructure.
+
+Discover other xref:features.adoc[advanced features] or read the
+xref:install:quickstart.adoc[quickstart guide] for installation notes.

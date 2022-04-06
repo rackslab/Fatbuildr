@@ -1,0 +1,85 @@
+= Architecture
+
+[#components]
+== Software Components
+
+.Architecture of Fatbuildr components
+image::fatbuildr_architecture.svg[alt=Fatbuildr components architecture,float=right]
+
+The architecture of Fatbuildr is based on client/server model.
+
+The `fatbuildrd` server manages all entities involved in artifacts build
+and publication: keyring, images, build environments, registries and tasks to
+orchestrate these entities. This daemon provides services available on
+https://dbus.freedesktop.org[D-Bus].
+
+These D-Bus services can be consumed by multiples clients components:
+
+* `fatbuildrctl` fully-featured command line interface (CLI).
+* `fatbuildrweb` that provides both a web interface available with a web
+  browser and JSON-based REST API. This component can expose these interfaces
+  on the network with HTTP(S) protocol.
+
+The `fatbuildrctl` CLI can communicate directly to `fatbuildrd` server on
+localhost on D-Bus, or using the JSON REST API of `fatbuildrweb` acting as a
+proxy.
+
+The `fatbuildrweb` component is optional, as all features are available with
+`fatbuildrctl` and local D-Bus communications. However, `fatbuildrweb` is
+required to setup distributed environments, eg. with one central `fatbuildrd`
+server and remote `fatbuildrctl` clients.
+
+The JSON REST API gives users the possibility to develop custom tools to
+interact with Fatbuildr and enables full integration with other systems and
+solutions.
+
+[#containers]
+== Images & Build Environments
+
+Fatbuildr supports various formats using containers. It generates its own
+specially adapted container *images* for each format with specialized tools
+(eg. _mock_ for RPM, _cowbuilder_ for deb packages, etc) to manage *build
+environments*.
+
+.Fatbuildr modularity with supported formats
+image::fatbuildr_formats.svg[alt=Fatbuildr modularity,width=600,align=center]
+
+All formats can used the most advanced tools provided by the most appropriate
+environment. It also significantly reduces host OS dependencies. That makes
+easy to support additional formats, with new dedicated container images and
+tools, without modification on Fatbuildr core engine.
+
+[#instances]
+== Instances & Pipelines
+
+One installation of Fatbuildr can manage *multiples instances* in parallel.
+For example, it is possible to setup _development_, _staging_ and _production_
+instances.
+
+.Fatbuildr instances pipelines
+image::fatbuildr_pipelines.svg[alt=Fatbuildr instances pipelines,width=400,align=center]
+
+Each instance has its own set of container images, build environments, keyring
+and registries. They are fully independant. The purpose and the content of an
+instance are defined by its *pipelines*.
+
+[#tasks]
+== Tasks Queue
+
+Fatbuildr server differentiates requests based on the impact on instance state.
+
+.Fatbuildr tasks queue
+image::fatbuildr_queue.svg[alt=Fatbuildr tasks queue,width=400,align=center]
+
+The requests that query the state are replied immediately (eg. content of
+registry, keyring information). On the opposite, requests that modify the state
+generate *tasks*. Successive tasks are enqueued and processed asynchronously by
+worker threads. Examples of tasks are:
+
+* Build and publish artifacts
+* Renew keyring
+* Delete artifact in registry
+* Upgrade images and build environments, etc
+
+Worker threads save tasks results in archives. These results can be later
+retrieved by clients.

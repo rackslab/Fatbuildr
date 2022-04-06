@@ -1,0 +1,27 @@
+= Key Features
+
+== Client/server Mode
+
+== Derivatives
+
+== Automatic Changelogs
+
+== Incremental Versionning
+
+== Integrated Patchs Management
+
+== Prescripts
+
+== Support of un-released Software
+
+== Multi-Architectures
+
+== Web Interface
+
+== Advanced Security Model
+
+* Checksum control
+* Integrated and automated GPG signing keyring protected with randomly generated passphrase.
+* Advanced permissions control based on Polkit for D-Bus API
+
+== Resilient Service
