@@ -184,8 +184,10 @@ class ArtefactBuild(RunnableTask):
             # If source tarball has been provided with the build request, use it.
             src_tarball_target = self.place.joinpath(self.src_tarball.name)
             logger.info("Using provided source tarball %s", src_tarball_target)
-            # Move the source tarball in build place
-            self.src_tarball.rename(src_tarball_target)
+            # Move the source tarball in build place. The shutil module is used
+            # here to support file move between different filesystems.
+            # Unfortunately, PurePath.rename() does not support this case.
+            shutil.move(self.src_tarball, src_tarball_target)
 
             # The main version of the artefact is extract from the the source
             # tarball name, it is prefixed by artefact name followed by
