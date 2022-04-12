@@ -175,7 +175,7 @@ class BuildEnv(object):
             name=self.name,
             path=self.path,
         )
-        task.cruncmd(self.image, cmd, init=True, user=current_user()[1])
+        task.cruncmd(self.image, cmd, init=True)
 
     def update(self, task):
         logger.info(
@@ -197,7 +197,7 @@ class BuildEnv(object):
             ).env_update_cmds.split('&&')
         ]
         for cmd in cmds:
-            task.cruncmd(self.image, cmd, init=True, user=current_user()[1])
+            task.cruncmd(self.image, cmd, init=True)
 
 
 class ImagesManager(object):
