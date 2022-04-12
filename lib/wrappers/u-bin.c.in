@@ -24,7 +24,6 @@
 int main(int argc, char **argv) {
     int status;
     char *nargv[argc+1];
-    char *envp[] = { NULL };
 
     nargv[0] = "#BIN#";
 
@@ -38,8 +37,8 @@ int main(int argc, char **argv) {
         /* Become root before executing the command */
         setuid(0);
         setgid(0);
-        if(execve(nargv[0], nargv, envp))
-            perror("execve");
+        if(execv(nargv[0], nargv))
+            perror("execv");
         /* Exit code 255 if execve() fails */
         return 255;
     } else {
