@@ -96,10 +96,14 @@ def source_tarball_filter(tarinfo):
     logger.debug("File added in archive: %s", tarinfo.name)
     return tarinfo
 
-
-def prepare_source_tarball(artefact, path, version):
+def prepare_source_tarball(artefact, path, version, rundir: bool):
     """Generates a source tarball for the given artefact, tagged with the given
     main version, using sources in path."""
+
+    if rundir:
+        base = Path('/run/fatbuildr')
+    else:
+        base = Path(tempfile._get_default_tempdir())
 
     logger.info(
         "Generating artefact %s source tarball version %s using directory %s",
@@ -115,7 +119,7 @@ def prepare_source_tarball(artefact, path, version):
         )
         sys.exit(1)
     subdir = f"{artefact}_{version}"
-    tarball = Path(tempfile._get_default_tempdir()).joinpath(
+    tarball = base.joinpath(
         f"{artefact}_{version}.tar.xz"
     )
     logger.debug(
@@ -711,6 +715,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 args.artefact,
                 args.source_dir,
                 args.source_version or defs.version(args.derivative),
+                self.connection.scheme == 'dbus',
             )
 
         try:
