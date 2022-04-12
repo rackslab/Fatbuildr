@@ -9,3 +9,4 @@ Format=directory
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
 Packages=cowbuilder,qemu-user-static,devscripts,neovim,man-db,less
+PostInstallationScript=/usr/lib/fatbuildr/images/scripts/deb-postinstall.sh
