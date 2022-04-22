@@ -47,14 +47,14 @@ class PatchQueue:
         self,
         apath,
         derivative,
-        artefact,
+        artifact,
         defs,
         user,
         email,
     ):
         self.apath = apath
         self.derivative = derivative
-        self.artefact = artefact
+        self.artifact = artifact
         self.defs = defs
         self.user = user
         self.email = email
@@ -62,7 +62,7 @@ class PatchQueue:
         self.git = None
 
     def run(self):
-        logger.debug("Running patch queue for artefact %s", self.artefact)
+        logger.debug("Running patch queue for artifact %s", self.artifact)
 
         tarball_url = self.defs.tarball_url(self.version)
 
@@ -90,7 +90,7 @@ class PatchQueue:
         )
 
         # create tmp directory for the git repository
-        tmpdir = Path(tempfile.mkdtemp(prefix=f"fatbuildr-pq-{self.artefact}"))
+        tmpdir = Path(tempfile.mkdtemp(prefix=f"fatbuildr-pq-{self.artifact}"))
         CleanupRegistry.add_tmpdir(tmpdir)
         logger.debug(f"Created temporary directory %s", tmpdir)
 
@@ -115,11 +115,11 @@ class PatchQueue:
     def _launch_subshell(self):
         # Launch subshell
 
-        os.environ['FATBUILDR_PQ'] = self.artefact
+        os.environ['FATBUILDR_PQ'] = self.artifact
         logger.info(
             "\n\nWelcome to Fatbuildr patch queue shell!\n"
             "\n"
-            f"  Artefact: {self.artefact}\n"
+            f"  Artifact: {self.artifact}\n"
             f"  Derivative: {self.derivative}\n"
             f"  Version: {self.version}\n"
             "\n"

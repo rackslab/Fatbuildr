@@ -17,17 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from .formats.deb import ArtefactBuildDeb
-from .formats.rpm import ArtefactBuildRpm
-from .formats.osi import ArtefactBuildOsi
+from .formats.deb import ArtifactBuildDeb
+from .formats.rpm import ArtifactBuildRpm
+from .formats.osi import ArtifactBuildOsi
 
 
 class BuildFactory(object):
 
     _formats = {
-        'deb': ArtefactBuildDeb,
-        'rpm': ArtefactBuildRpm,
-        'osi': ArtefactBuildOsi,
+        'deb': ArtifactBuildDeb,
+        'rpm': ArtifactBuildRpm,
+        'osi': ArtifactBuildOsi,
     }
 
     @staticmethod
@@ -39,14 +39,14 @@ class BuildFactory(object):
         distribution,
         architectures,
         derivative,
-        artefact,
+        artifact,
         user_name,
         user_email,
         message,
         tarball,
         src_tarball,
     ):
-        """Generate a BuildArtefact from a new request."""
+        """Generate a BuildArtifact from a new request."""
         if not format in BuildFactory._formats:
             raise RuntimeError(f"format {format} unsupported by builders")
         return BuildFactory._formats[format](
@@ -57,7 +57,7 @@ class BuildFactory(object):
             distribution,
             architectures,
             derivative,
-            artefact,
+            artifact,
             user_name,
             user_email,
             message,

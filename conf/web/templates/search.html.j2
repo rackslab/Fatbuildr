@@ -1,18 +1,18 @@
 {% extends "layout/base.html.j2" %}
-{% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ artefact }} artefact{% endblock %}
+{% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ artifact }} artifact{% endblock %}
 {% block content %}
-<h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ artefact }} artefact</h1>
+<h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ artifact }} artifact</h1>
 {% for format, distributions in results.items() %}
   <h2><a href="{{ url_for('format', instance=instance, fmt=format, output='html') }}">{{ format }}</a></h2>
   {% for distribution, derivatives in distributions.items() %}
     <h3><a href="{{ url_for('distribution', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}</a></h3>
-    {% for derivative, artefacts in derivatives.items() %}
+    {% for derivative, artifacts in derivatives.items() %}
       <h4><a href="{{ url_for('derivative', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='html') }}">{{ derivative }}</a></h4>
       <ul>
-      {% for artefact in artefacts %}
+      {% for artifact in artifacts %}
         <li>
-          <a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=artefact.architecture, artefact=artefact.name, output='html') }}">
-          {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
+          <a href="{{ url_for('artifact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=artifact.architecture, artifact=artifact.name, output='html') }}">
+          {{ artifact.name }} {{ artifact.architecture }} {{ artifact.version }}
           </a>
         </li>
       {% endfor %}
@@ -20,5 +20,5 @@
     {% endfor %}
   {% endfor %}
 {% endfor %}
-<a href="{{ url_for('search', instance=instance, artefact=artefact, output='json') }}">JSON</a>
+<a href="{{ url_for('search', instance=instance, artifact=artifact, output='json') }}">JSON</a>
 {% endblock %}

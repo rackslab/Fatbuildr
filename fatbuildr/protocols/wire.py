@@ -43,20 +43,20 @@ class WireRunnableTask(WireData):
             "  submission: ",
             self.submission.isoformat(sep=' ', timespec='seconds'),
         )
-        if self.name == "artefact build":
+        if self.name == "artifact build":
             print(f"  user: {self.user}")
             print(f"  email: {self.email}")
             print(f"  distribution: {self.distribution}")
             print(f"  architectures: {' '.join(self.architectures)}")
             print(f"  derivative: {self.derivative}")
             print(f"  format: {self.format}")
-            print(f"  artefact: {self.artefact}")
+            print(f"  artifact: {self.artifact}")
             print(f"  message: {self.message}")
-        elif self.name == "artefact deletion":
-            print("  artefact:")
-            print(f"    name: {self.artefact.name}")
-            print(f"    architecture: {self.artefact.architecture}")
-            print(f"    version: {self.artefact.version}")
+        elif self.name == "artifact deletion":
+            print("  artifact:")
+            print(f"    name: {self.artifact.name}")
+            print(f"    architecture: {self.artifact.architecture}")
+            print(f"    version: {self.artifact.version}")
         elif self.name == "image creation":
             print(f"  format: {self.format}")
             print(f"  force: {str(self.force)}")
@@ -73,7 +73,7 @@ class WireRunnableTask(WireData):
             print(f"  duration: {self.duration}")
 
 
-class WireArtefact(WireData):
+class WireArtifact(WireData):
     def report(self):
         print(f"- name: {self.name}")
         print(f"  architecture: {self.architecture}")

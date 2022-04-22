@@ -10,12 +10,12 @@
   </ol>
 </nav>
 
-<h1>Artefacts</h1>
+<h1>Artifacts</h1>
 <ul>
-{% for artefact in artefacts %}
+{% for artifact in artifacts %}
   <li>
-    <a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=artefact.architecture, artefact=artefact.name, output='html') }}">
-      {{ artefact.name }} {{ artefact.architecture }} {{ artefact.version }}
+    <a href="{{ url_for('artifact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=artifact.architecture, artifact=artifact.name, output='html') }}">
+      {{ artifact.name }} {{ artifact.architecture }} {{ artifact.version }}
     </a>
   </li>
 {% endfor %}

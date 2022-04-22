@@ -22,14 +22,14 @@ import tarfile
 import shutil
 import os
 
-from .. import ArtefactBuild
+from .. import ArtifactBuild
 from ...utils import tar_subdir
 from ...log import logr
 
 logger = logr(__name__)
 
 
-class ArtefactBuildDeb(ArtefactBuild):
+class ArtifactBuildDeb(ArtifactBuild):
     """Class to manipulation build of package in Deb format."""
 
     def __init__(
@@ -41,7 +41,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         distribution,
         architectures,
         derivative,
-        artefact,
+        artifact,
         user_name,
         user_email,
         message,
@@ -56,7 +56,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             distribution,
             architectures,
             derivative,
-            artefact,
+            artifact,
             user_name,
             user_email,
             message,
@@ -86,7 +86,7 @@ class ArtefactBuildDeb(ArtefactBuild):
 
         logger.info(
             "Building source Deb packages for %s",
-            self.artefact,
+            self.artifact,
         )
 
         # extract tarball in build place
@@ -129,7 +129,7 @@ class ArtefactBuildDeb(ArtefactBuild):
 
         # Check if existing source package and get version
         existing_version = self.registry.source_version(
-            self.distribution, self.derivative, self.artefact
+            self.distribution, self.derivative, self.artifact
         )
         if existing_version:
             logger.info(
@@ -140,7 +140,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             with open(tarball_subdir.joinpath('debian/changelog'), 'wb+') as fh:
                 fh.write(
                     self.registry.source_changelog(
-                        self.distribution, self.derivative, self.artefact
+                        self.distribution, self.derivative, self.artifact
                     )
                 )
 
@@ -158,7 +158,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         cmd = [
             'debchange',
             '--package',
-            self.artefact,
+            self.artifact,
             '--newversion',
             self.version.full,
             '--distribution',
@@ -177,7 +177,7 @@ class ArtefactBuildDeb(ArtefactBuild):
 
         #  add symlink to tarball
         orig_tarball_path = self.place.joinpath(
-            f"{self.artefact}_{self.version.main}.orig.tar.{self.tarball_ext}",
+            f"{self.artifact}_{self.version.main}.orig.tar.{self.tarball_ext}",
         )
         logger.debug(
             "Creating symlink %s → %s",
@@ -199,7 +199,7 @@ class ArtefactBuildDeb(ArtefactBuild):
         )
         logger.info(
             "Building binary Deb packages for %s in build environment %s",
-            self.artefact,
+            self.artifact,
             env,
         )
 
@@ -210,7 +210,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             fh.write(self.instance.keyring.export())
 
         dsc_path = self.place.joinpath(
-            self.artefact + '_' + self.version.full + '.dsc'
+            self.artifact + '_' + self.version.full + '.dsc'
         )
         cmd = [
             'cowbuilder',
@@ -228,7 +228,7 @@ class ArtefactBuildDeb(ArtefactBuild):
             dsc_path,
         ]
 
-        # The deb registry does not exist until the first artefact is actually
+        # The deb registry does not exist until the first artifact is actually
         # published. If it exists, bind-mount so the local repos can be used
         # in cowbuilder environments.
         if self.registry.exists:

@@ -20,7 +20,7 @@
           </a>
           {% if instance is defined %}
           <form class="d-flex" action="{{ url_for('search', instance=instance, output='html') }}" method="get">
-            <input class="form-control me-2" type="search" name="artefact" placeholder="Artefact" aria-label="Search">
+            <input class="form-control me-2" type="search" name="artifact" placeholder="Artifact" aria-label="Search">
             <button class="btn btn-outline-success" type="submit">Search</button>
           </form>
           {% endif %}

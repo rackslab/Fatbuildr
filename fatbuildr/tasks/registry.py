@@ -20,21 +20,21 @@
 from . import RunnableTask
 
 from ..protocols.exports import ExportableTaskField
-from ..registry.formats import RegistryArtefact
+from ..registry.formats import RegistryArtifact
 from ..log import logr
 
 logger = logr(__name__)
 
 
-class RegistryArtefactDeletionTask(RunnableTask):
+class RegistryArtifactDeletionTask(RunnableTask):
 
-    TASK_NAME = 'artefact deletion'
+    TASK_NAME = 'artifact deletion'
 
     EXFIELDS = {
         ExportableTaskField('format'),
         ExportableTaskField('distribution'),
         ExportableTaskField('derivative'),
-        ExportableTaskField('artefact', RegistryArtefact),
+        ExportableTaskField('artifact', RegistryArtifact),
     }
 
     def __init__(
@@ -45,26 +45,26 @@ class RegistryArtefactDeletionTask(RunnableTask):
         format,
         distribution,
         derivative,
-        artefact,
+        artifact,
     ):
         super().__init__(task_id, place, instance)
         self.format = format
         self.distribution = distribution
         self.derivative = derivative
-        self.artefact = artefact
+        self.artifact = artifact
 
     def run(self):
         logger.info(
-            "Running artefact deletion task %s %s>%s>%s>%s",
+            "Running artifact deletion task %s %s>%s>%s>%s",
             self.id,
             self.format,
             self.distribution,
             self.derivative,
-            self.artefact.name,
+            self.artifact.name,
         )
-        self.instance.registry_mgr.delete_artefact(
+        self.instance.registry_mgr.delete_artifact(
             self.format,
             self.distribution,
             self.derivative,
-            self.artefact,
+            self.artifact,
         )

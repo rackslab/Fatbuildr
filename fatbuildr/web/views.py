@@ -35,7 +35,7 @@ from ..protocols import ClientFactory
 from ..protocols.http import (
     JsonInstance,
     JsonRunnableTask,
-    JsonArtefact,
+    JsonArtifact,
     JsonChangelogEntry,
 )
 
@@ -156,9 +156,9 @@ def distribution(instance, fmt, distribution, output='html'):
 
 def derivative(instance, fmt, distribution, derivative, output='html'):
     connection = get_connection(instance)
-    artefacts = connection.artefacts(fmt, distribution, derivative)
+    artifacts = connection.artifacts(fmt, distribution, derivative)
     if output == 'json':
-        return jsonify([vars(artefact) for artefact in artefacts])
+        return jsonify([vars(artifact) for artifact in artifacts])
     else:
         return render_template(
             'derivative.html.j2',
@@ -166,42 +166,42 @@ def derivative(instance, fmt, distribution, derivative, output='html'):
             format=fmt,
             distribution=distribution,
             derivative=derivative,
-            artefacts=artefacts,
+            artifacts=artifacts,
         )
 
 
-def artefact(
+def artifact(
     instance,
     fmt,
     distribution,
     derivative,
     architecture,
-    artefact,
+    artifact,
     output='html',
 ):
     connection = get_connection(instance)
     if architecture == 'src':
         source = None
-        binaries = connection.artefact_bins(
-            fmt, distribution, derivative, artefact
+        binaries = connection.artifact_bins(
+            fmt, distribution, derivative, artifact
         )
         template = 'src.html.j2'
     else:
-        source = connection.artefact_src(
-            fmt, distribution, derivative, artefact
+        source = connection.artifact_src(
+            fmt, distribution, derivative, artifact
         )
         binaries = []
         template = 'bin.html.j2'
     changelog = connection.changelog(
-        fmt, distribution, derivative, architecture, artefact
+        fmt, distribution, derivative, architecture, artifact
     )
 
     if output == 'json':
         if architecture != 'src':
             return jsonify(
                 {
-                    'artefact': artefact,
-                    'source': JsonArtefact.export(source),
+                    'artifact': artifact,
+                    'source': JsonArtifact.export(source),
                     'changelog': [
                         JsonChangelogEntry.export(entry) for entry in changelog
                     ],
@@ -210,9 +210,9 @@ def artefact(
         else:
             return jsonify(
                 {
-                    'artefact': artefact,
+                    'artifact': artifact,
                     'binaries': [
-                        JsonArtefact.export(binary) for binary in binaries
+                        JsonArtifact.export(binary) for binary in binaries
                     ],
                     'changelog': [
                         JsonChangelogEntry.export(entry) for entry in changelog
@@ -227,7 +227,7 @@ def artefact(
             distribution=distribution,
             derivative=derivative,
             architecture=architecture,
-            artefact=artefact,
+            artifact=artifact,
             source=source,
             binaries=binaries,
             changelog=changelog,
@@ -239,9 +239,9 @@ def search(instance, output='html'):
     formats = connection.formats()
     results = {}
 
-    artefact = request.args.get('artefact')
+    artifact = request.args.get('artifact')
 
-    if not artefact:
+    if not artifact:
         abort(400)
 
     for fmt in formats:
@@ -249,32 +249,32 @@ def search(instance, output='html'):
         for distribution in distributions:
             derivatives = connection.derivatives(fmt, distribution)
             for derivative in derivatives:
-                artefacts = connection.artefacts(fmt, distribution, derivative)
-                for _artefact in artefacts:
-                    if artefact in _artefact.name:
+                artifacts = connection.artifacts(fmt, distribution, derivative)
+                for _artifact in artifacts:
+                    if artifact in _artifact.name:
                         if fmt not in results:
                             results[fmt] = {}
                         if distribution not in results[fmt]:
                             results[fmt][distribution] = {}
                         if derivative not in results[fmt][distribution]:
                             results[fmt][distribution][derivative] = []
-                        results[fmt][distribution][derivative].append(_artefact)
+                        results[fmt][distribution][derivative].append(_artifact)
 
     if output == 'json':
-        # Convert lists of WireArtefact into lists of dicts for JSON
+        # Convert lists of WireArtifact into lists of dicts for JSON
         # serialization
         for fmt, distributions in results.items():
             for distribution, derivatives in distributions.items():
-                for derivative, artefacts in derivatives.items():
+                for derivative, artifacts in derivatives.items():
                     results[fmt][distribution][derivative] = [
-                        JsonArtefact.export(_artefact) for _artefact in artefacts
+                        JsonArtifact.export(_artifact) for _artifact in artifacts
                     ]
         return jsonify(results)
     else:
         return render_template(
             'search.html.j2',
             instance=instance,
-            artefact=artefact,
+            artifact=artifact,
             results=results,
         )
 
@@ -299,7 +299,7 @@ def build(instance):
         request.form['format'],
         request.form['distribution'],
         request.form['derivative'],
-        request.form['artefact'],
+        request.form['artifact'],
         request.form['user_name'],
         request.form['user_email'],
         request.form['message'],

@@ -26,8 +26,8 @@ from ..protocols.exports import ExportableTaskField
 
 from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
-from ..artefact import ArtefactDefs
-from ..registry.formats import ArtefactVersion
+from ..artifact import ArtifactDefs
+from ..registry.formats import ArtifactVersion
 from ..git import GitRepository
 from ..utils import dl_file, verify_checksum, tar_subdir, host_architecture, current_user
 from ..log import logr
@@ -35,16 +35,16 @@ from ..log import logr
 logger = logr(__name__)
 
 
-class ArtefactBuild(RunnableTask):
-    """Generic parent class of all ArtefactBuild formats."""
+class ArtifactBuild(RunnableTask):
+    """Generic parent class of all ArtifactBuild formats."""
 
-    TASK_NAME = 'artefact build'
+    TASK_NAME = 'artifact build'
     EXFIELDS = {
         ExportableTaskField('format'),
         ExportableTaskField('distribution'),
         ExportableTaskField('architectures', list[str]),
         ExportableTaskField('derivative'),
-        ExportableTaskField('artefact'),
+        ExportableTaskField('artifact'),
         ExportableTaskField('user'),
         ExportableTaskField('email'),
         ExportableTaskField('message'),
@@ -59,7 +59,7 @@ class ArtefactBuild(RunnableTask):
         distribution,
         architectures,
         derivative,
-        artefact,
+        artifact,
         user_name,
         user_email,
         message,
@@ -71,13 +71,13 @@ class ArtefactBuild(RunnableTask):
         self.distribution = distribution
         self.architectures = architectures
         self.derivative = derivative
-        self.artefact = artefact
+        self.artifact = artifact
         self.user = user_name
         self.email = user_email
         self.message = message
         self.input_tarball = Path(tarball)
         self.src_tarball = Path(src_tarball) if src_tarball else None
-        self.cache = self.instance.cache.artefact(self)
+        self.cache = self.instance.cache.artifact(self)
         self.registry = self.instance.registry_mgr.factory(self.format)
         # Get the recursive list of derivatives extended by the given
         # derivative.
@@ -136,18 +136,18 @@ class ArtefactBuild(RunnableTask):
 
     @property
     def patches_dir(self):
-        """Returns the Path to the artefact patches directory."""
+        """Returns the Path to the artifact patches directory."""
         return self.place.joinpath('patches')
 
     @property
     def patches(self):
-        """Returns the sorted list of Path of patches found in artefact patches
+        """Returns the sorted list of Path of patches found in artifact patches
         directory."""
         return sorted([item for item in self.patches_dir.iterdir()])
 
     @property
     def has_patches(self):
-        """Returns True if artefact patches directory exists, False
+        """Returns True if artifact patches directory exists, False
         otherwise."""
         return self.patches_dir.exists()
 
@@ -161,7 +161,7 @@ class ArtefactBuild(RunnableTask):
         """Extract input tarball and, if not present in cache, download the
         package upstream tarball and verify its checksum."""
 
-        # Extract artefact tarball in build place
+        # Extract artifact tarball in build place
         logger.info(
             "Extracting tarball %s in destination %s",
             self.input_tarball,
@@ -174,11 +174,11 @@ class ArtefactBuild(RunnableTask):
         # Remove the input tarball
         self.input_tarball.unlink()
 
-        # ensure artefact cache directory exists
+        # ensure artifact cache directory exists
         self.cache.ensure()
 
         # load defs
-        self.defs = ArtefactDefs(self.place)
+        self.defs = ArtifactDefs(self.place)
 
         if self.src_tarball:
             # If source tarball has been provided with the build request, use it.
@@ -189,32 +189,32 @@ class ArtefactBuild(RunnableTask):
             # Unfortunately, PurePath.rename() does not support this case.
             shutil.move(self.src_tarball, src_tarball_target)
 
-            # The main version of the artefact is extract from the the source
-            # tarball name, it is prefixed by artefact name followed by
+            # The main version of the artifact is extract from the the source
+            # tarball name, it is prefixed by artifact name followed by
             # underscore, it is suffixed by the extension'.tar.xz'.
             main_version_str = self.src_tarball.name[
-                len(self.artefact) + 1 : -7
+                len(self.artifact) + 1 : -7
             ]
             logger.debug(
-                "Artefact main version extracted from source tarball name: %s",
+                "Artifact main version extracted from source tarball name: %s",
                 main_version_str,
             )
-            self.version = ArtefactVersion(
+            self.version = ArtifactVersion(
                 f"{main_version_str}-{self.defs.release(self.format)}"
             )
             self.tarball = src_tarball_target
         elif not self.defs.has_tarball:
-            # This artefact is not defined with an upstream tarball URL and the
+            # This artifact is not defined with an upstream tarball URL and the
             # user did not provide source tarball within the build request,
             # there is nothing more to do here
             return
         else:
-            # If the source tarball has not been provided and the artefact is
+            # If the source tarball has not been provided and the artifact is
             # defined with a source tarball URL, it is downloaded in cache (if
             # not already present) using this URL.
 
             # The targeted version is fully defined based on definition
-            self.version = ArtefactVersion(
+            self.version = ArtifactVersion(
                 f"{self.defs.version(self.derivative)}-{self.defs.release(self.format)}"
             )
             if not self.cache.has_tarball:
@@ -226,7 +226,7 @@ class ArtefactBuild(RunnableTask):
                 )
 
             logger.info(
-                "Using artefact source tarball from cache %s",
+                "Using artifact source tarball from cache %s",
                 self.cache.tarball,
             )
             self.tarball = self.cache.tarball
@@ -264,7 +264,7 @@ class ArtefactBuild(RunnableTask):
                 'fatbuildr-prescript',
                 self.user,
                 self.email,
-                "Patch generated by artefact pre-script.",
+                "Patch generated by artifact pre-script.",
             )
 
             # Remove temporary upstream directory
@@ -273,7 +273,7 @@ class ArtefactBuild(RunnableTask):
     def cruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
         _binds = [self.place, self.cache.dir]
-        # Before the first artefact is actually published, the registry does
+        # Before the first artifact is actually published, the registry does
         # not exist. Then check it really exists, then bind-mount it.
         if self.registry.exists:
             _binds.append(self.registry.path)

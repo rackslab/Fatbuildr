@@ -27,17 +27,17 @@ from .log import logr
 logger = logr(__name__)
 
 
-class ArtefactAbstractDefs:
-    def __init__(self, place, artefact):
+class ArtifactAbstractDefs:
+    def __init__(self, place, artifact):
         self.place = place
-        self.artefact = artefact
+        self.artifact = artifact
 
     @property
     def architecture_dependent(self):
         return False
 
 
-class ArtefactDebDefs(ArtefactAbstractDefs):
+class ArtifactDebDefs(ArtifactAbstractDefs):
     @property
     def architecture_dependent(self):
         """Returns true if the Debian source package is architecture dependent,
@@ -57,7 +57,7 @@ class ArtefactDebDefs(ArtefactAbstractDefs):
         return False
 
 
-class ArtefactRpmDefs(ArtefactAbstractDefs):
+class ArtifactRpmDefs(ArtifactAbstractDefs):
     @property
     def architecture_dependent(self):
         """Returns true if the RPM source package is architecture dependent, or
@@ -66,7 +66,7 @@ class ArtefactRpmDefs(ArtefactAbstractDefs):
         To determine the value, the BuildArch parameter is checked in RPM spec
         file. Unless BuildArch is set to noarch, the source package is
         considered architecture dependent."""
-        check_file = self.place.joinpath(f"{self.artefact}.spec")
+        check_file = self.place.joinpath(f"{self.artifact}.spec")
         with open(check_file, 'r') as fh:
             for line in fh:
                 if (
@@ -78,36 +78,36 @@ class ArtefactRpmDefs(ArtefactAbstractDefs):
         return True
 
 
-class ArtefactOsiDefs(ArtefactAbstractDefs):
+class ArtifactOsiDefs(ArtifactAbstractDefs):
     pass
 
 
-class ArtefactFormatDefs:
+class ArtifactFormatDefs:
 
     _formats = {
-        'deb': ArtefactDebDefs,
-        'rpm': ArtefactRpmDefs,
-        'osi': ArtefactOsiDefs,
+        'deb': ArtifactDebDefs,
+        'rpm': ArtifactRpmDefs,
+        'osi': ArtifactOsiDefs,
     }
 
     @staticmethod
-    def get(place, artefact, format):
-        """Generate a BuildArtefact from a new request."""
-        if not format in ArtefactFormatDefs._formats:
+    def get(place, artifact, format):
+        """Generate a BuildArtifact from a new request."""
+        if not format in ArtifactFormatDefs._formats:
             raise RuntimeError(
-                f"artefact definition format {format} is not supported"
+                f"artifact definition format {format} is not supported"
             )
-        return ArtefactFormatDefs._formats[format](
-            place.joinpath(format), artefact
+        return ArtifactFormatDefs._formats[format](
+            place.joinpath(format), artifact
         )
 
 
-class ArtefactDefs:
-    """Class to manipulate an artefact metadata definitions."""
+class ArtifactDefs:
+    """Class to manipulate an artifact metadata definitions."""
 
     def __init__(self, path):
         meta_yml_f = path.joinpath('meta.yml')
-        logger.debug("Loading artefact definitions from %s", meta_yml_f)
+        logger.debug("Loading artifact definitions from %s", meta_yml_f)
         with open(meta_yml_f) as fh:
             self.meta = yaml.safe_load(fh)
 

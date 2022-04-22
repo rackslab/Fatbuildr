@@ -20,7 +20,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from .. import ArtefactBuild
+from .. import ArtifactBuild
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
 from ...utils import current_user, current_group
@@ -57,7 +57,7 @@ def timestamp_rpmdate(value):
     return datetime.fromtimestamp(value).strftime("%a %b %d %Y")
 
 
-class ArtefactBuildRpm(ArtefactBuild):
+class ArtifactBuildRpm(ArtifactBuild):
     """Class to manipulation package in RPM format."""
 
     def __init__(
@@ -69,7 +69,7 @@ class ArtefactBuildRpm(ArtefactBuild):
         distribution,
         architectures,
         derivative,
-        artefact,
+        artifact,
         user_name,
         user_email,
         message,
@@ -84,7 +84,7 @@ class ArtefactBuildRpm(ArtefactBuild):
             distribution,
             architectures,
             derivative,
-            artefact,
+            artifact,
             user_name,
             user_email,
             message,
@@ -95,11 +95,11 @@ class ArtefactBuildRpm(ArtefactBuild):
 
     @property
     def spec_basename(self):
-        return self.artefact + '.spec'
+        return self.artifact + '.spec'
 
     @property
     def srpm_filename(self):
-        return self.artefact + '-' + self.version.full + '.src.rpm'
+        return self.artifact + '-' + self.version.full + '.src.rpm'
 
     @property
     def srpm_path(self):
@@ -115,7 +115,7 @@ class ArtefactBuildRpm(ArtefactBuild):
 
         logger.info(
             "Building source RPM for %s in build environment %s",
-            self.artefact,
+            self.artifact,
             self.host_env,
         )
 
@@ -139,7 +139,7 @@ class ArtefactBuildRpm(ArtefactBuild):
 
         # Check if existing source package and get version
         existing_version = self.registry.source_version(
-            self.distribution, self.derivative, self.artefact
+            self.distribution, self.derivative, self.artifact
         )
         if existing_version:
             logger.info(
@@ -148,7 +148,7 @@ class ArtefactBuildRpm(ArtefactBuild):
             )
             # Source package is already present, get existing changelog
             existing_changelog = self.registry.changelog(
-                self.distribution, self.derivative, 'src', self.artefact
+                self.distribution, self.derivative, 'src', self.artifact
             )
 
             # Compare existing version with the target version

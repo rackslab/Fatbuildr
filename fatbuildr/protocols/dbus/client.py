@@ -23,13 +23,13 @@ from . import (
     REGISTER,
     DbusInstance,
     DbusRunnableTask,
-    DbusArtefact,
+    DbusArtifact,
     DbusChangelogEntry,
     DbusKeyring,
     ErrorNotAuthorized,
     ErrorNoRunningTask,
     ErrorNoKeyring,
-    ErrorArtefactNotFound,
+    ErrorArtifactNotFound,
     valueornull,
 )
 from ..client import AbstractClient
@@ -115,42 +115,42 @@ class DbusClient(AbstractClient):
         return self.proxy.Derivatives(self.instance, fmt, distribution)
 
     @check_authorization
-    def artefacts(self, fmt, distribution, derivative):
-        return DbusArtefact.from_structure_list(
-            self.proxy.Artefacts(self.instance, fmt, distribution, derivative)
+    def artifacts(self, fmt, distribution, derivative):
+        return DbusArtifact.from_structure_list(
+            self.proxy.Artifacts(self.instance, fmt, distribution, derivative)
         )
 
     @check_authorization
-    def delete_artefact(self, fmt, distribution, derivative, artefact):
-        return self.proxy.ArtefactDelete(
+    def delete_artifact(self, fmt, distribution, derivative, artifact):
+        return self.proxy.ArtifactDelete(
             self.instance,
             fmt,
             distribution,
             derivative,
-            DbusArtefact.to_structure(artefact),
+            DbusArtifact.to_structure(artifact),
         )
 
     @check_authorization
-    def artefact_bins(self, fmt, distribution, derivative, artefact):
-        return DbusArtefact.from_structure_list(
-            self.proxy.ArtefactBinaries(
-                self.instance, fmt, distribution, derivative, artefact
+    def artifact_bins(self, fmt, distribution, derivative, artifact):
+        return DbusArtifact.from_structure_list(
+            self.proxy.ArtifactBinaries(
+                self.instance, fmt, distribution, derivative, artifact
             )
         )
 
     @check_authorization
-    def artefact_src(self, fmt, distribution, derivative, artefact):
+    def artifact_src(self, fmt, distribution, derivative, artifact):
         try:
-            return DbusArtefact.from_structure(
-                self.proxy.ArtefactSource(
-                    self.instance, fmt, distribution, derivative, artefact
+            return DbusArtifact.from_structure(
+                self.proxy.ArtifactSource(
+                    self.instance, fmt, distribution, derivative, artifact
                 )
             )
-        except ErrorArtefactNotFound:
+        except ErrorArtifactNotFound:
             return None
 
     @check_authorization
-    def changelog(self, fmt, distribution, derivative, architecture, artefact):
+    def changelog(self, fmt, distribution, derivative, architecture, artifact):
         return DbusChangelogEntry.from_structure_list(
             self.proxy.Changelog(
                 self.instance,
@@ -158,7 +158,7 @@ class DbusClient(AbstractClient):
                 distribution,
                 derivative,
                 architecture,
-                artefact,
+                artifact,
             )
         )
 
@@ -169,7 +169,7 @@ class DbusClient(AbstractClient):
         distribution,
         architectures,
         derivative,
-        artefact,
+        artifact,
         user_name,
         user_email,
         message,
@@ -182,7 +182,7 @@ class DbusClient(AbstractClient):
             distribution,
             architectures,
             derivative,
-            artefact,
+            artifact,
             user_name,
             user_email,
             message,

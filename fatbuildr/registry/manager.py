@@ -50,27 +50,27 @@ class RegistryManager:
         registry = self.factory(fmt)
         return registry.derivatives(distribution)
 
-    def artefacts(self, fmt, distribution, derivative):
+    def artifacts(self, fmt, distribution, derivative):
         registry = self.factory(fmt)
-        return registry.artefacts(distribution, derivative)
+        return registry.artifacts(distribution, derivative)
 
-    def artefact_bins(self, fmt, distribution, derivative, src_artefact):
+    def artifact_bins(self, fmt, distribution, derivative, src_artifact):
         registry = self.factory(fmt)
-        return registry.artefact_bins(distribution, derivative, src_artefact)
+        return registry.artifact_bins(distribution, derivative, src_artifact)
 
-    def artefact_src(self, fmt, distribution, derivative, bin_artefact):
+    def artifact_src(self, fmt, distribution, derivative, bin_artifact):
         registry = self.factory(fmt)
-        return registry.artefact_src(distribution, derivative, bin_artefact)
+        return registry.artifact_src(distribution, derivative, bin_artifact)
 
-    def changelog(self, fmt, distribution, derivative, architecture, artefact):
+    def changelog(self, fmt, distribution, derivative, architecture, artifact):
         registry = self.factory(fmt)
         return registry.changelog(
-            distribution, derivative, architecture, artefact
+            distribution, derivative, architecture, artifact
         )
 
-    def delete_artefact(self, fmt, distribution, derivative, artefact):
+    def delete_artifact(self, fmt, distribution, derivative, artifact):
         registry = self.factory(fmt)
-        return registry.delete_artefact(distribution, derivative, artefact)
+        return registry.delete_artifact(distribution, derivative, artifact)
 
     def factory(self, fmt):
         """Instanciate the appropriate Registry for the given format."""

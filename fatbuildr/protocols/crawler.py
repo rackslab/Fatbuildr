@@ -20,9 +20,9 @@
 from ..protocols.exports import ProtocolRegistry
 
 # tasks
-from ..builds import ArtefactBuild
+from ..builds import ArtifactBuild
 from ..builds.factory import BuildFactory
-from ..tasks.registry import RegistryArtefactDeletionTask
+from ..tasks.registry import RegistryArtifactDeletionTask
 from ..tasks.keyring import KeyringCreationTask, KeyringRenewalTask
 from ..tasks.images import (
     ImageCreationTask,
@@ -33,7 +33,7 @@ from ..tasks.images import (
 
 # types
 from ..instances import RunningInstance
-from ..registry.formats import RegistryArtefact, ChangelogEntry
+from ..registry.formats import RegistryArtifact, ChangelogEntry
 from ..keyring import KeyringMasterKey, KeyringSubKey
 
 
@@ -41,8 +41,8 @@ def register_protocols():
     """Load all tasks specific protocol structures in protocol registry."""
     registry = ProtocolRegistry()
     for task in [
-        (ArtefactBuild, BuildFactory.generate),
-        (RegistryArtefactDeletionTask,),
+        (ArtifactBuild, BuildFactory.generate),
+        (RegistryArtifactDeletionTask,),
         (KeyringCreationTask,),
         (KeyringRenewalTask,),
         (ImageCreationTask,),
@@ -53,7 +53,7 @@ def register_protocols():
         registry.register_task(*task)
     for _type in [
         RunningInstance,
-        RegistryArtefact,
+        RegistryArtifact,
         ChangelogEntry,
         KeyringMasterKey,
         KeyringSubKey,

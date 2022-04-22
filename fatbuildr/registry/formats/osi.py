@@ -20,7 +20,7 @@
 import shutil
 import re
 
-from . import Registry, RegistryArtefact
+from . import Registry, RegistryArtifact
 from ...log import logr
 
 logger = logr(__name__)
@@ -49,7 +49,7 @@ class RegistryOsi(Registry):
     def publish(self, build):
         """Publish OSI images."""
 
-        logger.info("Publishing OSI images for %s", build.artefact)
+        logger.info("Publishing OSI images for %s", build.artifact)
 
         derivative_path = self.derivative_path(
             build.distribution, build.derivative
@@ -73,8 +73,8 @@ class RegistryOsi(Registry):
             logger.debug("Copying file %s to %s", src, dst)
             shutil.copyfile(src, dst)
 
-    def _artefacts_filter(self, distribution, derivative, name_filter=None):
-        artefacts = []
+    def _artifacts_filter(self, distribution, derivative, name_filter=None):
+        artifacts = []
         for _path in self.derivative_path(distribution, derivative).iterdir():
             if _path.name in RegistryOsi.CHECKSUMS_FILES:
                 continue
@@ -85,48 +85,48 @@ class RegistryOsi(Registry):
             )
             if not f_re:
                 logger.warning(
-                    "File %s does not match OSI artefact regular " "expression",
+                    "File %s does not match OSI artifact regular " "expression",
                     _path.name,
                 )
                 continue
             # skip if it does not match the filter
             if name_filter and f_re.group('name') != name_filter:
                 continue
-            artefacts.append(
-                RegistryArtefact(
+            artifacts.append(
+                RegistryArtifact(
                     f_re.group('name'),
                     f_re.group('arch'),
                     f_re.group('version'),
                 )
             )
 
-        return artefacts
+        return artifacts
 
-    def artefacts(self, distribution, derivative):
-        """Returns the list of artefacts in OSI registry."""
-        return self._artefacts_filter(distribution, derivative)
+    def artifacts(self, distribution, derivative):
+        """Returns the list of artifacts in OSI registry."""
+        return self._artifacts_filter(distribution, derivative)
 
-    def artefact_bins(self, distribution, derivative, src_artefact):
-        """There is no notion of source/binary artefact with OSI format. This
-        return the artefact whose name is the given source artefact."""
-        return self._artefacts_filter(
-            distribution, derivative, name_filter=src_artefact
+    def artifact_bins(self, distribution, derivative, src_artifact):
+        """There is no notion of source/binary artifact with OSI format. This
+        return the artifact whose name is the given source artifact."""
+        return self._artifacts_filter(
+            distribution, derivative, name_filter=src_artifact
         )
 
-    def artefact_src(self, distribution, derivative, bin_artefact):
-        """There is no notion of source/binary artefact with OSI format. This
-        return the artefact whose name is the given binary artefact."""
-        return self._artefacts_filter(
-            distribution, derivative, name_filter=bin_artefact
+    def artifact_src(self, distribution, derivative, bin_artifact):
+        """There is no notion of source/binary artifact with OSI format. This
+        return the artifact whose name is the given binary artifact."""
+        return self._artifacts_filter(
+            distribution, derivative, name_filter=bin_artifact
         )[0]
 
-    def changelog(self, distribution, derivative, architecture, artefact):
+    def changelog(self, distribution, derivative, architecture, artifact):
         """Return empty array as there is notion of changelog with OSI."""
         return []
 
-    def delete_artefact(self, distribution, derivative, artefact):
+    def delete_artifact(self, distribution, derivative, artifact):
         path = self.derivative_path(distribution, derivative).joinpath(
-            f"{artefact.name}_{artefact.version}.{artefact.architecture}"
+            f"{artifact.name}_{artifact.version}.{artifact.architecture}"
         )
         # delete the image if found
         if path.exists():

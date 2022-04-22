@@ -31,7 +31,7 @@ from dasbus.typing import unwrap_variant, get_variant, Structure, Str, Int, List
 from ..wire import (
     WireInstance,
     WireRunnableTask,
-    WireArtefact,
+    WireArtifact,
     WireChangelogEntry,
     WireKeyring,
 )
@@ -73,8 +73,8 @@ class ErrorNoKeyring(DBusError):
     pass
 
 
-@dbus_error("ErrorArtefactNotFound", namespace=REGISTER_NAMESPACE)
-class ErrorArtefactNotFound(DBusError):
+@dbus_error("ErrorArtifactNotFound", namespace=REGISTER_NAMESPACE)
+class ErrorArtifactNotFound(DBusError):
     pass
 
 
@@ -250,7 +250,7 @@ class DbusInstance(FatbuildrNativeDbusData, WireInstance):
     pass
 
 
-class DbusArtefact(FatbuildrNativeDbusData, WireArtefact):
+class DbusArtifact(FatbuildrNativeDbusData, WireArtifact):
     pass
 
 
@@ -270,7 +270,7 @@ class DbusKeyringSubKey(FatbuildrNativeDbusData):
 
 TYPES_MAP = {
     ('RunningInstance', DbusInstance),
-    ('RegistryArtefact', DbusArtefact),
+    ('RegistryArtifact', DbusArtifact),
     ('ChangelogEntry', DbusChangelogEntry),
     ('KeyringMasterKey', DbusKeyring),
     ('KeyringSubKey', DbusKeyringSubKey),

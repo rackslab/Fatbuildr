@@ -19,13 +19,13 @@
 
 import glob
 
-from .. import ArtefactBuild
+from .. import ArtifactBuild
 from ...log import logr
 
 logger = logr(__name__)
 
 
-class ArtefactBuildOsi(ArtefactBuild):
+class ArtifactBuildOsi(ArtifactBuild):
     """Class to manipulate builds of OS images."""
 
     def __init__(
@@ -37,7 +37,7 @@ class ArtefactBuildOsi(ArtefactBuild):
         distribution,
         architectures,
         derivative,
-        artefact,
+        artifact,
         user_name,
         user_email,
         message,
@@ -52,7 +52,7 @@ class ArtefactBuildOsi(ArtefactBuild):
             distribution,
             architectures,
             derivative,
-            artefact,
+            artifact,
             user_name,
             user_email,
             message,
@@ -64,9 +64,9 @@ class ArtefactBuildOsi(ArtefactBuild):
     def build(self):
         """Build the OS image using mkosi"""
 
-        logger.info("Building the OS image based %s", self.artefact)
+        logger.info("Building the OS image based %s", self.artifact)
 
-        def_path = self.place.joinpath(self.format, self.artefact + '.mkosi')
+        def_path = self.place.joinpath(self.format, self.artifact + '.mkosi')
         if not def_path.exists():
             raise RuntimeError(
                 f"Unable to find OS image definition file at {def_path}"
@@ -79,7 +79,7 @@ class ArtefactBuildOsi(ArtefactBuild):
             '--output-dir',
             str(self.place),
             '--image-id',
-            self.artefact,
+            self.artifact,
             '--image-version',
             self.version.main,
             '--checksum',

@@ -22,7 +22,7 @@ from ..wire import (
     WireData,
     WireInstance,
     WireRunnableTask,
-    WireArtefact,
+    WireArtifact,
     WireChangelogEntry,
 )
 from ..exports import ProtocolRegistry
@@ -101,7 +101,7 @@ class JsonInstance(JsonNativeData, WireInstance):
     pass
 
 
-class JsonArtefact(JsonNativeData, WireArtefact):
+class JsonArtifact(JsonNativeData, WireArtifact):
     pass
 
 
@@ -113,6 +113,6 @@ class JsonChangelogEntry(JsonNativeData, WireChangelogEntry):
 
 TYPES_MAP = {
     ('RunningInstance', 'DbusInstance', JsonInstance),
-    ('RegistryArtefact', 'DbusArtefact', JsonArtefact),
+    ('RegistryArtifact', 'DbusArtifact', JsonArtifact),
     ('ChangelogEntry', 'DbusChangelogEntry', JsonChangelogEntry),
 }

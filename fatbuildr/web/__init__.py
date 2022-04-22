@@ -104,15 +104,15 @@ class WebApp(Flask):
         self.add_instance_url_rule(
             '/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>/<string:architecture>/'
-            '<string:artefact>/',
-            view_func=views.artefact,
+            '<string:artifact>/',
+            view_func=views.artifact,
             defaults={'output': 'html'},
         )
         self.add_instance_url_rule(
             '/registry/<string:fmt>/'
             '<string:distribution>/<string:derivative>/<string:architecture>/'
-            '<string:artefact>.json',
-            view_func=views.artefact,
+            '<string:artifact>.json',
+            view_func=views.artifact,
             defaults={'output': 'json'},
         )
         self.add_instance_url_rule(

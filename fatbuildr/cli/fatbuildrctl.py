@@ -32,7 +32,7 @@ from ..prefs import UserPreferences
 from ..log import logr
 from ..protocols import ClientFactory
 from ..protocols.crawler import register_protocols
-from ..artefact import ArtefactDefs, ArtefactFormatDefs
+from ..artifact import ArtifactDefs, ArtifactFormatDefs
 from ..patches import PatchQueue
 
 logger = logr(__name__)
@@ -58,7 +58,7 @@ def default_user_pref():
 
 
 def prepare_tarball(apath, rundir: bool):
-    """Generates tarball container artefact definition. If rundir is True, the
+    """Generates tarball container artifact definition. If rundir is True, the
     tarball is generated in fatbuildrd system runtime directory. Otherwise, it
     is generated in default temporary directory."""
 
@@ -68,16 +68,16 @@ def prepare_tarball(apath, rundir: bool):
         base = Path(tempfile._get_default_tempdir())
 
     tarball = base.joinpath(
-        f"fatbuildr-artefact-{next(tempfile._get_candidate_names())}.tar.xz"
+        f"fatbuildr-artifact-{next(tempfile._get_candidate_names())}.tar.xz"
     )
 
     if not apath.exists():
         raise RuntimeError(
-            f"artefact definition directory {apath} does not exist",
+            f"artifact definition directory {apath} does not exist",
         )
 
     logger.debug(
-        "Creating archive %s with artefact definition directory %s",
+        "Creating archive %s with artifact definition directory %s",
         tarball,
         apath,
     )
@@ -96,8 +96,8 @@ def source_tarball_filter(tarinfo):
     logger.debug("File added in archive: %s", tarinfo.name)
     return tarinfo
 
-def prepare_source_tarball(artefact, path, version, rundir: bool):
-    """Generates a source tarball for the given artefact, tagged with the given
+def prepare_source_tarball(artifact, path, version, rundir: bool):
+    """Generates a source tarball for the given artifact, tagged with the given
     main version, using sources in path."""
 
     if rundir:
@@ -106,25 +106,25 @@ def prepare_source_tarball(artefact, path, version, rundir: bool):
         base = Path(tempfile._get_default_tempdir())
 
     logger.info(
-        "Generating artefact %s source tarball version %s using directory %s",
-        artefact,
+        "Generating artifact %s source tarball version %s using directory %s",
+        artifact,
         version,
         path,
     )
     if not path.exists():
         logger.error(
-            "Given source directory %s for artefact %s does not exists, leaving",
+            "Given source directory %s for artifact %s does not exists, leaving",
             path,
-            artefact,
+            artifact,
         )
         sys.exit(1)
-    subdir = f"{artefact}_{version}"
+    subdir = f"{artifact}_{version}"
     tarball = base.joinpath(
-        f"{artefact}_{version}.tar.xz"
+        f"{artifact}_{version}.tar.xz"
     )
     logger.debug(
-        "Creating artefact %s source tarball %s with directory %s",
-        artefact,
+        "Creating artifact %s source tarball %s with directory %s",
+        artifact,
         tarball,
         path,
     )
@@ -228,13 +228,13 @@ class Fatbuildrctl(FatbuildrCliRun):
         # Parser for the build command
         parser_build = subparsers.add_parser('build', help='Submit new build')
         parser_build.add_argument(
-            '-a', '--artefact', help='Artefact name', required=True
+            '-a', '--artifact', help='Artifact name', required=True
         )
         parser_build.add_argument(
             '-d', '--distribution', help='Distribution name'
         )
         parser_build.add_argument(
-            '-f', '--format', help='Format of the artefact'
+            '-f', '--format', help='Format of the artifact'
         )
         parser_build.add_argument(
             '--derivative',
@@ -244,22 +244,22 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_build.add_argument(
             '-b',
             '--basedir',
-            help='Artefacts definitions directory',
+            help='Artifacts definitions directory',
         )
         parser_build.add_argument(
-            '-s', '--subdir', help='Artefact subdirectory'
+            '-s', '--subdir', help='Artifact subdirectory'
         )
         parser_build.add_argument(
             '--source-dir',
             help=(
-                'Generate artefact source tarball using the source code in '
+                'Generate artifact source tarball using the source code in '
                 'this directory'
             ),
             type=Path,
         )
         parser_build.add_argument(
             '--source-version',
-            help='Alternate version for generated artefact source tarball',
+            help='Alternate version for generated artifact source tarball',
         )
         parser_build.add_argument('-n', '--name', help='Maintainer name')
         parser_build.add_argument('-e', '--email', help='Maintainer email')
@@ -278,10 +278,10 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         # Parser for the patches command
         parser_patches = subparsers.add_parser(
-            'patches', help='Manage artefact patch queue'
+            'patches', help='Manage artifact patch queue'
         )
         parser_patches.add_argument(
-            '-a', '--artefact', help='Artefact name', required=True
+            '-a', '--artifact', help='Artifact name', required=True
         )
         parser_patches.add_argument(
             '--derivative',
@@ -291,10 +291,10 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_patches.add_argument(
             '-b',
             '--basedir',
-            help='Artefacts definitions directory',
+            help='Artifacts definitions directory',
         )
         parser_patches.add_argument(
-            '-s', '--subdir', help='Artefact subdirectory'
+            '-s', '--subdir', help='Artifact subdirectory'
         )
         parser_patches.add_argument('-n', '--name', help='Maintainer name')
         parser_patches.add_argument('-e', '--email', help='Maintainer email')
@@ -317,11 +317,11 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         # Parser for the registry command
         parser_registry = subparsers.add_parser(
-            'registry', help='Manage artefact registries'
+            'registry', help='Manage artifact registries'
         )
         parser_registry.add_argument(
             'operation',
-            help='Operation on selected artefacts (default: %(default)s)',
+            help='Operation on selected artifacts (default: %(default)s)',
             nargs='?',
             choices=['list', 'delete'],
             default='list',
@@ -333,7 +333,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             '--derivative', help='Distribution derivative', default='main'
         )
         parser_registry.add_argument(
-            '-a', '--artefact', help='Name of artefact'
+            '-a', '--artifact', help='Name of artifact'
         )
 
         parser_registry.set_defaults(func=self._run_registry)
@@ -517,15 +517,15 @@ class Fatbuildrctl(FatbuildrCliRun):
             return args.basedir
 
     def _get_subdir(self, args):
-        """Returns the subdir, which defaults to artefact name if not provided
+        """Returns the subdir, which defaults to artifact name if not provided
         in arguments."""
         if args.subdir is None:
-            return args.artefact
+            return args.artifact
         else:
             return args.subdir
 
     def _get_apath(self, args):
-        """Returns the Path to the artefact definition according to the
+        """Returns the Path to the artifact definition according to the
         provided command line args."""
         return Path(self._get_basedir(args), self._get_subdir(args))
 
@@ -563,7 +563,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _get_format_distribution(self, defs, args):
         """Defines format and distribution of the build or pq, given the
-        provided arguments, artefact definition and server pipelines. It
+        provided arguments, artifact definition and server pipelines. It
         tries to guess as much missing information as possible. It also
         performs some coherency checks, the program is left with return code 1
         and a meaningfull message when error is detected."""
@@ -588,31 +588,31 @@ class Fatbuildrctl(FatbuildrCliRun):
             format = dist_fmt
         elif args.format is None:
             # distribution and format have not been specified, check format
-            # supported by the artefact.
+            # supported by the artifact.
             supported_fmts = defs.supported_formats
             # check if there is not more than one supported format for this
-            # artefact
+            # artifact
             if len(supported_fmts) > 1:
                 logger.error(
                     "There is more than one supported format for "
-                    "artefact %s, at least the format must be "
+                    "artifact %s, at least the format must be "
                     "specified",
-                    args.artefact,
+                    args.artifact,
                 )
                 sys.exit(1)
             if supported_fmts:
                 format = supported_fmts[0]
                 logger.debug(
-                    "Format %s has been selected for artefact %s",
+                    "Format %s has been selected for artifact %s",
                     format,
-                    args.artefact,
+                    args.artifact,
                 )
 
         if not format:
             logger.error(
-                "Unable to define format of artefact %s, either the "
+                "Unable to define format of artifact %s, either the "
                 "distribution or the format must be specified",
-                args.artefact,
+                args.artifact,
             )
             sys.exit(1)
         elif not args.distribution:
@@ -635,21 +635,21 @@ class Fatbuildrctl(FatbuildrCliRun):
                 format,
             )
 
-        # check artefact accepts this format
+        # check artifact accepts this format
         if format not in defs.supported_formats:
             logger.error(
-                "Format %s is not accepted by artefact %s",
+                "Format %s is not accepted by artifact %s",
                 format,
-                args.artefact,
+                args.artifact,
             )
             sys.exit(1)
 
-        # check artefact accepts this derivative
+        # check artifact accepts this derivative
         if args.derivative not in defs.derivatives:
             logger.error(
-                "Derivative %s is not accepted by artefact %s",
+                "Derivative %s is not accepted by artifact %s",
                 args.derivative,
-                args.artefact,
+                args.artifact,
             )
             sys.exit(1)
 
@@ -668,11 +668,11 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_build(self, args):
         logger.debug(
-            "running build for artefact: %s uri: %s", args.artefact, self.uri
+            "running build for artifact: %s uri: %s", args.artifact, self.uri
         )
 
         apath = self._get_apath(args)
-        defs = ArtefactDefs(apath)
+        defs = ArtifactDefs(apath)
 
         user_name = self._get_user_name(args)
         user_email = self._get_user_email(args)
@@ -695,17 +695,17 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         architectures = self.connection.pipelines_architectures()
         logger.debug("Architectures defined in pipelines: %s", architectures)
-        arch_dependent = ArtefactFormatDefs.get(
-            apath, args.artefact, format
+        arch_dependent = ArtifactFormatDefs.get(
+            apath, args.artifact, format
         ).architecture_dependent
         logger.debug(
-            "Artefact %s is %sarchitecture dependent",
-            args.artefact,
+            "Artifact %s is %sarchitecture dependent",
+            args.artifact,
             'NOT ' if not arch_dependent else '',
         )
 
         if not arch_dependent:
-            # If the artefact is artefact is architecture independant,
+            # If the artifact is artifact is architecture independant,
             # arbitrarily pick up the first architecture defined in
             # pipelines.
             selected_architectures = [architectures[0]]
@@ -717,25 +717,25 @@ class Fatbuildrctl(FatbuildrCliRun):
         src_tarball = None
         if args.source_dir:
             src_tarball = prepare_source_tarball(
-                args.artefact,
+                args.artifact,
                 args.source_dir,
                 args.source_version or defs.version(args.derivative),
                 self.connection.scheme == 'dbus',
             )
 
         try:
-            # Prepare artefact definition tarball, in fatbuildrd runtime
+            # Prepare artifact definition tarball, in fatbuildrd runtime
             # directory if connected to fatbuildrd through dbus.
             tarball = prepare_tarball(apath, self.connection.scheme == 'dbus')
             self._submit_watch(
                 self.connection.build,
-                f"{args.artefact} build",
+                f"{args.artifact} build",
                 args.watch,
                 format,
                 distribution,
                 selected_architectures,
                 args.derivative,
-                args.artefact,
+                args.artifact,
                 user_name,
                 user_email,
                 build_msg,
@@ -769,13 +769,13 @@ class Fatbuildrctl(FatbuildrCliRun):
     def _run_patches(self, args):
 
         apath = self._get_apath(args)
-        defs = ArtefactDefs(apath)
+        defs = ArtifactDefs(apath)
         user_name = self._get_user_name(args)
         user_email = self._get_user_email(args)
         patch_queue = PatchQueue(
             apath,
             args.derivative,
-            args.artefact,
+            args.artifact,
             defs,
             user_name,
             user_email,
@@ -842,37 +842,37 @@ class Fatbuildrctl(FatbuildrCliRun):
 
     def _run_registry(self, args):
         _fmt = self.connection.pipelines_distribution_format(args.distribution)
-        artefacts = self.connection.artefacts(
+        artifacts = self.connection.artifacts(
             _fmt, args.distribution, args.derivative
         )
-        if args.artefact:
-            # filter out other artefact names
-            artefacts = [
-                artefact
-                for artefact in artefacts
-                if args.artefact in artefact.name
+        if args.artifact:
+            # filter out other artifact names
+            artifacts = [
+                artifact
+                for artifact in artifacts
+                if args.artifact in artifact.name
             ]
-        if not artefacts:
+        if not artifacts:
             print(
-                f"No artefact found in {_fmt} distribution {args.distribution} "
+                f"No artifact found in {_fmt} distribution {args.distribution} "
                 f"derivative {args.derivative}"
             )
             return
         if args.operation == 'list':
             print(
-                f"Artefacts found for {_fmt} distribution {args.distribution} "
+                f"Artifacts found for {_fmt} distribution {args.distribution} "
                 f"derivative {args.derivative}:"
             )
-            for artefact in artefacts:
-                artefact.report()
+            for artifact in artifacts:
+                artifact.report()
         elif args.operation == 'delete':
-            for artefact in artefacts:
-                task_id = self.connection.delete_artefact(
+            for artifact in artifacts:
+                task_id = self.connection.delete_artifact(
                     _fmt,
                     args.distribution,
                     args.derivative,
-                    artefact,
+                    artifact,
                 )
                 print(
-                    f"Submitted artefact {artefact.name} deletion task {task_id}"
+                    f"Submitted artifact {artifact.name} deletion task {task_id}"
                 )

@@ -48,11 +48,11 @@ class Registry:
     def publish(self, build):
         raise NotImplementedError
 
-    def artefact(self, distributions):
+    def artifact(self, distributions):
         raise NotImplementedError
 
 
-class ArtefactVersion:
+class ArtifactVersion:
     VERSION_REGEX = r'(?P<main>.+)-(?P<release>.+)'
     RELEASE_REGEX = r'(?P<release>.+?)(\+build(?P<build>\d+))?(\.(?P<dist>.+))?'
 
@@ -95,7 +95,7 @@ class ArtefactVersion:
         return result
 
 
-class RegistryArtefact(ExportableType):
+class RegistryArtifact(ExportableType):
 
     EXFIELDS = {
         ExportableField('name'),

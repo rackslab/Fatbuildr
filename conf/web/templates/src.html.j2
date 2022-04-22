@@ -1,5 +1,5 @@
 {% extends "layout/base.html.j2" %}
-{% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > {{ distribution }} > {{ derivative }} > {{ artefact }} source artefact{% endblock %}
+{% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}{{ format }} > {{ distribution }} > {{ derivative }} > {{ artifact }} source artifact{% endblock %}
 {% block content %}
 <nav aria-label="breadcrumb">
   <ol class="breadcrumb">
@@ -7,17 +7,17 @@
     <li class="breadcrumb-item"><a href="{{ url_for('format', instance=instance, fmt=format, output='html') }}">{{ format }}</a></li>
     <li class="breadcrumb-item"><a href="{{ url_for('distribution', instance=instance, fmt=format, distribution=distribution, output='html') }}">{{ distribution }}</a></li>
     <li class="breadcrumb-item"><a href="{{ url_for('derivative', instance=instance, fmt=format, distribution=distribution, derivative=derivative, output='html') }}">{{ derivative }}</a></li>
-    <li class="breadcrumb-item active" aria-current="page">{{ artefact }} source artefact</li>
+    <li class="breadcrumb-item active" aria-current="page">{{ artifact }} source artifact</li>
   </ol>
 </nav>
 
-<h1>{{ artefact }} source artefact</h1>
-Binary artefacts:
+<h1>{{ artifact }} source artifact</h1>
+Binary artifacts:
 <ul>
 {% for binary in binaries %}
-  <li><a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=binary.architecture, artefact=binary.name, output='html') }}">{{ binary.name }}</a> {{ binary.architecture }} {{ binary.version }}</li>
+  <li><a href="{{ url_for('artifact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=binary.architecture, artifact=binary.name, output='html') }}">{{ binary.name }}</a> {{ binary.architecture }} {{ binary.version }}</li>
 {% endfor %}
 </ul>
 {% include 'partials/changelog.html.j2' %}
-<a href="{{ url_for('artefact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=architecture, artefact=artefact, output='json') }}">JSON</a>
+<a href="{{ url_for('artifact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=architecture, artifact=artifact, output='json') }}">JSON</a>
 {% endblock %}

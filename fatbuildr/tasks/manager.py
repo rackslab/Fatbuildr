@@ -30,7 +30,7 @@ from ..log import logr
 from ..protocols.exports import ProtocolRegistry
 
 from ..builds.factory import BuildFactory
-from .registry import RegistryArtefactDeletionTask
+from .registry import RegistryArtifactDeletionTask
 from .keyring import KeyringCreationTask, KeyringRenewalTask
 from .images import (
     ImageCreationTask,
