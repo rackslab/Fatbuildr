@@ -238,7 +238,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_build.add_argument(
             '--derivative',
-            help='Distribution derivative',
+            help='Distribution derivative (default: %(default)s)',
             default='main',
         )
         parser_build.add_argument(
@@ -285,7 +285,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_patches.add_argument(
             '--derivative',
-            help='Distribution derivative',
+            help='Distribution derivative (default: %(default)s)',
             default='main',
         )
         parser_patches.add_argument(
