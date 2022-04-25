@@ -119,9 +119,15 @@ def prepare_source_tarball(artifact, path, version, rundir: bool):
         )
         sys.exit(1)
     subdir = f"{artifact}_{version}"
-    tarball = base.joinpath(
-        f"{artifact}_{version}.tar.xz"
-    )
+    tarball = base.joinpath(f"{artifact}_{version}.tar.xz")
+
+    if tarball.exists():
+        logger.warn(
+            "Tarball %s already exists, it may have been generated for a "
+            "previous failed build, trying to remove it in the first place.",
+            tarball,
+        )
+        tarball.unlink()
     logger.debug(
         "Creating artifact %s source tarball %s with directory %s",
         artifact,
