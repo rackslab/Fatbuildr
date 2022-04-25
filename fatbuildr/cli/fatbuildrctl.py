@@ -96,6 +96,7 @@ def source_tarball_filter(tarinfo):
     logger.debug("File added in archive: %s", tarinfo.name)
     return tarinfo
 
+
 def prepare_source_tarball(artifact, path, version, rundir: bool):
     """Generates a source tarball for the given artifact, tagged with the given
     main version, using sources in path."""

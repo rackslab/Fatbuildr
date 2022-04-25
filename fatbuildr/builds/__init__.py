@@ -29,7 +29,13 @@ from ..cleanup import CleanupRegistry
 from ..artifact import ArtifactDefs
 from ..registry.formats import ArtifactVersion
 from ..git import GitRepository
-from ..utils import dl_file, verify_checksum, tar_subdir, host_architecture, current_user
+from ..utils import (
+    dl_file,
+    verify_checksum,
+    tar_subdir,
+    host_architecture,
+    current_user,
+)
 from ..log import logr
 
 logger = logr(__name__)
@@ -256,7 +262,9 @@ class ArtifactBuild(RunnableTask):
             # Run pre script in archives directory using the wrapper
             wrapper_path = self.image.common_libdir.joinpath('pre-wrapper.sh')
             cmd = ['/bin/bash', wrapper_path, pre_script_path]
-            self.cruncmd(cmd, chdir=tarball_subdir, user=current_user()[1], readonly=True)
+            self.cruncmd(
+                cmd, chdir=tarball_subdir, user=current_user()[1], readonly=True
+            )
 
             # export git repo diff in patch queue
             git.commit_export(
