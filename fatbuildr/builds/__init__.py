@@ -219,11 +219,12 @@ class ArtifactBuild(RunnableTask):
             )
             if not self.cache.has_tarball:
                 dl_file(self.tarball_url, self.cache.tarball)
-                verify_checksum(
-                    self.cache.tarball,
-                    self.checksum_format,
-                    self.checksum_value,
-                )
+
+            verify_checksum(
+                self.cache.tarball,
+                self.checksum_format,
+                self.checksum_value,
+            )
 
             logger.info(
                 "Using artifact source tarball from cache %s",
