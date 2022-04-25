@@ -140,6 +140,12 @@ class ArtifactDefs:
             return str(self.meta['versions'][derivative])
 
     def checksum_format(self, derivative):
+        version = self.version(derivative)
+        if version not in self.meta['checksums']:
+            raise RuntimeError(
+                f"Checksum of version {version} not found in artifact "
+                "definition"
+            )
         return list(self.meta['checksums'][self.version(derivative)].keys())[
             0
         ]  # pickup the first format
