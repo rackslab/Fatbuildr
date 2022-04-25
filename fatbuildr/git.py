@@ -104,7 +104,16 @@ class GitRepository:
         #
         # The --force argument prevents patch from asking questions
         # interactively.
-        cmd = ["patch", "--force", "--no-backup-if-mismatch", "-p1"]
+        #
+        # The backup and reject files are discarded as they do not add value
+        # compared to git repository.
+        cmd = [
+            "patch",
+            "--force",
+            "--no-backup-if-mismatch",
+            "--reject-file=-",
+            "-p1",
+        ]
         logger.info("Applying patch %s", patch.name)
         subprocess.run(cmd, input=content, cwd=self.path)
 
