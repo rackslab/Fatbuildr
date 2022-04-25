@@ -2,38 +2,54 @@
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.view-task;
 ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
 
 [Allow members of fatbuildr group to submit build task in Fatbuildr]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.build;
 ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
 
 [Allow members of fatbuildr group to view Fatbuildr pipeline definition]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.view-pipeline;
 ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
 
 [Allow members of fatbuildr group to view Fatbuildr registry content]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.view-registry;
 ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
 
 [Allow members of fatbuildr group to edit Fatbuildr registry content]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.edit-registry;
 ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
 
 [Allow members of fatbuildr group to view Fatbuildr keyring]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.view-keyring;
 ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
 
 [Allow members of fatbuildr group to edit Fatbuildr keyring]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.edit-keyring;
 ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
 
 [Allow members of fatbuildr group to manage Fatbuildr image and build environment]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.manage-image;
 ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
