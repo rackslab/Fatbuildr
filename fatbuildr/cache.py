@@ -49,6 +49,10 @@ class CacheArtifact(object):
 class CacheManager:
     def __init__(self, conf, instance):
         self.dir = conf.dirs.cache.joinpath(instance.id)
+        if not self.dir.exists():
+            logger.info("Creating instance cache directory %s", self.dir)
+            self.dir.mkdir()
+            self.dir.chmod(0o755)  # be umask agnostic
 
     def artifact(self, build):
         return CacheArtifact(self.dir, build)
