@@ -163,6 +163,7 @@ class ArtifactBuildDeb(ArtifactBuild):
             self.version.full,
             '--distribution',
             self.distribution,
+            '--force-distribution',
             self.message,
         ]
 
