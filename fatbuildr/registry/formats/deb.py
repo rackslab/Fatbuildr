@@ -249,6 +249,11 @@ class RegistryDeb(Registry):
         if not self.dists_conf.exists():
             return None
 
+        # Check if the build distribution is already present in repository. If
+        # not, the source version is necessarily None.
+        if distribution not in self.distributions:
+            return None
+
         # Check if the derivative exists in the repository. If not, the
         # associated component pool is necessarily empty.
         if derivative not in self.derivatives(distribution):
