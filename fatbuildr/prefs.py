@@ -18,6 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import configparser
+from pathlib import Path
 
 from .log import logr
 
@@ -47,7 +48,11 @@ class UserPreferences:
         self.user_name = config.get('user', 'name', fallback=None)
         self.user_email = config.get('user', 'email', fallback=None)
         self.uri = config.get('prefs', 'uri', fallback=None)
-        self.basedir = config.get('prefs', 'basedir', fallback=None)
+
+        basedir = config.get('prefs', 'basedir', fallback=None)
+        if basedir:
+            basedir = Path(basedir).expanduser()
+        self.basedir = basedir
         self.message = config.get('prefs', 'message', fallback=None)
 
     def dump(self):
