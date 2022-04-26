@@ -195,7 +195,7 @@ class ArtifactBuild(RunnableTask):
             # Unfortunately, PurePath.rename() does not support this case.
             shutil.move(self.src_tarball, src_tarball_target)
 
-            # The main version of the artifact is extract from the the source
+            # The main version of the artifact is extracted from the the source
             # tarball name, it is prefixed by artifact name followed by
             # underscore, it is suffixed by the extension'.tar.xz'.
             main_version_str = self.src_tarball.name[
