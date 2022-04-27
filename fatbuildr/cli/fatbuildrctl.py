@@ -679,7 +679,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
 
         apath = self._get_apath(args)
-        defs = ArtifactDefs(apath, args.artifact)
+        defs = ArtifactDefs(apath)  # load generic artifact defs
 
         user_name = self._get_user_name(args)
         user_email = self._get_user_email(args)

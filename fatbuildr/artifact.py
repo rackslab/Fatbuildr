@@ -30,9 +30,8 @@ logger = logr(__name__)
 class ArtifactDefs:
     """Generic class to manipulate an artifact metadata definitions."""
 
-    def __init__(self, place, artifact):
+    def __init__(self, place):
         self.place = place
-        self.artifact = artifact
         meta_yml_f = place.joinpath('meta.yml')
         logger.debug("Loading artifact definitions from %s", meta_yml_f)
         with open(meta_yml_f) as fh:
@@ -101,7 +100,8 @@ class ArtifactDefs:
 
 class ArtifactFormatDefs(ArtifactDefs):
     def __init__(self, place, artifact, format):
-        super().__init__(place, artifact)
+        super().__init__(place)
+        self.artifact = artifact
         self.format = format
 
     @property
