@@ -51,8 +51,9 @@ class InstancePipelines:
         """Which format (ex: RPM) for this distribution? Raise RuntimeError if
         the format has not been found."""
         for format, dists in self._formats.items():
-            if distribution in dists.keys():
-                return format
+            for dist in dists:
+                if dist['name'] == distribution:
+                    return format
         raise RuntimeError(
             "Unable to find format corresponding to "
             f"distribution {distribution}"
@@ -60,13 +61,26 @@ class InstancePipelines:
 
     def dist_env(self, distribution):
         """Return the name of the build environment for the given
-        distribution. Raise RuntimeError is the environment has not been
+        distribution. Raise RuntimeError if the environment has not been
         found."""
         for format, dists in self._formats.items():
-            if distribution in dists.keys():
-                return dists[distribution]
+            for dist in dists:
+                if dist['name'] == distribution:
+                    return dist['env']
         raise RuntimeError(
             "Unable to find environment corresponding "
+            f"to distribution {distribution}"
+        )
+
+    def dist_tag(self, distribution):
+        """Return the release tag for the given distribution. Raise RuntimeError
+        if the tag has not been found."""
+        for format, dists in self._formats.items():
+            for dist in dists:
+                if dist['name'] == distribution:
+                    return dist['tag']
+        raise RuntimeError(
+            "Unable to find release tag corresponding "
             f"to distribution {distribution}"
         )
 
@@ -84,7 +98,7 @@ class InstancePipelines:
 
     def format_dists(self, format):
         """Return the list of distributions for the given format."""
-        return list(self._formats[format].keys())
+        return [dist['name'] for dist in self._formats[format]]
 
     def derivative_formats(self, derivative):
         """Returns a set of formats supported by the derivative, proceeding
