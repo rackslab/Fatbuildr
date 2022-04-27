@@ -23,7 +23,7 @@ from pathlib import Path
 from .. import ArtifactBuild
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
-from ...utils import current_user, current_group
+from ...utils import current_user, current_group, host_architecture
 from ...log import logr
 
 logger = logr(__name__)
@@ -92,6 +92,11 @@ class ArtifactBuildRpm(ArtifactBuild):
             src_tarball,
         )
         self.format = 'rpm'
+        # Define host_env using host architecture, it is then used to build
+        # source RPM.
+        self.host_env = self.instance.images_mgr.build_env(
+            self.format, self.env_name, host_architecture()
+        )
 
     @property
     def spec_basename(self):

@@ -33,7 +33,6 @@ from ..utils import (
     dl_file,
     verify_checksum,
     tar_subdir,
-    host_architecture,
     current_user,
 )
 from ..log import logr
@@ -97,9 +96,6 @@ class ArtifactBuild(RunnableTask):
             "Build environment selected for distribution %s: %s",
             self.distribution,
             self.env_name,
-        )
-        self.host_env = self.instance.images_mgr.build_env(
-            self.format, self.env_name, host_architecture()
         )
         self.defs = None  # loaded in prepare()
         self.version = None  # initialized in prepare(), after defs are loaded
