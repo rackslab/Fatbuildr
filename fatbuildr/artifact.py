@@ -82,12 +82,6 @@ class ArtifactDefs:
             self.checksum_format(derivative)
         ]
 
-    def release(self, fmt):
-        return str(self.meta[fmt]['release'])
-
-    def fullversion(self, fmt, derivative):
-        return self.version(derivative) + '-' + self.release(fmt)
-
     def tarball_url(self, version):
         tarball = Templeter().srender(self.meta['tarball'], version=version)
         if '!' in tarball:
@@ -109,6 +103,13 @@ class ArtifactFormatDefs(ArtifactDefs):
     def __init__(self, place, artifact, format):
         super().__init__(place, artifact)
         self.format = format
+
+    @property
+    def release(self):
+        return str(self.meta[self.format]['release'])
+
+    def fullversion(self, derivative):
+        return self.version(derivative) + '-' + self.release
 
 
 class ArtifactDebDefs(ArtifactFormatDefs):

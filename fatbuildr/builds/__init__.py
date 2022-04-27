@@ -189,7 +189,7 @@ class ArtifactBuild(RunnableTask):
                 main_version_str,
             )
             self.version = ArtifactVersion(
-                f"{main_version_str}-{self.defs.release(self.format)}"
+                f"{main_version_str}-{self.defs.release}"
             )
             self.tarball = src_tarball_target
         elif not self.defs.has_tarball:
@@ -204,7 +204,7 @@ class ArtifactBuild(RunnableTask):
 
             # The targeted version is fully defined based on definition
             self.version = ArtifactVersion(
-                f"{self.defs.version(self.derivative)}-{self.defs.release(self.format)}"
+                f"{self.defs.version(self.derivative)}-{self.defs.release}"
             )
             if not self.cache.has_tarball:
                 dl_file(self.tarball_url, self.cache.tarball)
