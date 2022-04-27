@@ -54,7 +54,9 @@ class Registry:
 
 class ArtifactVersion:
     VERSION_REGEX = r'(?P<main>.+)-(?P<release>.+)'
-    RELEASE_REGEX = r'(?P<release>.+?)(\+build(?P<build>\d+))?(\.(?P<dist>.+))?'
+    RELEASE_REGEX = (
+        r'(?P<release>.+?)(\.(?P<dist>\w+))?(\+build(?P<build>\d+))?'
+    )
 
     def __init__(self, value):
         version_re = re.match(self.VERSION_REGEX, value)
@@ -64,11 +66,11 @@ class ArtifactVersion:
         release = version_re.group('release')
         release_re = re.match(self.RELEASE_REGEX, release)
         self.release = release_re.group('release')
+        self.dist = release_re.group('dist')
         if release_re.group('build'):
             self.build = int(release_re.group('build'))
         else:
             self.build = -1
-        self.dist = release_re.group('dist')
 
     def __eq__(self, other):
         """Compares two versions, without considering the build number."""
@@ -88,10 +90,10 @@ class ArtifactVersion:
         """Returns the release as a string, including dist and build if
         defined."""
         result = self.release
-        if self.build >= 0:
-            result += f"+build{self.build}"
         if self.dist is not None:
             result += f".{self.dist}"
+        if self.build >= 0:
+            result += f"+build{self.build}"
         return result
 
 
