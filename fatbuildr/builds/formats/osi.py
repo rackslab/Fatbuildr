@@ -59,7 +59,6 @@ class ArtifactBuildOsi(ArtifactBuild):
             tarball,
             src_tarball,
         )
-        self.format = 'osi'
 
     def build(self):
         """Build the OS image using mkosi"""

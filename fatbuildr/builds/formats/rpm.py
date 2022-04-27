@@ -91,7 +91,6 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             tarball,
             src_tarball,
         )
-        self.format = 'rpm'
         # Define host_env using host architecture, it is then used to build
         # source RPM.
         self.host_env = self.instance.images_mgr.build_env(

@@ -63,7 +63,6 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             tarball,
             src_tarball,
         )
-        self.format = 'deb'
 
     @property
     def tarball_ext(self):
