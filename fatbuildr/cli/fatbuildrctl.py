@@ -32,7 +32,7 @@ from ..prefs import UserPreferences
 from ..log import logr
 from ..protocols import ClientFactory
 from ..protocols.crawler import register_protocols
-from ..artifact import ArtifactDefs, ArtifactFormatDefs
+from ..artifact import ArtifactDefs, ArtifactDefsFactory
 from ..patches import PatchQueue
 
 logger = logr(__name__)
@@ -702,7 +702,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         architectures = self.connection.pipelines_architectures()
         logger.debug("Architectures defined in pipelines: %s", architectures)
-        arch_dependent = ArtifactFormatDefs.get(
+        arch_dependent = ArtifactDefsFactory.get(
             apath, args.artifact, format
         ).architecture_dependent
         logger.debug(

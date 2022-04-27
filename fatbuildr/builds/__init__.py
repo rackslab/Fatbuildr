@@ -26,7 +26,7 @@ from ..protocols.exports import ExportableTaskField
 
 from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
-from ..artifact import ArtifactFormatDefs
+from ..artifact import ArtifactDefsFactory
 from ..registry.formats import ArtifactVersion
 from ..git import GitRepository
 from ..utils import (
@@ -165,7 +165,7 @@ class ArtifactBuild(RunnableTask):
         self.cache.ensure()
 
         # load defs
-        self.defs = ArtifactFormatDefs.get(
+        self.defs = ArtifactDefsFactory.get(
             self.place, self.artifact, self.format
         )
 

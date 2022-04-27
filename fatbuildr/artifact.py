@@ -105,7 +105,13 @@ class ArtifactDefs:
         return False
 
 
-class ArtifactDebDefs(ArtifactDefs):
+class ArtifactFormatDefs(ArtifactDefs):
+    def __init__(self, place, artifact, format):
+        super().__init__(place, artifact)
+        self.format = format
+
+
+class ArtifactDebDefs(ArtifactFormatDefs):
     @property
     def architecture_dependent(self):
         """Returns true if the Debian source package is architecture dependent,
@@ -115,7 +121,7 @@ class ArtifactDebDefs(ArtifactDefs):
         declared binary packages. If at least one binary package is not
         'Architecture: all', the source package as a whole is considered
         architecture dependent."""
-        check_file = self.place.joinpath('deb', 'control')
+        check_file = self.place.joinpath(self.format, 'control')
         with open(check_file, 'r') as fh:
             for line in fh:
                 if line.startswith('Architecture:') and not line.startswith(
@@ -125,7 +131,7 @@ class ArtifactDebDefs(ArtifactDefs):
         return False
 
 
-class ArtifactRpmDefs(ArtifactDefs):
+class ArtifactRpmDefs(ArtifactFormatDefs):
     @property
     def architecture_dependent(self):
         """Returns true if the RPM source package is architecture dependent, or
@@ -134,7 +140,7 @@ class ArtifactRpmDefs(ArtifactDefs):
         To determine the value, the BuildArch parameter is checked in RPM spec
         file. Unless BuildArch is set to noarch, the source package is
         considered architecture dependent."""
-        check_file = self.place.joinpath('rpm', f"{self.artifact}.spec")
+        check_file = self.place.joinpath(self.format, f"{self.artifact}.spec")
         with open(check_file, 'r') as fh:
             for line in fh:
                 if (
@@ -146,16 +152,17 @@ class ArtifactRpmDefs(ArtifactDefs):
         return True
 
     def has_buildargs(self, fmt):
-        return 'buildargs' in self.meta['rpm']
+        return 'buildargs' in self.meta[self.format]
 
     def buildargs(self, fmt):
-        return self.meta['rpm']['buildargs'].split(' ')
+        return self.meta[self.format]['buildargs'].split(' ')
+
 
 class ArtifactOsiDefs(ArtifactDefs):
     pass
 
 
-class ArtifactFormatDefs:
+class ArtifactDefsFactory:
 
     _formats = {
         'deb': ArtifactDebDefs,
@@ -165,9 +172,9 @@ class ArtifactFormatDefs:
 
     @staticmethod
     def get(place, artifact, format):
-        """Generate specialized ArtifactDefs for the given format."""
-        if not format in ArtifactFormatDefs._formats:
+        """Generate specialized ArtifactFormatDefs for the given format."""
+        if not format in ArtifactDefsFactory._formats:
             raise RuntimeError(
                 f"artifact definition format {format} is not supported"
             )
-        return ArtifactFormatDefs._formats[format](place, artifact)
+        return ArtifactDefsFactory._formats[format](place, artifact, format)
