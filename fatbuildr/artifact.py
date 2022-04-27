@@ -160,7 +160,11 @@ class ArtifactRpmDefs(ArtifactFormatDefs):
 
 
 class ArtifactOsiDefs(ArtifactDefs):
-    pass
+    @property
+    def release(self):
+        """The release number is not expected in definition file for osi format,
+        then return hard-coded default value 0."""
+        return 0
 
 
 class ArtifactDefsFactory:
