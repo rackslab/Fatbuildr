@@ -194,8 +194,12 @@ class ArtifactBuild(RunnableTask):
             self.tarball = src_tarball_target
         elif not self.defs.has_tarball:
             # This artifact is not defined with an upstream tarball URL and the
-            # user did not provide source tarball within the build request,
-            # there is nothing more to do here
+            # user did not provide source tarball within the build request. This
+            # case happens for OSI format for example. The only thing to do here
+            # is defining the targeted version.
+            self.version = ArtifactVersion(
+                f"{self.defs.version(self.derivative)}-{self.defs.release}"
+            )
             return
         else:
             # If the source tarball has not been provided and the artifact is
