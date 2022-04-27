@@ -22,14 +22,14 @@ import tarfile
 import shutil
 import os
 
-from .. import ArtifactBuild
+from .. import ArtifactEnvBuild
 from ...utils import tar_subdir
 from ...log import logr
 
 logger = logr(__name__)
 
 
-class ArtifactBuildDeb(ArtifactBuild):
+class ArtifactBuildDeb(ArtifactEnvBuild):
     """Class to manipulation build of package in Deb format."""
 
     def __init__(

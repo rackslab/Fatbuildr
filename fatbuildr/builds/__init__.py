@@ -90,13 +90,6 @@ class ArtifactBuild(RunnableTask):
             self.derivative
         )
         self.image = self.instance.images_mgr.image(self.format)
-        # Get the build environment name corresponding to the distribution
-        self.env_name = self.instance.pipelines.dist_env(self.distribution)
-        logger.debug(
-            "Build environment selected for distribution %s: %s",
-            self.distribution,
-            self.env_name,
-        )
         self.defs = None  # loaded in prepare()
         self.version = None  # initialized in prepare(), after defs are loaded
         # Path the upstream tarball, initialized in prepare(), after optional
@@ -283,3 +276,18 @@ class ArtifactBuild(RunnableTask):
         if self.registry.exists:
             _binds.append(self.registry.path)
         super().cruncmd(self.image, cmd, init=False, binds=_binds, **kwargs)
+
+
+class ArtifactEnvBuild(ArtifactBuild):
+    """Abstract class for artifact builds using a build environments in
+    container images (eg. deb, rpm)."""
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        # Get the build environment name corresponding to the distribution
+        self.env_name = self.instance.pipelines.dist_env(self.distribution)
+        logger.debug(
+            "Build environment selected for distribution %s: %s",
+            self.distribution,
+            self.env_name,
+        )

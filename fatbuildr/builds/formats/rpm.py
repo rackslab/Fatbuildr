@@ -20,7 +20,7 @@
 from datetime import datetime
 from pathlib import Path
 
-from .. import ArtifactBuild
+from .. import ArtifactEnvBuild
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
 from ...utils import current_user, current_group, host_architecture
@@ -57,7 +57,7 @@ def timestamp_rpmdate(value):
     return datetime.fromtimestamp(value).strftime("%a %b %d %Y")
 
 
-class ArtifactBuildRpm(ArtifactBuild):
+class ArtifactBuildRpm(ArtifactEnvBuild):
     """Class to manipulation package in RPM format."""
 
     def __init__(
