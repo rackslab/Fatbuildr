@@ -126,7 +126,10 @@ class GitRepository:
 
         # Create destination patches directory if it does not exist yet
         if not patches_dir.exists():
-            patches_dir.mkdir()
+            logger.debug(
+                "Creating artifact version patches directory %s", patches_dir
+            )
+            patches_dir.mkdir(parents=True)
 
         # Remove all existing patches
         for patch in patches_dir.iterdir():
@@ -175,7 +178,9 @@ class GitRepository:
 
         # Create patches directory if if does not exist.
         if not patches_dir.exists():
-            logger.debug("Creating patches directory %s", patches_dir)
-            patches_dir.mkdir()
+            logger.debug(
+                "Creating artifact version patches directory %s", patches_dir
+            )
+            patches_dir.mkdir(parents=True)
 
         self._export_commit(patches_dir, index, last_commit)

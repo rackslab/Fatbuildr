@@ -124,7 +124,7 @@ class ArtifactBuild(RunnableTask):
     @property
     def patches_dir(self):
         """Returns the Path to the artifact patches directory."""
-        return self.place.joinpath('patches')
+        return self.place.joinpath('patches', self.version.main)
 
     @property
     def patches(self):
