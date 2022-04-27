@@ -106,14 +106,6 @@ class ArtifactBuild(RunnableTask):
             )
 
     @property
-    def has_buildargs(self):
-        return self.defs.has_buildargs(self.format)
-
-    @property
-    def buildargs(self):
-        return self.defs.buildargs(self.format)
-
-    @property
     def tarball_url(self):
         return self.defs.tarball_url(self.version.main)
 

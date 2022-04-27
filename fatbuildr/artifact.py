@@ -100,12 +100,6 @@ class ArtifactDefs:
             return tarball.split('!')[1]
         return os.path.basename(tarball)
 
-    def has_buildargs(self, fmt):
-        return 'buildargs' in self.meta[fmt]
-
-    def buildargs(self, fmt):
-        return self.meta[fmt]['buildargs'].split(' ')
-
     @property
     def architecture_dependent(self):
         return False
@@ -151,6 +145,11 @@ class ArtifactRpmDefs(ArtifactDefs):
                     return False
         return True
 
+    def has_buildargs(self, fmt):
+        return 'buildargs' in self.meta['rpm']
+
+    def buildargs(self, fmt):
+        return self.meta['rpm']['buildargs'].split(' ')
 
 class ArtifactOsiDefs(ArtifactDefs):
     pass

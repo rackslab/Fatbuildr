@@ -284,8 +284,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         ]
 
         # Add additional build args if defined
-        if self.has_buildargs:
-            cmd.extend(self.buildargs)
+        if self.defs.has_buildargs:
+            cmd.extend(self.defs.buildargs)
 
         self.cruncmd(cmd, user=current_user()[1])
 
