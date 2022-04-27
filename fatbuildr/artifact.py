@@ -27,86 +27,13 @@ from .log import logr
 logger = logr(__name__)
 
 
-class ArtifactAbstractDefs:
+class ArtifactDefs:
+    """Generic class to manipulate an artifact metadata definitions."""
+
     def __init__(self, place, artifact):
         self.place = place
         self.artifact = artifact
-
-    @property
-    def architecture_dependent(self):
-        return False
-
-
-class ArtifactDebDefs(ArtifactAbstractDefs):
-    @property
-    def architecture_dependent(self):
-        """Returns true if the Debian source package is architecture dependent,
-        or False otherwise.
-
-        To determine the value, the Architecture parameter is checked for all
-        declared binary packages. If at least one binary package is not
-        'Architecture: all', the source package as a whole is considered
-        architecture dependent."""
-        check_file = self.place.joinpath('control')
-        with open(check_file, 'r') as fh:
-            for line in fh:
-                if line.startswith('Architecture:') and not line.startswith(
-                    'Architecture: all'
-                ):
-                    return True
-        return False
-
-
-class ArtifactRpmDefs(ArtifactAbstractDefs):
-    @property
-    def architecture_dependent(self):
-        """Returns true if the RPM source package is architecture dependent, or
-        False otherwise.
-
-        To determine the value, the BuildArch parameter is checked in RPM spec
-        file. Unless BuildArch is set to noarch, the source package is
-        considered architecture dependent."""
-        check_file = self.place.joinpath(f"{self.artifact}.spec")
-        with open(check_file, 'r') as fh:
-            for line in fh:
-                if (
-                    line.replace(' ', '')
-                    .replace('\t', '')
-                    .startswith('BuildArch:noarch')
-                ):
-                    return False
-        return True
-
-
-class ArtifactOsiDefs(ArtifactAbstractDefs):
-    pass
-
-
-class ArtifactFormatDefs:
-
-    _formats = {
-        'deb': ArtifactDebDefs,
-        'rpm': ArtifactRpmDefs,
-        'osi': ArtifactOsiDefs,
-    }
-
-    @staticmethod
-    def get(place, artifact, format):
-        """Generate a BuildArtifact from a new request."""
-        if not format in ArtifactFormatDefs._formats:
-            raise RuntimeError(
-                f"artifact definition format {format} is not supported"
-            )
-        return ArtifactFormatDefs._formats[format](
-            place.joinpath(format), artifact
-        )
-
-
-class ArtifactDefs:
-    """Class to manipulate an artifact metadata definitions."""
-
-    def __init__(self, path):
-        meta_yml_f = path.joinpath('meta.yml')
+        meta_yml_f = place.joinpath('meta.yml')
         logger.debug("Loading artifact definitions from %s", meta_yml_f)
         with open(meta_yml_f) as fh:
             self.meta = yaml.safe_load(fh)
@@ -178,3 +105,70 @@ class ArtifactDefs:
 
     def buildargs(self, fmt):
         return self.meta[fmt]['buildargs'].split(' ')
+
+    @property
+    def architecture_dependent(self):
+        return False
+
+
+class ArtifactDebDefs(ArtifactDefs):
+    @property
+    def architecture_dependent(self):
+        """Returns true if the Debian source package is architecture dependent,
+        or False otherwise.
+
+        To determine the value, the Architecture parameter is checked for all
+        declared binary packages. If at least one binary package is not
+        'Architecture: all', the source package as a whole is considered
+        architecture dependent."""
+        check_file = self.place.joinpath('deb', 'control')
+        with open(check_file, 'r') as fh:
+            for line in fh:
+                if line.startswith('Architecture:') and not line.startswith(
+                    'Architecture: all'
+                ):
+                    return True
+        return False
+
+
+class ArtifactRpmDefs(ArtifactDefs):
+    @property
+    def architecture_dependent(self):
+        """Returns true if the RPM source package is architecture dependent, or
+        False otherwise.
+
+        To determine the value, the BuildArch parameter is checked in RPM spec
+        file. Unless BuildArch is set to noarch, the source package is
+        considered architecture dependent."""
+        check_file = self.place.joinpath('rpm', f"{self.artifact}.spec")
+        with open(check_file, 'r') as fh:
+            for line in fh:
+                if (
+                    line.replace(' ', '')
+                    .replace('\t', '')
+                    .startswith('BuildArch:noarch')
+                ):
+                    return False
+        return True
+
+
+class ArtifactOsiDefs(ArtifactDefs):
+    pass
+
+
+class ArtifactFormatDefs:
+
+    _formats = {
+        'deb': ArtifactDebDefs,
+        'rpm': ArtifactRpmDefs,
+        'osi': ArtifactOsiDefs,
+    }
+
+    @staticmethod
+    def get(place, artifact, format):
+        """Generate specialized ArtifactDefs for the given format."""
+        if not format in ArtifactFormatDefs._formats:
+            raise RuntimeError(
+                f"artifact definition format {format} is not supported"
+            )
+        return ArtifactFormatDefs._formats[format](place, artifact)

@@ -26,7 +26,7 @@ from ..protocols.exports import ExportableTaskField
 
 from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
-from ..artifact import ArtifactDefs
+from ..artifact import ArtifactFormatDefs
 from ..registry.formats import ArtifactVersion
 from ..git import GitRepository
 from ..utils import (
@@ -173,7 +173,9 @@ class ArtifactBuild(RunnableTask):
         self.cache.ensure()
 
         # load defs
-        self.defs = ArtifactDefs(self.place)
+        self.defs = ArtifactFormatDefs.get(
+            self.place, self.artifact, self.format
+        )
 
         if self.src_tarball:
             # If source tarball has been provided with the build request, use it.
