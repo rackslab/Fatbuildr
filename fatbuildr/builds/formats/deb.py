@@ -89,6 +89,9 @@ class ArtifactBuildDeb(ArtifactBuild):
             self.artifact,
         )
 
+        # Add distribution release tag to targeted version
+        self.version.dist = self.instance.pipelines.dist_tag(self.distribution)
+
         # extract tarball in build place
         logger.debug("Extracting tarball %s in %s", self.tarball, self.place)
         tar = tarfile.open(self.tarball, 'r:' + self.tarball_ext)
