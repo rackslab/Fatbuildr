@@ -66,7 +66,7 @@ class GitRepository:
 
     def diff(self, commit):
         """Returns the diff as a string between a commit and its first
-        parent."""
+        parent. When the diff is empty, None is returned."""
         return self._repo.diff(commit.parents[0], commit).patch
 
     def import_patches(self, patches_dir):
@@ -157,9 +157,15 @@ class GitRepository:
 
         logger.info(f"Generating patch file {patch_path.name}")
 
-        with open(patch_path, 'w+') as fh:
-            fh.write(str(meta) + '\n\n')
-            fh.write(self.diff(commit))
+        diff = self.diff(commit)
+        # Check if the diff is empty. When it is empty, just warn user, else
+        # save patch in file.
+        if diff:
+            with open(patch_path, 'w+') as fh:
+                fh.write(str(meta) + '\n\n')
+                fh.write(diff)
+        else:
+            logger.warn("Patch diff is empty, skipping patch generation")
 
     def commit_export(
         self, patches_dir, index, title, author, email, description
