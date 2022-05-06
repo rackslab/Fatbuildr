@@ -19,12 +19,108 @@
 
 from pathlib import Path
 from datetime import datetime
+import os
+import logging
 
-from ..protocols.exports import ExportableTaskField
-from ..utils import runcmd
+from ..protocols.exports import (
+    ExportableTaskField,
+    ExportableType,
+    ExportableField,
+)
+from ..exec import runcmd
+from ..console import RemoteConsoleHandler
 from ..log import logr
 
 logger = logr(__name__)
+
+
+class TaskIO(ExportableType):
+    """Various task input/output channels handler, including log file, output
+    fifo, input fifo when interactive and logging handlers."""
+
+    EXFIELDS = {
+        ExportableField('interactive', bool),
+        ExportableField('fifo_input', Path),
+        ExportableField('fifo_output', Path),
+        ExportableField('logfile', Path),
+    }
+
+    def __init__(self, interactive, input, output, logfile):
+        # Defines whether tasks subcommands are launched in interactive mode
+        self.interactive = interactive
+
+        self.fifo_output = output
+        self.output = None  # fd on output fifo, initialized in open()
+
+        self.fifo_input = input
+        # fd on input fifo, initialized in open() in interactive mode
+        self.input = None
+
+        self.logfile = logfile
+        self.log = None  # file object on log file, initialized in open()
+
+        # logging handlers for the output fifo and the log file, initialized in
+        # plug_logger()
+        self._fifo_log_handler = None
+        self._file_log_handler = None
+
+    def open(self):
+        """Open all task IO fd and file objects."""
+        self.log = open(self.logfile, 'w+')
+
+        # input fifo is managed in interactive mode only
+        if self.interactive:
+            if self.fifo_input.exists():
+                self.fifo_input.unlink()
+            logger.debug("Creating task input fifo %s", self.fifo_input)
+            os.mkfifo(self.fifo_input)
+            self.fifo_input.chmod(0o770)
+            self.input = os.open(self.fifo_input, os.O_RDONLY | os.O_NONBLOCK)
+
+        if self.fifo_output.exists():
+            self.fifo_output.unlink()
+        logger.debug("Creating task output fifo %s", self.fifo_output)
+        os.mkfifo(self.fifo_output)
+        self.fifo_output.chmod(0o740)
+        self.output = os.open(self.fifo_output, os.O_RDWR)
+
+    def close(self):
+        """Close all task IO fd and file objects."""
+        os.close(self.output)
+        logger.debug("Removing task output fifo %s", self.fifo_output)
+        self.fifo_output.unlink()
+
+        if self.interactive:
+            os.close(self.input)
+            logger.debug("Removing task input fifo %s", self.fifo_input)
+            self.fifo_input.unlink()
+
+        self.log.close()
+
+    def plug_logger(self, instance):
+        """Plug logging handlers for task output fifo and log file in root
+        logger, so worker thread logs are duplicated in remote client console
+        and task log file."""
+        self._fifo_log_handler = RemoteConsoleHandler(self.output)
+        logger.add_task_output(self._fifo_log_handler, instance.id)
+        self._file_log_handler = logging.StreamHandler(stream=self.log)
+        logger.add_task_output(self._file_log_handler, instance.id)
+
+    def unplug_logger(self):
+        """Unplug task logging handlers from root logger."""
+        logger.remove_task_output(self._fifo_log_handler)
+        logger.remove_task_output(self._file_log_handler)
+
+    def mute_log(self):
+        """Mute task logging handlers. This is usefull when running subcommands,
+        to avoid messing logs with command outputs."""
+        logger.mute_task_output(self._fifo_log_handler)
+        logger.mute_task_output(self._file_log_handler)
+
+    def unmute_log(self):
+        """Unmute previously muted task logging handlers."""
+        logger.unmute_task_output(self._fifo_log_handler)
+        logger.unmute_task_output(self._file_log_handler)
 
 
 class RunnableTask:
@@ -36,7 +132,7 @@ class RunnableTask:
         ExportableTaskField('submission', datetime),
         ExportableTaskField('place', Path, archived=False),
         ExportableTaskField('state', archived=False),
-        ExportableTaskField('logfile', Path, archived=False),
+        ExportableTaskField('io', TaskIO, archived=False),
     }
 
     def __init__(
@@ -46,6 +142,7 @@ class RunnableTask:
         instance,
         state='pending',
         submission=datetime.now(),
+        interactive=False,
     ):
         self.name = self.TASK_NAME
         self.id = task_id
@@ -53,16 +150,14 @@ class RunnableTask:
         self.instance = instance
         self.state = state
         self.submission = submission
-        self.log = None  # handler on logfile, opened in run()
-
-    @property
-    def logfile(self):
-        if self.place is None or self.state not in ['running', 'finished']:
-            return None
-        return self.place.joinpath('task.log')
+        self.io = TaskIO(
+            interactive,
+            self.place.joinpath('input'),
+            self.place.joinpath('output'),
+            self.place.joinpath('task.log'),
+        )
 
     def prerun(self):
-        self.state = 'running'
 
         if self.place.exists():
             logger.warning("Task directory %s already exists", self.place)
@@ -72,26 +167,29 @@ class RunnableTask:
             self.place.mkdir()
             self.place.chmod(0o755)  # be umask agnostic
 
-        self.log = open(self.logfile, 'w+')
+        # open bi-directional task IO
+        self.io.open()
 
-        # setup logger to duplicate logs in logfile
-        logger.add_file(self.log, self.instance.id)
+        # duplicate log in interactive output fifo
+        self.io.plug_logger(self.instance)
+
+        # change into running state
+        self.state = 'running'
 
     def run(self):
         raise NotImplementedError
 
     def postrun(self):
-
-        logger.del_file()
-        self.log.close()
+        self.io.unplug_logger()
+        self.io.close()
 
     def terminate(self):
         self.instance.archives_mgr.save_task(self)
 
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""
-        runcmd(cmd, log=self.log, **kwargs)
+        runcmd(cmd, io=self.io, **kwargs)
 
     def cruncmd(self, image, cmd, init=False, **kwargs):
         """Run command in container and log output in build log file."""
-        self.instance.crun(image, cmd, init=init, log=self.log, **kwargs)
+        self.instance.crun(image, cmd, init=init, io=self.io, **kwargs)

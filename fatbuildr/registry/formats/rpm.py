@@ -23,7 +23,8 @@ import createrepo_c as cr
 
 from . import Registry, ArtifactVersion, RegistryArtifact, ChangelogEntry
 from ...log import logr
-from ...utils import runcmd, host_architecture
+from ...utils import host_architecture
+from ...exec import runcmd
 
 logger = logr(__name__)
 

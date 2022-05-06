@@ -18,7 +18,6 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import shlex
-import subprocess
 import hashlib
 import platform
 import os
@@ -45,23 +44,6 @@ class Singleton(type):
 
 def shelljoin(cmd):
     return " ".join(shlex.quote(str(x).replace('\n', '\\n')) for x in cmd)
-
-
-def runcmd(cmd, log=None, **kwargs):
-    logger.debug("Running command: %s", shelljoin(cmd))
-    if log is None:
-        proc = subprocess.run(cmd, capture_output=True, **kwargs)
-    else:
-        proc = subprocess.run(cmd, stdout=log, stderr=log, **kwargs)
-    if proc.returncode:
-        error = (
-            f"Command {shelljoin(cmd)} failed with exit code "
-            f"{proc.returncode}"
-        )
-        if log is None:
-            error += f": {proc.stderr.decode()}"
-        raise RuntimeError(error)
-    return proc
 
 
 def dl_file(url, path):
