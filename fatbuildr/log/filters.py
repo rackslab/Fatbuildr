@@ -20,11 +20,11 @@
 import logging
 
 
-class BuildlogFilter(logging.Filter):
-    def __init__(self, instance):
-        self.instance = instance
+class ThreadFilter(logging.Filter):
+    def __init__(self, thread):
+        self.thread = thread
 
     def filter(self, record):
-        if record.threadName == f"worker-{self.instance}":
+        if record.threadName == self.thread:
             return 1
         return 0

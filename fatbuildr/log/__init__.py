@@ -17,10 +17,11 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import threading
 import logging
 
 from .formatters import DaemonFormatter, TTYFormatter
-from .filters import BuildlogFilter
+from .filters import ThreadFilter
 
 
 class Log(logging.Logger):
@@ -80,10 +81,10 @@ class Log(logging.Logger):
             for filter in handler.filters:
                 handler.removeFilter(filter)
 
-    def add_task_output(self, handler, instance):
-        """Add instance Buildlog filter to the given handler, and attach it to
-        the root logger"""
-        _filter = BuildlogFilter(instance)
+    def add_task_output(self, handler):
+        """Attach given handler the root logger restricted with current thread
+        filter."""
+        _filter = ThreadFilter(threading.current_thread().name)
         handler.addFilter(_filter)
         logging.getLogger().addHandler(handler)
 

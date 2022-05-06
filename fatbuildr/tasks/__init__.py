@@ -97,14 +97,14 @@ class TaskIO(ExportableType):
 
         self.log.close()
 
-    def plug_logger(self, instance):
+    def plug_logger(self):
         """Plug logging handlers for task output fifo and log file in root
         logger, so worker thread logs are duplicated in remote client console
         and task log file."""
         self._fifo_log_handler = RemoteConsoleHandler(self.output)
-        logger.add_task_output(self._fifo_log_handler, instance.id)
+        logger.add_task_output(self._fifo_log_handler)
         self._file_log_handler = logging.StreamHandler(stream=self.log)
-        logger.add_task_output(self._file_log_handler, instance.id)
+        logger.add_task_output(self._file_log_handler)
 
     def unplug_logger(self):
         """Unplug task logging handlers from root logger."""
@@ -171,7 +171,7 @@ class RunnableTask:
         self.io.open()
 
         # duplicate log in interactive output fifo
-        self.io.plug_logger(self.instance)
+        self.io.plug_logger()
 
         # change into running state
         self.state = 'running'
