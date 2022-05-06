@@ -33,6 +33,7 @@ from . import (
     valueornull,
 )
 from ..client import AbstractClient
+from ...console import tty_client_console
 
 
 def check_authorization(method):
@@ -175,6 +176,7 @@ class DbusClient(AbstractClient):
         message,
         tarball,
         src_tarball,
+        interactive,
     ):
         return self.proxy.Build(
             self.instance,
@@ -188,6 +190,7 @@ class DbusClient(AbstractClient):
             message,
             str(tarball),
             str(valueornull(src_tarball)),
+            interactive,
         )
 
     @check_authorization
@@ -226,21 +229,21 @@ class DbusClient(AbstractClient):
     def watch(self, task):
         """Dbus clients run on the same host as the server, they access the
         tasks log files directly."""
-        assert hasattr(task, 'logfile')
+        assert hasattr(task, 'io')
         proc = None
         if task.state == 'running':
             # Follow the log file. It has been choosen to exec `tail -f`
             # because python lacks well maintained and common inotify library.
             # This tail command is in coreutils and it is installed basically
             # everywhere.
-            cmd = ['tail', '--follow', task.logfile]
+            cmd = ['tail', '--follow', task.io.logfile]
             proc = subprocess.Popen(
                 cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
             )
             fh = proc.stdout
         else:
             # dump full task log
-            fh = open(task.logfile, 'rb')
+            fh = open(task.io.logfile, 'rb')
 
         while True:
             b_line = fh.readline()
@@ -256,6 +259,10 @@ class DbusClient(AbstractClient):
             yield line
 
         fh.close()
+
+    def attach(self, task):
+        assert hasattr(task, 'io')
+        tty_client_console(task.io)
 
     # keyring
 

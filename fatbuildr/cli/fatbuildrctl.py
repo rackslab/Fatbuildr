@@ -277,6 +277,12 @@ class Fatbuildrctl(FatbuildrCliRun):
             action='store_true',
             help='Watch build log and wait until its end',
         )
+        parser_build.add_argument(
+            '-i',
+            '--interactive',
+            action='store_true',
+            help='Launch build commands in interactive mode',
+        )
         parser_build.set_defaults(func=self._run_build)
 
         # Parser for the list command
@@ -748,6 +754,8 @@ class Fatbuildrctl(FatbuildrCliRun):
                 build_msg,
                 tarball,
                 src_tarball,
+                args.interactive,
+                interactive=args.interactive,
             )
         except RuntimeError as err:
             logger.error("Error while submitting build: %s", err)
@@ -789,13 +797,13 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         patch_queue.run()
 
-    def _submit_watch(self, caller, task_name, watch, *args):
+    def _submit_watch(self, caller, task_name, watch, *args, interactive=False):
         task_id = caller(*args)
         print(f"Submitted {task_name} task {task_id}")
         if watch:
-            self._watch_task(task_id)
+            self._watch_task(task_id, interactive)
 
-    def _watch_task(self, task_id):
+    def _watch_task(self, task_id, interactive):
         try:
             task = self.connection.get(task_id)
         except RuntimeError as err:
@@ -815,8 +823,11 @@ class Fatbuildrctl(FatbuildrCliRun):
             # poll task state again
             task = self.connection.get(task_id)
         try:
-            for line in self.connection.watch(task):
-                print(line, end='')
+            if interactive:
+                self.connection.attach(task)
+            else:
+                for line in self.connection.watch(task):
+                    print(line, end='')
         except KeyboardInterrupt:
             # Leave gracefully after a keyboard interrupt (eg. ^c)
             logger.debug("Received keyboard interrupt, leaving.")
@@ -836,7 +847,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             task_id = running.id
         else:
             task_id = args.task
-        self._watch_task(task_id)
+        self._watch_task(task_id, interactive=False)
 
     def _run_archives(self, args):
         archives = self.connection.archives(10)
