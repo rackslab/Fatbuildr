@@ -91,7 +91,6 @@ class BuildlogFilter(logging.Filter):
 class Log(logging.Logger):
     def __init__(self, name):
         super().__init__(name)
-        self._file_handler = None  # used for file duplication
 
     def has_debug(self):
         return self.isEnabledFor(logging.DEBUG)
@@ -146,16 +145,24 @@ class Log(logging.Logger):
             for filter in handler.filters:
                 handler.removeFilter(filter)
 
-    def add_file(self, fh, instance):
-        self._file_handler = logging.StreamHandler(stream=fh)
+    def add_task_output(self, handler, instance):
+        """Add instance Buildlog filter to the given handler, and attach it to
+        the root logger"""
         _filter = BuildlogFilter(instance)
-        self._file_handler.addFilter(_filter)
-        logging.getLogger().addHandler(self._file_handler)
+        handler.addFilter(_filter)
+        logging.getLogger().addHandler(handler)
 
-    def del_file(self):
-        assert self._file_handler is not None
-        logging.getLogger().removeHandler(self._file_handler)
-        self._file_handler = None
+    def remove_task_output(self, handler):
+        """Remove the given handler from the root logger."""
+        logging.getLogger().removeHandler(handler)
+
+    def mute_task_output(self, handler):
+        """Mute the given handler by removing it from the root logger."""
+        logging.getLogger().removeHandler(handler)
+
+    def unmute_task_output(self, handler):
+        """Unmute the given handler by attaching it to the root logger."""
+        logging.getLogger().addHandler(handler)
 
 
 def logr(name):

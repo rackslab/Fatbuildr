@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from .utils import runcmd
+from .exec import runcmd
 from .log import logr
 
 logger = logr(__name__)
@@ -37,7 +37,7 @@ class ContainerRunner(object):
         binds=[],
         chdir=None,
         envs=[],
-        log=None,
+        io=None,
         readonly=False,
     ):
         """Generic fully featured method to run command in container using
@@ -99,4 +99,4 @@ class ContainerRunner(object):
         # One solution is to tune environment to make systemd-nspawn sends its
         # notifications elsewhere. Note that the purpose of systemd-nspawn
         # --notify-ready=no is totally different.
-        runcmd(_cmd, env={'NOTIFY_SOCKET': '/dev/null'}, log=log)
+        runcmd(_cmd, env={'NOTIFY_SOCKET': '/dev/null'}, io=io)

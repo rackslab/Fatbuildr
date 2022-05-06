@@ -25,7 +25,7 @@ from debian import deb822, changelog, debfile
 
 from . import Registry, ArtifactVersion, RegistryArtifact, ChangelogEntry
 from ...templates import Templeter
-from ...utils import runcmd
+from ...exec import runcmd
 from ...log import logr
 
 logger = logr(__name__)

@@ -24,7 +24,7 @@ from datetime import datetime
 import gpg
 
 from .protocols.exports import ExportableType, ExportableField
-from .utils import runcmd
+from .exec import runcmd
 from .log import logr
 
 logger = logr(__name__)
