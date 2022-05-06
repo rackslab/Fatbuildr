@@ -339,6 +339,7 @@ class FatbuildrInterface(InterfaceTemplate):
         message: Str,
         tarball: Str,
         src_tarball: Str,
+        interactive: Bool,
     ) -> Str:
         """Submit a new build."""
         return self.implementation.submit(
@@ -354,6 +355,7 @@ class FatbuildrInterface(InterfaceTemplate):
             message,
             tarball,
             valueornone(src_tarball),
+            interactive,
         )
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.edit-keyring")

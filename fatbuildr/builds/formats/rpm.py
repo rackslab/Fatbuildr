@@ -76,6 +76,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         message,
         tarball,
         src_tarball,
+        interactive,
     ):
         super().__init__(
             task_id,
@@ -91,6 +92,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             message,
             tarball,
             src_tarball,
+            interactive,
         )
         # Define host_env using host architecture, it is then used to build
         # source RPM.

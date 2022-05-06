@@ -47,6 +47,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         message,
         tarball,
         src_tarball,
+        interactive,
     ):
         super().__init__(
             task_id,
@@ -62,6 +63,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             message,
             tarball,
             src_tarball,
+            interactive,
         )
 
     @property
