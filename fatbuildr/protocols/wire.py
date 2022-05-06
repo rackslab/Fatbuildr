@@ -38,11 +38,15 @@ class WireRunnableTask(WireData):
         print(f"  name: {self.name}")
         print(f"  state: {self.state}")
         print(f"  place: {self.place}")
-        print(f"  logfile: {self.logfile}")
         print(
             "  submission: ",
             self.submission.isoformat(sep=' ', timespec='seconds'),
         )
+        print("  io:")
+        print(f"    interactive: {self.io.interactive}")
+        print(f"    input: {self.io.fifo_input}")
+        print(f"    output: {self.io.fifo_output}")
+        print(f"    logfile: {self.io.logfile}")
         if self.name == "artifact build":
             print(f"  user: {self.user}")
             print(f"  email: {self.email}")
@@ -81,6 +85,10 @@ class WireArtifact(WireData):
 
 
 class WireChangelogEntry(WireData):
+    pass
+
+
+class WireTaskIO(WireData):
     pass
 
 
