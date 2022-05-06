@@ -81,22 +81,22 @@ class Log(logging.Logger):
             for filter in handler.filters:
                 handler.removeFilter(filter)
 
-    def add_task_output(self, handler):
+    def add_thread_handler(self, handler):
         """Attach given handler the root logger restricted with current thread
         filter."""
         _filter = ThreadFilter(threading.current_thread().name)
         handler.addFilter(_filter)
         logging.getLogger().addHandler(handler)
 
-    def remove_task_output(self, handler):
+    def remove_handler(self, handler):
         """Remove the given handler from the root logger."""
         logging.getLogger().removeHandler(handler)
 
-    def mute_task_output(self, handler):
+    def mute_handler(self, handler):
         """Mute the given handler by removing it from the root logger."""
         logging.getLogger().removeHandler(handler)
 
-    def unmute_task_output(self, handler):
+    def unmute_handler(self, handler):
         """Unmute the given handler by attaching it to the root logger."""
         logging.getLogger().addHandler(handler)
 
