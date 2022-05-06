@@ -28,7 +28,7 @@ from ..protocols.exports import (
     ExportableField,
 )
 from ..exec import runcmd
-from ..console import RemoteConsoleHandler
+from ..log.handlers import RemoteConsoleHandler
 from ..log import logr
 
 logger = logr(__name__)

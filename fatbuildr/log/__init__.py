@@ -19,73 +19,8 @@
 
 import logging
 
-
-class ANSIStyle:
-    def __init__(self, fg, bg=None):
-        self.fg = fg
-        self.bg = bg
-
-    @property
-    def start(self):
-        bg_s = ""
-        if self.bg is not None:
-            bg_s = f"\033[48;5;{self.bg}m"
-        return bg_s + f"\033[38;5;{self.fg}m"
-
-    @property
-    def end(self):
-        return "\033[0;0m"
-
-
-class TTYFormatter(logging.Formatter):
-
-    LEVEL_STYLES = {
-        logging.CRITICAL: ANSIStyle(fg=15, bg=160),  # white on red
-        logging.ERROR: ANSIStyle(fg=160),  # red
-        logging.WARNING: ANSIStyle(fg=208),  # orange
-        logging.INFO: ANSIStyle(fg=28),  # dark green
-        logging.DEBUG: ANSIStyle(fg=62),  # light mauve
-        logging.NOTSET: ANSIStyle(fg=8),  # grey
-    }
-
-    def __init__(self, debug=False):
-        super().__init__("%(message)s")
-        self.debug = debug
-
-    def format(self, record):
-
-        _msg = record.getMessage()
-        style = TTYFormatter.LEVEL_STYLES[record.levelno]
-        prefix = ''
-        if self.debug:
-            prefix = "{level:8s}⸬{where:30s} ↦ ".format(
-                level='[' + record.levelname + ']',
-                where=record.name + ':' + str(record.lineno),
-            )
-        elif record.levelno > logging.INFO:
-            # prefix with level if over info
-            prefix = "{level} ⸬ ".format(level=record.levelname)
-
-        return style.start + prefix + _msg + style.end
-
-
-class DaemonFormatter(logging.Formatter):
-    def __init__(self, debug=True):
-        if debug:
-            _fmt = '%(threadName)s: [%(levelname)s] %(name)s %(message)s'
-        else:
-            _fmt = '%(threadName)s: [%(levelname)s] %(message)s'
-        super().__init__(_fmt)
-
-
-class BuildlogFilter(logging.Filter):
-    def __init__(self, instance):
-        self.instance = instance
-
-    def filter(self, record):
-        if record.threadName == f"worker-{self.instance}":
-            return 1
-        return 0
+from .formatters import DaemonFormatter, TTYFormatter
+from .filters import BuildlogFilter
 
 
 class Log(logging.Logger):
