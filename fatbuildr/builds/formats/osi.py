@@ -43,6 +43,7 @@ class ArtifactBuildOsi(ArtifactBuild):
         message,
         tarball,
         src_tarball,
+        interactive,
     ):
         super().__init__(
             task_id,
@@ -58,6 +59,7 @@ class ArtifactBuildOsi(ArtifactBuild):
             message,
             tarball,
             src_tarball,
+            interactive,
         )
 
     def build(self):

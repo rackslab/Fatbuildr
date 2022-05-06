@@ -71,8 +71,9 @@ class ArtifactBuild(RunnableTask):
         message,
         tarball,
         src_tarball,
+        interactive,
     ):
-        super().__init__(task_id, place, instance)
+        super().__init__(task_id, place, instance, interactive=interactive)
         self.format = format
         self.distribution = distribution
         self.architectures = architectures
