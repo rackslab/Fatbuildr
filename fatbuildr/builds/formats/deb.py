@@ -251,6 +251,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
                 f"FATBUILDR_KEYRING={keyring_path}",
                 f"FATBUILDR_SOURCE={self.instance.name}",
                 f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
+                f"FATBUILDR_INTERACTIVE={'yes' if self.io.interactive else 'no'}",
                 f"BUILDRESULTUID={os.getuid()}",
                 f"BUILDRESULTGID={os.getgid()}",
             ],
