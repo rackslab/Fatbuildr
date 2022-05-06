@@ -266,6 +266,10 @@ class DbusKeyringSubKey(FatbuildrNativeDbusData):
     pass
 
 
+class DbusTaskIO(FatbuildrNativeDbusData):
+    pass
+
+
 # Map fatbuildr native exportable types with corresponding dbus types
 
 TYPES_MAP = {
@@ -274,4 +278,5 @@ TYPES_MAP = {
     ('ChangelogEntry', DbusChangelogEntry),
     ('KeyringMasterKey', DbusKeyring),
     ('KeyringSubKey', DbusKeyringSubKey),
+    ('TaskIO', DbusTaskIO),
 }
