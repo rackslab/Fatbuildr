@@ -102,25 +102,25 @@ class TaskIO(ExportableType):
         logger, so worker thread logs are duplicated in remote client console
         and task log file."""
         self._fifo_log_handler = RemoteConsoleHandler(self.output)
-        logger.add_task_output(self._fifo_log_handler)
+        logger.add_thread_handler(self._fifo_log_handler)
         self._file_log_handler = logging.StreamHandler(stream=self.log)
-        logger.add_task_output(self._file_log_handler)
+        logger.add_thread_handler(self._file_log_handler)
 
     def unplug_logger(self):
         """Unplug task logging handlers from root logger."""
-        logger.remove_task_output(self._fifo_log_handler)
-        logger.remove_task_output(self._file_log_handler)
+        logger.remove_handler(self._fifo_log_handler)
+        logger.remove_handler(self._file_log_handler)
 
     def mute_log(self):
         """Mute task logging handlers. This is usefull when running subcommands,
         to avoid messing logs with command outputs."""
-        logger.mute_task_output(self._fifo_log_handler)
-        logger.mute_task_output(self._file_log_handler)
+        logger.mute_handler(self._fifo_log_handler)
+        logger.mute_handler(self._file_log_handler)
 
     def unmute_log(self):
         """Unmute previously muted task logging handlers."""
-        logger.unmute_task_output(self._fifo_log_handler)
-        logger.unmute_task_output(self._file_log_handler)
+        logger.unmute_handler(self._fifo_log_handler)
+        logger.unmute_handler(self._file_log_handler)
 
 
 class RunnableTask:
