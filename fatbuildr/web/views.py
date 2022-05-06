@@ -316,6 +316,7 @@ def build(instance):
         request.form['message'],
         tarball_path,
         src_tarball_path,
+        False,
     )
     return jsonify({'task': task_id})
 
@@ -345,7 +346,8 @@ def watch(instance, task_id):
     connection = get_connection(instance)
     task = connection.get(task_id)
     return current_app.response_class(
-        connection.watch(task), mimetype='text/plain'
+        connection.watch(task),
+        mimetype='text/plain',
     )
 
 

@@ -79,6 +79,7 @@ class HttpClient(AbstractClient):
         message,
         tarball,
         source_tarball,
+        interactive,
     ):
         url = f"{self.uri}/build"
         logger.debug("Submitting build request to %s", url)
@@ -133,6 +134,12 @@ class HttpClient(AbstractClient):
         if json_task is None:
             return None
         return JsonRunnableTask.load_from_json(json_task)
+
+    def attach(self, task):
+        raise NotImplementedError(
+            "Attaching to remote task console is not supported with HTTP "
+            "instances"
+        )
 
     def watch(self, task):
         """Generate task log lines with a streaming request."""
