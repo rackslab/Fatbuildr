@@ -29,7 +29,6 @@ import struct
 import termios
 import signal
 import atexit
-import logging
 import threading
 
 from .log import logr
@@ -52,24 +51,11 @@ CMD_RAW_DISABLE = 3  # disable terminal raw mode (ie. restore canonical mode)
 CMD_WINCH = 4  # resize terminal (SIGWINCH)
 
 
-class RemoteConsoleHandler(logging.Handler):
-    """Logging handler to send log records to remote console client."""
-
-    def __init__(self, fd):
-        """The initialize takes in argument the open file descriptor to the
-        remote console client whose log records are sent."""
-        super().__init__()
-        self.fd = fd
-
-    def emit(self, record):
-        """Overrides logging.Handler emit() to send messages using
-        ConsoleMessage protocol handler."""
-        # Calls to self.format() and error handling are shameless copy from
-        # logging.Handler.emit().
-        try:
-            ConsoleMessage(CMD_LOG, self.format(record).encode()).send(self.fd)
-        except Exception:
-            self.handleError(record)
+def emit_log(fd, msg):
+    """Write given string message on provided file descriptor using
+    ConsoleMessage protocol handler. This is designed to be called by logging
+    RemoteConsoleHandler."""
+    ConsoleMessage(CMD_LOG, msg.encode()).send(fd)
 
 
 class ConsoleMessage:
