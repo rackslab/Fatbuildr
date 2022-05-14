@@ -684,6 +684,14 @@ class Fatbuildrctl(FatbuildrCliRun):
             "running build for artifact: %s uri: %s", args.artifact, self.uri
         )
 
+        # check user ask for interactive mode with non dbus instance
+        if args.interactive and self.connection.scheme != 'dbus':
+            logger.warning(
+                "Interactive mode is only supported with D-Bus instances, "
+                "fallback in non-interactive mode"
+            )
+            args.interactive = False
+
         apath = self._get_apath(args)
         defs = ArtifactDefs(apath)  # load generic artifact defs
 
