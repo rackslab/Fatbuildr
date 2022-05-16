@@ -338,3 +338,10 @@ def tty_client_console(io):
             unset_raw()
             logger.warning(f"{type(err)} detected: {err}")
             break
+
+    # Close all open fd and epoll
+    os.close(input)
+    os.close(output)
+    os.close(pipe_r)
+    os.close(pipe_w)
+    epoll.close()
