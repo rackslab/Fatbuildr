@@ -300,6 +300,15 @@ class ArtifactBuild(RunnableTask):
                     logger.info("Renaming %s → %s", src_path, dest_path)
                     src_path.rename(dest_path)
 
+        # Render all templates found in format subdirectory
+        for tpl_path in sorted(self.place.joinpath(self.format).rglob("*.j2")):
+            dest_path = tpl_path.with_suffix('')
+            logger.info(
+                "Rendering file %s based on template %s", dest_path, tpl_path
+            )
+            with open(dest_path, 'w+') as fh:
+                fh.write(Templeter().frender(tpl_path, version=self.version))
+
     def cruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
         _binds = [self.place, self.cache.dir]
