@@ -297,6 +297,11 @@ class ArtifactBuild(RunnableTask):
                         continue
                     src_path = self.place.joinpath(src)
                     dest_path = self.place.joinpath(dest)
+                    if not src_path.exists():
+                        logger.warning(
+                            "Source file %s in rename index not found", src_path
+                        )
+                        continue
                     logger.info("Renaming %s → %s", src_path, dest_path)
                     src_path.rename(dest_path)
 
