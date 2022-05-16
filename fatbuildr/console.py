@@ -217,6 +217,13 @@ def tty_runcmd(cmd, io, **kwargs):
     return proc
 
 
+class TerminatedTask(Exception):
+    """Exception raised on client side on remote task normal termination
+    detection, to break the double nested processing loop."""
+
+    pass
+
+
 def tty_client_console(io):
     """Connects to the given remote task IO running on server side, as run by
     tty_runcmd(). It catches attached terminal input and signals (SIGWINCH) and
@@ -325,12 +332,23 @@ def tty_client_console(io):
                         sys.stdout.flush()
                     elif msg.cmd == CMD_LOG:
                         # The remote server sent log record, print it on stdout.
-                        print(f"LOG: {msg.data.decode()}")
+                        entry = msg.data.decode()
+                        print(f"LOG: {entry}")
+                        if entry.startswith("Task failed") or entry.startswith(
+                            "Task succeeded"
+                        ):
+                            logger.debug(f"Remote task is over, leaving")
+                            # Raise an exception as there is no way to break the
+                            # while loop from here.
+                            raise TerminatedTask
                     else:
                         # Warn for unexpected command.
                         logger.warning(
                             "Unknown console message command %s", msg.cmd
                         )
+        except TerminatedTask:
+            # Remote task is terminated normally, just leave the loop silently.
+            break
         except Exception as err:
             # If any error occurs during IO processing, restore attached
             # terminal in canonical mode with user attribute, warn user and
