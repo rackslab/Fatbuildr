@@ -165,7 +165,7 @@ class GitRepository:
                 fh.write(str(meta) + '\n\n')
                 fh.write(diff)
         else:
-            logger.warn("Patch diff is empty, skipping patch generation")
+            logger.warning("Patch diff is empty, skipping patch generation")
 
     def commit_export(
         self, patches_dir, index, title, author, email, description

@@ -123,7 +123,7 @@ def prepare_source_tarball(artifact, path, version, rundir: bool):
     tarball = base.joinpath(f"{artifact}_{version}.tar.xz")
 
     if tarball.exists():
-        logger.warn(
+        logger.warning(
             "Tarball %s already exists, it may have been generated for a "
             "previous failed build, trying to remove it in the first place.",
             tarball,
