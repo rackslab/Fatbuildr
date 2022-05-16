@@ -81,6 +81,11 @@ class ArtifactVersion:
         )
 
     @property
+    def major(self):
+        """Returns the first part of the main version as an integer"""
+        return int(self.main.split('.')[0])
+
+    @property
     def full(self):
         """Returns the full version as a string."""
         return f"{self.main}-{self.fullrelease}"
