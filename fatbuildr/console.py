@@ -248,6 +248,7 @@ def tty_client_console(io):
     # Set user attached terminal in raw mode, and register restore function in
     # case of terminated client.
     def set_raw():
+        logger.debug("Setting terminal in raw mode")
         atexit.register(restore_term)
         tty.setraw(sys.stdin, termios.TCSANOW)
 
