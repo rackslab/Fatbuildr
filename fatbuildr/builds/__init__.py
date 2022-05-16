@@ -29,6 +29,7 @@ from ..cleanup import CleanupRegistry
 from ..artifact import ArtifactDefsFactory
 from ..registry.formats import ArtifactVersion
 from ..git import GitRepository
+from ..templates import Templeter
 from ..utils import (
     dl_file,
     verify_checksum,
@@ -265,6 +266,39 @@ class ArtifactBuild(RunnableTask):
 
             # Remove temporary upstream directory
             shutil.rmtree(upstream_dir)
+
+        # Render rename index template if present
+        rename_idx_path = self.place.joinpath('rename')
+        rename_idx_tpl_path = rename_idx_path.with_suffix('.j2')
+        if rename_idx_tpl_path.exists():
+            logger.info(
+                "Rendering rename index template %s", rename_idx_tpl_path
+            )
+            with open(rename_idx_path, 'w+') as fh:
+                fh.write(
+                    Templeter().frender(
+                        rename_idx_tpl_path, version=self.version
+                    )
+                )
+
+        # Follow rename index rules if present
+        if rename_idx_path.exists():
+            with open(rename_idx_path) as fh:
+                for line in fh:
+                    line = line.strip()
+                    if not len(line):
+                        continue  # skip empty line
+                    try:
+                        (src, dest) = line.split(' ')
+                    except ValueError:
+                        logger.warning(
+                            "Unable to parse rename index rule '%s'", line
+                        )
+                        continue
+                    src_path = self.place.joinpath(src)
+                    dest_path = self.place.joinpath(dest)
+                    logger.info("Renaming %s → %s", src_path, dest_path)
+                    src_path.rename(dest_path)
 
     def cruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
