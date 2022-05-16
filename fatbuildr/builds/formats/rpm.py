@@ -31,11 +31,12 @@ logger = logr(__name__)
 # String template for changelog in RPM spec file
 CHANGELOG_TPL = """
 %changelog
-{%- for entry in changelog %}
+{% for entry in changelog %}
 * {{ entry.date|timestamp_rpmdate }} {{ entry.author }} {{ entry.version }}
-  {%- for change in entry.changes %}
+  {% for change in entry.changes %}
 - {{ change }}
-  {%- endfor %}
+  {% endfor %}
+
 {% endfor %}
 """
 
