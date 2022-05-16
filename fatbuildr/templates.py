@@ -28,7 +28,10 @@ class Templeter:
     """Class to abstract backend templating library."""
 
     def __init__(self):
-        self.env = jinja2.Environment()
+        # Enable trim_blocks and lstrip_blocks in template as it is easier to
+        # add spaces (or disable them occasionnaly in templates) than removing
+        # them, and it is usually the expected behaviour with templates blocks.
+        self.env = jinja2.Environment(trim_blocks=True, lstrip_blocks=True)
 
     def srender(self, str, **kwargs):
         """Render a string template."""
