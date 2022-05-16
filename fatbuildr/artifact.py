@@ -123,6 +123,13 @@ class ArtifactDebDefs(ArtifactFormatDefs):
         'Architecture: all', the source package as a whole is considered
         architecture dependent."""
         check_file = self.place.joinpath(self.format, 'control')
+        if not check_file.exists():
+            check_file = check_file.with_suffix('.j2')
+        if not check_file.exists():
+            raise RuntimeError(
+                "Unable to find deb package control file in directory %s",
+                check_file.parent,
+            )
         with open(check_file, 'r') as fh:
             for line in fh:
                 if line.startswith('Architecture:') and not line.startswith(
