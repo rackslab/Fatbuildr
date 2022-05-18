@@ -31,7 +31,10 @@ class Templeter:
         # Enable trim_blocks and lstrip_blocks in template as it is easier to
         # add spaces (or disable them occasionnaly in templates) than removing
         # them, and it is usually the expected behaviour with templates blocks.
-        self.env = jinja2.Environment(trim_blocks=True, lstrip_blocks=True)
+        # Also keep trailing newline in EOF to avoid breaking prompt with cat.
+        self.env = jinja2.Environment(
+            trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True
+        )
 
     def srender(self, str, **kwargs):
         """Render a string template."""
