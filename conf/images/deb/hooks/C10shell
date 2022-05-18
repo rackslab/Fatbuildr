@@ -13,4 +13,7 @@ BUILDDIR="${BUILDDIR:-/tmp/buildd}"
 apt-get install -y "${APTGETOPT[@]}" vim less
 cd "$BUILDDIR"/*/debian/..
 
+# Required to avoid 'WARNING: terminal is not fully functional' with for eg. man
+export TERM=xterm-color
+
 /bin/bash < /dev/tty > /dev/tty 2> /dev/tty
