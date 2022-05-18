@@ -313,6 +313,8 @@ class ArtifactBuild(RunnableTask):
             )
             with open(dest_path, 'w+') as fh:
                 fh.write(Templeter().frender(tpl_path, version=self.version))
+                # Preserve template file mode on rendered file
+                dest_path.chmod(tpl_path.stat().st_mode)
 
     def cruncmd(self, cmd, **kwargs):
         """Run command in container and log output in build log file."""
