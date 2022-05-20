@@ -30,7 +30,7 @@ from ..protocols.exports import (
     ExportableField,
 )
 from ..exec import runcmd
-from ..console import ConsoleMessage
+from ..console import ConsoleMessage, CMD_BYTES
 from ..log.handlers import RemoteConsoleHandler
 from ..log import logr
 
@@ -83,6 +83,8 @@ class TaskIO(ExportableType):
         self.input_w = None
         self.output_r = None
         self.output_w = None
+        self.log_r = None
+        self.log_w = None
 
         self.thread = None  # dispatch thread, initialized in dispatch()
         self.stop_dispatch = False  # flag to stop dispatch thread
@@ -102,6 +104,7 @@ class TaskIO(ExportableType):
         if self.interactive:
             self.input_r, self.input_w = os.pipe2(os.O_CLOEXEC)
         self.output_r, self.output_w = os.pipe2(os.O_CLOEXEC)
+        self.log_r, self.log_w = os.pipe2(os.O_CLOEXEC)
 
         if self.console.exists():
             self.console.unlink()
@@ -138,6 +141,7 @@ class TaskIO(ExportableType):
         epoll = select.epoll()
         epoll.register(self.sock, select.EPOLLIN)
         epoll.register(self.output_r, select.EPOLLIN)
+        epoll.register(self.log_r, select.EPOLLIN)
 
         while True:
             try:
@@ -156,9 +160,23 @@ class TaskIO(ExportableType):
                         epoll.unregister(fd)
                         self.connections[fd].close()
                         del self.connections[fd]
+                    elif fd == self.log_r:
+                        # Broadcast logs to all connected client and save in journal
+                        data = os.read(fd, 2048)
+                        self._broadcast(data)
+                        self.journal.write(data)
                     elif fd == self.output_r:
                         # Broadcast task output to all connected client
                         data = os.read(fd, 2048)
+                        # In interactive mode, tty_runcmd() write ConsoleMessage
+                        # in output pipe, data can be broadcasted to console
+                        # clients without modification. However, in
+                        # non-interactive mode _runcmd_noninteractive() writes
+                        # sub-commands raw outputs in output pipe. It must be
+                        # encapsulated in ConsoleMessage protocol for console
+                        # clients and journal.
+                        if not self.interactive:
+                            data = ConsoleMessage(CMD_BYTES, data).raw
                         self._broadcast(data)
                         self.journal.write(data)
                     else:
@@ -186,10 +204,13 @@ class TaskIO(ExportableType):
         self.console.unlink()
 
         logger.debug("Closing I/O pipes")
-        os.close(self.input_w)
-        os.close(self.input_r)
+        if self.interactive:
+            os.close(self.input_w)
+            os.close(self.input_r)
         os.close(self.output_w)
         os.close(self.output_r)
+        os.close(self.log_w)
+        os.close(self.log_r)
 
         self.journal.close()
 
@@ -197,7 +218,7 @@ class TaskIO(ExportableType):
         """Plug logging handlers for task output fifo and log file in root
         logger, so worker thread logs are duplicated in remote client console
         and task log file."""
-        self._journal_log_handler = RemoteConsoleHandler(self.output_w)
+        self._journal_log_handler = RemoteConsoleHandler(self.log_w)
         logger.add_thread_handler(self._journal_log_handler)
 
     def unplug_logger(self):
