@@ -44,9 +44,8 @@ class WireRunnableTask(WireData):
         )
         print("  io:")
         print(f"    interactive: {self.io.interactive}")
-        print(f"    input: {self.io.fifo_input}")
-        print(f"    output: {self.io.fifo_output}")
-        print(f"    logfile: {self.io.logfile}")
+        print(f"    console: {self.io.console}")
+        print(f"    journal: {self.io.journal.path}")
         if self.name == "artifact build":
             print(f"  user: {self.user}")
             print(f"  email: {self.email}")
@@ -89,6 +88,10 @@ class WireChangelogEntry(WireData):
 
 
 class WireTaskIO(WireData):
+    pass
+
+
+class WireTaskJournal(WireData):
     pass
 
 

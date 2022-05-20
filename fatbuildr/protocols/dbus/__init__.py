@@ -34,6 +34,8 @@ from ..wire import (
     WireArtifact,
     WireChangelogEntry,
     WireKeyring,
+    WireTaskIO,
+    WireTaskJournal,
 )
 
 from ..exports import ProtocolRegistry, ExportableType
@@ -266,7 +268,11 @@ class DbusKeyringSubKey(FatbuildrNativeDbusData):
     pass
 
 
-class DbusTaskIO(FatbuildrNativeDbusData):
+class DbusTaskIO(FatbuildrNativeDbusData, WireTaskIO):
+    pass
+
+
+class DbusTaskJournal(FatbuildrNativeDbusData, WireTaskJournal):
     pass
 
 
@@ -279,4 +285,5 @@ TYPES_MAP = {
     ('KeyringMasterKey', DbusKeyring),
     ('KeyringSubKey', DbusKeyringSubKey),
     ('TaskIO', DbusTaskIO),
+    ('TaskJournal', DbusTaskJournal),
 }

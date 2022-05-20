@@ -30,6 +30,7 @@ import termios
 import signal
 import atexit
 import threading
+import socket
 
 from .log import logr
 from .utils import shelljoin
@@ -55,7 +56,7 @@ def emit_log(fd, msg):
     """Write given string message on provided file descriptor using
     ConsoleMessage protocol handler. This is designed to be called by logging
     RemoteConsoleHandler."""
-    ConsoleMessage(CMD_LOG, msg.encode()).send(fd)
+    ConsoleMessage(CMD_LOG, msg.encode()).write(fd)
 
 
 class ConsoleMessage:
@@ -65,19 +66,36 @@ class ConsoleMessage:
     def __init__(self, cmd, data=None):
         self.cmd = cmd
         self.data = data
-
-    def send(self, fd):
-        """Send ConsoleMessage to given file descriptor."""
-        size = 0
         if self.data:
-            size = len(self.data)
-        buffer = struct.pack('HI', self.cmd, size)
+            self.size = len(self.data)
+        else:
+            self.size = 0
+
+    @property
+    def raw(self):
+        """Returns ConsoleMessage raw bytes."""
+        buffer = struct.pack('HI', self.cmd, self.size)
         if self.data:
             buffer += self.data
-        os.write(fd, buffer)
+        return buffer
+
+    def write(self, fd):
+        """Send ConsoleMessage to given file descriptor."""
+        os.write(fd, self.raw)
 
     @staticmethod
-    def receive(fd):
+    def receive(connection):
+        """Receive message on given socket connection and returns corresponding
+        instanciated ConsoleMessage."""
+        buffer = connection.recv(struct.calcsize('HI'))
+        cmd, size = struct.unpack('HI', buffer)
+        data = None
+        if size:
+            data = connection.recv(size)
+        return ConsoleMessage(cmd, data)
+
+    @staticmethod
+    def read(fd):
         """Read message on given file description and returns corresponding
         instanciated ConsoleMessage."""
         buffer = os.read(fd, struct.calcsize('HI'))
@@ -115,7 +133,7 @@ def tty_runcmd(cmd, io, **kwargs):
     logger.debug("Running command in interactive mode: %s", shelljoin(cmd))
 
     # Tell remote console client to set terminal in raw mode
-    ConsoleMessage(CMD_RAW_ENABLE).send(io.output)
+    ConsoleMessage(CMD_RAW_ENABLE).write(io.output_w)
     # Mute task logging records in log file and console channel to avoid messing
     # with command raw output.
     io.mute_log()
@@ -150,22 +168,23 @@ def tty_runcmd(cmd, io, **kwargs):
     # Initialize epoll to multiplex subprocess and task io input/ouputs
     epoll = select.epoll()
     epoll.register(master, select.EPOLLIN)
-    epoll.register(io.input, select.EPOLLIN)
+    epoll.register(io.input_r, select.EPOLLIN)
 
     while True:
         try:
             events = epoll.poll()
             for fd, event in events:
-                if event == select.EPOLLHUP:
-                    # If one registered fd triggers EPOLLHUP event, either the
-                    # subprocess command exited or the remote console client
-                    # leaved. In this case, raise RuntimeError and stop
+                if event & select.EPOLLHUP:
+                    # A registered fd triggers EPOLLHUP event is certainly due
+                    # to the master fd being close because the subprocess
+                    # command has exited and the connected PTY is destroyed by
+                    # the kernel. In this case, raise RuntimeError and stop
                     # processing.
                     raise RuntimeError(f"Hang up detected on fd {fd}")
-                if fd == io.input:
-                    # Input from remote console client is received, read data
+                if fd == io.input_r:
+                    # Input from remote console clients is received, read data
                     # with ConsoleMessage protocol handler.
-                    msg = ConsoleMessage.receive(fd)
+                    msg = ConsoleMessage.read(fd)
                     if msg.cmd == CMD_WINCH:
                         # SIGWINCH command is received, call approriate ioctl on
                         # PTY master fd so the kernel send SIGWINCH signal to
@@ -180,22 +199,22 @@ def tty_runcmd(cmd, io, **kwargs):
                             cols,
                         )
                     elif msg.cmd == CMD_BYTES:
-                        # The remote console client sent bytes received on its
-                        # stdin, recopy without modification on PTY master to
+                        # The remote console clients sent bytes received on its
+                        # stdin, recopy without modification on PTY master so
                         # the controlled process receives the input on its
                         # stdin.
                         os.write(master, msg.data)
-                        # Thanks to PTY echo, there is no need to copy user
-                        # input in io.log, it is handled automatically with
-                        # when data is read from master fd.
-                else:
+                elif fd == master:
                     # Data are available for reading on PTY master fd, this is
-                    # subprocess output. The read bytes are sent to remote
-                    # console client with ConsoleMessage protocol handler, and
-                    # also recorded in task log file.
-                    data = os.read(fd, 100)
-                    ConsoleMessage(CMD_BYTES, data).send(io.output)
-                    io.log.write(data.decode(errors='replace'))
+                    # subprocess output. The read bytes are redirected to task
+                    # io output pipe with ConsoleMessage protocol handler, for
+                    # remote console clients and to be saved in task journal.
+                    data = os.read(fd, 1024)
+                    ConsoleMessage(CMD_BYTES, data).write(io.output_w)
+                else:
+                    raise RuntimeError(
+                        "Data is available on excepted fd %d", fd
+                    )
         except RuntimeError as err:
             logger.error("Error detected: %s", err)
             # Stop while loop and IO processing if an error is detected on fd
@@ -205,8 +224,8 @@ def tty_runcmd(cmd, io, **kwargs):
     epoll.close()
 
     # Tell remote console client to restore terminal in canonical mode
-    ConsoleMessage(CMD_RAW_DISABLE).send(io.output)
-    # Unmute task logging records in log file and remote console channel
+    ConsoleMessage(CMD_RAW_DISABLE).write(io.output_w)
+    # Unmute task logging records in journal file and remote console channel
     io.unmute_log()
 
     logger.debug("Waiting for child return code thread")
@@ -247,7 +266,7 @@ def tty_client_console(io):
         logger.debug("Restored user terminal attributes")
 
     # Returns bytes with attached terminal current size, ready to be sent by
-    # ConsoleManager protocol handler along with CMD_WINCH command.
+    # ConsoleMessage protocol handler along with CMD_WINCH command.
     def get_term_size():
         cols, rows = os.get_terminal_size(0)
         return struct.pack('HH', rows, cols)
@@ -265,9 +284,10 @@ def tty_client_console(io):
         restore_term()
         atexit.unregister(restore_term)
 
-    # Open task input/output channel
-    input = os.open(io.fifo_input, os.O_WRONLY)
-    output = os.open(io.fifo_output, os.O_RDONLY)
+    # Connect to task console socket
+    connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    connection.connect(str(io.console))
+    logger.debug(f"Connected to console socket %s", io.console)
 
     # Create signal pipe to process signals with epoll. No-op handler is
     # assigned to SIGWINCH signal so the thread can receive it.
@@ -281,7 +301,7 @@ def tty_client_console(io):
 
     # Initialize epoll to multiplex attached terminal and remote task IO
     epoll = select.epoll()
-    epoll.register(output, select.EPOLLIN)
+    epoll.register(connection, select.EPOLLIN)
     epoll.register(sys.stdin.fileno(), select.EPOLLIN)
     epoll.register(pipe_r, select.EPOLLIN)
 
@@ -289,7 +309,7 @@ def tty_client_console(io):
         try:
             events = epoll.poll()
             for fd, event in events:
-                if event == select.EPOLLHUP:
+                if event & select.EPOLLHUP:
                     # One registered fd triggers EPOLLHUP event. This is very
                     # probably due to the remote task IO having been closed
                     # because the task has reached its end. Raise a RuntimeError
@@ -302,7 +322,9 @@ def tty_client_console(io):
                     # error.
                     data = os.read(fd, 100)
                     if int.from_bytes(data, sys.byteorder) == signal.SIGWINCH:
-                        ConsoleMessage(CMD_WINCH, get_term_size()).send(input)
+                        connection.send(
+                            ConsoleMessage(CMD_WINCH, get_term_size()).raw
+                        )
                     else:
                         logger.warning(f"Received unknown signal: {str(data)}")
                 elif fd == sys.stdin.fileno():
@@ -310,17 +332,19 @@ def tty_client_console(io):
                     # bytes to remote task terminal with ConsoleMessage protocol
                     # handler.
                     data = os.read(fd, 100)
-                    ConsoleMessage(CMD_BYTES, data).send(input)
+                    connection.send(ConsoleMessage(CMD_BYTES, data).raw)
                 else:
                     # Remote server console has sent data, read the command with
                     # ConsoleMessage protocol handler.
-                    msg = ConsoleMessage.receive(fd)
+                    msg = ConsoleMessage.receive(connection)
                     if msg.cmd == CMD_RAW_ENABLE:
                         # Set attached terminal in raw mode and immediately send
                         # current size to avoid remote terminal using default
                         # (small) size.
                         set_raw()
-                        ConsoleMessage(CMD_WINCH, get_term_size()).send(input)
+                        connection.send(
+                            ConsoleMessage(CMD_WINCH, get_term_size()).raw
+                        )
                     elif msg.cmd == CMD_RAW_DISABLE:
                         # Restore attached terminal in canonical mode.
                         unset_raw()
@@ -349,7 +373,7 @@ def tty_client_console(io):
         except TerminatedTask:
             # Remote task is terminated normally, just leave the loop silently.
             break
-        except Exception as err:
+        except RuntimeError as err:
             # If any error occurs during IO processing, restore attached
             # terminal in canonical mode with user attribute, warn user and
             # break the processing loop.
@@ -358,8 +382,7 @@ def tty_client_console(io):
             break
 
     # Close all open fd and epoll
-    os.close(input)
-    os.close(output)
+    connection.close()
     os.close(pipe_r)
     os.close(pipe_w)
     epoll.close()

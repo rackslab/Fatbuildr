@@ -20,7 +20,9 @@
 from pathlib import Path
 from datetime import datetime
 import os
-import logging
+import socket
+import threading
+import select
 
 from ..protocols.exports import (
     ExportableTaskField,
@@ -28,10 +30,35 @@ from ..protocols.exports import (
     ExportableField,
 )
 from ..exec import runcmd
+from ..console import ConsoleMessage
 from ..log.handlers import RemoteConsoleHandler
 from ..log import logr
 
 logger = logr(__name__)
+
+
+class TaskJournal(ExportableType):
+    """Handler for task journal, ie. binary file to save task output including
+    task logs and sub-commands outputs."""
+
+    EXFIELDS = {
+        ExportableField('path', Path),
+    }
+
+    def __init__(self, path):
+        self.path = path
+        self.fh = None
+
+    def open(self):
+        logger.debug("Opening journal %s file handler", self.path)
+        self.fh = open(self.path, 'bw+')
+
+    def close(self):
+        logger.debug("Closing journal %s file handler", self.path)
+        self.fh.close()
+
+    def write(self, data):
+        self.fh.write(data)
 
 
 class TaskIO(ExportableType):
@@ -40,87 +67,151 @@ class TaskIO(ExportableType):
 
     EXFIELDS = {
         ExportableField('interactive', bool),
-        ExportableField('fifo_input', Path),
-        ExportableField('fifo_output', Path),
-        ExportableField('logfile', Path),
+        ExportableField('console', Path),
+        ExportableField('journal', TaskJournal),
     }
 
-    def __init__(self, interactive, input, output, logfile):
+    def __init__(self, interactive, console, journal):
         # Defines whether tasks subcommands are launched in interactive mode
         self.interactive = interactive
 
-        self.fifo_output = output
-        self.output = None  # fd on output fifo, initialized in open()
+        self.console = console
+        self.sock = None  # file object on unix socket, initialized in open()
+        self.connections = {}  # clients connections on unix sock
 
-        self.fifo_input = input
-        # fd on input fifo, initialized in open() in interactive mode
-        self.input = None
+        self.input_r = None
+        self.input_w = None
+        self.output_r = None
+        self.output_w = None
 
-        self.logfile = logfile
-        self.log = None  # file object on log file, initialized in open()
+        self.thread = None  # dispatch thread, initialized in dispatch()
+        self.stop_dispatch = False  # flag to stop dispatch thread
 
-        # logging handlers for the output fifo and the log file, initialized in
-        # plug_logger()
-        self._fifo_log_handler = None
-        self._file_log_handler = None
+        # file object on log file, initialized in open()
+        self.journal = TaskJournal(journal)
+
+        # logging handlers for the console socket and the log file, initialized
+        # in plug_logger()
+        self._journal_log_handler = None
 
     def open(self):
         """Open all task IO fd and file objects."""
-        self.log = open(self.logfile, 'w+')
 
-        # input fifo is managed in interactive mode only
+        self.journal.open()
+
         if self.interactive:
-            if self.fifo_input.exists():
-                self.fifo_input.unlink()
-            logger.debug("Creating task input fifo %s", self.fifo_input)
-            os.mkfifo(self.fifo_input)
-            self.fifo_input.chmod(0o770)
-            self.input = os.open(self.fifo_input, os.O_RDONLY | os.O_NONBLOCK)
+            self.input_r, self.input_w = os.pipe2(os.O_CLOEXEC)
+        self.output_r, self.output_w = os.pipe2(os.O_CLOEXEC)
 
-        if self.fifo_output.exists():
-            self.fifo_output.unlink()
-        logger.debug("Creating task output fifo %s", self.fifo_output)
-        os.mkfifo(self.fifo_output)
-        self.fifo_output.chmod(0o740)
-        self.output = os.open(self.fifo_output, os.O_RDWR)
+        if self.console.exists():
+            self.console.unlink()
+
+        logger.debug("Creating console socket %s", self.console)
+        self.sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.sock.bind(str(self.console))
+        self.sock.listen(1)
+        self.console.chmod(0o770)
+
+    def dispatch(self):
+        """Starts dispatch thread."""
+        self.thread = threading.Thread(target=self._dispatch)
+        self.thread.start()
+        logger.debug("Started task io dispatching thread")
+
+    def undispatch(self):
+        """Stops dispatch thread."""
+        self.stop_dispatch = True  # flag thread to stop
+        logger.debug("Dispatching thread stop flag is set")
+        self.thread.join()  # wait for thread to actually stop
+        logger.debug("Stopped task io dispatching thread")
+
+    def _broadcast(self, data):
+        """Broadcast data to all connected console clients."""
+        for connection in self.connections.values():
+            connection.sendall(data)
+
+    def _dispatch(self):
+        """Dispatch task IO. Broadcast task output to connected clients and save
+        to journal, transmit input from connected clients to task."""
+
+        # Initialize epoll to multiplex task output and client connections
+        epoll = select.epoll()
+        epoll.register(self.sock, select.EPOLLIN)
+        epoll.register(self.output_r, select.EPOLLIN)
+
+        while True:
+            try:
+                events = epoll.poll(timeout=1.0)
+                if not events and self.stop_dispatch:
+                    logger.debug("Dispatch thread detected stop flag")
+                    break
+                for fd, event in events:
+                    if fd == self.sock.fileno():
+                        logger.debug("Accepting new client console connection")
+                        connection, _ = self.sock.accept()
+                        epoll.register(connection.fileno(), select.EPOLLIN)
+                        self.connections[connection.fileno()] = connection
+                    elif event & select.EPOLLHUP:
+                        logger.debug("Unregistering client console connection")
+                        epoll.unregister(fd)
+                        self.connections[fd].close()
+                        del self.connections[fd]
+                    elif fd == self.output_r:
+                        # Broadcast task output to all connected client
+                        data = os.read(fd, 2048)
+                        self._broadcast(data)
+                        self.journal.write(data)
+                    else:
+                        # Input data received from client, transmit to task
+                        # input pipe when in interactive mode. Thanks to PTY
+                        # echo, there is no need to copy user input in TaskIO
+                        # journal, it is handled automatically with when data is
+                        # read from master fd.
+                        data = os.read(fd, 2048)
+                        if self.interactive:
+                            os.write(self.input_w, data)
+                        else:
+                            del data  # drop incoming data when not interactive
+            except RuntimeError as err:
+                logger.error("Error detected: %s", err)
+                # Stop while loop and IO processing if an error is detected on fd
+                break
+
+        epoll.close()
 
     def close(self):
         """Close all task IO fd and file objects."""
-        os.close(self.output)
-        logger.debug("Removing task output fifo %s", self.fifo_output)
-        self.fifo_output.unlink()
+        self.sock.close()
+        logger.debug("Removing console socket %s", self.console)
+        self.console.unlink()
 
-        if self.interactive:
-            os.close(self.input)
-            logger.debug("Removing task input fifo %s", self.fifo_input)
-            self.fifo_input.unlink()
+        logger.debug("Closing I/O pipes")
+        os.close(self.input_w)
+        os.close(self.input_r)
+        os.close(self.output_w)
+        os.close(self.output_r)
 
-        self.log.close()
+        self.journal.close()
 
     def plug_logger(self):
         """Plug logging handlers for task output fifo and log file in root
         logger, so worker thread logs are duplicated in remote client console
         and task log file."""
-        self._fifo_log_handler = RemoteConsoleHandler(self.output)
-        logger.add_thread_handler(self._fifo_log_handler)
-        self._file_log_handler = logging.StreamHandler(stream=self.log)
-        logger.add_thread_handler(self._file_log_handler)
+        self._journal_log_handler = RemoteConsoleHandler(self.output_w)
+        logger.add_thread_handler(self._journal_log_handler)
 
     def unplug_logger(self):
         """Unplug task logging handlers from root logger."""
-        logger.remove_handler(self._fifo_log_handler)
-        logger.remove_handler(self._file_log_handler)
+        logger.remove_handler(self._journal_log_handler)
 
     def mute_log(self):
         """Mute task logging handlers. This is usefull when running subcommands,
         to avoid messing logs with command outputs."""
-        logger.mute_handler(self._fifo_log_handler)
-        logger.mute_handler(self._file_log_handler)
+        logger.mute_handler(self._journal_log_handler)
 
     def unmute_log(self):
         """Unmute previously muted task logging handlers."""
-        logger.unmute_handler(self._fifo_log_handler)
-        logger.unmute_handler(self._file_log_handler)
+        logger.unmute_handler(self._journal_log_handler)
 
 
 class RunnableTask:
@@ -152,9 +243,8 @@ class RunnableTask:
         self.submission = submission
         self.io = TaskIO(
             interactive,
-            self.place.joinpath('input'),
-            self.place.joinpath('output'),
-            self.place.joinpath('task.log'),
+            self.place.joinpath('console.sock'),
+            self.place.joinpath('task.journal'),
         )
 
     def prerun(self):
@@ -170,6 +260,9 @@ class RunnableTask:
         # open bi-directional task IO
         self.io.open()
 
+        # start IO dispatcher thread
+        self.io.dispatch()
+
         # duplicate log in interactive output fifo
         self.io.plug_logger()
 
@@ -181,6 +274,7 @@ class RunnableTask:
 
     def postrun(self):
         self.io.unplug_logger()
+        self.io.undispatch()  # stop IO dispatch thread
         self.io.close()
 
     def terminate(self):
