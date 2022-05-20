@@ -151,7 +151,17 @@ class KeyringMasterKey(KeyringKey, ExportableType):
 
         logger.debug("Loading masterkey from keyring %s", self.keyring.homedir)
 
-        _keys_iter = ctx.keylist()
+        # Starting from gpgme 1.15.0, WITH_KEYGRIP mode bit is required to list
+        # keys with keygrip loaded. On previous version, the constant did not
+        # exist and the default mode is fine.
+        if hasattr(gpg.constants.keylist.mode, 'WITH_KEYGRIP'):
+            # add WITH_KEYGRIP mode additionally to default LOCAL mode
+            _keys_iter = ctx.keylist(
+                mode=gpg.constants.keylist.mode.LOCAL
+                | gpg.constants.keylist.mode.WITH_KEYGRIP
+            )
+        else:
+            _keys_iter = ctx.keylist()
 
         self._masterkey = next(_keys_iter, None)
 
