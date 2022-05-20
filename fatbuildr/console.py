@@ -386,3 +386,44 @@ def tty_client_console(io):
     os.close(pipe_r)
     os.close(pipe_w)
     epoll.close()
+
+
+def console_client(io):
+    """Connects to the given remote task IO running on server side. It prints on
+    stdout all remote terminal output and remote server task logs.
+
+    This function is supposed to be indirectly called by fatbuildrctl in user
+    terminal.
+    """
+
+    # Connect to task console socket
+    connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    connection.connect(str(io.console))
+    logger.debug(f"Connected to console socket %s", io.console)
+
+    while True:
+        # Remote server console has sent data, read the command with
+        # ConsoleMessage protocol handler.
+        msg = ConsoleMessage.receive(connection)
+        if msg.cmd == CMD_BYTES:
+            # The remote process has produced output, write raw
+            # bytes on stdout and flush immediately to avoid
+            # buffering.
+            sys.stdout.buffer.write(msg.data)
+            sys.stdout.flush()
+        elif msg.cmd == CMD_LOG:
+            # The remote server sent log record, print it on stdout.
+            entry = msg.data.decode()
+            print(f"LOG: {entry}")
+            if entry.startswith("Task failed") or entry.startswith(
+                "Task succeeded"
+            ):
+                logger.debug(f"Remote task is over, leaving")
+                # Break the processing loop
+                break
+        else:
+            # Warn for unexpected command.
+            logger.warning("Unknown console message command %s", msg.cmd)
+
+    # Close all open fd and epoll
+    connection.close()

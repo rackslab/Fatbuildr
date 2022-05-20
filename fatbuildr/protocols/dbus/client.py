@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import subprocess
-
 from . import (
     REGISTER,
     DbusInstance,
@@ -33,7 +31,7 @@ from . import (
     valueornull,
 )
 from ..client import AbstractClient
-from ...console import tty_client_console
+from ...console import tty_client_console, console_client
 
 
 def check_authorization(method):
@@ -232,15 +230,8 @@ class DbusClient(AbstractClient):
         assert hasattr(task, 'io')
         proc = None
         if task.state == 'running':
-            # Follow the log file. It has been choosen to exec `tail -f`
-            # because python lacks well maintained and common inotify library.
-            # This tail command is in coreutils and it is installed basically
-            # everywhere.
-            cmd = ['tail', '--follow', task.io.logfile]
-            proc = subprocess.Popen(
-                cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE
-            )
-            fh = proc.stdout
+            console_client(task.io)
+            return
         else:
             # dump full task log
             fh = open(task.io.logfile, 'rb')
@@ -250,12 +241,6 @@ class DbusClient(AbstractClient):
             if not b_line:
                 break
             line = b_line.decode()
-            # terminate `tail` if launched and log end is reached
-            if (
-                line.startswith("Task failed")
-                or line.startswith("Task succeeded")
-            ) and proc:
-                proc.terminate()
             yield line
 
         fh.close()
