@@ -35,7 +35,7 @@ from ..tasks.images import (
 from ..instances import RunningInstance
 from ..registry.formats import RegistryArtifact, ChangelogEntry
 from ..keyring import KeyringMasterKey, KeyringSubKey
-from ..tasks import TaskIO
+from ..tasks import TaskIO, TaskJournal
 
 
 def register_protocols():
@@ -59,5 +59,6 @@ def register_protocols():
         KeyringMasterKey,
         KeyringSubKey,
         TaskIO,
+        TaskJournal,
     ]:
         registry.register_type(_type)

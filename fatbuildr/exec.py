@@ -51,4 +51,6 @@ def _runcmd_noninteractive(cmd, io, **kwargs):
     if io is None:
         return subprocess.run(cmd, capture_output=True, **kwargs)
     else:
-        return subprocess.run(cmd, stdout=io.log, stderr=io.log, **kwargs)
+        return subprocess.run(
+            cmd, stdout=io.output_w, stderr=io.output_w, **kwargs
+        )

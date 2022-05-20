@@ -25,6 +25,7 @@ from ..wire import (
     WireArtifact,
     WireChangelogEntry,
     WireTaskIO,
+    WireTaskJournal,
 )
 from ..exports import ProtocolRegistry
 
@@ -114,6 +115,10 @@ class JsonTaskIO(JsonNativeData, WireTaskIO):
     pass
 
 
+class JsonTaskJournal(JsonNativeData, WireTaskJournal):
+    pass
+
+
 # Map fatbuildr native exportable types and dbus types with corresponding json types
 
 TYPES_MAP = {
@@ -121,4 +126,5 @@ TYPES_MAP = {
     ('RegistryArtifact', 'DbusArtifact', JsonArtifact),
     ('ChangelogEntry', 'DbusChangelogEntry', JsonChangelogEntry),
     ('TaskIO', 'DbusTaskIO', JsonTaskIO),
+    ('TaskJournal', 'DbusTaskJournal', JsonTaskJournal),
 }
