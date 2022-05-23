@@ -29,6 +29,7 @@ import atexit
 import socket
 
 from . import ConsoleMessage, CMD_BYTES, CMD_LOG, CMD_RAW_ENABLE, CMD_RAW_DISABLE, CMD_WINCH
+from ..tasks import TaskJournal
 from ..log import logr
 
 logger = logr(__name__)
@@ -225,3 +226,30 @@ def console_client(io):
 
     # Close all open fd and epoll
     connection.close()
+
+
+def console_reader(io):
+    """Read a task journal and prints on stdout this task output and remote
+    server task logs.
+
+    This function is supposed to be indirectly called by fatbuildrctl in user
+    terminal."""
+    journal = TaskJournal(io.journal.path)
+
+    for msg in journal.read():
+        if msg.cmd == CMD_BYTES:
+            # The remote process has produced output, write raw
+            # bytes on stdout and flush immediately to avoid
+            # buffering.
+            sys.stdout.buffer.write(msg.data)
+            sys.stdout.flush()
+        elif msg.cmd == CMD_LOG:
+            # The remote server sent log record, print it on stdout.
+            entry = msg.data.decode()
+            print(f"LOG: {entry}")
+            if entry.startswith("Task failed") or entry.startswith(
+                "Task succeeded"
+            ):
+                logger.debug(f"Remote task is over, leaving")
+                # Break the processing loop
+                break
