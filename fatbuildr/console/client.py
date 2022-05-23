@@ -28,7 +28,7 @@ import signal
 import atexit
 import socket
 
-from . import ConsoleMessage, CMD_BYTES, CMD_LOG, CMD_RAW_ENABLE, CMD_RAW_DISABLE, CMD_WINCH
+from . import ConsoleMessage
 from ..tasks import TaskJournal
 from ..log import logr
 
@@ -122,7 +122,9 @@ def tty_client_console(io):
                     data = os.read(fd, 100)
                     if int.from_bytes(data, sys.byteorder) == signal.SIGWINCH:
                         connection.send(
-                            ConsoleMessage(CMD_WINCH, get_term_size()).raw
+                            ConsoleMessage(
+                                ConsoleMessage.CMD_WINCH, get_term_size()
+                            ).raw
                         )
                     else:
                         logger.warning(f"Received unknown signal: {str(data)}")
@@ -131,29 +133,33 @@ def tty_client_console(io):
                     # bytes to remote task terminal with ConsoleMessage protocol
                     # handler.
                     data = os.read(fd, 100)
-                    connection.send(ConsoleMessage(CMD_BYTES, data).raw)
+                    connection.send(
+                        ConsoleMessage(ConsoleMessage.CMD_BYTES, data).raw
+                    )
                 else:
                     # Remote server console has sent data, read the command with
                     # ConsoleMessage protocol handler.
                     msg = ConsoleMessage.receive(connection)
-                    if msg.cmd == CMD_RAW_ENABLE:
+                    if msg.IS_RAW_ENABLE:
                         # Set attached terminal in raw mode and immediately send
                         # current size to avoid remote terminal using default
                         # (small) size.
                         set_raw()
                         connection.send(
-                            ConsoleMessage(CMD_WINCH, get_term_size()).raw
+                            ConsoleMessage(
+                                ConsoleMessage.CMD_WINCH, get_term_size()
+                            ).raw
                         )
-                    elif msg.cmd == CMD_RAW_DISABLE:
+                    elif msg.IS_RAW_DISABLE:
                         # Restore attached terminal in canonical mode.
                         unset_raw()
-                    elif msg.cmd == CMD_BYTES:
+                    elif msg.IS_BYTES:
                         # The remote process has produced output, write raw
                         # bytes on stdout and flush immediately to avoid
                         # buffering.
                         sys.stdout.buffer.write(msg.data)
                         sys.stdout.flush()
-                    elif msg.cmd == CMD_LOG:
+                    elif msg.IS_LOG:
                         # The remote server sent log record, print it on stdout.
                         entry = msg.data.decode()
                         print(f"LOG: {entry}")
@@ -204,13 +210,13 @@ def console_client(io):
         # Remote server console has sent data, read the command with
         # ConsoleMessage protocol handler.
         msg = ConsoleMessage.receive(connection)
-        if msg.cmd == CMD_BYTES:
+        if msg.IS_BYTES:
             # The remote process has produced output, write raw
             # bytes on stdout and flush immediately to avoid
             # buffering.
             sys.stdout.buffer.write(msg.data)
             sys.stdout.flush()
-        elif msg.cmd == CMD_LOG:
+        elif msg.IS_LOG:
             # The remote server sent log record, print it on stdout.
             entry = msg.data.decode()
             print(f"LOG: {entry}")
@@ -237,13 +243,13 @@ def console_reader(io):
     journal = TaskJournal(io.journal.path)
 
     for msg in journal.read():
-        if msg.cmd == CMD_BYTES:
+        if msg.IS_BYTES:
             # The remote process has produced output, write raw
             # bytes on stdout and flush immediately to avoid
             # buffering.
             sys.stdout.buffer.write(msg.data)
             sys.stdout.flush()
-        elif msg.cmd == CMD_LOG:
+        elif msg.IS_LOG:
             # The remote server sent log record, print it on stdout.
             entry = msg.data.decode()
             print(f"LOG: {entry}")

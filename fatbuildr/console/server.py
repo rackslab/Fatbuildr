@@ -25,7 +25,7 @@ import struct
 import termios
 import threading
 
-from . import ConsoleMessage, CMD_BYTES, CMD_LOG, CMD_RAW_ENABLE, CMD_RAW_DISABLE, CMD_WINCH
+from . import ConsoleMessage
 from ..log import logr
 from ..utils import shelljoin
 
@@ -36,7 +36,7 @@ def emit_log(fd, msg):
     """Write given string message on provided file descriptor using
     ConsoleMessage protocol handler. This is designed to be called by logging
     RemoteConsoleHandler."""
-    ConsoleMessage(CMD_LOG, msg.encode()).write(fd)
+    ConsoleMessage(ConsoleMessage.CMD_LOG, msg.encode()).write(fd)
 
 
 class ConsoleCompletedProcess:
@@ -66,7 +66,7 @@ def tty_runcmd(cmd, io, **kwargs):
     logger.debug("Running command in interactive mode: %s", shelljoin(cmd))
 
     # Tell remote console client to set terminal in raw mode
-    ConsoleMessage(CMD_RAW_ENABLE).write(io.output_w)
+    ConsoleMessage(ConsoleMessage.CMD_RAW_ENABLE).write(io.output_w)
     # Mute task logging records in log file and console channel to avoid messing
     # with command raw output.
     io.mute_log()
@@ -118,7 +118,7 @@ def tty_runcmd(cmd, io, **kwargs):
                     # Input from remote console clients is received, read data
                     # with ConsoleMessage protocol handler.
                     msg = ConsoleMessage.read(fd)
-                    if msg.cmd == CMD_WINCH:
+                    if msg.IS_WINCH:
                         # SIGWINCH command is received, call approriate ioctl on
                         # PTY master fd so the kernel send SIGWINCH signal to
                         # the process controlled by the slave side of the
@@ -131,7 +131,7 @@ def tty_runcmd(cmd, io, **kwargs):
                             rows,
                             cols,
                         )
-                    elif msg.cmd == CMD_BYTES:
+                    elif msg.IS_BYTES:
                         # The remote console clients sent bytes received on its
                         # stdin, recopy without modification on PTY master so
                         # the controlled process receives the input on its
@@ -143,7 +143,9 @@ def tty_runcmd(cmd, io, **kwargs):
                     # io output pipe with ConsoleMessage protocol handler, for
                     # remote console clients and to be saved in task journal.
                     data = os.read(fd, 1024)
-                    ConsoleMessage(CMD_BYTES, data).write(io.output_w)
+                    ConsoleMessage(ConsoleMessage.CMD_BYTES, data).write(
+                        io.output_w
+                    )
                 else:
                     raise RuntimeError(
                         "Data is available on excepted fd %d", fd
@@ -157,7 +159,7 @@ def tty_runcmd(cmd, io, **kwargs):
     epoll.close()
 
     # Tell remote console client to restore terminal in canonical mode
-    ConsoleMessage(CMD_RAW_DISABLE).write(io.output_w)
+    ConsoleMessage(ConsoleMessage.CMD_RAW_DISABLE).write(io.output_w)
     # Unmute task logging records in journal file and remote console channel
     io.unmute_log()
 
