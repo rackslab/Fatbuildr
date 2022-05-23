@@ -20,7 +20,7 @@
 import subprocess
 
 from .utils import shelljoin
-from .console import tty_runcmd
+from .console.server import tty_runcmd
 from .log import logr
 
 logger = logr(__name__)
