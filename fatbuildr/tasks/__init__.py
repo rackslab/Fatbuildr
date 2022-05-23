@@ -60,24 +60,21 @@ class TaskJournal(ExportableType):
     def write(self, data):
         self.fh.write(data)
 
-    def replay(self, connection):
-        """Reads task journal from the beginning and send it to the incoming
-        connection."""
-        logger.info("Replaying journal for new incoming connection")
-        with open(self.path, 'rb') as fh:
-            while True:
-                msg = ConsoleMessage.read(fh.fileno())
-                if msg is None:
-                    break  # stop the loop when EOF is reached
-                connection.sendall(msg.raw)
-
-    def read(self):
+    def messages(self):
+        """Generator for messages in task journal file."""
         with open(self.path, 'rb') as fh:
             while True:
                 msg = ConsoleMessage.read(fh.fileno())
                 if msg is None:
                     break  # stop the loop when EOF is reached
                 yield msg
+
+    def replay(self, connection):
+        """Reads task journal from the beginning and send it to the incoming
+        connection."""
+        logger.info("Replaying journal for new incoming connection")
+        for msg in self.messages():
+            connection.sendall(msg.raw)
 
 
 class TaskIO(ExportableType):
