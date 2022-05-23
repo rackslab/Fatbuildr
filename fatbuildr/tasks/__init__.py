@@ -30,7 +30,7 @@ from ..protocols.exports import (
     ExportableField,
 )
 from ..exec import runcmd
-from ..console import ConsoleMessage, CMD_BYTES
+from ..console import ConsoleMessage
 from ..log.handlers import RemoteConsoleHandler
 from ..log import logr
 
@@ -198,7 +198,9 @@ class TaskIO(ExportableType):
                         # encapsulated in ConsoleMessage protocol for console
                         # clients and journal.
                         if not self.interactive:
-                            data = ConsoleMessage(CMD_BYTES, data).raw
+                            data = ConsoleMessage(
+                                ConsoleMessage.CMD_BYTES, data
+                            ).raw
                         self._broadcast(data)
                         self.journal.write(data)
                     else:

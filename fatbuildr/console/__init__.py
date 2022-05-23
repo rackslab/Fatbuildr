@@ -28,17 +28,19 @@ import struct
 #   http://www.rkoucha.fr/tech_corner/pty_pdip.html
 #   http://www.rkoucha.fr/tech_corner/sigwinch.html
 
-# ConsoleMessage binary protocol supported commands
-CMD_LOG = 0  # log record
-CMD_BYTES = 1  # raw bytes
-CMD_RAW_ENABLE = 2  # enable terminal raw mode
-CMD_RAW_DISABLE = 3  # disable terminal raw mode (ie. restore canonical mode)
-CMD_WINCH = 4  # resize terminal (SIGWINCH)
-
 
 class ConsoleMessage:
     """Binary protocol handler between console client and server, to receive and
     send messages in both ways."""
+
+    # ConsoleMessage binary protocol supported commands
+    CMD_LOG = 0  # log record
+    CMD_BYTES = 1  # raw bytes
+    CMD_RAW_ENABLE = 2  # enable terminal raw mode
+    CMD_RAW_DISABLE = (
+        3  # disable terminal raw mode (ie. restore canonical mode)
+    )
+    CMD_WINCH = 4  # resize terminal (SIGWINCH)
 
     def __init__(self, cmd, data=None):
         self.cmd = cmd
@@ -47,6 +49,26 @@ class ConsoleMessage:
             self.size = len(self.data)
         else:
             self.size = 0
+
+    @property
+    def IS_LOG(self):
+        return self.cmd == self.CMD_LOG
+
+    @property
+    def IS_BYTES(self):
+        return self.cmd == self.CMD_BYTES
+
+    @property
+    def IS_RAW_ENABLE(self):
+        return self.cmd == self.CMD_RAW_ENABLE
+
+    @property
+    def IS_RAW_DISABLE(self):
+        return self.cmd == self.CMD_RAW_DISABLE
+
+    @property
+    def IS_WINCH(self):
+        return self.cmd == self.CMD_WINCH
 
     @property
     def raw(self):
