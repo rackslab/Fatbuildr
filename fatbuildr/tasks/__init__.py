@@ -60,6 +60,17 @@ class TaskJournal(ExportableType):
     def write(self, data):
         self.fh.write(data)
 
+    def replay(self, connection):
+        """Reads task journal from the beginning and send it to the incoming
+        connection."""
+        logger.info("Replaying journal for new incoming connection")
+        with open(self.path, 'rb') as fh:
+            while True:
+                msg = ConsoleMessage.read(fh.fileno())
+                if msg is None:
+                    break  # stop the loop when EOF is reached
+                connection.sendall(msg.raw)
+
 
 class TaskIO(ExportableType):
     """Various task input/output channels handler, including log file, output
@@ -155,6 +166,9 @@ class TaskIO(ExportableType):
                         connection, _ = self.sock.accept()
                         epoll.register(connection.fileno(), select.EPOLLIN)
                         self.connections[connection.fileno()] = connection
+                        # Send tasks output from its beginning to new incoming
+                        # connection.
+                        self.journal.replay(connection)
                     elif event & select.EPOLLHUP:
                         logger.debug("Unregistering client console connection")
                         epoll.unregister(fd)

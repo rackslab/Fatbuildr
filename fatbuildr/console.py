@@ -97,8 +97,11 @@ class ConsoleMessage:
     @staticmethod
     def read(fd):
         """Read message on given file description and returns corresponding
-        instanciated ConsoleMessage."""
+        instanciated ConsoleMessage. If unable to read any byte on fd (ie. EOF
+        is reached), None is returned."""
         buffer = os.read(fd, struct.calcsize('HI'))
+        if not len(buffer):
+            return None  # EOF is reached
         cmd, size = struct.unpack('HI', buffer)
         data = None
         if size:
