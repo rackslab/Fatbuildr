@@ -242,7 +242,7 @@ def console_reader(io):
     terminal."""
     journal = TaskJournal(io.journal.path)
 
-    for msg in journal.read():
+    for msg in journal.messages():
         if msg.IS_BYTES:
             # The remote process has produced output, write raw
             # bytes on stdout and flush immediately to avoid
