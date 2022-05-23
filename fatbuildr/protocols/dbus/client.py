@@ -31,7 +31,7 @@ from . import (
     valueornull,
 )
 from ..client import AbstractClient
-from ...console import tty_client_console, console_client
+from ...console.client import tty_client_console, console_client
 
 
 def check_authorization(method):

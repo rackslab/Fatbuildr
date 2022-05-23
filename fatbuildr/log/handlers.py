@@ -19,7 +19,7 @@
 
 import logging
 
-from ..console import emit_log
+from ..console.server import emit_log
 
 
 class RemoteConsoleHandler(logging.Handler):
