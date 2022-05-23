@@ -31,7 +31,7 @@ from . import (
     valueornull,
 )
 from ..client import AbstractClient
-from ...console.client import tty_client_console, console_client
+from ...console.client import tty_client_console, console_client, console_reader
 
 
 def check_authorization(method):
@@ -228,22 +228,10 @@ class DbusClient(AbstractClient):
         """Dbus clients run on the same host as the server, they access the
         tasks log files directly."""
         assert hasattr(task, 'io')
-        proc = None
         if task.state == 'running':
             console_client(task.io)
-            return
         else:
-            # dump full task log
-            fh = open(task.io.logfile, 'rb')
-
-        while True:
-            b_line = fh.readline()
-            if not b_line:
-                break
-            line = b_line.decode()
-            yield line
-
-        fh.close()
+            console_reader(task.io)
 
     def attach(self, task):
         assert hasattr(task, 'io')

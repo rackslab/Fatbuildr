@@ -71,6 +71,14 @@ class TaskJournal(ExportableType):
                     break  # stop the loop when EOF is reached
                 connection.sendall(msg.raw)
 
+    def read(self):
+        with open(self.path, 'rb') as fh:
+            while True:
+                msg = ConsoleMessage.read(fh.fileno())
+                if msg is None:
+                    break  # stop the loop when EOF is reached
+                yield msg
+
 
 class TaskIO(ExportableType):
     """Various task input/output channels handler, including log file, output
