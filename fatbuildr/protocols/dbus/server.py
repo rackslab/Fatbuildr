@@ -173,12 +173,12 @@ class FatbuildrInterface(InterfaceTemplate):
         self, instance: Str, distribution: Str
     ) -> Str:
         """Returns the environment of the given distribution in the pipelines of the instance."""
-        env = self.implementation.pipelines_distribution_environment(
-            instance, distribution
-        )
-        if not env:
+        try:
+            return self.implementation.pipelines_distribution_environment(
+                instance, distribution
+            )
+        except RuntimeError:
             return 'none'
-        return env
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesDistributionDerivatives(
