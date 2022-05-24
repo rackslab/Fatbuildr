@@ -175,12 +175,11 @@ def tty_client_console(io):
                         # The remote process has produced output, write raw
                         # bytes on stdout and flush immediately to avoid
                         # buffering.
-                        sys.stdout.buffer.write(msg.data)
-                        sys.stdout.flush()
+                        tty_console_renderer_raw(msg.data)
                     elif msg.IS_LOG:
                         # The remote server sent log record, print it on stdout.
                         entry = msg.data.decode()
-                        print(f"LOG: {entry}")
+                        tty_console_renderer_log(entry)
                         if _is_task_end_log_entry(entry):
                             logger.debug(f"Remote task is over, leaving")
                             # Raise an exception as there is no way to break the
@@ -277,9 +276,19 @@ def tty_console_renderer(console_generator):
             # The remote process has produced output, write raw
             # bytes on stdout and flush immediately to avoid
             # buffering.
-            sys.stdout.buffer.write(msg.data)
-            sys.stdout.flush()
+            tty_console_renderer_raw(msg.data)
         elif msg.IS_LOG:
             # The remote server sent log record, print it on stdout.
             entry = msg.data.decode()
-            print(f"LOG: {entry}")
+            tty_console_renderer_log(entry)
+
+
+def tty_console_renderer_raw(data):
+    """Write task raw output on user terminal stdout."""
+    sys.stdout.buffer.write(data)
+    sys.stdout.flush()
+
+
+def tty_console_renderer_log(entry):
+    """Write task log entry on user terminal stdout."""
+    print(f"LOG: {entry}")
