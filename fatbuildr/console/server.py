@@ -117,7 +117,7 @@ def tty_runcmd(cmd, io, **kwargs):
                 if fd == io.input_r:
                     # Input from remote console clients is received, read data
                     # with ConsoleMessage protocol handler.
-                    msg = ConsoleMessage.read(fd)
+                    msg = ConsoleMessage.read(fd=fd)
                     if msg.IS_WINCH:
                         # SIGWINCH command is received, call approriate ioctl on
                         # PTY master fd so the kernel send SIGWINCH signal to

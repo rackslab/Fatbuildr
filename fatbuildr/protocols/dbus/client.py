@@ -31,7 +31,11 @@ from . import (
     valueornull,
 )
 from ..client import AbstractClient
-from ...console.client import tty_client_console, console_client, console_reader
+from ...console.client import (
+    tty_client_console,
+    console_unix_client,
+    console_reader,
+)
 
 
 def check_authorization(method):
@@ -224,16 +228,17 @@ class DbusClient(AbstractClient):
                 return _task
         raise RuntimeError(f"Unable to find task {task_id} on server")
 
-    def watch(self, task):
-        """Dbus clients run on the same host as the server, they access the
-        tasks log files directly."""
+    def watch(self, task, binary=False):
+        """Returns a generator of the given task ConsoleMessages output."""
         assert hasattr(task, 'io')
         if task.state == 'running':
-            console_client(task.io)
+            return console_unix_client(task.io, binary)
         else:
-            console_reader(task.io)
+            return console_reader(task.io, binary)
 
     def attach(self, task):
+        """Setup user terminal to follow output of task running on server
+        side."""
         assert hasattr(task, 'io')
         tty_client_console(task.io)
 

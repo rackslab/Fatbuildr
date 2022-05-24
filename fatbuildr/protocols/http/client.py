@@ -22,6 +22,7 @@ import requests
 from . import JsonInstance, JsonRunnableTask
 from ..client import AbstractClient
 from ...log import logr
+from ...console.client import console_http_client
 
 logger = logr(__name__)
 
@@ -143,7 +144,6 @@ class HttpClient(AbstractClient):
 
     def watch(self, task):
         """Generate task log lines with a streaming request."""
-        url = f"{self.uri}/watch/{task.id}.log"
+        url = f"{self.uri}/watch/{task.id}.journal"
         response = requests.get(url, stream=True)
-        for line in response.iter_lines(decode_unicode=True, delimiter='\n'):
-            yield line + '\n'
+        return console_http_client(response)

@@ -34,6 +34,7 @@ from ..protocols import ClientFactory
 from ..protocols.crawler import register_protocols
 from ..artifact import ArtifactDefs, ArtifactDefsFactory
 from ..patches import PatchQueue
+from ..console.client import tty_console_renderer
 
 logger = logr(__name__)
 
@@ -834,8 +835,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             if interactive:
                 self.connection.attach(task)
             else:
-                for line in self.connection.watch(task):
-                    print(line, end='')
+                tty_console_renderer(self.connection.watch(task))
         except KeyboardInterrupt:
             # Leave gracefully after a keyboard interrupt (eg. ^c)
             logger.debug("Received keyboard interrupt, leaving.")
