@@ -65,8 +65,12 @@ def pipelines_formats(instance):
     filter_format = request.args.get('format')
     filter_distribution = request.args.get('distribution')
     filter_environment = request.args.get('environment')
+    filter_derivative = request.args.get('derivative')
 
-    formats = connection.pipelines_formats()
+    if filter_derivative:
+        formats = connection.pipelines_derivative_formats(filter_derivative)
+    else:
+        formats = connection.pipelines_formats()
     for format in formats:
         if filter_format and format != filter_format:
             continue
