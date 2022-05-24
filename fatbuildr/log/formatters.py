@@ -19,6 +19,9 @@
 
 import logging
 
+# arbitrary ID for LOG_LEVEL_ANSI_STYLES dict key, used for remote task logs
+TASK_LOG = 99
+
 
 class ANSIStyle:
     def __init__(self, fg, bg=None):
@@ -37,17 +40,18 @@ class ANSIStyle:
         return "\033[0;0m"
 
 
+LOG_LEVEL_ANSI_STYLES = {
+    logging.CRITICAL: ANSIStyle(fg=15, bg=160),  # white on red
+    logging.ERROR: ANSIStyle(fg=160),  # red
+    logging.WARNING: ANSIStyle(fg=208),  # orange
+    logging.INFO: ANSIStyle(fg=28),  # dark green
+    logging.DEBUG: ANSIStyle(fg=62),  # light mauve
+    logging.NOTSET: ANSIStyle(fg=8),  # grey
+    TASK_LOG: ANSIStyle(fg=242),  # dark grey
+}
+
+
 class TTYFormatter(logging.Formatter):
-
-    LEVEL_STYLES = {
-        logging.CRITICAL: ANSIStyle(fg=15, bg=160),  # white on red
-        logging.ERROR: ANSIStyle(fg=160),  # red
-        logging.WARNING: ANSIStyle(fg=208),  # orange
-        logging.INFO: ANSIStyle(fg=28),  # dark green
-        logging.DEBUG: ANSIStyle(fg=62),  # light mauve
-        logging.NOTSET: ANSIStyle(fg=8),  # grey
-    }
-
     def __init__(self, debug=False):
         super().__init__("%(message)s")
         self.debug = debug
@@ -55,7 +59,7 @@ class TTYFormatter(logging.Formatter):
     def format(self, record):
 
         _msg = record.getMessage()
-        style = TTYFormatter.LEVEL_STYLES[record.levelno]
+        style = LOG_LEVEL_ANSI_STYLES[record.levelno]
         prefix = ''
         if self.debug:
             prefix = "{level:8s}⸬{where:30s} ↦ ".format(
