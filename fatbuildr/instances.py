@@ -65,7 +65,7 @@ class InstancePipelines:
         found."""
         for format, dists in self._formats.items():
             for dist in dists:
-                if dist['name'] == distribution:
+                if dist['name'] == distribution and 'env' in dist:
                     return dist['env']
         raise RuntimeError(
             "Unable to find environment corresponding "
