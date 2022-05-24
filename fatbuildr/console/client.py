@@ -32,6 +32,7 @@ import logging
 from . import ConsoleMessage
 from ..tasks import TaskJournal
 from ..log import logr
+from ..log.formatters import LOG_LEVEL_ANSI_STYLES, TASK_LOG
 
 logger = logr(__name__)
 
@@ -296,4 +297,10 @@ def tty_console_renderer_log(entry):
     user terminal stdout."""
     level, msg = entry.split(':', 1)
     level = int(level)
-    print(f"LOG: {logging.getLevelName(level)}: {msg}")
+    log_style = LOG_LEVEL_ANSI_STYLES[TASK_LOG]
+    level_style = LOG_LEVEL_ANSI_STYLES[level]
+    print(
+        f"{log_style.start} ⚬ {log_style.end}"
+        f"{level_style.start}{logging.getLevelName(level)}{level_style.end}"
+        f"{log_style.start}: {msg}{log_style.end}"
+    )
