@@ -27,6 +27,7 @@ import termios
 import signal
 import atexit
 import socket
+import logging
 
 from . import ConsoleMessage
 from ..tasks import TaskJournal
@@ -38,7 +39,8 @@ logger = logr(__name__)
 def _is_task_end_log_entry(entry):
     """Returns True if the given log entry indicates task end, False
     otherwise."""
-    if entry.startswith("Task failed") or entry.startswith("Task succeeded"):
+    msg = entry.split(':')[1]
+    if msg.startswith("Task failed") or msg.startswith("Task succeeded"):
         return True
     return False
 
@@ -290,5 +292,8 @@ def tty_console_renderer_raw(data):
 
 
 def tty_console_renderer_log(entry):
-    """Write task log entry on user terminal stdout."""
-    print(f"LOG: {entry}")
+    """Parses task log entry as formatted by ConsoleFormatter and write it on
+    user terminal stdout."""
+    level, msg = entry.split(':', 1)
+    level = int(level)
+    print(f"LOG: {logging.getLevelName(level)}: {msg}")
