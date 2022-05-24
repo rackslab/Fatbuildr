@@ -76,3 +76,11 @@ class DaemonFormatter(logging.Formatter):
         else:
             _fmt = '%(threadName)s: [%(levelname)s] %(message)s'
         super().__init__(_fmt)
+
+
+class ConsoleFormatter(logging.Formatter):
+    """Formatter for log entries sent to remote console client in task output
+    using ConsoleMessage protocol."""
+
+    def __init__(self):
+        super().__init__("%(levelno)s:%(message)s")

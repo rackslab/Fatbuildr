@@ -32,6 +32,7 @@ from ..protocols.exports import (
 from ..exec import runcmd
 from ..console import ConsoleMessage
 from ..log.handlers import RemoteConsoleHandler
+from ..log.formatters import ConsoleFormatter
 from ..log import logr
 
 logger = logr(__name__)
@@ -235,6 +236,7 @@ class TaskIO(ExportableType):
         logger, so worker thread logs are duplicated in remote client console
         and task log file."""
         self._journal_log_handler = RemoteConsoleHandler(self.log_w)
+        self._journal_log_handler.setFormatter(ConsoleFormatter())
         logger.add_thread_handler(self._journal_log_handler)
 
     def unplug_logger(self):
