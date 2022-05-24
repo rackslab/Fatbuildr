@@ -35,6 +35,11 @@ class HttpClient(AbstractClient):
         response = requests.get(url)
         return JsonInstance.load_from_json(response.json())
 
+    def pipelines_architectures(self):
+        url = f"{self.uri}/pipelines/architectures.json"
+        response = requests.get(url)
+        return response.json()
+
     def pipelines_format_distributions(self, format):
         url = f"{self.uri}/pipelines/formats.json?format={format}"
         response = requests.get(url)
@@ -66,6 +71,7 @@ class HttpClient(AbstractClient):
         self,
         format,
         distribution,
+        architectures,
         derivative,
         artifact,
         user_name,
@@ -86,6 +92,7 @@ class HttpClient(AbstractClient):
             data={
                 'format': format,
                 'distribution': distribution,
+                'architectures': ','.join(architectures),
                 'derivative': derivative,
                 'artifact': artifact,
                 'user_name': user_name,

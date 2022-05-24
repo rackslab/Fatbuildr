@@ -58,6 +58,11 @@ def instance(instance):
     return jsonify(JsonInstance.export(_instance))
 
 
+def pipelines_architectures(instance):
+    connection = get_connection(instance)
+    return jsonify(connection.pipelines_architectures())
+
+
 def pipelines_formats(instance):
     connection = get_connection(instance)
     result = {}
@@ -303,6 +308,7 @@ def build(instance):
     task_id = connection.build(
         request.form['format'],
         request.form['distribution'],
+        request.form['architectures'].split(','),
         request.form['derivative'],
         request.form['artifact'],
         request.form['user_name'],

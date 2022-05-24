@@ -56,6 +56,10 @@ class WebApp(Flask):
             view_func=views.instance,
         )
         self.add_instance_url_rule(
+            '/pipelines/architectures.json',
+            view_func=views.pipelines_architectures,
+        )
+        self.add_instance_url_rule(
             '/pipelines/formats.json',
             view_func=views.pipelines_formats,
         )
