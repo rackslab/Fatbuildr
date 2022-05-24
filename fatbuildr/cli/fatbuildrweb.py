@@ -48,6 +48,12 @@ class FatbuildrWeb(FatbuildrCliRun):
             help="Enable debug mode",
         )
         parser.add_argument(
+            '--full-debug',
+            dest='full_debug',
+            action='store_true',
+            help="Enable full debug mode",
+        )
+        parser.add_argument(
             '-i',
             '--instance',
             help="Instance to serve (default: %(default)s)",
@@ -55,7 +61,7 @@ class FatbuildrWeb(FatbuildrCliRun):
         )
         args = parser.parse_args()
 
-        logger.setup(args.debug, fulldebug=False)
+        logger.setup(args.debug, args.full_debug)
 
         self.conf = RuntimeConfWeb()
         self.load(args)
