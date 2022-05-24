@@ -83,26 +83,26 @@ class ConsoleMessage:
         os.write(fd, self.raw)
 
     @staticmethod
-    def receive(connection):
-        """Receive message on given socket connection and returns corresponding
-        instanciated ConsoleMessage."""
-        buffer = connection.recv(struct.calcsize('HI'))
-        cmd, size = struct.unpack('HI', buffer)
-        data = None
-        if size:
-            data = connection.recv(size)
-        return ConsoleMessage(cmd, data)
+    def read(fd=None, reader=None):
+        """Read message either on the given file descriptor or using the given
+        reader function, and returns corresponding instanciated ConsoleMessage.
+        At least one of fd or reader argument must be provided by caller. The
+        reader argument is expected to be a callable accepting size argument.
+        If unable to read any byte (ie. EOF is reached), None is returned."""
+        assert fd is not None or reader is not None
 
-    @staticmethod
-    def read(fd):
-        """Read message on given file description and returns corresponding
-        instanciated ConsoleMessage. If unable to read any byte on fd (ie. EOF
-        is reached), None is returned."""
-        buffer = os.read(fd, struct.calcsize('HI'))
+        # if reader argument is None, use this default reader to read on fd
+        def default_reader(size):
+            return os.read(fd, size)
+
+        if reader is None:
+            reader = default_reader
+
+        buffer = reader(struct.calcsize('HI'))
         if not len(buffer):
             return None  # EOF is reached
         cmd, size = struct.unpack('HI', buffer)
         data = None
         if size:
-            data = os.read(fd, size)
+            data = reader(size)
         return ConsoleMessage(cmd, data)

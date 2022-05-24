@@ -346,8 +346,8 @@ def watch(instance, task_id):
     connection = get_connection(instance)
     task = connection.get(task_id)
     return current_app.response_class(
-        connection.watch(task),
-        mimetype='text/plain',
+        connection.watch(task, binary=True),
+        mimetype='application/octet-stream',
     )
 
 

@@ -141,7 +141,7 @@ class WebApp(Flask):
             view_func=views.task,
         )
         self.add_instance_url_rule(
-            '/watch/<string:task_id>.log',
+            '/watch/<string:task_id>.journal',
             view_func=views.watch,
         )
         self.add_instance_url_rule('/<path:filename>', view_func=views.content)

@@ -35,6 +35,24 @@ from ..log import logr
 logger = logr(__name__)
 
 
+def _is_task_end_log_entry(entry):
+    """Returns True if the given log entry indicates task end, False
+    otherwise."""
+    if entry.startswith("Task failed") or entry.startswith("Task succeeded"):
+        return True
+    return False
+
+
+def _is_task_end_msg(msg):
+    """Returns True if the given ConsoleMessage indicates task end, False
+    otherwise."""
+    if msg.IS_LOG:
+        # The remote server sent log record, print it on stdout.
+        entry = msg.data.decode()
+        return _is_task_end_log_entry(entry)
+    return False
+
+
 class TerminatedTask(Exception):
     """Exception raised on client side on remote task normal termination
     detection, to break the double nested processing loop."""
@@ -163,9 +181,7 @@ def tty_client_console(io):
                         # The remote server sent log record, print it on stdout.
                         entry = msg.data.decode()
                         print(f"LOG: {entry}")
-                        if entry.startswith("Task failed") or entry.startswith(
-                            "Task succeeded"
-                        ):
+                        if _is_task_end_log_entry(entry):
                             logger.debug(f"Remote task is over, leaving")
                             # Raise an exception as there is no way to break the
                             # while loop from here.
@@ -193,56 +209,70 @@ def tty_client_console(io):
     epoll.close()
 
 
-def console_client(io):
-    """Connects to the given remote task IO running on server side. It prints on
-    stdout all remote terminal output and remote server task logs.
+def console_unix_client(io, binary):
+    """Connects to the given remote task IO running on server side using task
+    console Unix socket and generates the ConsoleMessage received on the socket.
+    If binary argument is False, ConsoleMessage are generated as objects.
+    Otherwise they are generated in bytes.
 
-    This function is supposed to be indirectly called by fatbuildrctl in user
-    terminal.
-    """
+    This function is supposed to be called for running tasks only."""
 
     # Connect to task console socket
     connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     connection.connect(str(io.console))
     logger.debug(f"Connected to console socket %s", io.console)
 
-    while True:
-        # Remote server console has sent data, read the command with
-        # ConsoleMessage protocol handler.
-        msg = ConsoleMessage.receive(connection)
-        if msg.IS_BYTES:
-            # The remote process has produced output, write raw
-            # bytes on stdout and flush immediately to avoid
-            # buffering.
-            sys.stdout.buffer.write(msg.data)
-            sys.stdout.flush()
-        elif msg.IS_LOG:
-            # The remote server sent log record, print it on stdout.
-            entry = msg.data.decode()
-            print(f"LOG: {entry}")
-            if entry.startswith("Task failed") or entry.startswith(
-                "Task succeeded"
-            ):
-                logger.debug(f"Remote task is over, leaving")
-                # Break the processing loop
-                break
-        else:
-            # Warn for unexpected command.
-            logger.warning("Unknown console message command %s", msg.cmd)
+    def reader(size):
+        return connection.recv(size)
+
+    yield from _console_generator(binary, reader=reader)
 
     # Close all open fd and epoll
     connection.close()
 
 
-def console_reader(io):
-    """Read a task journal and prints on stdout this task output and remote
-    server task logs.
+def console_reader(io, binary):
+    """Read the given task I/O journal and generates the ConsoleMessage received
+    on the socket. If binary argument is False, ConsoleMessage are generated as
+    objects. Otherwise they are generated in bytes.
 
-    This function is supposed to be indirectly called by fatbuildrctl in user
-    terminal."""
-    journal = TaskJournal(io.journal.path)
+    This function is supposed to be called for archives tasks only."""
+    with open(io.journal.path, 'rb') as fh:
+        yield from _console_generator(binary, fd=fh.fileno())
 
-    for msg in journal.messages():
+
+def console_http_client(response):
+    """Reads and generates the ConsoleMessage available in the given HTTP
+    response object."""
+
+    def reader(size):
+        return next(response.iter_content(chunk_size=size))
+
+    yield from _console_generator(False, reader=reader)
+
+
+def _console_generator(binary, **kwargs):
+    """The real shared internal ConsoleMessage generator."""
+
+    while True:
+        # Remote server console has sent data, read the command with
+        # ConsoleMessage protocol handler.
+        msg = ConsoleMessage.read(**kwargs)
+        if binary:
+            yield msg.raw
+        else:
+            yield msg
+        if _is_task_end_msg(msg):
+            # Break the processing loop
+            break
+
+
+def tty_console_renderer(console_generator):
+    """Iterates over on of the above ConsoleMessage generator (not in binary
+    mode) and print task output on terminal stdout.
+
+    This function is supposed to be called by fatbuildrctl."""
+    for msg in console_generator:
         if msg.IS_BYTES:
             # The remote process has produced output, write raw
             # bytes on stdout and flush immediately to avoid
@@ -253,9 +283,3 @@ def console_reader(io):
             # The remote server sent log record, print it on stdout.
             entry = msg.data.decode()
             print(f"LOG: {entry}")
-            if entry.startswith("Task failed") or entry.startswith(
-                "Task succeeded"
-            ):
-                logger.debug(f"Remote task is over, leaving")
-                # Break the processing loop
-                break
