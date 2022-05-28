@@ -26,6 +26,7 @@ from flask import (
     current_app,
     send_from_directory,
     send_file,
+    stream_with_context,
     abort,
 )
 from werkzeug.utils import secure_filename
@@ -46,6 +47,17 @@ def error_bad_request(e):
 
 def get_connection(instance='default'):
     return ClientFactory.get('dbus://system/' + instance)
+
+
+def stream_template(template_name, **context):
+    """Utility to stream content using template, as explained in Flask
+    documentation:
+    https://flask.palletsprojects.com/en/2.1.x/patterns/streaming/"""
+    current_app.update_template_context(context)
+    t = current_app.jinja_env.get_template(template_name)
+    rv = t.stream(context)
+    rv.enable_buffering(5)
+    return rv
 
 
 def version():
@@ -341,14 +353,26 @@ def task(instance, task_id):
     return jsonify(JsonRunnableTask.export(task))
 
 
-def watch(instance, task_id):
+def watch(instance, task_id, output='html'):
     """Stream lines obtained by DbusClient.watch() generator."""
     connection = get_connection(instance)
     task = connection.get(task_id)
-    return current_app.response_class(
-        connection.watch(task, binary=True),
-        mimetype='application/octet-stream',
-    )
+    if output == 'html':
+        return current_app.response_class(
+            stream_with_context(
+                stream_template(
+                    'watch.html.j2',
+                    instance=instance,
+                    task=task_id,
+                    messages=connection.watch(task),
+                )
+            )
+        )
+    else:
+        return current_app.response_class(
+            connection.watch(task, binary=True),
+            mimetype='application/octet-stream',
+        )
 
 
 def keyring(instance):

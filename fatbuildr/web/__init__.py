@@ -143,6 +143,12 @@ class WebApp(Flask):
         self.add_instance_url_rule(
             '/watch/<string:task_id>.journal',
             view_func=views.watch,
+            defaults={'output': 'journal'},
+        )
+        self.add_instance_url_rule(
+            '/watch/<string:task_id>.html',
+            view_func=views.watch,
+            defaults={'output': 'html'},
         )
         self.add_instance_url_rule('/<path:filename>', view_func=views.content)
         self.add_instance_url_rule('/keyring.asc', view_func=views.keyring)
