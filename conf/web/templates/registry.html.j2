@@ -16,7 +16,7 @@
 <h1>Tasks</h1>
 <h2>Running</h2>
 {% if running %}
-<a href="{{ url_for('watch', instance=instance, task_id=running.id) }}">{{ running.id }}</a> [{{ running.name }}] {{ running.submission }}
+<a href="{{ url_for('watch', instance=instance, task_id=running.id, output='html') }}">{{ running.id }}</a> [{{ running.name }}] {{ running.submission }}
 {% else %}
 ∅
 {% endif %}
@@ -36,7 +36,7 @@
 {% else %}
 <ul>
   {% for task in archives %}
-    <li><a href="{{ url_for('watch', instance=instance, task_id=task.id) }}">{{ task.id }}</a> [{{ task.name }}] {{ task.submission }}</li>
+    <li><a href="{{ url_for('watch', instance=instance, task_id=task.id, output='html') }}">{{ task.id }}</a> [{{ task.name }}] {{ task.submission }}</li>
   {% endfor %}
 </ul>
 {% endif %}

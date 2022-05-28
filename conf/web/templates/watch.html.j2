@@ -1,0 +1,13 @@
+{% extends "layout/base.html.j2" %}
+{% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}task {{ task }}{% endblock %}
+{% block content %}
+<h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}task {{ task }}</h1>
+<pre>
+{%- for message in messages -%}
+  {%- set msg = message.data.decode() -%}
+  {%- if message.IS_LOG %}LOG: {{ msg }}
+{% else %}{{ msg }}
+  {%- endif %}
+{%- endfor %}
+</pre>
+{% endblock %}
