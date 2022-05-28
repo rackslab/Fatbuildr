@@ -297,6 +297,10 @@ def tty_console_renderer_log(entry):
     user terminal stdout."""
     level, msg = entry.split(':', 1)
     level = int(level)
+    # If the task remote log entry is at debug level and debug is level is
+    # disabled in local logger, skip the log entry.
+    if not logger.has_debug() and level == logging.DEBUG:
+        return
     log_style = LOG_LEVEL_ANSI_STYLES[TASK_LOG]
     level_style = LOG_LEVEL_ANSI_STYLES[level]
     print(
