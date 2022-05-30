@@ -118,6 +118,13 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             patches = self.patches
             patches_to = tarball_subdir.joinpath('debian', 'patches')
 
+            # If the patches directory destination path already exists, remove
+            # it recursively, artifact patches have more priority.
+            if patches_to.exists():
+                logger.warning(
+                    "Removing existing deb patches directory %s", patches_to
+                )
+                shutil.rmtree(patches_to)
             # Create debian patches subdir
             patches_to.mkdir()
             patches_to.chmod(0o755)
