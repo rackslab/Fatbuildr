@@ -241,6 +241,13 @@ class ArtifactBuild(RunnableTask):
                 tar.extractall(upstream_dir)
                 tarball_subdir = upstream_dir.joinpath(tar_subdir(tar))
 
+            # Remove .gitignore file if present, to avoid modification realized
+            # by pre script being ignored when generating the resulting patch.
+            gitignore_path = tarball_subdir.joinpath('.gitignore')
+            if gitignore_path.exists():
+                logger.info("Removing .gitignore from upstream archive")
+                gitignore_path.unlink()
+
             # init the git repository with its initial commit
             git = GitRepository(tarball_subdir, self.user, self.email)
 
