@@ -109,6 +109,10 @@ def tty_client_console(io):
     connection.connect(str(io.console))
     logger.debug(f"Connected to console socket %s", io.console)
 
+    # Unix socket connection reader for ConsoleMessage.read()
+    def reader(size):
+        return connection.recv(size)
+
     # Create signal pipe to process signals with epoll. No-op handler is
     # assigned to SIGWINCH signal so the thread can receive it.
     signal.signal(signal.SIGWINCH, lambda x, y: None)
@@ -160,7 +164,7 @@ def tty_client_console(io):
                 else:
                     # Remote server console has sent data, read the command with
                     # ConsoleMessage protocol handler.
-                    msg = ConsoleMessage.receive(connection)
+                    msg = ConsoleMessage.read(reader=reader)
                     if msg.IS_RAW_ENABLE:
                         # Set attached terminal in raw mode and immediately send
                         # current size to avoid remote terminal using default
