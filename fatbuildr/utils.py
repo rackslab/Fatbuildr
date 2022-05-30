@@ -79,7 +79,11 @@ def verify_checksum(path, format, value):
 def tar_subdir(tar):
     """Returns the name of the subdirectory of the root of the given tarball,
     or raise RuntimeError if not found."""
-    subdir = tar.getmembers()[0]
+    # search for first member found in root of archive (w/o '/' in name)
+    for member in tar.getmembers():
+        if '/' not in member.name:
+            subdir = member
+            break
     if not subdir.isdir():
         raise RuntimeError(f"unable to define tarball {tar.name} subdirectory")
     return subdir.name
