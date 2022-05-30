@@ -93,10 +93,23 @@ class GitRepository:
 
         # Parse metadata of the patch in deb822 format
         meta = deb822.Deb822(content)
-        author_re = re.match(r'(?P<author>.+) <(?P<email>.+)>', meta['Author'])
-        author = author_re.group('author')
-        email = author_re.group('email')
-        del meta['Author']
+        author_key = None
+        # Search for accepted author key in metadata
+        for key in ['Author', 'From']:
+            if key in meta:
+                author_key = key
+        # If an accepted author key has been found in meta, parse it. Otherwise
+        # use default 'unknown' author
+        if author_key:
+            author_re = re.match(
+                r'(?P<author>.+) <(?P<email>.+)>', meta[author_key]
+            )
+            author = author_re.group('author')
+            email = author_re.group('email')
+            del meta[author_key]
+        else:
+            author = 'Unknown Author'
+            email = 'unknown@email.com'
 
         # Apply the patch. The patch command is used because pygit2 does not
         # offer API to apply patches that allows not well formatted patch, with
