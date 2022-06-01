@@ -111,7 +111,12 @@ def tty_client_console(io):
 
     # Unix socket connection reader for ConsoleMessage.read()
     def reader(size):
-        return connection.recv(size)
+        data = connection.recv(size)
+        # retry until enough data has been received
+        while len(data) < size:
+            missing = size - len(data)
+            data += connection.recv(missing)
+        return data
 
     # Create signal pipe to process signals with epoll. No-op handler is
     # assigned to SIGWINCH signal so the thread can receive it.
@@ -229,7 +234,12 @@ def console_unix_client(io, binary):
     logger.debug(f"Connected to console socket %s", io.console)
 
     def reader(size):
-        return connection.recv(size)
+        data = connection.recv(size)
+        # retry until enough data has been received
+        while len(data) < size:
+            missing = size - len(data)
+            data += connection.recv(missing)
+        return data
 
     yield from _console_generator(binary, reader=reader)
 
