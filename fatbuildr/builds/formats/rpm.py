@@ -112,6 +112,10 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
     def srpm_path(self):
         return self.place.joinpath(self.srpm_filename)
 
+    @property
+    def source_path(self):
+        return self.place.joinpath('source')
+
     def build(self):
         self._build_src()
         for architecture in self.architectures:
@@ -136,11 +140,16 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         patches_decl = ""
         patches_prep = ""
 
+        if not self.source_path.exists():
+            logger.debug("Create source subdirectory %s", self.source_path)
+            self.source_path.mkdir()
+            self.source_path.chmod(0o755)
+
         if self.has_patches:
             # Move patches at the root of build place
             patches = self.patches
             for patch in patches:
-                patch.rename(self.place.joinpath(patch.name))
+                patch.rename(self.source_path.joinpath(patch.name))
             patches_decl = templater.srender(PATCHES_DECL_TPL, patches=patches)
             patches_prep = templater.srender(PATCHES_PREP_TPL, patches=patches)
 
@@ -213,10 +222,9 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         # Check the tarball is in build place (ie. not in cache), or create
         # symlink otherwise, so the source tarball given to mock is always in
         # the same directory as the patches, when patches are provided.
-        if not self.tarball.is_relative_to(self.place):
-            source = self.place.joinpath(self.tarball.name)
-            logger.info("Creating symlink %s → %s", source, self.tarball)
-            source.symlink_to(self.tarball)
+        source = self.source_path.joinpath(self.tarball.name)
+        logger.info("Creating symlink %s → %s", source, self.tarball)
+        source.symlink_to(self.tarball)
 
         # run SRPM build
         cmd = [
@@ -227,14 +235,14 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             f"chrootgid={current_group()[0]}",
             '--buildsrpm',
             '--sources',
-            self.place,
+            self.source_path,
             '--spec',
             spec_path,
             '--resultdir',
             self.place,
         ]
 
-        # If the source tarball is in build place (ie. in cache),
+        # If the source tarball is not in build place (ie. in cache),
         # bind-mount the tarball directory in mock environment so rpmbuild can
         # access to the target of the tarball symlink in build place.
         if not self.tarball.is_relative_to(self.place):
