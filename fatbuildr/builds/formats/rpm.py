@@ -351,69 +351,81 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         )
         self._mock_overlay_cmd(['--snapshot', self.id])
 
-        # install deps
-        logger.debug(
-            "Installing prescript basic dependencies in build environment %s",
-            self.native_env.name,
-        )
-        cmd = [
-            'mock',
-            '--root',
-            self.native_env.name,
-            '--dnf-cmd',
-            'install',
-            'wget',
-        ]
-        self.cruncmd(cmd, user=current_user()[1])
+        prescript_failed = False
 
-        logger.debug(
-            "Running the prescript using stage1 script in build environment %s",
-            self.native_env.name,
-        )
-        keyring_path = self.place.joinpath('keyring.asc')
-        with open(keyring_path, 'w+') as fh:
-            fh.write(self.instance.keyring.export())
+        try:
+            # install deps
+            logger.debug(
+                "Installing prescript basic dependencies in build environment %s",
+                self.native_env.name,
+            )
+            cmd = [
+                'mock',
+                '--root',
+                self.native_env.name,
+                '--dnf-cmd',
+                'install',
+                'wget',
+            ]
+            self.cruncmd(cmd, user=current_user()[1])
 
-        # run prescript
-        cmd = [
-            'mock',
-            '--root',
-            self.native_env.name,
-            '--config-opts',
-            f"chrootuid={current_user()[0]}",
-            '--config-opts',
-            f"chrootgid={current_group()[0]}",
-            '--enable-plugin',
-            'fatbuildr_derivatives',
-            '--plugin-option',
-            f"fatbuildr_derivatives:repo={self.registry.path}",
-            '--plugin-option',
-            f"fatbuildr_derivatives:distribution={self.distribution}",
-            '--plugin-option',
-            f"fatbuildr_derivatives:derivatives={','.join(self.derivatives)}",
-            '--plugin-option',
-            f"fatbuildr_derivatives:keyring={keyring_path}",
-            '--plugin-option',
-            "bind_mount:dirs="
-            f"[(\"{self.place}\",\"{self.place}\"),"
-            f"(\"{self.image.common_libdir}\",\"{self.image.common_libdir}\")]",
-            '--shell',
-            '--',
-            f"FATBUILDR_SOURCE_DIR={tarball_subdir}",
-            '/bin/bash',
-            self.image.common_libdir.joinpath('pre-stage1-rpm.sh'),
-        ]
-        cmd.extend(prescript_cmd)
-        self.cruncmd(cmd, user=current_user()[1])
+            logger.debug(
+                "Running the prescript using stage1 script in build environment %s",
+                self.native_env.name,
+            )
+            keyring_path = self.place.joinpath('keyring.asc')
+            with open(keyring_path, 'w+') as fh:
+                fh.write(self.instance.keyring.export())
 
-        # clean snapshot
-        logger.debug(
-            "Cleaning snapshot %s of build environment %s",
-            self.id,
-            self.native_env.name,
-        )
-        self._mock_overlay_cmd(['--clean'])
+            # run prescript
+            cmd = [
+                'mock',
+                '--root',
+                self.native_env.name,
+                '--config-opts',
+                f"chrootuid={current_user()[0]}",
+                '--config-opts',
+                f"chrootgid={current_group()[0]}",
+                '--enable-plugin',
+                'fatbuildr_derivatives',
+                '--plugin-option',
+                f"fatbuildr_derivatives:repo={self.registry.path}",
+                '--plugin-option',
+                f"fatbuildr_derivatives:distribution={self.distribution}",
+                '--plugin-option',
+                f"fatbuildr_derivatives:derivatives={','.join(self.derivatives)}",
+                '--plugin-option',
+                f"fatbuildr_derivatives:keyring={keyring_path}",
+                '--plugin-option',
+                "bind_mount:dirs="
+                f"[(\"{self.place}\",\"{self.place}\"),"
+                f"(\"{self.image.common_libdir}\",\"{self.image.common_libdir}\")]",
+                '--shell',
+                '--',
+                f"FATBUILDR_SOURCE_DIR={tarball_subdir}",
+                '/bin/bash',
+                self.image.common_libdir.joinpath('pre-stage1-rpm.sh'),
+            ]
+            cmd.extend(prescript_cmd)
+            self.cruncmd(cmd, user=current_user()[1])
+        except RuntimeError as err:
+            logger.error("Error while running prescript: %s", err)
+            prescript_failed = True
+        finally:
+            # clean snapshot
+            logger.debug(
+                "Cleaning snapshot %s of build environment %s",
+                self.id,
+                self.native_env.name,
+            )
+            self._mock_overlay_cmd(['--clean'])
 
-        # scrub overlayfs
-        logger.debug("Scrubing data of mock overlayfs plugin")
-        self._mock_overlay_cmd(['--scrub', 'overlayfs'])
+            # scrub overlayfs
+            logger.debug("Scrubing data of mock overlayfs plugin")
+            self._mock_overlay_cmd(['--scrub', 'overlayfs'])
+
+        # Now that mock snapshot are cleaned for sure, RuntimeError can be
+        # raised to report the task as failed in case dep installation and
+        # prescript had errors.
+        if prescript_failed:
+            raise RuntimeError("prescript error")
