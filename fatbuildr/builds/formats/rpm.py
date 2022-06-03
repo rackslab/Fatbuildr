@@ -322,3 +322,122 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             self.runcmd(
                 cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)}
             )
+
+    def prescript_in_env(self, tarball_subdir, prescript_cmd):
+        """Execute prescript in RPM build environment using mock and
+        snapshots."""
+        env = self.instance.images_mgr.build_env(
+            self.format, self.env_name, host_architecture()
+        )
+        logger.info("Executing prescript in deb build environment %s", env.name)
+
+        # create snapshot
+        logger.debug(
+            "Creating snapshot %s of build environment %s", self.id, env.name
+        )
+        cmd = [
+            'mock',
+            '--root',
+            env.name,
+            '--enable-plugin',
+            'overlayfs',
+            '--disable-plugin',
+            'root_cache',
+            '--plugin-option',
+            'overlayfs:base_dir=/var/lib/snapshots',
+            '--snapshot',
+            self.id,
+        ]
+        self.cruncmd(cmd, user=current_user()[1])
+
+        # install deps
+        logger.debug(
+            "Installing prescript basic dependencies in build environment %s",
+            env.name,
+        )
+        cmd = [
+            'mock',
+            '--root',
+            env.name,
+            '--dnf-cmd',
+            'install',
+            'wget',
+        ]
+        self.cruncmd(cmd, user=current_user()[1])
+
+        logger.debug(
+            "Running the prescript using stage1 script in build environment %s",
+            env.name,
+        )
+        keyring_path = self.place.joinpath('keyring.asc')
+        with open(keyring_path, 'w+') as fh:
+            fh.write(self.instance.keyring.export())
+
+        # run prescript
+        cmd = [
+            'mock',
+            '--root',
+            env.name,
+            '--config-opts',
+            f"chrootuid={current_user()[0]}",
+            '--config-opts',
+            f"chrootgid={current_group()[0]}",
+            '--enable-plugin',
+            'fatbuildr_derivatives',
+            '--plugin-option',
+            f"fatbuildr_derivatives:repo={self.registry.path}",
+            '--plugin-option',
+            f"fatbuildr_derivatives:distribution={self.distribution}",
+            '--plugin-option',
+            f"fatbuildr_derivatives:derivatives={','.join(self.derivatives)}",
+            '--plugin-option',
+            f"fatbuildr_derivatives:keyring={keyring_path}",
+            '--plugin-option',
+            "bind_mount:dirs="
+            f"[(\"{self.place}\",\"{self.place}\"),"
+            f"(\"{self.image.common_libdir}\",\"{self.image.common_libdir}\")]",
+            '--shell',
+            '--',
+            f"FATBUILDR_SOURCE_DIR={tarball_subdir}",
+            '/bin/bash',
+            self.image.common_libdir.joinpath('pre-stage1-rpm.sh'),
+        ]
+        cmd.extend(prescript_cmd)
+        self.cruncmd(cmd, user=current_user()[1])
+
+        # clean snapshot
+        logger.debug(
+            "Cleaning snapshot %s of build environment %s",
+            self.id,
+            env.name,
+        )
+        cmd = [
+            'mock',
+            '--root',
+            env.name,
+            '--enable-plugin',
+            'overlayfs',
+            '--disable-plugin',
+            'root_cache',
+            '--plugin-option',
+            'overlayfs:base_dir=/var/lib/snapshots',
+            'clean',
+        ]
+        self.cruncmd(cmd, user=current_user()[1])
+
+        # scrub overlayfs
+        logger.debug("Scrubing data of mock overlayfs plugin")
+        cmd = [
+            'mock',
+            '--root',
+            env.name,
+            '--enable-plugin',
+            'overlayfs',
+            '--disable-plugin',
+            'root_cache',
+            '--plugin-option',
+            'overlayfs:base_dir=/var/lib/snapshots',
+            '--scrub',
+            'overlayfs',
+        ]
+        self.cruncmd(cmd, user=current_user()[1])

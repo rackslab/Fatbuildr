@@ -23,7 +23,7 @@ import shutil
 import os
 
 from .. import ArtifactEnvBuild
-from ...utils import tar_subdir, current_user
+from ...utils import tar_subdir, current_user, host_architecture
 from ...log import logr
 
 logger = logr(__name__)
@@ -263,5 +263,53 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
                 f"FATBUILDR_INTERACTIVE={'yes' if self.io.interactive else 'no'}",
                 f"BUILDRESULTUID={os.getuid()}",
                 f"BUILDRESULTGID={os.getgid()}",
+            ],
+        )
+
+    def prescript_in_env(self, tarball_subdir, prescript_cmd):
+        """Execute prescript in Deb build environment using cowbuilder."""
+        env = self.instance.images_mgr.build_env(
+            self.format, self.env_name, host_architecture()
+        )
+        logger.info("Executing prescript in deb build environment %s", env.name)
+
+        cmd = [
+            'cowbuilder',
+            '--execute',
+            '--hookdir',
+            self.image.format_libdir.joinpath('hooks'),
+            '--distribution',
+            self.distribution,
+            '--bindmounts',
+            str(self.place),
+            '--bindmounts',
+            self.image.common_libdir,
+            '--bindmounts',
+            self.registry.path,
+            '--basepath',
+            env.path,
+            '--',
+            self.image.common_libdir.joinpath('pre-stage1-deb.sh'),
+        ]
+        cmd.extend(prescript_cmd)
+
+        keyring_path = self.place.joinpath('keyring.asc')
+        with open(keyring_path, 'w+') as fh:
+            fh.write(self.instance.keyring.export())
+
+        self.cruncmd(
+            cmd,
+            # All these environments variables are consumed by pre-deb-stage1.sh
+            # and pre-wrapper.sh scripts, and also by F10derivatives cowbuilder
+            # hook, to prepare the environment for the prescript.
+            envs=[
+                f"FATBUILDR_REPO={self.registry.path}",
+                f"FATBUILDR_KEYRING={keyring_path}",
+                f"FATBUILDR_SOURCE={self.instance.name}",
+                f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
+                f"FATBUILDR_SOURCE_DIR={tarball_subdir}",
+                f"FATBUILDR_USER={current_user()[1]}",
+                f"FATBUILDR_UID={os.getuid()}",
+                f"FATBUILDR_GID={os.getgid()}",
             ],
         )

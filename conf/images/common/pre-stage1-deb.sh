@@ -18,22 +18,21 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 # our imports
 
-# This script is the pre-script wrapper, it contains functions to simply common
-# tasks in pre-scripts, and places the pre-script in the appropriate source
-# directory.
+# This script is the Deb stage1 pre-script wrapper. It setups the environment
+# required to run the pre-wrapper in cowbuilder environment with the correct
+# user.
 
-function DL() {
-    URL=$1
-    DEST=$2
-    echo "PRE: DL: ${URL} > ${DEST}"
-    wget --quiet ${URL} --output-document ${DEST}
-}
-
-if [ -z $1 ]; then
-    echo "Script path must be given in argument"
+if [ -z $2 ]; then
+    echo "Pre-wrapper script and prescript paths must be given in argument"
 fi
 
-echo "Changing directory to '${FATBUILDR_SOURCE_DIR}'"
-cd ${FATBUILDR_SOURCE_DIR}
+# Create fatbuildr user in build environment and run provided pre script with
+# this user.
+groupadd --gid ${FATBUILDR_GID} ${FATBUILDR_USER}
+useradd --system --uid ${FATBUILDR_UID} --gid ${FATBUILDR_GID} ${FATBUILDR_USER}
 
-. $1
+# install deps in pre-script build environment
+DEBIAN_FRONTEND=noninteractive apt-get -y install wget ca-certificates
+
+#cd ${FATBUILDR_SOURCE_DIR}
+su ${FATBUILDR_USER} -s /bin/bash -c "/bin/bash $1 $2"
