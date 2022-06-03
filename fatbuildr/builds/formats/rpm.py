@@ -23,7 +23,7 @@ from pathlib import Path
 from .. import ArtifactEnvBuild
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
-from ...utils import current_user, current_group, host_architecture
+from ...utils import current_user, current_group
 from ...log import logr
 
 logger = logr(__name__)
@@ -94,11 +94,6 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             src_tarball,
             interactive,
         )
-        # Define host_env using host architecture, it is then used to build
-        # source RPM.
-        self.host_env = self.instance.images_mgr.build_env(
-            self.format, self.env_name, host_architecture()
-        )
 
     @property
     def spec_basename(self):
@@ -127,7 +122,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         logger.info(
             "Building source RPM for %s in build environment %s",
             self.artifact,
-            self.host_env,
+            self.native_env,
         )
 
         # Add distribution release tag to targeted version
@@ -230,7 +225,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         cmd = [
             'mock',
             '--root',
-            self.host_env.name,
+            self.native_env.name,
             '--config-opts',
             f"chrootgid={current_group()[0]}",
             '--buildsrpm',
@@ -326,19 +321,16 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
     def prescript_in_env(self, tarball_subdir, prescript_cmd):
         """Execute prescript in RPM build environment using mock and
         snapshots."""
-        env = self.instance.images_mgr.build_env(
-            self.format, self.env_name, host_architecture()
-        )
-        logger.info("Executing prescript in deb build environment %s", env.name)
+        logger.info("Executing prescript in deb build environment %s", self.native_env.name)
 
         # create snapshot
         logger.debug(
-            "Creating snapshot %s of build environment %s", self.id, env.name
+            "Creating snapshot %s of build environment %s", self.id, self.native_env.name
         )
         cmd = [
             'mock',
             '--root',
-            env.name,
+            self.native_env.name,
             '--enable-plugin',
             'overlayfs',
             '--disable-plugin',
@@ -353,12 +345,12 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         # install deps
         logger.debug(
             "Installing prescript basic dependencies in build environment %s",
-            env.name,
+            self.native_env.name,
         )
         cmd = [
             'mock',
             '--root',
-            env.name,
+            self.native_env.name,
             '--dnf-cmd',
             'install',
             'wget',
@@ -367,7 +359,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
 
         logger.debug(
             "Running the prescript using stage1 script in build environment %s",
-            env.name,
+            self.native_env.name,
         )
         keyring_path = self.place.joinpath('keyring.asc')
         with open(keyring_path, 'w+') as fh:
@@ -377,7 +369,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         cmd = [
             'mock',
             '--root',
-            env.name,
+            self.native_env.name,
             '--config-opts',
             f"chrootuid={current_user()[0]}",
             '--config-opts',
@@ -409,12 +401,12 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         logger.debug(
             "Cleaning snapshot %s of build environment %s",
             self.id,
-            env.name,
+            self.native_env.name,
         )
         cmd = [
             'mock',
             '--root',
-            env.name,
+            self.native_env.name,
             '--enable-plugin',
             'overlayfs',
             '--disable-plugin',
@@ -430,7 +422,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         cmd = [
             'mock',
             '--root',
-            env.name,
+            self.native_env.name,
             '--enable-plugin',
             'overlayfs',
             '--disable-plugin',

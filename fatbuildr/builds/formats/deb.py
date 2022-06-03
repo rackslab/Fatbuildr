@@ -23,7 +23,7 @@ import shutil
 import os
 
 from .. import ArtifactEnvBuild
-from ...utils import tar_subdir, current_user, host_architecture
+from ...utils import tar_subdir, current_user
 from ...log import logr
 
 logger = logr(__name__)
@@ -268,10 +268,10 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
 
     def prescript_in_env(self, tarball_subdir, prescript_cmd):
         """Execute prescript in Deb build environment using cowbuilder."""
-        env = self.instance.images_mgr.build_env(
-            self.format, self.env_name, host_architecture()
+        logger.info(
+            "Executing prescript in deb build environment %s",
+            self.native_env.name,
         )
-        logger.info("Executing prescript in deb build environment %s", env.name)
 
         cmd = [
             'cowbuilder',
@@ -287,7 +287,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             '--bindmounts',
             self.registry.path,
             '--basepath',
-            env.path,
+            self.native_env.path,
             '--',
             self.image.common_libdir.joinpath('pre-stage1-deb.sh'),
         ]
