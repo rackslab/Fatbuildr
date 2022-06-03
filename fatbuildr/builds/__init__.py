@@ -22,6 +22,7 @@ import shutil
 import tarfile
 import stat
 from pathlib import Path
+from functools import cached_property
 
 from ..protocols.exports import ExportableTaskField
 
@@ -36,6 +37,7 @@ from ..utils import (
     verify_checksum,
     tar_subdir,
     current_user,
+    host_architecture,
 )
 from ..log import logr
 
@@ -308,6 +310,14 @@ class ArtifactEnvBuild(ArtifactBuild):
             "Build environment selected for distribution %s: %s",
             self.distribution,
             self.env_name,
+        )
+
+    @cached_property
+    def native_env(self):
+        """Returns the BuildEnv considering the artifact build format and
+        environment name for the host native architecture."""
+        return self.instance.images_mgr.build_env(
+            self.format, self.env_name, host_architecture()
         )
 
     def prescript_in_env(self, tar_subdir, prescript_cmd):
