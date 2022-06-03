@@ -18,22 +18,14 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 # our imports
 
-# This script is the pre-script wrapper, it contains functions to simply common
-# tasks in pre-scripts, and places the pre-script in the appropriate source
-# directory.
+# This script is the RPM stage1 pre-script wrapper. It setups the environment
+# required to run the pre-wrapper in mock environment with the correct user.
 
-function DL() {
-    URL=$1
-    DEST=$2
-    echo "PRE: DL: ${URL} > ${DEST}"
-    wget --quiet ${URL} --output-document ${DEST}
-}
-
-if [ -z $1 ]; then
-    echo "Script path must be given in argument"
+if [ -z $2 ]; then
+    echo "Pre-wrapper script and prescript paths must be given in argument"
 fi
 
-echo "Changing directory to '${FATBUILDR_SOURCE_DIR}'"
-cd ${FATBUILDR_SOURCE_DIR}
-
-. $1
+# When it is run by a normal user (member of mock group), mock creates
+# dynamically a mockbuild user with the same UID/GID in the chroot. It can be
+# used to run the pre-wrapper script.
+su mockbuild -s /bin/bash -c "/bin/bash $1 $2"
