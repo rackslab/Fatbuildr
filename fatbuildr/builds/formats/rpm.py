@@ -318,15 +318,9 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)}
             )
 
-    def prescript_in_env(self, tarball_subdir, prescript_cmd):
-        """Execute prescript in RPM build environment using mock and
-        snapshots."""
-        logger.info("Executing prescript in deb build environment %s", self.native_env.name)
-
-        # create snapshot
-        logger.debug(
-            "Creating snapshot %s of build environment %s", self.id, self.native_env.name
-        )
+    def _mock_overlay_cmd(self, _cmd):
+        """Run mock overlayfs snapshot related command on host native build
+        environment."""
         cmd = [
             'mock',
             '--root',
@@ -337,10 +331,25 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             'root_cache',
             '--plugin-option',
             'overlayfs:base_dir=/var/lib/snapshots',
-            '--snapshot',
-            self.id,
         ]
+        cmd.extend(_cmd)
         self.cruncmd(cmd, user=current_user()[1])
+
+    def prescript_in_env(self, tarball_subdir, prescript_cmd):
+        """Execute prescript in RPM build environment using mock and
+        snapshots."""
+        logger.info(
+            "Executing prescript in deb build environment %s",
+            self.native_env.name,
+        )
+
+        # create snapshot
+        logger.debug(
+            "Creating snapshot %s of build environment %s",
+            self.id,
+            self.native_env.name,
+        )
+        self._mock_overlay_cmd(['--snapshot', self.id])
 
         # install deps
         logger.debug(
@@ -403,33 +412,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             self.id,
             self.native_env.name,
         )
-        cmd = [
-            'mock',
-            '--root',
-            self.native_env.name,
-            '--enable-plugin',
-            'overlayfs',
-            '--disable-plugin',
-            'root_cache',
-            '--plugin-option',
-            'overlayfs:base_dir=/var/lib/snapshots',
-            'clean',
-        ]
-        self.cruncmd(cmd, user=current_user()[1])
+        self._mock_overlay_cmd(['--clean'])
 
         # scrub overlayfs
         logger.debug("Scrubing data of mock overlayfs plugin")
-        cmd = [
-            'mock',
-            '--root',
-            self.native_env.name,
-            '--enable-plugin',
-            'overlayfs',
-            '--disable-plugin',
-            'root_cache',
-            '--plugin-option',
-            'overlayfs:base_dir=/var/lib/snapshots',
-            '--scrub',
-            'overlayfs',
-        ]
-        self.cruncmd(cmd, user=current_user()[1])
+        self._mock_overlay_cmd(['--scrub', 'overlayfs'])
