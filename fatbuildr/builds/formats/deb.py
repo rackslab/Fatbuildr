@@ -23,7 +23,7 @@ import shutil
 import os
 
 from .. import ArtifactEnvBuild
-from ...utils import tar_subdir
+from ...utils import tar_subdir, current_user
 from ...log import logr
 
 logger = logr(__name__)
@@ -185,7 +185,9 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             cmd.insert(1, '--create')
 
         _envs = ['DEBEMAIL=' + self.email, 'DEBFULLNAME=' + self.user]
-        self.cruncmd(cmd, chdir=tarball_subdir, envs=_envs)
+        self.cruncmd(
+            cmd, chdir=tarball_subdir, envs=_envs, user=current_user()[1]
+        )
 
         #  add symlink to tarball
         orig_tarball_path = self.place.joinpath(
@@ -201,7 +203,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         # build source package
         logger.info("Building source package")
         cmd = ['dpkg-source', '--build', tarball_subdir]
-        self.cruncmd(cmd, chdir=str(self.place))
+        self.cruncmd(cmd, chdir=str(self.place), user=current_user()[1])
 
     def _build_bin(self, architecture):
         """Build deb packages binary package."""
