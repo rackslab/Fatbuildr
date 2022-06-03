@@ -159,10 +159,12 @@ class ArtifactRpmDefs(ArtifactFormatDefs):
                     return False
         return True
 
-    def has_buildargs(self, fmt):
+    @property
+    def has_buildargs(self):
         return 'buildargs' in self.meta[self.format]
 
-    def buildargs(self, fmt):
+    @property
+    def buildargs(self):
         return self.meta[self.format]['buildargs'].split(' ')
 
 
