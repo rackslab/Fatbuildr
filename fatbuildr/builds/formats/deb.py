@@ -288,6 +288,8 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             self.prescript_path,
         ]
 
+        deps = list(set(['wget', 'ca-certificates'] + self.prescript_deps))
+
         self.cruncmd(
             cmd,
             # All these environments variables are consumed by pre-deb-stage1.sh
@@ -297,6 +299,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
                 f"FATBUILDR_REPO={self.registry.path}",
                 f"FATBUILDR_KEYRING={self.build_keyring}",
                 f"FATBUILDR_SOURCE={self.instance.name}",
+                f"FATBUILDR_PRESCRIPT_DEPS={' '.join(deps)}",
                 f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
                 f"FATBUILDR_SOURCE_DIR={tarball_subdir}",
                 f"FATBUILDR_USER={current_user()[1]}",

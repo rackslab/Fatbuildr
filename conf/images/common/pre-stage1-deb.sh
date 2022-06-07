@@ -32,7 +32,10 @@ groupadd --gid ${FATBUILDR_GID} ${FATBUILDR_USER}
 useradd --system --uid ${FATBUILDR_UID} --gid ${FATBUILDR_GID} ${FATBUILDR_USER}
 
 # install deps in pre-script build environment
-DEBIAN_FRONTEND=noninteractive apt-get -y install wget ca-certificates
+if [ -n "${FATBUILDR_PRESCRIPT_DEPS}" ]; then
+    echo "Installing prescript dependencies '${FATBUILDR_PRESCRIPT_DEPS}'"
+    DEBIAN_FRONTEND=noninteractive apt-get -y install ${FATBUILDR_PRESCRIPT_DEPS}
+fi
 
 #cd ${FATBUILDR_SOURCE_DIR}
 su ${FATBUILDR_USER} -s /bin/bash -c "/bin/bash $1 $2"
