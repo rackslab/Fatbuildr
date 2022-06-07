@@ -19,16 +19,31 @@
 
 from datetime import datetime
 from pathlib import Path
+import tarfile
 
 from .. import ArtifactEnvBuild
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
-from ...utils import current_user, current_group
+from ...utils import current_user, current_group, tar_subdir
 from ...log import logr
 
 logger = logr(__name__)
 
 # String template for changelog in RPM spec file
+SOURCES_DECL_TPL = """
+Source: {{ main_tarball }}
+{% for tarball in supplementary_tarballs %}
+Source{{ loop.index }}: {{ tarball }}
+{% endfor %}
+"""
+
+SOURCES_PREP_TPL = """
+%setup -q -n {{ main_tarball_subdir }}
+{% for tarball in supplementary_tarballs %}
+%setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index }}
+{% endfor %}
+"""
+
 CHANGELOG_TPL = """
 %changelog
 {% for entry in changelog %}
@@ -109,7 +124,14 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
 
     @property
     def source_path(self):
-        return self.place.joinpath('source')
+        """Returns the path to the source subdirectory used as input by mock for
+        building the SRPM. The directory is created if not already present."""
+        path = self.place.joinpath('source')
+        if not path.exists():
+            logger.debug("Create source subdirectory %s", path)
+            path.mkdir()
+            path.chmod(0o755)
+        return path
 
     def build(self):
         self._build_src()
@@ -132,13 +154,28 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         templater = Templeter()
 
         # Generate patches templates
+        sources_decl = ""
+        sources_prep = ""
         patches_decl = ""
         patches_prep = ""
 
-        if not self.source_path.exists():
-            logger.debug("Create source subdirectory %s", self.source_path)
-            self.source_path.mkdir()
-            self.source_path.chmod(0o755)
+        sources_decl = templater.srender(
+            SOURCES_DECL_TPL,
+            main_tarball=self.tarball.name,
+            supplementary_tarballs=[
+                f"{self.artifact}_{self.version.main}-{subdir}.tar.xz"
+                for subdir in self.prescript_tarballs
+            ],
+        )
+
+        with tarfile.open(self.tarball) as tar:
+            main_tarball_subdir = tar_subdir(tar)
+
+        sources_prep = templater.srender(
+            SOURCES_PREP_TPL,
+            main_tarball_subdir=main_tarball_subdir,
+            supplementary_tarballs=self.prescript_tarballs,
+        )
 
         if self.has_patches:
             # Move patches in the sources subdirectory
@@ -207,7 +244,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                     pkg=self,
                     version=self.version.main,
                     release=self.version.fullrelease,
-                    source=self.tarball.name,
+                    source=sources_decl,
+                    prep_sources=sources_prep,
                     patches=patches_decl,
                     prep_patches=patches_prep,
                     changelog=changelog,
@@ -420,3 +458,18 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         # prescript had errors.
         if prescript_failed:
             raise RuntimeError("prescript error")
+
+    def prescript_supp_tarball(self, tarball_subdir):
+        for subdir in self.prescript_tarballs:
+            supp_tarball_path = self.source_path.joinpath(
+                f"{self.artifact}_{self.version.main}-{subdir}.tar.xz",
+            )
+            logger.info(
+                "Generating supplementary tarball %s", supp_tarball_path
+            )
+            with tarfile.open(supp_tarball_path, 'x:xz') as tar:
+                tar.add(
+                    tarball_subdir.joinpath(subdir),
+                    arcname=subdir,
+                    recursive=True,
+                )
