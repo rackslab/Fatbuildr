@@ -217,12 +217,6 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             env,
         )
 
-        # Save keyring in build place to cowbuilder can check signatures of
-        # fatbuildr repositories.
-        keyring_path = self.place.joinpath('keyring.asc')
-        with open(keyring_path, 'w+') as fh:
-            fh.write(self.instance.keyring.export())
-
         dsc_path = self.place.joinpath(
             self.artifact + '_' + self.version.full + '.dsc'
         )
@@ -257,7 +251,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             cmd,
             envs=[
                 f"FATBUILDR_REPO={self.registry.path}",
-                f"FATBUILDR_KEYRING={keyring_path}",
+                f"FATBUILDR_KEYRING={self.build_keyring}",
                 f"FATBUILDR_SOURCE={self.instance.name}",
                 f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
                 f"FATBUILDR_INTERACTIVE={'yes' if self.io.interactive else 'no'}",
@@ -293,10 +287,6 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         ]
         cmd.extend(prescript_cmd)
 
-        keyring_path = self.place.joinpath('keyring.asc')
-        with open(keyring_path, 'w+') as fh:
-            fh.write(self.instance.keyring.export())
-
         self.cruncmd(
             cmd,
             # All these environments variables are consumed by pre-deb-stage1.sh
@@ -304,7 +294,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             # hook, to prepare the environment for the prescript.
             envs=[
                 f"FATBUILDR_REPO={self.registry.path}",
-                f"FATBUILDR_KEYRING={keyring_path}",
+                f"FATBUILDR_KEYRING={self.build_keyring}",
                 f"FATBUILDR_SOURCE={self.instance.name}",
                 f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
                 f"FATBUILDR_SOURCE_DIR={tarball_subdir}",

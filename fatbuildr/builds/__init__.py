@@ -320,6 +320,16 @@ class ArtifactEnvBuild(ArtifactBuild):
             self.format, self.env_name, host_architecture()
         )
 
+    @property
+    def build_keyring(self):
+        """If not already present, export instance keyring public key with
+        armored format in task directory and return its path."""
+        path = self.place.joinpath('keyring.asc')
+        if not path.exists():
+            with open(path, 'w+') as fh:
+                fh.write(self.instance.keyring.export())
+        return path
+
     def prescript_in_env(self, tar_subdir, prescript_cmd):
         """Method to run the prescript in build environment. This method must
         be implemented at format specialized classes level."""
