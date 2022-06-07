@@ -329,7 +329,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         cmd.extend(_cmd)
         self.cruncmd(cmd, user=current_user()[1])
 
-    def prescript_in_env(self, tarball_subdir, prescript_cmd):
+    def prescript_in_env(self, tarball_subdir):
         """Execute prescript in RPM build environment using mock and
         snapshots."""
         logger.info(
@@ -396,8 +396,9 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 f"FATBUILDR_SOURCE_DIR={tarball_subdir}",
                 '/bin/bash',
                 self.image.common_libdir.joinpath('pre-stage1-rpm.sh'),
+                self.prewrapper_path,
+                self.prescript_path,
             ]
-            cmd.extend(prescript_cmd)
             self.cruncmd(cmd, user=current_user()[1])
         except RuntimeError as err:
             logger.error("Error while running prescript: %s", err)
