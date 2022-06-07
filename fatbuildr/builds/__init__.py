@@ -330,7 +330,39 @@ class ArtifactEnvBuild(ArtifactBuild):
                 fh.write(self.instance.keyring.export())
         return path
 
-    def prescript_in_env(self, tar_subdir, prescript_cmd):
+    @property
+    def prescript_path(self):
+        """Returns path to the artifact prescript, which may not exist."""
+        return self.place.joinpath('pre.sh')
+
+    @property
+    def prewrapper_path(self):
+        """Returns path to the prescript wrapper script."""
+        return self.image.common_libdir.joinpath('pre-wrapper.sh')
+
+    @cached_property
+    def prescript_deps(self):
+        """Returns the concatenation of the list of basic prescript dependencies
+        declared in configuration file for the image and the optional list of
+        dependencies found in prescript."""
+        in_file = []
+        with open(self.prescript_path, "r") as fh:
+            for line in fh:
+                if line.startswith('#PRESCRIPT_DEPS'):
+                    try:
+                        line = line.strip()  # Remove trailing EOL
+                        in_file = line.split(' ')[1:]
+                        break
+                    except IndexError:
+                        logger.warn(
+                            "Unable to parse prescript dependencies line %s",
+                            line,
+                        )
+        if not len(in_file):
+            logger.debug("Prescript in-file dependencies not found")
+        return list(set(self.image.prescript_deps + in_file))
+
+    def prescript_in_env(self, tarball_subdir):
         """Method to run the prescript in build environment. This method must
         be implemented at format specialized classes level."""
         raise NotImplementedError
@@ -339,8 +371,7 @@ class ArtifactEnvBuild(ArtifactBuild):
         """Run the prescript."""
 
         # Check the prescript is present or leave
-        pre_script_path = self.place.joinpath('pre.sh')
-        if not pre_script_path.exists():
+        if not self.prescript_path.exists():
             logger.debug(
                 "Prescript no found, continuing with unmodified tarball"
             )
@@ -371,10 +402,7 @@ class ArtifactEnvBuild(ArtifactBuild):
         if self.has_patches:
             git.import_patches(self.patches_dir)
 
-        # Run pre script in archives directory using the wrapper
-        wrapper_path = self.image.common_libdir.joinpath('pre-wrapper.sh')
-
-        self.prescript_in_env(tarball_subdir, [wrapper_path, pre_script_path])
+        self.prescript_in_env(tarball_subdir)
 
         # export git repo diff in patch queue
         git.commit_export(

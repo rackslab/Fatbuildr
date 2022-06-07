@@ -260,7 +260,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             ],
         )
 
-    def prescript_in_env(self, tarball_subdir, prescript_cmd):
+    def prescript_in_env(self, tarball_subdir):
         """Execute prescript in Deb build environment using cowbuilder."""
         logger.info(
             "Executing prescript in deb build environment %s",
@@ -284,8 +284,9 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             self.native_env.path,
             '--',
             self.image.common_libdir.joinpath('pre-stage1-deb.sh'),
+            self.prewrapper_path,
+            self.prescript_path,
         ]
-        cmd.extend(prescript_cmd)
 
         self.cruncmd(
             cmd,
