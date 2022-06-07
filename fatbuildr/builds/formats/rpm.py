@@ -261,12 +261,6 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             env,
         )
 
-        # Save keyring in build place so dnf can check signatures of
-        # fatbuildr packages in mock environment.
-        keyring_path = self.place.joinpath('keyring.asc')
-        with open(keyring_path, 'w+') as fh:
-            fh.write(self.instance.keyring.export())
-
         cmd = [
             'mock',
             '--root',
@@ -282,7 +276,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             '--plugin-option',
             f"fatbuildr_derivatives:derivatives={','.join(self.derivatives)}",
             '--plugin-option',
-            f"fatbuildr_derivatives:keyring={keyring_path}",
+            f"fatbuildr_derivatives:keyring={self.build_keyring}",
             '--resultdir',
             self.place,
             '--rebuild',
@@ -373,9 +367,6 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 "Running the prescript using stage1 script in build environment %s",
                 self.native_env.name,
             )
-            keyring_path = self.place.joinpath('keyring.asc')
-            with open(keyring_path, 'w+') as fh:
-                fh.write(self.instance.keyring.export())
 
             # run prescript
             cmd = [
@@ -395,7 +386,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 '--plugin-option',
                 f"fatbuildr_derivatives:derivatives={','.join(self.derivatives)}",
                 '--plugin-option',
-                f"fatbuildr_derivatives:keyring={keyring_path}",
+                f"fatbuildr_derivatives:keyring={self.build_keyring}",
                 '--plugin-option',
                 "bind_mount:dirs="
                 f"[(\"{self.place}\",\"{self.place}\"),"
