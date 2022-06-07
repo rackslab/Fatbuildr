@@ -51,6 +51,10 @@ class Image(object):
     def def_exists(self):
         return self.def_path.exists()
 
+    @property
+    def prescript_deps(self):
+        return getattr(self.conf, self.format).prescript_deps
+
     def create(self, task, force):
         """Create the image."""
         logger.info("Creating image for %s format", self.format)

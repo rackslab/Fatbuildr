@@ -349,11 +349,10 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
 
         try:
             # install deps
-            deps = list(set(['wget'] + self.prescript_deps))
             logger.debug(
                 "Installing prescript dependencies in build environment %s: %s",
                 self.native_env.name,
-                deps,
+                self.prescript_deps,
             )
 
             cmd = [
@@ -362,7 +361,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 self.native_env.name,
                 '--dnf-cmd',
                 'install',
-            ] + deps
+            ] + self.prescript_deps
             self.cruncmd(cmd, user=current_user()[1])
 
             logger.debug(
