@@ -341,7 +341,8 @@ class RegistryDeb(Registry):
         with open(dsc_path) as dsc_fh:
             dsc = deb822.Dsc(dsc_fh)
         for arch in dsc['Files']:
-            if '.orig.' in arch['name']:  # skip orig archive
+            # skip orig archives
+            if '.orig.' in arch['name'] or '.orig-' in arch['name']:
                 continue
             return dsc_path.parent.joinpath(arch['name'])
         raise RuntimeError(
