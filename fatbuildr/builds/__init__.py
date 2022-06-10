@@ -340,51 +340,40 @@ class ArtifactEnvBuild(ArtifactBuild):
         """Returns path to the prescript wrapper script."""
         return self.image.common_libdir.joinpath('pre-wrapper.sh')
 
-    @cached_property
-    def prescript_deps(self):
-        """Returns the concatenation of the list of basic prescript dependencies
-        declared in configuration file for the image and the optional list of
-        dependencies found in prescript."""
+    def prescript_token(self, token):
+        """Returns the list of values found for the given token parameter in the
+        prescript. If the parameter is not found, an empty list is returned."""
         in_file = []
         with open(self.prescript_path, "r") as fh:
             for line in fh:
-                if line.startswith('#PRESCRIPT_DEPS'):
+                if line.startswith(f"#PRESCRIPT_{token}"):
                     try:
                         line = line.strip()  # Remove trailing EOL
                         in_file = line.split(' ')[1:]
                         break
                     except IndexError:
                         logger.warn(
-                            "Unable to parse prescript dependencies line %s",
+                            "Unable to parse prescript %s line %s",
+                            token,
                             line,
                         )
         if not len(in_file):
-            logger.debug("Prescript in-file dependencies not found")
+            logger.debug("Prescript in-file %s not found", token)
+        return in_file
+
+    @cached_property
+    def prescript_deps(self):
+        """Returns the concatenation of the list of basic prescript dependencies
+        declared in configuration file for the image and the optional list of
+        dependencies found in prescript."""
+        in_file = self.prescript_token('DEPS')
         return list(set(self.image.prescript_deps + in_file))
 
     @cached_property
     def prescript_tarballs(self):
-        """Returns the concatenation of the list of basic prescript dependencies
-        declared in configuration file for the image and the optional list of
-        dependencies found in prescript."""
-        tarballs = []
-        with open(self.prescript_path, "r") as fh:
-            for line in fh:
-                if line.startswith('#PRESCRIPT_TARBALLS'):
-                    try:
-                        line = line.strip()  # Remove trailing EOL
-                        tarballs = line.split(' ')[1:]
-                        break
-                    except IndexError:
-                        logger.warn(
-                            "Unable to parse prescript dependencies line %s",
-                            line,
-                        )
-        if not len(tarballs):
-            logger.debug(
-                "Prescript in-file supplementary tarballs list not found"
-            )
-        return tarballs
+        """Returns the list of subfolders generated in prescripts to include in
+        supplementary tarballs."""
+        return self.prescript_token('TARBALLS')
 
     def prescript_in_env(self, tarball_subdir):
         """Method to run the prescript in build environment. This method must
