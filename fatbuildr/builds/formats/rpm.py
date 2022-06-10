@@ -133,6 +133,13 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             path.chmod(0o755)
         return path
 
+    def supp_tarball_path(self, subdir):
+        """Returns the patch to the supplementary tarball for the given
+        subdir."""
+        return self.source_path.joinpath(
+            f"{self.artifact}_{self.version.main}-{subdir}.tar.xz",
+        )
+
     def build(self):
         self._build_src()
         for architecture in self.architectures:
@@ -163,7 +170,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             SOURCES_DECL_TPL,
             main_tarball=self.tarball.name,
             supplementary_tarballs=[
-                f"{self.artifact}_{self.version.main}-{subdir}.tar.xz"
+                self.supp_tarball_path(subdir).name
                 for subdir in self.prescript_tarballs
             ],
         )
@@ -461,13 +468,11 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
 
     def prescript_supp_tarball(self, tarball_subdir):
         for subdir in self.prescript_tarballs:
-            supp_tarball_path = self.source_path.joinpath(
-                f"{self.artifact}_{self.version.main}-{subdir}.tar.xz",
-            )
             logger.info(
-                "Generating supplementary tarball %s", supp_tarball_path
+                "Generating supplementary tarball %s",
+                self.supp_tarball_path(subdir),
             )
-            with tarfile.open(supp_tarball_path, 'x:xz') as tar:
+            with tarfile.open(self.supp_tarball_path(subdir), 'x:xz') as tar:
                 tar.add(
                     tarball_subdir.joinpath(subdir),
                     arcname=subdir,
