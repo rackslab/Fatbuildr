@@ -249,6 +249,11 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         dsc_path = self.place.joinpath(
             self.artifact + '_' + self.version.full + '.dsc'
         )
+        # The dpkg-genchanges -sa option is used to force inclusion of source
+        # tarball in resulting changes, even when the upstream version is not
+        # bumped, because the build can include new version supplementary
+        # tarballs generated with prescript. It is safer to ensure the sources
+        # are included in changes file for every builds.
         cmd = [
             'cowbuilder',
             '--build',
@@ -262,6 +267,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             env.path,
             '--buildresult',
             str(self.place),
+            '--debbuildopts=-sa',
             dsc_path,
         ]
 
