@@ -141,7 +141,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             self.source_path.chmod(0o755)
 
         if self.has_patches:
-            # Move patches at the root of build place
+            # Move patches in the sources subdirectory
             patches = self.patches
             for patch in patches:
                 patch.rename(self.source_path.joinpath(patch.name))
@@ -214,9 +214,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 )
             )
 
-        # Check the tarball is in build place (ie. not in cache), or create
-        # symlink otherwise, so the source tarball given to mock is always in
-        # the same directory as the patches, when patches are provided.
+        # Create symlink of the source tarball in the sources subdirectory
         source = self.source_path.joinpath(self.tarball.name)
         logger.info("Creating symlink %s → %s", source, self.tarball)
         source.symlink_to(self.tarball)
