@@ -81,7 +81,8 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         """Returns the patch to the supplementary tarball for the given
         subdir."""
         return self.place.joinpath(
-            f"{self.artifact}_{self.version.main}.orig-{subdir}.tar.xz",
+            f"{self.artifact}_{self.version.main}.orig-"
+            f"{self.prescript_supp_subdir_renamed(subdir)}.tar.xz",
         )
 
     def build(self):
@@ -114,9 +115,12 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
                 "Extracting supplementary tarball %s",
                 self.supp_tarball_path(subdir),
             )
-            tarball_subdir.joinpath(subdir).mkdir()
+            target = tarball_subdir.joinpath(
+                self.prescript_supp_subdir_renamed(subdir)
+            )
+            target.mkdir()
             with tarfile.open(self.supp_tarball_path(subdir), 'r:*') as tar:
-                tar.extractall(path=tarball_subdir.joinpath(subdir))
+                tar.extractall(path=target)
 
         # copy debian dir
         deb_code_from = self.place.joinpath('deb')
@@ -339,5 +343,9 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             )
             with tarfile.open(self.supp_tarball_path(subdir), 'x:xz') as tar:
                 tar.add(
-                    tarball_subdir.joinpath(subdir), arcname='.', recursive=True
+                    tarball_subdir.joinpath(
+                        self.prescript_supp_subdir_renamed(subdir)
+                    ),
+                    arcname='.',
+                    recursive=True,
                 )

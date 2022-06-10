@@ -137,7 +137,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         """Returns the patch to the supplementary tarball for the given
         subdir."""
         return self.source_path.joinpath(
-            f"{self.artifact}_{self.version.main}-{subdir}.tar.xz",
+            f"{self.artifact}_{self.version.main}-"
+            f"{self.prescript_supp_subdir_renamed(subdir)}.tar.xz",
         )
 
     def build(self):
@@ -470,8 +471,11 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 self.supp_tarball_path(subdir),
             )
             with tarfile.open(self.supp_tarball_path(subdir), 'x:xz') as tar:
+                renamed = tarball_subdir.joinpath(
+                    self.prescript_supp_subdir_renamed(subdir)
+                )
                 tar.add(
-                    tarball_subdir.joinpath(subdir),
-                    arcname=subdir,
+                    renamed,
+                    arcname=renamed.name,
                     recursive=True,
                 )

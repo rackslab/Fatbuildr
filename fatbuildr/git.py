@@ -41,15 +41,25 @@ class GitRepository:
         message = "Initial commit"
         self._base_commit(ref, parents, author, email, message)
 
-    def _commit(self, author, email, title, meta):
+    def _commit(self, author, email, title, meta, files):
         ref = self._repo.head.name
         parents = [self._repo.head.target]
         message = title + "\n\n" + str(meta)
-        self._base_commit(ref, parents, author, email, message)
+        self._base_commit(ref, parents, author, email, message, files)
 
-    def _base_commit(self, ref, parents, author, email, message):
+    def _base_commit(self, ref, parents, author, email, message, files=None):
+        """Method actually performing the commit on ref, over the given parents
+        with the given author, email and message. The files argument must either
+        be None, or a list of files to index and commit. The paths must be
+        relative to the root of the Git repository. If files is None (default),
+        all modified files are selected for the commit."""
         index = self._repo.index
-        index.add_all()
+        if files is None:
+            index.add_all()
+        else:
+            # add given files list to index
+            for _file in files:
+                index.add(_file)
         index.write()
         author_s = pygit2.Signature(author, email)
         committer_s = pygit2.Signature(author, email)
@@ -131,7 +141,7 @@ class GitRepository:
         subprocess.run(cmd, input=content, cwd=self.path)
 
         # Commit modifications
-        self._commit(author, email, title, meta)
+        self._commit(author, email, title, meta, files=None)
 
     def export_queue(self, patches_dir):
         """Export all commits in the repository into successive patches in
@@ -181,7 +191,14 @@ class GitRepository:
             logger.warning("Patch diff is empty, skipping patch generation")
 
     def commit_export(
-        self, patches_dir, index, title, author, email, description
+        self,
+        patches_dir,
+        index,
+        title,
+        author,
+        email,
+        description,
+        files,
     ):
         """Commit the modifications in the git repository and export these
         modifications into a patch file in patches_dir."""
@@ -191,7 +208,7 @@ class GitRepository:
         meta['Forwarded'] = "no"
         meta['Last-Update'] = datetime.today().strftime('%Y-%m-%d')
 
-        self._commit(author, email, title, meta)
+        self._commit(author, email, title, meta, files)
 
         last_commit = self._repo[self._repo.head.target]
 
