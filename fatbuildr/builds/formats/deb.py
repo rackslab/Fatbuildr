@@ -189,16 +189,23 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             cmd, chdir=tarball_subdir, envs=_envs, user=current_user()[1]
         )
 
-        #  add symlink to tarball
+        # Create orig symlink to tarball
         orig_tarball_path = self.place.joinpath(
             f"{self.artifact}_{self.version.main}.orig.tar.{self.tarball_ext}",
         )
+        # If the artifact tarball is the build place, create a relative symbolic
+        # link, so the link stays valid when the task is moved in archives.
+        # Otherwise (ie. the tarball is in cache), use the absolute path.
+        if self.tarball.is_relative_to(self.place):
+            dest = self.tarball.relative_to(self.tarball.parent)
+        else:
+            dest = self.tarball
         logger.debug(
             "Creating symlink %s → %s",
             orig_tarball_path,
-            self.tarball,
+            dest,
         )
-        orig_tarball_path.symlink_to(self.tarball)
+        orig_tarball_path.symlink_to(dest)
 
         # build source package
         logger.info("Building source package")
