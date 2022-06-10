@@ -23,6 +23,7 @@ import platform
 import os
 import pwd
 import grp
+import tarfile
 
 import requests
 
@@ -78,7 +79,12 @@ def verify_checksum(path, format, value):
 
 def tar_subdir(tar):
     """Returns the name of the subdirectory of the root of the given tarball,
-    or raise RuntimeError if not found."""
+    or raise RuntimeError if not found. The tar argument can either be an opened
+    tarfile.TarFile object or a path to a tarball. For the latter, the tarball
+    is opened with a recursive call."""
+    if type(tar) != tarfile.TarFile:
+        with tarfile.open(tar) as _tar:
+            return tar_subdir(_tar)
     # search for first member found in root of archive (w/o '/' in name)
     for member in tar.getmembers():
         if '/' not in member.name:

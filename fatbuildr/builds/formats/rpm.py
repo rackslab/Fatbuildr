@@ -175,12 +175,9 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             ],
         )
 
-        with tarfile.open(self.tarball) as tar:
-            main_tarball_subdir = tar_subdir(tar)
-
         sources_prep = templater.srender(
             SOURCES_PREP_TPL,
-            main_tarball_subdir=main_tarball_subdir,
+            main_tarball_subdir=tar_subdir(self.tarball),
             supplementary_tarballs=self.prescript_tarballs,
         )
 
