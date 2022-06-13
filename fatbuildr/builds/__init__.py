@@ -37,6 +37,7 @@ from ..utils import (
     dl_file,
     verify_checksum,
     tar_subdir,
+    tar_safe_extractall,
     current_user,
     host_architecture,
 )
@@ -160,9 +161,8 @@ class ArtifactBuild(RunnableTask):
             self.input_tarball,
             self.place,
         )
-        tar = tarfile.open(self.input_tarball, 'r:xz')
-        tar.extractall(path=self.place)
-        tar.close()
+        with tarfile.open(self.input_tarball, 'r:xz') as tar:
+            tar_safe_extractall(tar, self.place)
 
         # Remove the input tarball
         self.input_tarball.unlink()
@@ -409,7 +409,7 @@ class ArtifactEnvBuild(ArtifactBuild):
 
         # Extract original upstream tarball (and get the subdir)
         with tarfile.open(self.tarball) as tar:
-            tar.extractall(upstream_dir)
+            tar_safe_extractall(tar, upstream_dir)
             tarball_subdir = upstream_dir.joinpath(tar_subdir(tar))
 
         # Remove .gitignore file if present, to avoid modification realized

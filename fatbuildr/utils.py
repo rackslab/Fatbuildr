@@ -24,6 +24,7 @@ import os
 import pwd
 import grp
 import tarfile
+import copy
 
 import requests
 
@@ -93,6 +94,47 @@ def tar_subdir(tar):
     if not subdir.isdir():
         raise RuntimeError(f"unable to define tarball {tar.name} subdirectory")
     return subdir.name
+
+
+def tar_safe_extractall(tar, path):
+    """Extract all members from the archive tar to the directory pointed by
+    path. This function is largely a copy of Python standard library
+    TarFile.extractall() except:
+    - It checks for and skips with warning members with absolute path or with
+      parent relative directory (ie '..')
+    - It does not set attributes (mode, time) of directory pointed by path in
+      respect with archive content for root directory. It path already exists,
+      its attributes are unmodified. If path does not already exist, its mode is
+      set with default mode (ie. in respect to current umask)."""
+    directories = []
+
+    for tarinfo in tar:
+        # Detect and skip with warning unsafe members
+        if tarinfo.name.startswith('/') or '..' in tarinfo.name:
+            logger.warning(
+                "skipping extraction of unsafe file %s from archive %s",
+                tarinfo.name,
+                tar.name,
+            )
+            continue
+        if tarinfo.isdir() and tarinfo.name != '.':
+            # Extract directories with a safe mode, except for '.'.
+            directories.append(tarinfo)
+            tarinfo = copy.copy(tarinfo)
+            tarinfo.mode = 0o700
+        # Do not set_attrs directories, as we will do that further down
+        tar.extract(tarinfo, path, set_attrs=not tarinfo.isdir())
+
+    # Reverse sort directories.
+    directories.sort(key=lambda a: a.name)
+    directories.reverse()
+
+    # Set correct owner, mtime and filemode on directories (except on '.')
+    for tarinfo in directories:
+        dirpath = os.path.join(path, tarinfo.name)
+        tar.chown(tarinfo, dirpath, numeric_owner=False)
+        tar.utime(tarinfo, dirpath)
+        tar.chmod(tarinfo, dirpath)
 
 
 def host_architecture():

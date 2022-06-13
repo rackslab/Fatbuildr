@@ -24,7 +24,7 @@ from pathlib import Path
 import tarfile
 
 from .git import GitRepository
-from .utils import dl_file, verify_checksum, tar_subdir
+from .utils import dl_file, verify_checksum, tar_subdir, tar_safe_extractall
 from .cleanup import CleanupRegistry
 from .log import logr
 
@@ -96,7 +96,7 @@ class PatchQueue:
 
         # extract tarball in the tmp directory
         with tarfile.open(tarball_path, 'r') as tar:
-            tar.extractall(path=tmpdir)
+            tar_safe_extractall(tar, tmpdir)
             repo_path = tmpdir.joinpath(tar_subdir(tar))
 
         # init the git repository with its initial commit
