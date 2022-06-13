@@ -54,79 +54,74 @@ def check_authorization(method):
 class DbusClient(AbstractClient):
     def __init__(self, uri, scheme, instance):
         super().__init__(uri, scheme, instance)
-        self.proxy = FATBUILDR_SERVICE.get_proxy()
+        self.service_proxy = FATBUILDR_SERVICE.get_proxy()
+        obj_path = self.service_proxy.GetInstance(instance)
+        self.proxy = FATBUILDR_SERVICE.get_proxy(obj_path)
 
     # instances and pipelines
 
     @check_authorization
     def instances(self):
-        return DbusInstance.from_structure_list(self.proxy.Instances)
+        return DbusInstance.from_structure_list(self.service_proxy.Instances)
 
     @check_authorization
     def instance(self, id):
-        return DbusInstance.from_structure(self.proxy.Instance(id))
+        return DbusInstance.from_structure(self.proxy.Instance)
 
     @check_authorization
     def pipelines_formats(self):
-        return self.proxy.PipelinesFormats(self.instance)
+        return self.proxy.PipelinesFormats
 
     @check_authorization
     def pipelines_architectures(self):
-        return self.proxy.PipelinesArchitectures(self.instance)
+        return self.proxy.PipelinesArchitectures
 
     @check_authorization
     def pipelines_format_distributions(self, format):
-        return self.proxy.PipelinesFormatDistributions(self.instance, format)
+        return self.proxy.PipelinesFormatDistributions(format)
 
     @check_authorization
     def pipelines_distribution_format(self, distribution):
-        return self.proxy.PipelinesDistributionFormat(
-            self.instance, distribution
-        )
+        return self.proxy.PipelinesDistributionFormat(distribution)
 
     @check_authorization
     def pipelines_distribution_derivatives(self, distribution):
-        return self.proxy.PipelinesDistributionDerivatives(
-            self.instance, distribution
-        )
+        return self.proxy.PipelinesDistributionDerivatives(distribution)
 
     @check_authorization
     def pipelines_distribution_environment(self, distribution):
-        env = self.proxy.PipelinesDistributionEnvironment(
-            self.instance, distribution
-        )
+        env = self.proxy.PipelinesDistributionEnvironment(distribution)
         if env == 'none':
             return None
         return env
 
     @check_authorization
     def pipelines_derivative_formats(self, derivative):
-        return self.proxy.PipelinesDerivativeFormats(self.instance, derivative)
+        return self.proxy.PipelinesDerivativeFormats(derivative)
 
     # registries
 
     @check_authorization
     def formats(self):
-        return self.proxy.Formats(self.instance)
+        return self.proxy.Formats
 
     @check_authorization
     def distributions(self, fmt):
-        return self.proxy.Distributions(self.instance, fmt)
+        return self.proxy.Distributions(fmt)
 
     @check_authorization
     def derivatives(self, fmt, distribution):
-        return self.proxy.Derivatives(self.instance, fmt, distribution)
+        return self.proxy.Derivatives(fmt, distribution)
 
     @check_authorization
     def artifacts(self, fmt, distribution, derivative):
         return DbusArtifact.from_structure_list(
-            self.proxy.Artifacts(self.instance, fmt, distribution, derivative)
+            self.proxy.Artifacts(fmt, distribution, derivative)
         )
 
     @check_authorization
     def delete_artifact(self, fmt, distribution, derivative, artifact):
         return self.proxy.ArtifactDelete(
-            self.instance,
             fmt,
             distribution,
             derivative,
@@ -136,9 +131,7 @@ class DbusClient(AbstractClient):
     @check_authorization
     def artifact_bins(self, fmt, distribution, derivative, artifact):
         return DbusArtifact.from_structure_list(
-            self.proxy.ArtifactBinaries(
-                self.instance, fmt, distribution, derivative, artifact
-            )
+            self.proxy.ArtifactBinaries(fmt, distribution, derivative, artifact)
         )
 
     @check_authorization
@@ -146,7 +139,7 @@ class DbusClient(AbstractClient):
         try:
             return DbusArtifact.from_structure(
                 self.proxy.ArtifactSource(
-                    self.instance, fmt, distribution, derivative, artifact
+                    fmt, distribution, derivative, artifact
                 )
             )
         except ErrorArtifactNotFound:
@@ -156,7 +149,6 @@ class DbusClient(AbstractClient):
     def changelog(self, fmt, distribution, derivative, architecture, artifact):
         return DbusChangelogEntry.from_structure_list(
             self.proxy.Changelog(
-                self.instance,
                 fmt,
                 distribution,
                 derivative,
@@ -181,7 +173,6 @@ class DbusClient(AbstractClient):
         interactive,
     ):
         return self.proxy.Build(
-            self.instance,
             format,
             distribution,
             architectures,
@@ -197,24 +188,18 @@ class DbusClient(AbstractClient):
 
     @check_authorization
     def queue(self):
-        return DbusRunnableTask.from_structure_list(
-            self.proxy.Queue(self.instance)
-        )
+        return DbusRunnableTask.from_structure_list(self.proxy.Queue)
 
     @check_authorization
     def running(self):
         try:
-            return DbusRunnableTask.from_structure(
-                self.proxy.Running(self.instance)
-            )
+            return DbusRunnableTask.from_structure(self.proxy.Running)
         except ErrorNoRunningTask:
             return None
 
     @check_authorization
     def archives(self, limit):
-        return DbusRunnableTask.from_structure_list(
-            self.proxy.Archives(self.instance, limit)
-        )
+        return DbusRunnableTask.from_structure_list(self.proxy.Archives(limit))
 
     def get(self, task_id):
         for _task in self.queue():
@@ -246,41 +231,41 @@ class DbusClient(AbstractClient):
 
     @check_authorization
     def keyring_create(self):
-        return self.proxy.KeyringCreate(self.instance)
+        return self.proxy.KeyringCreate()
 
     @check_authorization
     def keyring_renew(self, duration):
-        return self.proxy.KeyringRenew(self.instance, duration)
+        return self.proxy.KeyringRenew(duration)
 
     @check_authorization
     def keyring(self):
         try:
-            return DbusKeyring.from_structure(self.proxy.Keyring(self.instance))
+            return DbusKeyring.from_structure(self.proxy.Keyring)
         except ErrorNoKeyring:
             return None
 
     @check_authorization
     def keyring_export(self):
-        return self.proxy.KeyringExport(self.instance)
+        return self.proxy.KeyringExport
 
     # images
 
     @check_authorization
     def image_create(self, format, force):
-        return self.proxy.ImageCreate(self.instance, format, force)
+        return self.proxy.ImageCreate(format, force)
 
     @check_authorization
     def image_update(self, format):
-        return self.proxy.ImageUpdate(self.instance, format)
+        return self.proxy.ImageUpdate(format)
 
     @check_authorization
     def image_environment_create(self, format, environment, architecture):
         return self.proxy.ImageEnvironmentCreate(
-            self.instance, format, environment, architecture
+            format, environment, architecture
         )
 
     @check_authorization
     def image_environment_update(self, format, environment, architecture):
         return self.proxy.ImageEnvironmentUpdate(
-            self.instance, format, environment, architecture
+            format, environment, architecture
         )

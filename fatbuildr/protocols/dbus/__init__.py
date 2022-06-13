@@ -19,7 +19,7 @@
 
 from dasbus.connection import SystemMessageBus
 from dasbus.error import DBusError, ErrorMapper, get_error_decorator
-from dasbus.identifier import DBusServiceIdentifier
+from dasbus.identifier import DBusServiceIdentifier, DBusInterfaceIdentifier
 from dasbus.structure import (
     DBusData,
     DBusFieldFactory,
@@ -52,10 +52,15 @@ BUS = SystemMessageBus(error_mapper=ERROR_MAPPER)
 
 # Define namespaces.
 FATBUILDR_NAMESPACE = ("org", "rackslab", "Fatbuildr")
+INSTANCES_NAMESPACE = (*FATBUILDR_NAMESPACE, "Instances")
 
 # Define services and objects.
 FATBUILDR_SERVICE = DBusServiceIdentifier(
     namespace=FATBUILDR_NAMESPACE, message_bus=BUS
+)
+
+FATBUILDR_INSTANCE = DBusInterfaceIdentifier(
+    namespace=FATBUILDR_NAMESPACE, basename="Instance"
 )
 
 # The decorator for DBus errors.

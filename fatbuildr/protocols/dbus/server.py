@@ -24,12 +24,16 @@ from dasbus.server.interface import dbus_interface, accepts_additional_arguments
 from dasbus.server.handler import ServerObjectHandler
 from dasbus.server.property import emits_properties_changed
 from dasbus.server.template import InterfaceTemplate
+from dasbus.server.publishable import Publishable
+from dasbus.namespace import get_dbus_path
 from dasbus.signal import Signal
-from dasbus.typing import Structure, List, Str, Int, Bool, Variant
+from dasbus.typing import Structure, List, Str, Int, Bool, Variant, ObjPath
 from dasbus.xml import XMLGenerator
 
 from . import (
     FATBUILDR_SERVICE,
+    FATBUILDR_INSTANCE,
+    INSTANCES_NAMESPACE,
     BUS,
     DbusInstance,
     DbusRunnableTask,
@@ -126,8 +130,12 @@ class AuthorizationServerObjectHandler(ServerObjectHandler):
 
 
 @dbus_interface(FATBUILDR_SERVICE.interface_name)
-class FatbuildrInterface(InterfaceTemplate):
-    """The DBus interface of Fatbuildr."""
+class FatbuildrDbusServiceInterface(InterfaceTemplate):
+    """The DBus interface of the Fatbuildr service."""
+
+    def GetInstance(self, id: Str) -> ObjPath:
+        """Returns the FatbuildrDbusInstance object path."""
+        return self.implementation.get_instance(id)
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
@@ -135,128 +143,147 @@ class FatbuildrInterface(InterfaceTemplate):
         """Returns the instances list."""
         return DbusInstance.to_structure_list(self.implementation.instances())
 
+
+class FatbuildrDbusService(Publishable):
+    """The implementation of the FatbuildrDbusService."""
+
+    def __init__(self, instances, timer):
+        self._instances = {}  # dict of Publishable FatbuildrDbusInstances
+        self.instances = instances  # list of RunningInstances
+        self.timer = timer
+
+        for instance in instances:
+            obj = FatbuildrDbusInstance(instance, timer)
+            object_path = get_dbus_path(
+                *INSTANCES_NAMESPACE,
+                instance.id,
+            )
+            BUS.publish_object(
+                object_path,
+                obj.for_publication(),
+                server_factory=AuthorizationServerObjectHandler,
+            )
+            self._instances[instance.id] = object_path
+
+    def for_publication(self):
+        """Return a DBus representation."""
+        return FatbuildrDbusServiceInterface(self)
+
+    def get_instance(self, id):
+        """Returns the Fatbuildr instance publishable object."""
+        return self._instances[id]
+
+    def instances(self):
+        self.timer.reset()
+        return self.instances
+
+
+@dbus_interface(FATBUILDR_INSTANCE.interface_name)
+class FatbuildrDbusInstanceInterface(InterfaceTemplate):
+    """The DBus interface of Fatbuildr instances."""
+
+    @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
-    def Instance(self, instance: Str) -> Structure:
+    def Instance(self) -> Structure:
         """Returns the instance user id."""
-        return DbusInstance.to_structure(self.implementation.instance(instance))
+        return DbusInstance.to_structure(self.implementation.instance())
 
+    @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
-    def PipelinesFormats(self, instance: Str) -> List[Str]:
+    def PipelinesFormats(self) -> List[Str]:
         """Returns the list of formats defined in pipelines of the given instance."""
-        return self.implementation.pipelines_formats(instance)
+        return self.implementation.pipelines_formats()
 
+    @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
-    def PipelinesArchitectures(self, instance: Str) -> List[Str]:
+    def PipelinesArchitectures(self) -> List[Str]:
         """Returns the list of architectures defined in pipelines of the given instance."""
-        return self.implementation.pipelines_architectures(instance)
+        return self.implementation.pipelines_architectures()
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
-    def PipelinesFormatDistributions(
-        self, instance: Str, format: Str
-    ) -> List[Str]:
+    def PipelinesFormatDistributions(self, format: Str) -> List[Str]:
         """Returns the distributions of the given format in the pipelines of the instance."""
-        return self.implementation.pipelines_format_distributions(
-            instance, format
-        )
+        return self.implementation.pipelines_format_distributions(format)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
-    def PipelinesDistributionFormat(
-        self, instance: Str, distribution: Str
-    ) -> Str:
+    def PipelinesDistributionFormat(self, distribution: Str) -> Str:
         """Returns the format of the given distribution in the pipelines of the instance."""
-        return self.implementation.pipelines_distribution_format(
-            instance, distribution
-        )
+        return self.implementation.pipelines_distribution_format(distribution)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
-    def PipelinesDistributionEnvironment(
-        self, instance: Str, distribution: Str
-    ) -> Str:
+    def PipelinesDistributionEnvironment(self, distribution: Str) -> Str:
         """Returns the environment of the given distribution in the pipelines of the instance."""
         try:
             return self.implementation.pipelines_distribution_environment(
-                instance, distribution
+                distribution
             )
         except RuntimeError:
             return 'none'
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
-    def PipelinesDistributionDerivatives(
-        self, instance: Str, distribution: Str
-    ) -> List[Str]:
+    def PipelinesDistributionDerivatives(self, distribution: Str) -> List[Str]:
         """Returns the derivatives of the given distribution in the pipelines of the instance."""
         return self.implementation.pipelines_distribution_derivatives(
-            instance, distribution
+            distribution
         )
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
-    def PipelinesDerivativeFormats(
-        self, instance: Str, derivative: Str
-    ) -> List[Str]:
+    def PipelinesDerivativeFormats(self, derivative: Str) -> List[Str]:
         """Returns the formats of the given derivative in the pipelines of the instance."""
-        return self.implementation.pipelines_derivative_formats(
-            instance, derivative
-        )
+        return self.implementation.pipelines_derivative_formats(derivative)
 
+    @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
-    def Queue(self, instance: Str) -> List[Structure]:
+    def Queue(self) -> List[Structure]:
         """The list of tasks in queue."""
-        return DbusRunnableTask.to_structure_list(
-            self.implementation.queue(instance)
-        )
+        return DbusRunnableTask.to_structure_list(self.implementation.queue())
 
+    @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
-    def Running(self, instance: Str) -> Structure:
+    def Running(self) -> Structure:
         """The currently running task"""
-        return DbusRunnableTask.to_structure(
-            self.implementation.running(instance)
-        )
+        return DbusRunnableTask.to_structure(self.implementation.running())
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
-    def Archives(self, instance: Str, limit: Int) -> List[Structure]:
+    def Archives(self, limit: Int) -> List[Structure]:
         """The list of last limit tasks in archives."""
         return DbusRunnableTask.to_structure_list(
-            self.implementation.archives(instance, limit)
+            self.implementation.archives(limit)
         )
 
+    @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
-    def Formats(self, instance: Str) -> List[Str]:
+    def Formats(self) -> List[Str]:
         """The list of available formats in an instance registries."""
-        return self.implementation.formats(instance)
+        return self.implementation.formats()
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
-    def Distributions(self, instance: Str, fmt: Str) -> List[Str]:
+    def Distributions(self, fmt: Str) -> List[Str]:
         """The list of available distributions for a format in an instance
         registries."""
-        return self.implementation.distributions(instance, fmt)
+        return self.implementation.distributions(fmt)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
-    def Derivatives(
-        self, instance: Str, fmt: Str, distribution: Str
-    ) -> List[Str]:
+    def Derivatives(self, fmt: Str, distribution: Str) -> List[Str]:
         """The list of available derivatives for a distribution in an instance
         registries."""
-        return self.implementation.derivatives(instance, fmt, distribution)
+        return self.implementation.derivatives(fmt, distribution)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
     def Artifacts(
         self,
-        instance: Str,
         fmt: Str,
         distribution: Str,
         derivative: Str,
     ) -> List[Structure]:
         """The artifacts in this derivative of this distribution registry."""
         return DbusArtifact.to_structure_list(
-            self.implementation.artifacts(
-                instance, fmt, distribution, derivative
-            )
+            self.implementation.artifacts(fmt, distribution, derivative)
         )
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.edit-registry")
     def ArtifactDelete(
         self,
-        instance: Str,
         fmt: Str,
         distribution: Str,
         derivative: Str,
@@ -264,7 +291,6 @@ class FatbuildrInterface(InterfaceTemplate):
     ) -> Str:
         """Submit artifact deletion task."""
         return self.implementation.submit(
-            instance,
             'artifact deletion',
             fmt,
             distribution,
@@ -275,7 +301,6 @@ class FatbuildrInterface(InterfaceTemplate):
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
     def ArtifactBinaries(
         self,
-        instance: Str,
         fmt: Str,
         distribution: Str,
         derivative: Str,
@@ -285,14 +310,13 @@ class FatbuildrInterface(InterfaceTemplate):
         artifact in this derivative of this distribution registry."""
         return DbusArtifact.to_structure_list(
             self.implementation.artifact_bins(
-                instance, fmt, distribution, derivative, src_artifact
+                fmt, distribution, derivative, src_artifact
             )
         )
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
     def ArtifactSource(
         self,
-        instance: Str,
         fmt: Str,
         distribution: Str,
         derivative: Str,
@@ -301,7 +325,7 @@ class FatbuildrInterface(InterfaceTemplate):
         """Return the source artifact that generated by the given binary
         artifact in this derivative of this distribution registry."""
         src = self.implementation.artifact_src(
-            instance, fmt, distribution, derivative, bin_artifact
+            fmt, distribution, derivative, bin_artifact
         )
         if not src:
             raise ErrorArtifactNotFound()
@@ -310,7 +334,6 @@ class FatbuildrInterface(InterfaceTemplate):
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
     def Changelog(
         self,
-        instance: Str,
         fmt: Str,
         distribution: Str,
         derivative: Str,
@@ -321,14 +344,13 @@ class FatbuildrInterface(InterfaceTemplate):
         architecture in this derivative of this distribution registry."""
         return DbusChangelogEntry.to_structure_list(
             self.implementation.changelog(
-                instance, fmt, distribution, derivative, architecture, artifact
+                fmt, distribution, derivative, architecture, artifact
             )
         )
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.build")
     def Build(
         self,
-        instance: Str,
         format: Str,
         distribution: Str,
         architectures: List[Str],
@@ -343,7 +365,6 @@ class FatbuildrInterface(InterfaceTemplate):
     ) -> Str:
         """Submit a new build."""
         return self.implementation.submit(
-            instance,
             'artifact build',
             format,
             distribution,
@@ -359,48 +380,45 @@ class FatbuildrInterface(InterfaceTemplate):
         )
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.edit-keyring")
-    def KeyringCreate(self, instance: Str) -> Str:
+    def KeyringCreate(self) -> Str:
         """Create instance keyring."""
-        return self.implementation.submit(instance, 'keyring creation')
+        return self.implementation.submit('keyring creation')
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.edit-keyring")
-    def KeyringRenew(self, instance: Str, duration: Str) -> Str:
+    def KeyringRenew(self, duration: Str) -> Str:
         """Extend instance keyring expiry with new duration."""
-        return self.implementation.submit(instance, 'keyring renewal', duration)
+        return self.implementation.submit('keyring renewal', duration)
 
+    @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-keyring")
-    def Keyring(self, instance: Str) -> Structure:
+    def Keyring(self) -> Structure:
         try:
-            return DbusKeyring.to_structure(
-                self.implementation.keyring(instance)
-            )
+            return DbusKeyring.to_structure(self.implementation.keyring())
         except AttributeError:
             raise ErrorNoKeyring()
 
+    @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-keyring")
-    def KeyringExport(self, instance: Str) -> Str:
+    def KeyringExport(self) -> Str:
         """Returns armored public key of instance keyring."""
-        return self.implementation.keyring_export(instance)
+        return self.implementation.keyring_export()
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
-    def ImageCreate(self, instance: Str, format: Str, force: Bool) -> Str:
+    def ImageCreate(self, format: Str, force: Bool) -> Str:
         """Submit an image creation task and returns the task id."""
-        return self.implementation.submit(
-            instance, 'image creation', format, force
-        )
+        return self.implementation.submit('image creation', format, force)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
-    def ImageUpdate(self, instance: Str, format: Str) -> Str:
+    def ImageUpdate(self, format: Str) -> Str:
         """Submit an image update task and returns the task id."""
-        return self.implementation.submit(instance, 'image update', format)
+        return self.implementation.submit('image update', format)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
     def ImageEnvironmentCreate(
-        self, instance: Str, format: Str, environment: Str, architecture: Str
+        self, format: Str, environment: Str, architecture: Str
     ) -> Str:
         """Submit an image build environment creation task and returns the task id."""
         return self.implementation.submit(
-            instance,
             'image build environment creation',
             format,
             environment,
@@ -409,11 +427,10 @@ class FatbuildrInterface(InterfaceTemplate):
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
     def ImageEnvironmentUpdate(
-        self, instance: Str, format: Str, environment: Str, architecture: Str
+        self, format: Str, environment: Str, architecture: Str
     ) -> Str:
         """Submit an image build environment update task and returns the task id."""
         return self.implementation.submit(
-            instance,
             'image build environment update',
             format,
             environment,
@@ -421,100 +438,87 @@ class FatbuildrInterface(InterfaceTemplate):
         )
 
 
-class FatbuildrMultiplexer(object):
-    """The implementation of Fatbuildr Manager."""
+class FatbuildrDbusInstance(Publishable):
+    """The implementation of FatbuildrDbusInstanceInterface."""
 
-    def __init__(self, instances, timer):
-        self._instances = instances
+    def __init__(self, instance, timer):
+        self._instance = instance  # the corresponding Fatbuildr RunningInstance
         self.timer = timer
 
-    def instances(self):
-        self.timer.reset()
-        return self._instances
+    def for_publication(self):
+        """Return a DBus representation."""
+        return FatbuildrDbusInstanceInterface(self)
 
-    def instance(self, instance: Str):
+    def instance(self):
         self.timer.reset()
-        return self._instances[instance]
+        return self._instance
 
-    def pipelines_formats(self, instance: Str):
+    def pipelines_formats(self):
         self.timer.reset()
-        return self._instances[instance].pipelines.formats
+        return self._instance.pipelines.formats
 
-    def pipelines_architectures(self, instance: Str):
+    def pipelines_architectures(self):
         self.timer.reset()
-        return self._instances[instance].pipelines.architectures
+        return self._instance.pipelines.architectures
 
-    def pipelines_format_distributions(self, instance: Str, format: Str):
+    def pipelines_format_distributions(self, format: Str):
         self.timer.reset()
-        return self._instances[instance].pipelines.format_dists(format)
+        return self._instance.pipelines.format_dists(format)
 
-    def pipelines_distribution_format(self, instance: Str, distribution: Str):
+    def pipelines_distribution_format(self, distribution: Str):
         self.timer.reset()
-        return self._instances[instance].pipelines.dist_format(distribution)
+        return self._instance.pipelines.dist_format(distribution)
 
-    def pipelines_distribution_derivatives(
-        self, instance: Str, distribution: Str
-    ):
+    def pipelines_distribution_derivatives(self, distribution: Str):
         self.timer.reset()
-        return self._instances[instance].pipelines.dist_derivatives(
-            distribution
-        )
+        return self._instance.pipelines.dist_derivatives(distribution)
 
-    def pipelines_distribution_environment(
-        self, instance: Str, distribution: Str
-    ):
+    def pipelines_distribution_environment(self, distribution: Str):
         self.timer.reset()
-        return self._instances[instance].pipelines.dist_env(distribution)
+        return self._instance.pipelines.dist_env(distribution)
 
-    def pipelines_derivative_formats(self, instance: Str, derivative: Str):
+    def pipelines_derivative_formats(self, derivative: Str):
         self.timer.reset()
-        return self._instances[instance].pipelines.derivative_formats(
-            derivative
-        )
+        return self._instance.pipelines.derivative_formats(derivative)
 
-    def queue(self, instance):
+    def queue(self):
         """The list of builds in instance queue."""
         self.timer.reset()
-        return self._instances[instance].tasks_mgr.queue.dump()
+        return self._instance.tasks_mgr.queue.dump()
 
-    def running(self, instance):
+    def running(self):
         """The list of builds in queue."""
         self.timer.reset()
-        if not self._instances[instance].tasks_mgr.running:
+        if not self._instance.tasks_mgr.running:
             raise ErrorNoRunningTask()
-        return self._instances[instance].tasks_mgr.running
+        return self._instance.tasks_mgr.running
 
-    def archives(self, instance, limit):
+    def archives(self, limit):
         """The list of archived builds."""
         self.timer.reset()
-        return self._instances[instance].archives_mgr.dump(limit)
+        return self._instance.archives_mgr.dump(limit)
 
-    def formats(self, instance: Str):
+    def formats(self):
         self.timer.reset()
-        return self._instances[instance].registry_mgr.formats()
+        return self._instance.registry_mgr.formats()
 
-    def distributions(self, instance: Str, fmt: Str):
+    def distributions(self, fmt: Str):
         self.timer.reset()
-        return self._instances[instance].registry_mgr.distributions(fmt)
+        return self._instance.registry_mgr.distributions(fmt)
 
-    def derivatives(self, instance: Str, fmt: Str, distribution: Str):
+    def derivatives(self, fmt: Str, distribution: Str):
         self.timer.reset()
-        return self._instances[instance].registry_mgr.derivatives(
-            fmt, distribution
-        )
+        return self._instance.registry_mgr.derivatives(fmt, distribution)
 
-    def artifacts(
-        self, instance: Str, fmt: Str, distribution: Str, derivative: Str
-    ):
+    def artifacts(self, fmt: Str, distribution: Str, derivative: Str):
         """Get all artifacts in this derivative of this distribution registry."""
         self.timer.reset()
-        return self._instances[instance].registry_mgr.artifacts(
+        return self._instance.registry_mgr.artifacts(
             fmt, distribution, derivative
         )
 
     def artifact_bins(
         self,
-        instance: Str,
         fmt: Str,
         distribution: Str,
         derivative: Str,
@@ -523,13 +527,12 @@ class FatbuildrMultiplexer(object):
         """Get all binary artifacts generated by the given source artifact in
         this derivative of this distribution registry."""
         self.timer.reset()
-        return self._instances[instance].registry_mgr.artifact_bins(
+        return self._instance.registry_mgr.artifact_bins(
             fmt, distribution, derivative, src_artifact
         )
 
     def artifact_src(
         self,
-        instance: Str,
         fmt: Str,
         distribution: Str,
         derivative: Str,
@@ -538,13 +541,12 @@ class FatbuildrMultiplexer(object):
         """Get the source artifact that generated by the given binary artifact
         in this distribution registry."""
         self.timer.reset()
-        return self._instances[instance].registry_mgr.artifact_src(
+        return self._instance.registry_mgr.artifact_src(
             fmt, distribution, derivative, bin_artifact
         )
 
     def changelog(
         self,
-        instance: Str,
         fmt: Str,
         distribution: Str,
         derivative: Str,
@@ -554,25 +556,24 @@ class FatbuildrMultiplexer(object):
         """Get the changelog of the given artifact and architecture in this
         distribution registry."""
         self.timer.reset()
-        return self._instances[instance].registry_mgr.changelog(
+        return self._instance.registry_mgr.changelog(
             fmt, distribution, derivative, architecture, artifact
         )
 
-    def submit(self, instance: Str, task: Str, *args):
+    def submit(self, task: Str, *args):
         """Submit a new task and returns its ID."""
         self.timer.reset()
-        task_id = self._instances[instance].tasks_mgr.submit(task, *args)
-        return task_id
+        return self._instance.tasks_mgr.submit(task, *args)
 
-    def keyring(self, instance: Str):
+    def keyring(self):
         """Returns masterkey information."""
         self.timer.reset()
-        return self._instances[instance].keyring.masterkey
+        return self._instance.keyring.masterkey
 
-    def keyring_export(self, instance: Str):
+    def keyring_export(self):
         """Returns armored public key of instance keyring."""
         self.timer.reset()
-        return self._instances[instance].keyring.export()
+        return self._instance.keyring.export()
 
 
 class DbusServer(object):
@@ -580,17 +581,25 @@ class DbusServer(object):
 
         # Print the generated XML specification.
         logger.debug(
-            "Dbus service interface generated:\n %s",
-            XMLGenerator.prettify_xml(FatbuildrInterface.__dbus_xml__),
+            "Fatbuildr Dbus service interface generated:\n %s",
+            XMLGenerator.prettify_xml(
+                FatbuildrDbusServiceInterface.__dbus_xml__
+            ),
+        )
+        logger.debug(
+            "Fatbuildr Dbus instance interface generated:\n %s",
+            XMLGenerator.prettify_xml(
+                FatbuildrDbusInstanceInterface.__dbus_xml__
+            ),
         )
 
-        # Create the Fatbuildr multiplexer.
-        multiplexer = FatbuildrMultiplexer(instances, timer)
+        # Create the Fatbuildr Dbus Service.
+        service = FatbuildrDbusService(instances, timer)
 
-        # Publish the register at /org/rackslab/Fatbuildr.
+        # Publish the Fatbuildr Dbus Service at /org/rackslab/Fatbuildr.
         BUS.publish_object(
             FATBUILDR_SERVICE.object_path,
-            FatbuildrInterface(multiplexer),
+            service.for_publication(),
             server_factory=AuthorizationServerObjectHandler,
         )
 
