@@ -61,7 +61,7 @@ def require_polkit_authorization(action):
     """Decorator for InterfaceTemplate methods to check for polkit authorization
     on the given action prior to running the method. The decorator actually
     defines an attribute on the method, this attribute is consumed by
-    AuthorizationServerObjectHandler to actually ask polkit about the
+    TimeredAuthorizationServerObjectHandler to actually ask polkit about the
     authorization on the action."""
 
     def wrap(method):
@@ -71,21 +71,26 @@ def require_polkit_authorization(action):
     return wrap
 
 
-class AuthorizationServerObjectHandler(ServerObjectHandler):
+class TimeredAuthorizationServerObjectHandler(ServerObjectHandler):
     """Child class of dasbus ServerObjectHandler just to override _handle_call()
     method."""
 
     def _handle_call(
         self, interface_name, method_name, *parameters, **additional_args
     ):
-        """This method checks if the polkit authorization attribute has been
-        defined on the method by @require_polkit_authorization decorator. In
-        this case, it checks sender authorization on the associated action."""
+        """This method resets fatbuildrd timer thread and checks if the polkit
+        authorization attribute has been defined on the method by
+        @require_polkit_authorization decorator. In this case, it checks sender
+        authorization on the associated action."""
         handler = self._find_handler(interface_name, method_name)
+
+        # Reset the timer thread activity counter holded by puslished object on
+        # every DBus calls.
+        self._object.implementation.timer.reset()
 
         action = getattr(handler, REQUIRE_POLKIT_AUTHORIZATION_ATTRIBUTE, None)
         if action:
-            AuthorizationServerObjectHandler.check_auth(
+            TimeredAuthorizationServerObjectHandler.check_auth(
                 additional_args['call_info']['sender'], action
             )
 
@@ -161,7 +166,7 @@ class FatbuildrDbusService(Publishable):
             BUS.publish_object(
                 object_path,
                 obj.for_publication(),
-                server_factory=AuthorizationServerObjectHandler,
+                server_factory=TimeredAuthorizationServerObjectHandler,
             )
             self._instances[instance.id] = object_path
 
@@ -174,7 +179,6 @@ class FatbuildrDbusService(Publishable):
         return self._instances[id]
 
     def instances(self):
-        self.timer.reset()
         return self.instances
 
 
@@ -450,69 +454,54 @@ class FatbuildrDbusInstance(Publishable):
         return FatbuildrDbusInstanceInterface(self)
 
     def instance(self):
-        self.timer.reset()
         return self._instance
 
     def pipelines_formats(self):
-        self.timer.reset()
         return self._instance.pipelines.formats
 
     def pipelines_architectures(self):
-        self.timer.reset()
         return self._instance.pipelines.architectures
 
     def pipelines_format_distributions(self, format: Str):
-        self.timer.reset()
         return self._instance.pipelines.format_dists(format)
 
     def pipelines_distribution_format(self, distribution: Str):
-        self.timer.reset()
         return self._instance.pipelines.dist_format(distribution)
 
     def pipelines_distribution_derivatives(self, distribution: Str):
-        self.timer.reset()
         return self._instance.pipelines.dist_derivatives(distribution)
 
     def pipelines_distribution_environment(self, distribution: Str):
-        self.timer.reset()
         return self._instance.pipelines.dist_env(distribution)
 
     def pipelines_derivative_formats(self, derivative: Str):
-        self.timer.reset()
         return self._instance.pipelines.derivative_formats(derivative)
 
     def queue(self):
         """The list of builds in instance queue."""
-        self.timer.reset()
         return self._instance.tasks_mgr.queue.dump()
 
     def running(self):
         """The list of builds in queue."""
-        self.timer.reset()
         if not self._instance.tasks_mgr.running:
             raise ErrorNoRunningTask()
         return self._instance.tasks_mgr.running
 
     def archives(self, limit):
         """The list of archived builds."""
-        self.timer.reset()
         return self._instance.archives_mgr.dump(limit)
 
     def formats(self):
-        self.timer.reset()
         return self._instance.registry_mgr.formats()
 
     def distributions(self, fmt: Str):
-        self.timer.reset()
         return self._instance.registry_mgr.distributions(fmt)
 
     def derivatives(self, fmt: Str, distribution: Str):
-        self.timer.reset()
         return self._instance.registry_mgr.derivatives(fmt, distribution)
 
     def artifacts(self, fmt: Str, distribution: Str, derivative: Str):
         """Get all artifacts in this derivative of this distribution registry."""
-        self.timer.reset()
         return self._instance.registry_mgr.artifacts(
             fmt, distribution, derivative
         )
@@ -526,7 +515,6 @@ class FatbuildrDbusInstance(Publishable):
     ):
         """Get all binary artifacts generated by the given source artifact in
         this derivative of this distribution registry."""
-        self.timer.reset()
         return self._instance.registry_mgr.artifact_bins(
             fmt, distribution, derivative, src_artifact
         )
@@ -540,7 +528,6 @@ class FatbuildrDbusInstance(Publishable):
     ):
         """Get the source artifact that generated by the given binary artifact
         in this distribution registry."""
-        self.timer.reset()
         return self._instance.registry_mgr.artifact_src(
             fmt, distribution, derivative, bin_artifact
         )
@@ -555,24 +542,20 @@ class FatbuildrDbusInstance(Publishable):
     ):
         """Get the changelog of the given artifact and architecture in this
         distribution registry."""
-        self.timer.reset()
         return self._instance.registry_mgr.changelog(
             fmt, distribution, derivative, architecture, artifact
         )
 
     def submit(self, task: Str, *args):
         """Submit a new task and returns its ID."""
-        self.timer.reset()
         return self._instance.tasks_mgr.submit(task, *args)
 
     def keyring(self):
         """Returns masterkey information."""
-        self.timer.reset()
         return self._instance.keyring.masterkey
 
     def keyring_export(self):
         """Returns armored public key of instance keyring."""
-        self.timer.reset()
         return self._instance.keyring.export()
 
 
@@ -600,7 +583,7 @@ class DbusServer(object):
         BUS.publish_object(
             FATBUILDR_SERVICE.object_path,
             service.for_publication(),
-            server_factory=AuthorizationServerObjectHandler,
+            server_factory=TimeredAuthorizationServerObjectHandler,
         )
 
         # Register the service name org.rackslab.Fatbuildr.
