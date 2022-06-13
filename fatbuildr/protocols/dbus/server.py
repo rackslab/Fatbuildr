@@ -41,6 +41,7 @@ from . import (
     DBusChangelogEntry,
     DBusKeyring,
     ErrorNotAuthorized,
+    ErrorUnknownInstance,
     ErrorNoRunningTask,
     ErrorNoKeyring,
     ErrorArtifactNotFound,
@@ -140,7 +141,10 @@ class FatbuildrDBusServiceInterface(InterfaceTemplate):
 
     def GetInstance(self, id: Str) -> ObjPath:
         """Returns the FatbuildrDBusInstance object path."""
-        return self.implementation.get_instance(id)
+        try:
+            return self.implementation.get_instance(id)
+        except KeyError:
+            raise ErrorUnknownInstance()
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")

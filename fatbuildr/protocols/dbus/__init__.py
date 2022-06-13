@@ -72,6 +72,11 @@ class ErrorNotAuthorized(DBusError):
     pass
 
 
+@dbus_error("ErrorUnknownInstance", namespace=FATBUILDR_NAMESPACE)
+class ErrorUnknownInstance(DBusError):
+    pass
+
+
 @dbus_error("ErrorNoRunningTask", namespace=FATBUILDR_NAMESPACE)
 class ErrorNoRunningTask(DBusError):
     pass

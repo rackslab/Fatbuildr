@@ -25,6 +25,7 @@ from . import (
     DBusChangelogEntry,
     DBusKeyring,
     ErrorNotAuthorized,
+    ErrorUnknownInstance,
     ErrorNoRunningTask,
     ErrorNoKeyring,
     ErrorArtifactNotFound,
@@ -55,7 +56,10 @@ class DBusClient(AbstractClient):
     def __init__(self, uri, scheme, instance):
         super().__init__(uri, scheme, instance)
         self.service_proxy = FATBUILDR_SERVICE.get_proxy()
-        obj_path = self.service_proxy.GetInstance(instance)
+        try:
+            obj_path = self.service_proxy.GetInstance(instance)
+        except ErrorUnknownInstance:
+            raise RuntimeError(f"Unknown instance {instance} at {uri}")
         self.proxy = FATBUILDR_SERVICE.get_proxy(obj_path)
 
     # instances and pipelines
