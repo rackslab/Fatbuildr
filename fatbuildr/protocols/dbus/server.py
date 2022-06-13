@@ -29,7 +29,7 @@ from dasbus.typing import Structure, List, Str, Int, Bool, Variant
 from dasbus.xml import XMLGenerator
 
 from . import (
-    REGISTER,
+    FATBUILDR_SERVICE,
     BUS,
     DbusInstance,
     DbusRunnableTask,
@@ -125,7 +125,7 @@ class AuthorizationServerObjectHandler(ServerObjectHandler):
         )
 
 
-@dbus_interface(REGISTER.interface_name)
+@dbus_interface(FATBUILDR_SERVICE.interface_name)
 class FatbuildrInterface(InterfaceTemplate):
     """The DBus interface of Fatbuildr."""
 
@@ -589,13 +589,13 @@ class DbusServer(object):
 
         # Publish the register at /org/rackslab/Fatbuildr.
         BUS.publish_object(
-            REGISTER.object_path,
+            FATBUILDR_SERVICE.object_path,
             FatbuildrInterface(multiplexer),
             server_factory=AuthorizationServerObjectHandler,
         )
 
         # Register the service name org.rackslab.Fatbuildr.
-        BUS.register_service(REGISTER.service_name)
+        BUS.register_service(FATBUILDR_SERVICE.service_name)
 
         # Start the event loop.
         self.loop = EventLoop()

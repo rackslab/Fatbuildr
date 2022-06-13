@@ -18,7 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 from . import (
-    REGISTER,
+    FATBUILDR_SERVICE,
     DbusInstance,
     DbusRunnableTask,
     DbusArtifact,
@@ -54,7 +54,7 @@ def check_authorization(method):
 class DbusClient(AbstractClient):
     def __init__(self, uri, scheme, instance):
         super().__init__(uri, scheme, instance)
-        self.proxy = REGISTER.get_proxy()
+        self.proxy = FATBUILDR_SERVICE.get_proxy()
 
     # instances and pipelines
 

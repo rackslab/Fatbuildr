@@ -51,31 +51,33 @@ ERROR_MAPPER = ErrorMapper()
 BUS = SystemMessageBus(error_mapper=ERROR_MAPPER)
 
 # Define namespaces.
-REGISTER_NAMESPACE = ("org", "rackslab", "Fatbuildr")
+FATBUILDR_NAMESPACE = ("org", "rackslab", "Fatbuildr")
 
 # Define services and objects.
-REGISTER = DBusServiceIdentifier(namespace=REGISTER_NAMESPACE, message_bus=BUS)
+FATBUILDR_SERVICE = DBusServiceIdentifier(
+    namespace=FATBUILDR_NAMESPACE, message_bus=BUS
+)
 
 # The decorator for DBus errors.
 dbus_error = get_error_decorator(ERROR_MAPPER)
 
 # Define errors.
-@dbus_error("ErrorNotAuthorized", namespace=REGISTER_NAMESPACE)
+@dbus_error("ErrorNotAuthorized", namespace=FATBUILDR_NAMESPACE)
 class ErrorNotAuthorized(DBusError):
     pass
 
 
-@dbus_error("ErrorNoRunningTask", namespace=REGISTER_NAMESPACE)
+@dbus_error("ErrorNoRunningTask", namespace=FATBUILDR_NAMESPACE)
 class ErrorNoRunningTask(DBusError):
     pass
 
 
-@dbus_error("ErrorNoKeyring", namespace=REGISTER_NAMESPACE)
+@dbus_error("ErrorNoKeyring", namespace=FATBUILDR_NAMESPACE)
 class ErrorNoKeyring(DBusError):
     pass
 
 
-@dbus_error("ErrorArtifactNotFound", namespace=REGISTER_NAMESPACE)
+@dbus_error("ErrorArtifactNotFound", namespace=FATBUILDR_NAMESPACE)
 class ErrorArtifactNotFound(DBusError):
     pass
 
