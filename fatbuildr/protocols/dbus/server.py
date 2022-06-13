@@ -35,11 +35,11 @@ from . import (
     FATBUILDR_INSTANCE,
     INSTANCES_NAMESPACE,
     BUS,
-    DbusInstance,
-    DbusRunnableTask,
-    DbusArtifact,
-    DbusChangelogEntry,
-    DbusKeyring,
+    DBusInstance,
+    DBusRunnableTask,
+    DBusArtifact,
+    DBusChangelogEntry,
+    DBusKeyring,
     ErrorNotAuthorized,
     ErrorNoRunningTask,
     ErrorNoKeyring,
@@ -135,30 +135,30 @@ class TimeredAuthorizationServerObjectHandler(ServerObjectHandler):
 
 
 @dbus_interface(FATBUILDR_SERVICE.interface_name)
-class FatbuildrDbusServiceInterface(InterfaceTemplate):
+class FatbuildrDBusServiceInterface(InterfaceTemplate):
     """The DBus interface of the Fatbuildr service."""
 
     def GetInstance(self, id: Str) -> ObjPath:
-        """Returns the FatbuildrDbusInstance object path."""
+        """Returns the FatbuildrDBusInstance object path."""
         return self.implementation.get_instance(id)
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def Instances(self) -> List[Structure]:
         """Returns the instances list."""
-        return DbusInstance.to_structure_list(self.implementation.instances())
+        return DBusInstance.to_structure_list(self.implementation.instances())
 
 
-class FatbuildrDbusService(Publishable):
-    """The implementation of the FatbuildrDbusService."""
+class FatbuildrDBusService(Publishable):
+    """The implementation of the FatbuildrDBusService."""
 
     def __init__(self, instances, timer):
-        self._instances = {}  # dict of Publishable FatbuildrDbusInstances
+        self._instances = {}  # dict of Publishable FatbuildrDBusInstances
         self.instances = instances  # list of RunningInstances
         self.timer = timer
 
         for instance in instances:
-            obj = FatbuildrDbusInstance(instance, timer)
+            obj = FatbuildrDBusInstance(instance, timer)
             object_path = get_dbus_path(
                 *INSTANCES_NAMESPACE,
                 instance.id,
@@ -172,7 +172,7 @@ class FatbuildrDbusService(Publishable):
 
     def for_publication(self):
         """Return a DBus representation."""
-        return FatbuildrDbusServiceInterface(self)
+        return FatbuildrDBusServiceInterface(self)
 
     def get_instance(self, id):
         """Returns the Fatbuildr instance publishable object."""
@@ -183,14 +183,14 @@ class FatbuildrDbusService(Publishable):
 
 
 @dbus_interface(FATBUILDR_INSTANCE.interface_name)
-class FatbuildrDbusInstanceInterface(InterfaceTemplate):
+class FatbuildrDBusInstanceInterface(InterfaceTemplate):
     """The DBus interface of Fatbuildr instances."""
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def Instance(self) -> Structure:
         """Returns the instance user id."""
-        return DbusInstance.to_structure(self.implementation.instance())
+        return DBusInstance.to_structure(self.implementation.instance())
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
@@ -240,18 +240,18 @@ class FatbuildrDbusInstanceInterface(InterfaceTemplate):
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
     def Queue(self) -> List[Structure]:
         """The list of tasks in queue."""
-        return DbusRunnableTask.to_structure_list(self.implementation.queue())
+        return DBusRunnableTask.to_structure_list(self.implementation.queue())
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
     def Running(self) -> Structure:
         """The currently running task"""
-        return DbusRunnableTask.to_structure(self.implementation.running())
+        return DBusRunnableTask.to_structure(self.implementation.running())
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
     def Archives(self, limit: Int) -> List[Structure]:
         """The list of last limit tasks in archives."""
-        return DbusRunnableTask.to_structure_list(
+        return DBusRunnableTask.to_structure_list(
             self.implementation.archives(limit)
         )
 
@@ -281,7 +281,7 @@ class FatbuildrDbusInstanceInterface(InterfaceTemplate):
         derivative: Str,
     ) -> List[Structure]:
         """The artifacts in this derivative of this distribution registry."""
-        return DbusArtifact.to_structure_list(
+        return DBusArtifact.to_structure_list(
             self.implementation.artifacts(fmt, distribution, derivative)
         )
 
@@ -299,7 +299,7 @@ class FatbuildrDbusInstanceInterface(InterfaceTemplate):
             fmt,
             distribution,
             derivative,
-            DbusArtifact.from_structure(artifact).to_native(),
+            DBusArtifact.from_structure(artifact).to_native(),
         )
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
@@ -312,7 +312,7 @@ class FatbuildrDbusInstanceInterface(InterfaceTemplate):
     ) -> List[Structure]:
         """Return the list of binary artifacts generated by the given source
         artifact in this derivative of this distribution registry."""
-        return DbusArtifact.to_structure_list(
+        return DBusArtifact.to_structure_list(
             self.implementation.artifact_bins(
                 fmt, distribution, derivative, src_artifact
             )
@@ -333,7 +333,7 @@ class FatbuildrDbusInstanceInterface(InterfaceTemplate):
         )
         if not src:
             raise ErrorArtifactNotFound()
-        return DbusArtifact.to_structure(src)
+        return DBusArtifact.to_structure(src)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
     def Changelog(
@@ -346,7 +346,7 @@ class FatbuildrDbusInstanceInterface(InterfaceTemplate):
     ) -> List[Structure]:
         """Return the list of changelog entries of the the given artifact and
         architecture in this derivative of this distribution registry."""
-        return DbusChangelogEntry.to_structure_list(
+        return DBusChangelogEntry.to_structure_list(
             self.implementation.changelog(
                 fmt, distribution, derivative, architecture, artifact
             )
@@ -397,7 +397,7 @@ class FatbuildrDbusInstanceInterface(InterfaceTemplate):
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-keyring")
     def Keyring(self) -> Structure:
         try:
-            return DbusKeyring.to_structure(self.implementation.keyring())
+            return DBusKeyring.to_structure(self.implementation.keyring())
         except AttributeError:
             raise ErrorNoKeyring()
 
@@ -442,8 +442,8 @@ class FatbuildrDbusInstanceInterface(InterfaceTemplate):
         )
 
 
-class FatbuildrDbusInstance(Publishable):
-    """The implementation of FatbuildrDbusInstanceInterface."""
+class FatbuildrDBusInstance(Publishable):
+    """The implementation of FatbuildrDBusInstanceInterface."""
 
     def __init__(self, instance, timer):
         self._instance = instance  # the corresponding Fatbuildr RunningInstance
@@ -451,7 +451,7 @@ class FatbuildrDbusInstance(Publishable):
 
     def for_publication(self):
         """Return a DBus representation."""
-        return FatbuildrDbusInstanceInterface(self)
+        return FatbuildrDBusInstanceInterface(self)
 
     def instance(self):
         return self._instance
@@ -559,27 +559,27 @@ class FatbuildrDbusInstance(Publishable):
         return self._instance.keyring.export()
 
 
-class DbusServer(object):
+class DBusServer(object):
     def run(self, instances, timer):
 
         # Print the generated XML specification.
         logger.debug(
-            "Fatbuildr Dbus service interface generated:\n %s",
+            "Fatbuildr DBus service interface generated:\n %s",
             XMLGenerator.prettify_xml(
-                FatbuildrDbusServiceInterface.__dbus_xml__
+                FatbuildrDBusServiceInterface.__dbus_xml__
             ),
         )
         logger.debug(
-            "Fatbuildr Dbus instance interface generated:\n %s",
+            "Fatbuildr DBus instance interface generated:\n %s",
             XMLGenerator.prettify_xml(
-                FatbuildrDbusInstanceInterface.__dbus_xml__
+                FatbuildrDBusInstanceInterface.__dbus_xml__
             ),
         )
 
-        # Create the Fatbuildr Dbus Service.
-        service = FatbuildrDbusService(instances, timer)
+        # Create the Fatbuildr DBus Service.
+        service = FatbuildrDBusService(instances, timer)
 
-        # Publish the Fatbuildr Dbus Service at /org/rackslab/Fatbuildr.
+        # Publish the Fatbuildr DBus Service at /org/rackslab/Fatbuildr.
         BUS.publish_object(
             FATBUILDR_SERVICE.object_path,
             service.for_publication(),

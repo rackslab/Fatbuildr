@@ -107,7 +107,7 @@ def valueornone(value):
 
 def type_fields(type):
     """Returns the set of ExportableFields for the given
-    FatbuildrNativeDbusData type."""
+    FatbuildrNativeDBusData type."""
     for native_type, dbus_type in TYPES_MAP:
         if dbus_type is type:
             return ProtocolRegistry().type_fields(native_type)
@@ -115,7 +115,7 @@ def type_fields(type):
 
 
 def dbus_type(type_name):
-    """Return the FatbuildrNativeDbusData type for the given ExportableType
+    """Return the FatbuildrNativeDBusData type for the given ExportableType
     name."""
     for native_type, dbus_type in TYPES_MAP:
         if type_name == native_type:
@@ -124,7 +124,7 @@ def dbus_type(type_name):
 
 
 def native_type(type):
-    """Returns the ExportableType name of the given FatbuildrNativeDbusData
+    """Returns the ExportableType name of the given FatbuildrNativeDBusData
     type."""
     for native_type, dbus_type in TYPES_MAP:
         if dbus_type is type:
@@ -135,7 +135,7 @@ def native_type(type):
 # Define structures.
 
 
-class FatbuildrDbusData:
+class FatbuildrDBusData:
     @classmethod
     def from_structure(cls, fields, structure: Structure):
         """Convert a DBus structure to a data object.
@@ -157,7 +157,7 @@ class FatbuildrDbusData:
                 native_value = None
             elif issubclass(field.wire_type, ExportableType):
                 # If the field has an exportable type, convert the structure to
-                # the corresponding FatbuildrNativeDbusData type.
+                # the corresponding FatbuildrNativeDBusData type.
                 native_value = dbus_type(
                     field.wire_type.__name__
                 ).from_structure(wire_value)
@@ -177,7 +177,7 @@ class FatbuildrDbusData:
 
         for field in fields:
             native_value = getattr(task, field.name)
-            # Dbus does not support None/null values, then handle this case
+            # DBus does not support None/null values, then handle this case
             # with special values.
             if native_value is None:
                 if field.wire_type is int:
@@ -225,7 +225,7 @@ class FatbuildrDbusData:
         return list(map(cls.to_structure, objects))
 
 
-class DbusRunnableTask(FatbuildrDbusData, WireRunnableTask):
+class DBusRunnableTask(FatbuildrDBusData, WireRunnableTask):
     @classmethod
     def from_structure(cls, structure: Structure):
         task_name = unwrap_variant(structure['name'])
@@ -238,7 +238,7 @@ class DbusRunnableTask(FatbuildrDbusData, WireRunnableTask):
         return super().to_structure(fields, task)
 
 
-class FatbuildrNativeDbusData(FatbuildrDbusData):
+class FatbuildrNativeDBusData(FatbuildrDBusData):
     @classmethod
     def from_structure(cls, structure: Structure):
         return super().from_structure(type_fields(cls), structure)
@@ -255,42 +255,42 @@ class FatbuildrNativeDbusData(FatbuildrDbusData):
         return ProtocolRegistry().type_loader(native_type(type(self)))(**kwargs)
 
 
-class DbusInstance(FatbuildrNativeDbusData, WireInstance):
+class DBusInstance(FatbuildrNativeDBusData, WireInstance):
     pass
 
 
-class DbusArtifact(FatbuildrNativeDbusData, WireArtifact):
+class DBusArtifact(FatbuildrNativeDBusData, WireArtifact):
     pass
 
 
-class DbusChangelogEntry(FatbuildrNativeDbusData, WireChangelogEntry):
+class DBusChangelogEntry(FatbuildrNativeDBusData, WireChangelogEntry):
     pass
 
 
-class DbusKeyring(FatbuildrNativeDbusData, WireKeyring):
+class DBusKeyring(FatbuildrNativeDBusData, WireKeyring):
     pass
 
 
-class DbusKeyringSubKey(FatbuildrNativeDbusData):
+class DBusKeyringSubKey(FatbuildrNativeDBusData):
     pass
 
 
-class DbusTaskIO(FatbuildrNativeDbusData, WireTaskIO):
+class DBusTaskIO(FatbuildrNativeDBusData, WireTaskIO):
     pass
 
 
-class DbusTaskJournal(FatbuildrNativeDbusData, WireTaskJournal):
+class DBusTaskJournal(FatbuildrNativeDBusData, WireTaskJournal):
     pass
 
 
 # Map fatbuildr native exportable types with corresponding dbus types
 
 TYPES_MAP = {
-    ('RunningInstance', DbusInstance),
-    ('RegistryArtifact', DbusArtifact),
-    ('ChangelogEntry', DbusChangelogEntry),
-    ('KeyringMasterKey', DbusKeyring),
-    ('KeyringSubKey', DbusKeyringSubKey),
-    ('TaskIO', DbusTaskIO),
-    ('TaskJournal', DbusTaskJournal),
+    ('RunningInstance', DBusInstance),
+    ('RegistryArtifact', DBusArtifact),
+    ('ChangelogEntry', DBusChangelogEntry),
+    ('KeyringMasterKey', DBusKeyring),
+    ('KeyringSubKey', DBusKeyringSubKey),
+    ('TaskIO', DBusTaskIO),
+    ('TaskJournal', DBusTaskJournal),
 }

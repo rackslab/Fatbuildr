@@ -354,7 +354,7 @@ def task(instance, task_id):
 
 
 def watch(instance, task_id, output='html'):
-    """Stream lines obtained by DbusClient.watch() generator."""
+    """Stream lines obtained by DBusClient.watch() generator."""
     connection = get_connection(instance)
     task = connection.get(task_id)
     if output == 'html':

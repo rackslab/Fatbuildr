@@ -19,11 +19,11 @@
 
 from . import (
     FATBUILDR_SERVICE,
-    DbusInstance,
-    DbusRunnableTask,
-    DbusArtifact,
-    DbusChangelogEntry,
-    DbusKeyring,
+    DBusInstance,
+    DBusRunnableTask,
+    DBusArtifact,
+    DBusChangelogEntry,
+    DBusKeyring,
     ErrorNotAuthorized,
     ErrorNoRunningTask,
     ErrorNoKeyring,
@@ -39,8 +39,8 @@ from ...console.client import (
 
 
 def check_authorization(method):
-    """Decorator for DbusClient methods to catch ErrorNotAuthorized that could
-    be sent by DbusServer and transform them in generic PermissionError."""
+    """Decorator for DBusClient methods to catch ErrorNotAuthorized that could
+    be sent by DBusServer and transform them in generic PermissionError."""
 
     def authorization_wrapper(*args, **kwargs):
         try:
@@ -51,7 +51,7 @@ def check_authorization(method):
     return authorization_wrapper
 
 
-class DbusClient(AbstractClient):
+class DBusClient(AbstractClient):
     def __init__(self, uri, scheme, instance):
         super().__init__(uri, scheme, instance)
         self.service_proxy = FATBUILDR_SERVICE.get_proxy()
@@ -62,11 +62,11 @@ class DbusClient(AbstractClient):
 
     @check_authorization
     def instances(self):
-        return DbusInstance.from_structure_list(self.service_proxy.Instances)
+        return DBusInstance.from_structure_list(self.service_proxy.Instances)
 
     @check_authorization
     def instance(self, id):
-        return DbusInstance.from_structure(self.proxy.Instance)
+        return DBusInstance.from_structure(self.proxy.Instance)
 
     @check_authorization
     def pipelines_formats(self):
@@ -115,7 +115,7 @@ class DbusClient(AbstractClient):
 
     @check_authorization
     def artifacts(self, fmt, distribution, derivative):
-        return DbusArtifact.from_structure_list(
+        return DBusArtifact.from_structure_list(
             self.proxy.Artifacts(fmt, distribution, derivative)
         )
 
@@ -125,19 +125,19 @@ class DbusClient(AbstractClient):
             fmt,
             distribution,
             derivative,
-            DbusArtifact.to_structure(artifact),
+            DBusArtifact.to_structure(artifact),
         )
 
     @check_authorization
     def artifact_bins(self, fmt, distribution, derivative, artifact):
-        return DbusArtifact.from_structure_list(
+        return DBusArtifact.from_structure_list(
             self.proxy.ArtifactBinaries(fmt, distribution, derivative, artifact)
         )
 
     @check_authorization
     def artifact_src(self, fmt, distribution, derivative, artifact):
         try:
-            return DbusArtifact.from_structure(
+            return DBusArtifact.from_structure(
                 self.proxy.ArtifactSource(
                     fmt, distribution, derivative, artifact
                 )
@@ -147,7 +147,7 @@ class DbusClient(AbstractClient):
 
     @check_authorization
     def changelog(self, fmt, distribution, derivative, architecture, artifact):
-        return DbusChangelogEntry.from_structure_list(
+        return DBusChangelogEntry.from_structure_list(
             self.proxy.Changelog(
                 fmt,
                 distribution,
@@ -188,18 +188,18 @@ class DbusClient(AbstractClient):
 
     @check_authorization
     def queue(self):
-        return DbusRunnableTask.from_structure_list(self.proxy.Queue)
+        return DBusRunnableTask.from_structure_list(self.proxy.Queue)
 
     @check_authorization
     def running(self):
         try:
-            return DbusRunnableTask.from_structure(self.proxy.Running)
+            return DBusRunnableTask.from_structure(self.proxy.Running)
         except ErrorNoRunningTask:
             return None
 
     @check_authorization
     def archives(self, limit):
-        return DbusRunnableTask.from_structure_list(self.proxy.Archives(limit))
+        return DBusRunnableTask.from_structure_list(self.proxy.Archives(limit))
 
     def get(self, task_id):
         for _task in self.queue():
@@ -240,7 +240,7 @@ class DbusClient(AbstractClient):
     @check_authorization
     def keyring(self):
         try:
-            return DbusKeyring.from_structure(self.proxy.Keyring)
+            return DBusKeyring.from_structure(self.proxy.Keyring)
         except ErrorNoKeyring:
             return None
 

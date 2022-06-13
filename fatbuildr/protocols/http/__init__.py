@@ -40,7 +40,7 @@ def type_fields(type):
 
 
 def json_type(_dbus_type):
-    """Returns the JsonData type for the given Dbus type."""
+    """Returns the JsonData type for the given DBus type."""
     for native_type, dbus_type, json_type in TYPES_MAP:
         if dbus_type == _dbus_type:
             return json_type
@@ -122,9 +122,9 @@ class JsonTaskJournal(JsonNativeData, WireTaskJournal):
 # Map fatbuildr native exportable types and dbus types with corresponding json types
 
 TYPES_MAP = {
-    ('RunningInstance', 'DbusInstance', JsonInstance),
-    ('RegistryArtifact', 'DbusArtifact', JsonArtifact),
-    ('ChangelogEntry', 'DbusChangelogEntry', JsonChangelogEntry),
-    ('TaskIO', 'DbusTaskIO', JsonTaskIO),
-    ('TaskJournal', 'DbusTaskJournal', JsonTaskJournal),
+    ('RunningInstance', 'DBusInstance', JsonInstance),
+    ('RegistryArtifact', 'DBusArtifact', JsonArtifact),
+    ('ChangelogEntry', 'DBusChangelogEntry', JsonChangelogEntry),
+    ('TaskIO', 'DBusTaskIO', JsonTaskIO),
+    ('TaskJournal', 'DBusTaskJournal', JsonTaskJournal),
 }

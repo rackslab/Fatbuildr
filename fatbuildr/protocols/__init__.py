@@ -19,10 +19,10 @@
 
 from urllib.parse import urlparse
 
-from .dbus.client import DbusClient
+from .dbus.client import DBusClient
 from .http.client import HttpClient
 
-from .dbus.server import DbusServer
+from .dbus.server import DBusServer
 
 
 class ClientFactory(object):
@@ -32,8 +32,8 @@ class ClientFactory(object):
         instance = uri.path.strip('/')
         if uri.scheme == 'dbus':
             if not instance:
-                raise RuntimeError("Instance must be defined in Dbus URI")
-            return DbusClient(address, uri.scheme, instance)
+                raise RuntimeError("Instance must be defined in DBus URI")
+            return DBusClient(address, uri.scheme, instance)
         elif uri.scheme in ['http', 'https']:
             return HttpClient(address, uri.scheme, instance)
         else:
@@ -43,4 +43,4 @@ class ClientFactory(object):
 class ServerFactory(object):
     @staticmethod
     def get():
-        return DbusServer()
+        return DBusServer()
