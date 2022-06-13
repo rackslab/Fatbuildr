@@ -47,7 +47,7 @@ from ...log import logr
 logger = logr(__name__)
 
 
-# Method attribute for the @accepts_additional_arguments decorator.
+# Method attribute for the @require_polkit_authorization decorator.
 REQUIRE_POLKIT_AUTHORIZATION_ATTRIBUTE = (
     "__dbus_handler_require_polkit_authorization__"
 )
