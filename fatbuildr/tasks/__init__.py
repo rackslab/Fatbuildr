@@ -65,6 +65,11 @@ class TaskJournal(ExportableType):
         """Reads task journal from the beginning and send it to the incoming
         connection."""
         logger.info("Replaying journal for new incoming connection")
+
+        # Force write buffer flush before reading the file to get all output
+        # until now.
+        self.fh.flush()
+
         with open(self.path, 'rb') as fh:
             while True:
                 msg = ConsoleMessage.read(fd=fh.fileno())
