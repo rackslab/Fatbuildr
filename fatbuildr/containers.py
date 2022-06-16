@@ -18,6 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 from .exec import runcmd
+from .utils import current_user
 from .log import logr
 
 logger = logr(__name__)
@@ -33,7 +34,7 @@ class ContainerRunner(object):
         cmd,
         init=False,
         opts=None,
-        user=None,
+        user=current_user()[1],  # run in container w/ the same user by default
         binds=[],
         chdir=None,
         envs=[],
@@ -73,7 +74,7 @@ class ContainerRunner(object):
         # add opts from conf
         if self.conf.containers.opts is not None:
             _cmd.extend(self.conf.containers.opts)
-        if user is not None:
+        if user != 'root':
             _cmd.extend(['--user', user])
         for _bind in binds:
             _cmd.extend(['--bind', _bind])

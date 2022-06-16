@@ -288,7 +288,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 f"[(\"{self.tarball.parent}\",\"{self.tarball.parent}\")]",
             ]
 
-        self.cruncmd(cmd, user=current_user()[1])
+        self.cruncmd(cmd)
 
     def _build_bin(self, architecture):
         """Build binary RPM"""
@@ -328,7 +328,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         if self.defs.has_buildargs:
             cmd.extend(self.defs.buildargs)
 
-        self.cruncmd(cmd, user=current_user()[1])
+        self.cruncmd(cmd)
 
         # Load keys in agent prior to signing
         self.instance.keyring.load_agent()
@@ -368,7 +368,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             'overlayfs:base_dir=/var/lib/snapshots',
         ]
         cmd.extend(_cmd)
-        self.cruncmd(cmd, user=current_user()[1])
+        self.cruncmd(cmd)
 
     def prescript_in_env(self, tarball_subdir):
         """Execute prescript in RPM build environment using mock and
@@ -413,7 +413,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 '--dnf-cmd',
                 'install',
             ] + self.prescript_deps
-            self.cruncmd(cmd, user=current_user()[1])
+            self.cruncmd(cmd)
 
             logger.debug(
                 "Running the prescript using stage1 script in build environment %s",
@@ -441,7 +441,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 self.prewrapper_path,
                 self.prescript_path,
             ]
-            self.cruncmd(cmd, user=current_user()[1])
+            self.cruncmd(cmd)
         except RuntimeError as err:
             logger.error("Error while running prescript: %s", err)
             prescript_failed = True

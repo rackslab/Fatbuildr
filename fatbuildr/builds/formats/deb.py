@@ -207,9 +207,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             cmd.insert(1, '--create')
 
         _envs = ['DEBEMAIL=' + self.email, 'DEBFULLNAME=' + self.user]
-        self.cruncmd(
-            cmd, chdir=tarball_subdir, envs=_envs, user=current_user()[1]
-        )
+        self.cruncmd(cmd, chdir=tarball_subdir, envs=_envs)
 
         # Create orig symlink to tarball
         orig_tarball_path = self.place.joinpath(
@@ -232,7 +230,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         # build source package
         logger.info("Building source package")
         cmd = ['dpkg-source', '--build', tarball_subdir]
-        self.cruncmd(cmd, chdir=str(self.place), user=current_user()[1])
+        self.cruncmd(cmd, chdir=str(self.place))
 
     def _build_bin(self, architecture):
         """Build deb packages binary package."""
@@ -284,6 +282,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
 
         self.cruncmd(
             cmd,
+            user='root',  # cowbuilder must be run as root
             envs=[
                 f"FATBUILDR_REPO={self.registry.path}",
                 f"FATBUILDR_KEYRING={self.build_keyring}",
@@ -325,6 +324,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
 
         self.cruncmd(
             cmd,
+            user='root',  # cowbuilder must be run as root
             # All these environments variables are consumed by pre-deb-stage1.sh
             # and pre-wrapper.sh scripts, and also by F10derivatives cowbuilder
             # hook, to prepare the environment for the prescript.

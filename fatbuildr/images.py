@@ -130,7 +130,8 @@ class Image(object):
             )
         ]
         for cmd in cmds:
-            task.cruncmd(self, cmd, init=True)
+            # Package manager must be run as root
+            task.cruncmd(self, cmd, init=True, user='root')
 
 
 class BuildEnv(object):
@@ -180,7 +181,9 @@ class BuildEnv(object):
             name=self.name,
             path=self.path,
         )
-        task.cruncmd(self.image, cmd, init=True)
+        # Some build environment manager (eg. cowbuilder) must be run as root,
+        # then use root for all commands in container at this point.
+        task.cruncmd(self.image, cmd, init=True, user='root')
 
     def update(self, task):
         logger.info(
@@ -202,7 +205,9 @@ class BuildEnv(object):
             ).env_update_cmds.split('&&')
         ]
         for cmd in cmds:
-            task.cruncmd(self.image, cmd, init=True)
+            # Some build environment manager (eg. cowbuilder) must be run as
+            # root, then use root for all commands in container at this point.
+            task.cruncmd(self.image, cmd, init=True, user='root')
 
 
 class ImagesManager(object):
