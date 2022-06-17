@@ -113,7 +113,6 @@ class Fatbuildrd(FatbuildrCliRun):
         timer_thread.join()
 
         logger.debug("All threads are properly stopped")
-        self.sm.notify_stop()
 
     def _worker(self, instance):
         """Thread working over an instance tasks queue."""
@@ -184,6 +183,10 @@ class Fatbuildrd(FatbuildrCliRun):
             self.timer.wait(timeout=10)
 
         logger.info("Timer is over")
+
+        # Tell the service manager the daemon is preparing to stop so it can
+        # inform users the real internal service stopping state.
+        self.sm.notify_stop()
 
         logger.info("Stopping the server thread")
         # First stop server thread to avoid clients from submitting new tasks
