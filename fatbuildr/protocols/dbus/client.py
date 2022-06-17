@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+from dasbus.error import DBusError
+
 from . import (
     FATBUILDR_SERVICE,
     DBusInstance,
@@ -48,6 +50,8 @@ def check_authorization(method):
             return method(*args, **kwargs)
         except ErrorNotAuthorized as err:
             raise PermissionError(err)
+        except DBusError as err:
+            raise RuntimeError(err)
 
     return authorization_wrapper
 
