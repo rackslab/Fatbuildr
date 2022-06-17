@@ -598,4 +598,9 @@ class DBusServer(object):
         self.loop.run()
 
     def quit(self):
+        # Disconnect from the bus so the system manager takes back DBus service
+        # handling and reactivate the service with the next coming client.
+        logger.debug("Disconnecting service from DBus")
+        BUS.disconnect()
+        logger.debug("Exiting server event loop")
         self.loop.quit()
