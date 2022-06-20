@@ -1,27 +1,125 @@
-= Key Features
+= Advanced Features
 
-== Client/server Mode
+== Client-server Mode
+
+Fatbuildr uses a xref:architecture.adoc#components[software architecture] with
+multiple components following the client/server model. Also, `fatbuildrweb`
+component provides a xref:usage:api.adoc[REST API] to offer `fatbuildrd`
+services over HTTP protocol and TCP/IP networks.
+
+This enables the possibility to deploy distributed setup with `fatbuildrd` and
+`fatbuildrweb` components on a centralized server for a team of developpers
+running `fatbuildrctl` and web browser on workstations.
+
+All developers can share centralized and mutualized resources to build and
+distribute software.
 
 == Derivatives
 
-== Automatic Changelogs
+Build pipelines can be defined with optional _derivatives_ that are
+complementary distributions. These additional distributions can be used for
+multiple purposes, such as distributing:
 
-== Incremental Versionning
-
-== Integrated Patchs Management
-
-== Prescripts
-
-== Support of un-released Software
+* Multiple versions of an artifact for a target environment (ex: version X and
+  version Y for _el8_),
+* Alternative versions of artifact (eg. with specific configuration flags) for
+  particular hosts or hardware.
 
 == Multi-Architectures
 
-== Web Interface
+Fatbuildr supports building artifacts for basically any hardware CPU
+architecture, including architectures non-natively compatible by the host system
+(ex: build for ARM architecture on x86_64 host). This feature is possible thanks
+to awesome qemu-user-static CPU emulation tool and Linux
+https://en.wikipedia.org/wiki/Binfmt_misc[binfmt] registration. This feature is
+available out-of-the-box in Fatbuildr without any additional setup required.
+
+== Automatic Changelogs
+
+Fatbuildr can be given the responsability of generating Deb and RPM packages
+changelogs incrementally with successive builds. Developers do not need to
+manually define packages changelog entries with its share of errors and
+misinformation. Fatbuildr ensures packages changelog are always kept in sync
+with package builds with a full history of publications in repositories.
+
+== Incremental Versionning
+
+When users submit artifact rebuild with the same version and release number,
+Fatbuildr detect it and automatically increment the artifact release version.
+
+This notably protect from situations where packages repositories host
+successively slightly different binary artifacts with the same version number
+and filename, leading to potential proxy cache or package database corruptions.
+
+The feature also enables users the possibilty to rebuild artifacts, typically in
+case of build dependencies update, without any further manual change in artifact
+definition.
+
+== Integrated Patchs Management
+
+Fatbuildr provides integrated patchs queue management of upstream sources. It
+creates a temporary Git repository with software upstream sources, and users can
+add successive patches by directly creating commits on this Git repository. When
+user is done, commits are exported into a series of patches.
+
+These patches are automatically integrated by Fatbuildr within the artifact and
+applied on sources at the beginning of the builds.
+
+Users have an easy way to modify source codes of external software with their
+own fixes and changes, and maintain this serie of patches for future versions of
+this external software.
+
+== Interactive Builds
+
+Users can submit _interactive_ builds in Fatbuildr. In case of build failure,
+users drop into an interactive shell in the targeted build environment for
+debugging. Users can launch commands and even install additional tools to help
+for diagnosis. Interactive sessions can also be shared by multiple users for
+collaborative work.
+
+== Prescripts
+
+Users can define shell _prescripts_ for artifacts. These scripts can be used to
+dynamically perform any modification in the software source tree before the
+actual build of the artifact. These scripts are executed by Fatbuildr isolated
+in the build environment with external network access.
+
+These scripts are typically used to do _vendoring_ of external build
+dependencies not available in Linux distribution package repositories (eg. Go or
+javascript libraries).
+
+The modifications realized by prescripts can either be exported to:
+
+* An additional patch integrated in the artifact patch queue
+* Or supplementary tarballs along the unmodified upstream tarball
+
+[#unreleased]
+== Support of Unreleased Software
+
+Fatbuildr can generate source tarball out of a source tree, tagged with
+user-provided version number, to build an artifact with this software. This
+feature can be used to distribute versions of software that is not yet released
+(eg. development version) or support software without publishing release model.
+
+== Web Interface & REST API
+
+The optional Fatbuildrweb component provides both a xref:usage:api.adoc[REST
+API] and xref:usage:web.adoc[web interface] to Fatbuildr instances. This web
+interface can be used to explore content of artifact registries in graphical and
+intuitive manner.
 
 == Advanced Security Model
 
-* Checksum control
-* Integrated and automated GPG signing keyring protected with randomly generated passphrase.
-* Advanced permissions control based on Polkit for D-Bus API
+Fatbuildr implements by default many security hardening features under the hood,
+without additional complexity for end users and administrators:
+
+* Checksums of externally downloaded software are systematically verified
+* Integrated GPG signing keyring are generated and protected with randomly generated passphrase
+* D-Bus services API permissions are controled using Polkit and configurable policy
 
 == Resilient Service
+
+The `fatbuildrd` daemon is a D-Bus activated service that starts automatically
+when needed and stop after some time of inactivity to free the resources. It
+includes a watchdog that detect internal failure and trigger automatic restart
+for quick service recovering.
