@@ -232,9 +232,9 @@ pipelines for the targeted distribution. For example, for package version number
 
 === RPM packages
 
-For RPM packages, an `rpm/` subdirectory must be present in artifact definition
+For RPM packages, a `rpm/` subdirectory must be present in artifact definition
 directory. It must contain a spec file named `<artifact>.spec` where
-`<artefact>` is the name of the artifact. For exemple, the file `rpm/foo.spec`
+`<artefact>` is the name of the artifact. For example, the file `rpm/foo.spec`
 is expected to build RPM packages for artifact `foo`.
 
 The spec file is processed as a Jinja2 template. The following variables are
@@ -291,6 +291,21 @@ currently available in managed repository for the targeted distribution, or none
 if absent, and the changelog entry generated with current build metadata.
 
 === OSI images
+
+For mkosi OS images, an `osi/` subdirectory must be present in artifact
+definition directory. It must contain a mkosi default settings file named
+`<artifact>.mkosi` where `<artefact>` is the name of the artifact. For example,
+the file `osi/foo.mkosi` is expected to build OS images for artifact `foo`.
+
+The user-provided mkosi default settings file is used by Fatbuildr without
+modification. Some mkosi parameters are ignored in the file, as they are
+overriden at build time in `mkosi` command line. This applies to the following
+parameters:
+
+* `OutputDirectory`
+* `ImageId`
+* `ImageVersion`
+* `Checksum`
 
 === Renaming Rules
 
