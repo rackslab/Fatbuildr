@@ -31,10 +31,10 @@ repository
 ----
 
 While this setup in recommended in Fatbuildr artifact repositories, it is just a
-convention to simplify usage of `xref::fatbuildrctl.adoc[]` command.
-This layout is not enforced. You can adopt the layout of your choice, you may
-just have to provide `xref::fatbuildrctl.adoc[]` base directory and
-subdirectory options more often.
+convention to simplify usage of xref:fatbuildrctl.adoc[] command. This layout
+is not enforced. You can adopt the layout of your choice, you may just have to
+provide xref:fatbuildrctl.adoc[] base directory and subdirectory options more
+often.
 
 == Artifact Definition
 
@@ -76,7 +76,7 @@ versions:
 
 NOTE: Either `version` or `versions` parameters must be defined in most cases,
 unless users want to always specify the version at build time using the
-dedicated option of `xref::fatbuildrctl.adoc[] build` command (_ex:_
+dedicated option of xref:fatbuildrctl.adoc[] `build` command (_ex:_
 for sofware never released by upstream developers).
 
 `tarball`:: Remote URL of the software source tarball. This URL is used to

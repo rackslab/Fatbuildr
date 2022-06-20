@@ -1,5 +1,6 @@
 ifeval::["{backend}" != "manpage"]
-= Fatbuildrctl
+= `fatbuildrctl` command
+:reftext: `fatbuildrctl`
 
 This section explains all `fatbuildrctl` command available options, with
 many examples and descriptions of its behaviours.
