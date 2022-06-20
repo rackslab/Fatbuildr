@@ -190,10 +190,51 @@ osi: {}
 
 === Deb packages
 
+For Deb packages, packaging code must be located in `deb/` subdirectory of
+artifact definition directory. The content of this directory is basically the
+content of the `debian/` subdirectory of Deb source package, with some notable
+exceptions.
+
+The `changelog` file is not required. Fatbuildr generates this file dynamically
+at build time. If the artifact is already published for the targeted build
+distribution. If the `changelog` file is present in `deb` subdirectory, it is
+replaced by the file generated at build time.
+
+The `patches` directory is not required. If xref:#patches[patches] are present
+in artifact definition directory or if prescript produces a patch, Fatbuildr
+generates the `patches` directory accordingly. If `patches` directory already
+exists in `deb` subdirectory, it is replaced by the generated directory.
+
+All files whose name is suffixed by `.j2` is considered as a template and is
+processed to generate the same file without the suffix. For example,
+`deb/control.j2` generates `deb/control`.
+
+Tokens available in templates are:
+
+`version`:: the artifact version, as an `ArtifactVersion` object. It has the
+following attributes:
+
+`version.main`::: The upstream version of the software. For example, for package
+version number `1.2-3.deb11`, `version.main` is `1.2`.
+
+`version.release`::: The release number of the package. For example, for package
+version number `1.2-3.deb11`, `version.release` is `3`.
+
+`version.major`::: The major component of the main version. For example, for
+package version number `1.2-3.deb11`, `version.major` is `1`.
+
+`version.full`::: The full version number of the package. For example, for
+package version number `1.2-3.deb11`, `version.full` is `1.2-3.deb11`.
+
+`version.dist`::: The distribution tag of the package, as defined in build
+pipelines for the targeted distribution. For example, for package version number
+`1.2-3.deb11`, `version.dist` is `deb11`.
+
 === RPM packages
 
 === OSI images
 
+[#patches]
 === Patches
 
 === Prescript
