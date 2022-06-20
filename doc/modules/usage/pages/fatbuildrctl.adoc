@@ -121,6 +121,14 @@ This command accepts the following options:
 *-w, --watch*::
   Wait for build task to run and print its output until it is over.
 
+*-i, --interactive*::
+  Submit build in interactive mode. In this mode, users drop into an interactive
+  shell inside the build environment in case of build failure. By launching
+  commands in this interactive shell, users can more easily diagnose the cause
+  of the build issue and eventually find solution. This argument implies
+  `--watch`. This mode is available only when the Fatbuildr server is accessed
+  locally on D-Bus.
+
 NOTE: *-n, --name*, *-e, --email* and *-m, --msg* options are not actually used
 for _osi_ format artifacts as this format does not contain changelogs.
 
@@ -158,6 +166,11 @@ for _osi_ format artifacts as this format does not contain changelogs.
 `$ fatbuildrctl build --artifact foo --distribution bar --watch`::
   Submit task to build artifact _foo_ for distribution _bar_, then wait for the
   build task to start and print its output until it is over.
+
+`$ fatbuildrctl build --artifact foo --distribution bar --interactive`::
+  Submit task to build artifact _foo_ for distribution _bar_, then wait for the
+  build task to start and print its output until it is over. Launch an
+  interactive shell in the build environment in case of build failure.
 
 `$ fatbuildrctl build --artifact foo --distribution bar --source-dir ~/path/to/sources --source-version 1.2.3`::
   Generate source tarball of artifact _foo_ with files located in directory
