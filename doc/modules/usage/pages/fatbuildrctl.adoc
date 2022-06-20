@@ -3,7 +3,8 @@ ifeval::["{backend}" != "manpage"]
 :reftext: `fatbuildrctl`
 
 This section explains all `fatbuildrctl` command available options, with
-many examples and descriptions of its behaviours.
+many examples and descriptions of its behaviours. The content of the page is
+also available in `fatbuildrctl(1)` manpage after installation.
 
 endif::[]
 
