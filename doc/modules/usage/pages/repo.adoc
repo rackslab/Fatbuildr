@@ -211,24 +211,7 @@ is processed to generate the same file without the suffix. For example,
 
 The following variables are available in templates:
 
-`version`:: the artifact version, as an `ArtifactVersion` object. It has the
-following attributes:
-
-`version.main`::: The upstream version of the software. For example, for package
-version number `1.2-3.deb11`, `version.main` is `1.2`.
-
-`version.release`::: The release number of the package. For example, for package
-version number `1.2-3.deb11`, `version.release` is `3`.
-
-`version.major`::: The major component of the main version. For example, for
-package version number `1.2-3.deb11`, `version.major` is `1`.
-
-`version.full`::: The full version number of the package. For example, for
-package version number `1.2-3.deb11`, `version.full` is `1.2-3.deb11`.
-
-`version.dist`::: The distribution tag of the package, as defined in build
-pipelines for the targeted distribution. For example, for package version number
-`1.2-3.deb11`, `version.dist` is `deb11`.
+include::partial$version-var.adoc[]
 
 === RPM packages
 
@@ -316,7 +299,31 @@ parameters:
 
 === Renaming Rules
 
-`rename.j2`
+Artifact definition directory can contain a file named `rename.j2` with
+_renaming rules_. These renaming rules are applied at build time before all
+other operations on the artifact definition directory. This feature can be
+useful to maintain packaging files with generic names that are renamed depending
+on artifact version.
+
+The `rename.j2` is a plain text file formatted with one renaming rule per line.
+Empty lines are ignored.
+
+Renaming rule are formatted with the relative path to the source file within the
+artifact definition directory, a space separator, and the relative path to the
+destination file.
+
+The file is processed as a Jinja2 template. The following variables are
+available in the template:
+
+include::partial$version-var.adoc[]
+
+Example content of `rename.j2` renaming rules file:
+
+[source,jinja2]
+----
+deb/foo-NM.install deb/foo-{{ version.main }}.install
+deb/bar-N.install deb/bar-{{ version.major }}.install
+----
 
 [#patches]
 === Patches

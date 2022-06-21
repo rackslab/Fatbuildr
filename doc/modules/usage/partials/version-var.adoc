@@ -1,0 +1,18 @@
+`version`:: the artifact version, as an `ArtifactVersion` object. It has the
+following attributes:
+
+`version.main`::: The upstream version of the software. For example, for package
+version number `1.2-3.deb11`, `version.main` is `1.2`.
+
+`version.release`::: The release number of the package. For example, for package
+version number `1.2-3.deb11`, `version.release` is `3`.
+
+`version.major`::: The major component of the main version. For example, for
+package version number `1.2-3.deb11`, `version.major` is `1`.
+
+`version.full`::: The full version number of the package. For example, for
+package version number `1.2-3.deb11`, `version.full` is `1.2-3.deb11`.
+
+`version.dist`::: The distribution tag of the package, as defined in build
+pipelines for the targeted distribution. For example, for package version number
+`1.2-3.deb11`, `version.dist` is `deb11`.
