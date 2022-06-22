@@ -157,8 +157,8 @@ class FatbuildrDBusService(Publishable):
     """The implementation of the FatbuildrDBusService."""
 
     def __init__(self, instances, timer):
-        self._instances = {}  # dict of Publishable FatbuildrDBusInstances
-        self.instances = instances  # list of RunningInstances
+        self._dbus_instances = {}  # dict of Publishable FatbuildrDBusInstances
+        self._running_instances = instances  # list of RunningInstances
         self.timer = timer
 
         for instance in instances:
@@ -172,7 +172,7 @@ class FatbuildrDBusService(Publishable):
                 obj.for_publication(),
                 server_factory=TimeredAuthorizationServerObjectHandler,
             )
-            self._instances[instance.id] = object_path
+            self._dbus_instances[instance.id] = object_path
 
     def for_publication(self):
         """Return a DBus representation."""
@@ -180,10 +180,10 @@ class FatbuildrDBusService(Publishable):
 
     def get_instance(self, id):
         """Returns the Fatbuildr instance publishable object."""
-        return self._instances[id]
+        return self._dbus_instances[id]
 
     def instances(self):
-        return self.instances
+        return self._running_instances
 
 
 @dbus_interface(FATBUILDR_INSTANCE.interface_name)
@@ -482,11 +482,12 @@ class FatbuildrDBusInstance(Publishable):
         return self._instance.pipelines.derivative_formats(derivative)
 
     def queue(self):
-        """The list of builds in instance queue."""
+        """The list of tasks in instance queue."""
         return self._instance.tasks_mgr.queue.dump()
 
     def running(self):
-        """The list of builds in queue."""
+        """The currently running task. ErrorNoRunningTask is raised if no task
+        is currently running."""
         if not self._instance.tasks_mgr.running:
             raise ErrorNoRunningTask()
         return self._instance.tasks_mgr.running
