@@ -19,7 +19,6 @@
 
 
 class AbstractClient:
-    def __init__(self, uri, scheme, instance):
+    def __init__(self, uri, scheme):
         self.uri = uri.rstrip('/')
         self.scheme = scheme
-        self.instance = instance

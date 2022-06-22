@@ -57,10 +57,9 @@ def check_authorization(method):
 
 
 class DBusClient(AbstractClient):
-
     @check_authorization
     def __init__(self, uri, scheme, instance):
-        super().__init__(uri, scheme, instance)
+        super().__init__(uri, scheme)
         self.service_proxy = FATBUILDR_SERVICE.get_proxy()
         try:
             obj_path = self.service_proxy.GetInstance(instance)

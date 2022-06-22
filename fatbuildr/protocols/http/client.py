@@ -28,8 +28,8 @@ logger = logr(__name__)
 
 
 class HttpClient(AbstractClient):
-    def __init__(self, uri, scheme, instance):
-        super().__init__(uri, scheme, instance)
+    def __init__(self, uri, scheme):
+        super().__init__(uri, scheme)
 
     def instance(self):
         url = f"{self.uri}/instance.json"

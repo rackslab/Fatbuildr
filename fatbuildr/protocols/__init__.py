@@ -35,7 +35,7 @@ class ClientFactory(object):
                 raise RuntimeError("Instance must be defined in DBus URI")
             return DBusClient(address, uri.scheme, instance)
         elif uri.scheme in ['http', 'https']:
-            return HttpClient(address, uri.scheme, instance)
+            return HttpClient(address, uri.scheme)
         else:
             raise RuntimeError(f"unsupported URI {uri}")
 
