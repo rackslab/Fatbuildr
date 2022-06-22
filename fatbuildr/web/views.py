@@ -28,6 +28,7 @@ from flask import (
     send_file,
     stream_with_context,
     abort,
+    Response,
 )
 from werkzeug.utils import secure_filename
 
@@ -61,7 +62,7 @@ def stream_template(template_name, **context):
 
 
 def version():
-    return f"Fatbuildr v{__version__}"
+    return Response(f"Fatbuildr v{__version__}", mimetype='text/plain')
 
 
 def instance(instance):
