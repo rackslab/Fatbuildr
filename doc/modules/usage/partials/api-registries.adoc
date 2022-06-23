@@ -1,0 +1,531 @@
+=== Registries
+
+==== Registry Formats
+
+`GET /\{instance}/registry.json`
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_array[string]_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/registry.json
+----
+
+Response:
+
+[source,json]
+----
+["rpm","deb"]
+----
+====
+
+==== Format Distributions
+
+`GET /\{instance}/registry/\{format}.json`
+
+Returns the list of available distributions in a registry for a given format.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+
+|`format`
+|Artifact format name
+|_string_
+|`deb` or `rpm`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_array[string]_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/registry/rpm.json
+----
+
+Response:
+
+[source,json]
+----
+["el8"]
+----
+====
+
+==== Distribution Derivatives
+
+`GET /\{instance}/registry/\{format}/\{distribution}.json`
+
+Returns the list of derivatives available for the distribution.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+
+|`format`
+|Artifact format name
+|_string_
+|`deb` or `rpm`
+
+|`distribution`
+|Distribution name
+|_string_
+|`bullseye` or `el8`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_array[string]_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/registry/deb/bullseye.json
+----
+
+Response:
+
+[source,json]
+----
+[
+  "main",
+  "foox"
+]
+----
+====
+
+==== Derivative Artifacts
+
+`GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}.json`
+
+Returns the list of artifacts in a distribution derivative.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+
+|`format`
+|Artifact format name
+|_string_
+|`deb` or `rpm`
+
+|`distribution`
+|Distribution name
+|_string_
+|`bullseye` or `el8`
+
+|`derivative`
+|Name of distribution derivative
+|_string_
+|`main`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_array[xref:#object-artifact[] object]_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/registry/deb/bullseye/main.json
+----
+
+Response:
+
+[source,json]
+----
+[
+  {
+    "architecture": "noarch",
+    "name": "fatbuildr",
+    "version": "0.1-1.deb11"
+  },
+  {
+    "architecture": "noarch",
+    "name": "fatbuildr-common",
+    "version": "0.1-1.deb11"
+  },
+  {
+    "architecture": "x86_64",
+    "name": "fatbuildr-wrappers",
+    "version": "0.1-1.deb11"
+  },
+  {
+    "architecture": "x86_64",
+    "name": "fatbuildr-wrappers-dbgsym",
+    "version": "0.1-1.deb11"
+  },
+  {
+    "architecture": "src",
+    "name": "fatbuildr",
+    "version": "0.1-1.deb11"
+  }
+]
+----
+====
+
+==== Artifact Information
+
+`GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}/\{architecture}/\{artifact}.json`
+
+Returns full description of an artifact in registry.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+
+|`format`
+|Artifact format name
+|_string_
+|`deb` or `rpm`
+
+|`distribution`
+|Dis$tribution name
+|_string_
+|`bullseye` or `el8`
+
+|`derivative`
+|Name of distribution derivative
+|_string_
+|`main`
+
+|`architecture`
+|Name of CPU architecture of the artifact. The special value `src` refers to
+source artifact used as input to produce binary artifacts. The special value
+`noarch` refers to architecture independant artifacts.
+|_string_
+|`x86_64`, `src` or `noarch`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_xref:#object-artifact-desc[]_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/registry/deb/bullseye/main/src/fatbuildr.json
+----
+
+Response:
+
+[source,json]
+----
+{
+  "artifact": "fatbuildr",
+  "binaries": [
+    {
+      "architecture": "noarch",
+      "name": "fatbuildr",
+      "version": "0.1-2.deb11"
+    },
+    {
+      "architecture": "noarch",
+      "name": "fatbuildr-common",
+      "version": "0.1-2.deb11"
+    },
+    {
+      "architecture": "x86_64",
+      "name": "fatbuildr-wrappers",
+      "version": "0.1-2.deb11"
+    },
+    {
+      "architecture": "x86_64",
+      "name": "fatbuildr-wrappers-dbgsym",
+      "version": "0.1-2.deb11"
+    }
+  ],
+  "changelog": [
+    {
+      "author": "John Doe <john@doe.org>",
+      "changes": [
+        "Another Fatbuildr test build"
+      ],
+      "date": 1655841969,
+      "version": "0.1-2.deb11"
+    },
+    {
+      "author": "John Doe <john@doe.org>",
+      "changes": [
+        "Fatbuildr test build"
+      ],
+      "date": 1655838256,
+      "version": "0.1-1.deb11"
+    }
+  ]
+}
+----
+
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/registry/deb/bullseye/main/x86_64/fatbuildr-wrappers.json
+----
+
+Response:
+
+[source,json]
+----
+{
+  "artifact": "fatbuildr-wrappers",
+  "changelog": [
+    {
+      "author": "John Doe <john@doe.org>",
+      "changes": [
+        "Another Fatbuildr test build"
+      ],
+      "date": 1655841969,
+      "version": "0.1-2.deb11"
+    },
+    {
+      "author": "John Doe <john@doe.org>",
+      "changes": [
+        "Fatbuildr test build"
+      ],
+      "date": 1655838256,
+      "version": "0.1-1.deb11"
+    }
+  ],
+  "source": {
+    "architecture": "src",
+    "name": "fatbuildr",
+    "version": "0.1-2.deb11"
+  }
+}
+----
+====
+
+==== Artifact Search
+
+`GET /\{instance}/search.json`
+
+Search for artifacts in instance registries.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+|===
+
+===== Query Parameters
+
+[cols="{tbl-queryparams-cols-specs}"]
+|===
+|Name|Description|Type|Required|Example
+
+|`artifact`
+|Part of artifact name to search. All artifacts whose name contains this
+parameter are selected in results.
+|_string_
+|✓
+|`fatbuildr`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_xref:#object-artifact-search-result[]_
+
+|400
+|Missing _artifact_ query parameter
+|`text/html`
+|
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/search.json?artifact=fatbuildr
+----
+
+Response:
+
+[source,json]
+----
+{
+  "deb": {
+    "bullseye": {
+      "main": [
+        {
+          "architecture": "noarch",
+          "name": "fatbuildr",
+          "version": "0.1-1.deb11"
+        },
+        {
+          "architecture": "noarch",
+          "name": "fatbuildr-common",
+          "version": "0.1-1.deb11"
+        },
+        {
+          "architecture": "x86_64",
+          "name": "fatbuildr-wrappers",
+          "version": "0.1-1.deb11"
+        },
+        {
+          "architecture": "x86_64",
+          "name": "fatbuildr-wrappers-dbgsym",
+          "version": "0.1-1.deb11"
+        },
+        {
+          "architecture": "src",
+          "name": "fatbuildr",
+          "version": "0.1-1.deb11"
+        }
+      ]
+    }
+  },
+  "rpm": {
+    "el8": {
+      "main": [
+        {
+          "architecture": "noarch",
+          "name": "fatbuildr",
+          "version": "0.1-1.el8"
+        },
+        {
+          "architecture": "noarch",
+          "name": "fatbuildr-common",
+          "version": "0.1-1.el8"
+        },
+        {
+          "architecture": "x86_64",
+          "name": "fatbuildr-wrappers",
+          "version": "0.1-1.el8"
+        },
+        {
+          "architecture": "x86_64",
+          "name": "fatbuildr-wrappers-dbgsym",
+          "version": "0.1-1.el8"
+        },
+        {
+          "architecture": "src",
+          "name": "fatbuildr",
+          "version": "0.1-1.el8"
+        }
+      ]
+    }
+  }
+}
+----
+====

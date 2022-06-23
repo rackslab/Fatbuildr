@@ -1,0 +1,109 @@
+=== Instances
+
+==== List of Available Instances
+
+`GET /instances.json`
+
+Returns the list of available instances on Fatbuildr server.
+
+WARNING: This endpoint is not available when Fatbuildrweb component runs in
+xref:admin:web.adoc#monoinstance[mono-instance mode].
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_array[xref:#object-instance[] object]_
+|===
+
+.Example
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/instances.json
+----
+
+Response:
+
+[source,json]
+----
+[
+  {
+    "id": "default",
+    "name": "Default Fatbuildr Instance",
+    "userid": "Maintainers <maintainers@example.org>"
+  },
+  {
+    "id": "prod",
+    "name": "Production Fatbuildr Instance",
+    "userid": "Maintainers <maintainers@example.org>"
+  },
+]
+----
+====
+
+CAUTION: All the following API endpoints are composed of the _instance_ path
+parameter as they manipulate data from a specific instance. However, this
+_instance_ path attribute is not required when Fatbuildrweb component runs in
+xref:admin:web.adoc#monoinstance[mono-instance mode]. In this mode, all the
+following endpoints must be considered without the _instance_ path attribute.
+
+==== Instance Information
+
+`GET /\{instance}/instance.json`
+
+Returns instance information.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_xref:#object-instance[] object_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/instance.json
+----
+
+Response:
+
+[source,json]
+----
+{
+  "id": "default",
+  "name": "Default Fatbuildr Instance",
+  "userid": "Maintainers <maintainers@example.org>"
+}
+----
+====

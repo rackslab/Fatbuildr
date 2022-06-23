@@ -1,1 +1,424 @@
 = REST API Reference
+:tbl-responses-cols-specs: 1,2,2,2
+:tbl-pathparams-cols-specs: 1,3,1,1
+:tbl-queryparams-cols-specs: 1,3,1,1,1
+:tbl-obj-props-cols-specs: 2,6,1,3
+:tbl-consumes-cols-specs: 1,1
+
+== API Endpoints
+
+include::partial$api-utilities.adoc[]
+
+include::partial$api-instances.adoc[]
+
+include::partial$api-pipelines.adoc[]
+
+include::partial$api-registries.adoc[]
+
+include::partial$api-tasks.adoc[]
+
+include::partial$api-keyring.adoc[]
+
+== Objects
+
+[#object-instance]
+=== Instance
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`id`
+|Instance identifier
+|✓
+|_string_
+
+|`name`
+|Full name of the instance
+|✓
+|_string_
+
+|`userid`
+|The user identifier of instance signing keyring
+|✓
+|_string_
+|===
+
+[#object-pipeline-format]
+=== PipelineFormat
+
+Additional Properties type: _array[xref:#object-pipeline-format-item[] object]_
+
+[#object-pipeline-format-item]
+=== PipelineFormatItem
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`distribution`
+|Name of registry distribution
+|✓
+|_string_
+
+|`environment`
+|Name of build environment
+|✓
+|_string_
+
+|`derivatives`
+|List of derivatives available for the associated registry distribution
+|✓
+|_array[string]_
+|===
+
+[#object-artifact-desc]
+=== ArtifactDescription
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`name`
+|Name of the artifact
+|✓
+|_string_
+
+|`binaries`
+|Corresponding list of produced binary artifacts (only for source artifact).
+|
+|_array[xref:#object-artifact[] object]_
+
+|`source`
+|Corresponding original source artifact (only for binary artifact).
+|
+|_xref:#object-artifact[] object_
+
+|`changelog`
+|List of artifact changelog entries
+|✓
+|_array[xref:#object-changelog-entry[] object]_
+|===
+
+[#object-artifact]
+=== Artifact
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`architecture`
+|Name of CPU architecture of the artifact
+|✓
+|_string_
+
+|`name`
+|Name of artifact
+|✓
+|_string_
+
+|`version`
+|Version number of the artifact
+|✓
+|_string_
+|===
+
+[#object-changelog-entry]
+=== ChangelogEntry
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`author`
+|Artifact build author with name and email
+|✓
+|_string_
+
+|`changes`
+|List of changes with the build
+|✓
+|_array[string]_
+
+|`date`
+|Timestamp since epoch of the build
+|✓
+|_integer_
+
+|`version`
+|Version number of the artifact
+|✓
+|_string_
+|===
+
+[#object-artifact-search-result]
+=== ArtifactSearchResult
+
+Additional Properties type: _xref:#object-artifact-format-search-result[] object_
+
+[#object-artifact-format-search-result]
+=== ArtifactFormatSearchResult
+
+Additional Properties type: _xref:#object-artifact-distribution-search-result[] object_
+
+[#object-artifact-distribution-search-result]
+=== ArtifactDistributionSearchResult
+
+Additional Properties type: _xref:#object-artifact-derivative-search-result[] object_
+
+[#object-artifact-derivative-search-result]
+=== ArtifactDerivativeSearchResult
+
+Additional Properties type: _array[xref:#object-artifact[] object]_
+
+[#object-build-submission]
+=== BuildSubmission
+
+Additional Properties type: _array[xref:#object-artifact[] object]_
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`architectures`
+|Comma-separated list of targeted CPU architectures
+|✓
+|_string_
+
+|`artifact`
+|Name of artifact
+|✓
+|_string_
+
+|`derivative`
+|Distribution derivative name
+|✓
+|_string_
+
+|`distribution`
+|Distribution name
+|✓
+|_array[string]_
+
+|`format`
+|Artifact format
+|✓
+|_string_
+
+|`message`
+|Build description integrated in changelog entry
+|✓
+|_string_
+
+|`source`
+|Optional tarball with artifact sources, used for
+xref:overview:features.adoc#unreleased[unreleased software].
+|
+|_file_
+
+|`tarball`
+|Tarball with artifact definition files
+|✓
+|_file_
+
+|`user_name`
+|User name
+|✓
+|_string_
+
+|`user_email`
+|User email address
+|✓
+|_string_
+|===
+
+[#object-submitted-task]
+=== SubmittedTask
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`task`
+|Submitted task UUID
+|✓
+|_uuid_
+|===
+
+
+[#object-task]
+=== Task
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`architecture`
+|Build environment CPU architecture (only for image build environment creation
+and image build environment update tasks)
+|
+|_string_
+
+|`architectures`
+|Build targeted CPU architectures (only for artifact build tasks)
+|
+|_array[string]_
+
+|`artifact`
+|Artifact name (only for artifact build and artifact deletion tasks)
+|
+|_string_ (for artifact build) or _xref:#object-artifact[] object_ (for artifact
+deletion task)
+
+|`derivative`
+|Distribution derivative name (only for artifact build tasks)
+|
+|_string_
+
+|`distribution`
+|Distribution name (only for artifact build tasks)
+|
+|_string_
+
+|`duration`
+|Keyring renewal duration time (only for keyring renewal tasks)
+|
+|_string_
+
+|`email`
+|User email address (only for artifact build tasks)
+|
+|_string_
+
+|`environment`
+|Build environment name (only for image build environment creation and image
+build environment update tasks)
+|
+|_string_
+
+|`force`
+|Force image creation when already existing (only for image creation tasks)
+|
+|_boolean_
+
+|`format`
+|Artifact format (only for artifact build, image creation, image update, image
+build environment creation and image build environment update tasks)
+|
+|_string_
+
+|`id`
+|Submitted task UUID
+|✓
+|_uuid_
+
+|`io`
+|Task IO channels
+|✓
+|_xref:#object-task-io[] object_
+
+|`message`
+|Build description integrated in changelog entry (only for artifact build tasks)
+|
+|_string_
+
+|`name`
+|Task type name
+|✓
+|_string_
+
+|`place`
+|Absolute path to task running directory
+|✓
+|_string_
+
+|`state`
+|Current status of task
+|✓
+|_string_
+
+|`submission`
+|Timestamp since epoch of task submission
+|✓
+|_integer_
+
+|`user`
+|User name (only for artifact build tasks)
+|
+|_string_
+|===
+
+[#object-task-io]
+=== TaskIO
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`console`
+|Absolute path to console Unix socket
+|✓
+|_string_
+
+|`interactive`
+|Indicates if task is in interactive mode
+|✓
+|_boolean_
+
+|`journal`
+|Task journal object
+|✓
+|_xref:#object-task-io-journal[] object_
+|===
+
+[#object-task-io-journal]
+=== TaskIOJournal
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`path`
+|Absolute path to task binary journal file
+|✓
+|_string_
+|===
+
+== HTML pages
+
+=== Instances
+
+* `GET /`
+
+=== Registry
+
+* `GET /\{instance}/registry/`
+* `GET /\{instance}/registry/\{format}/`
+* `GET /\{instance}/registry/\{format}/\{distribution}/`
+* `GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}/`
+* `GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}/\{architecture}/\{artifact}`
+* `GET /\{instance}/search`
+
+=== Tasks
+
+* `GET /\{instance}/watch/\{task}.html`

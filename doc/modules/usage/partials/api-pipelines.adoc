@@ -1,0 +1,220 @@
+=== Pipelines
+
+==== Pipelines Architectures
+
+`GET /\{instance}/pipelines/architectures.json`
+
+Returns the list of CPU architectures supported in the instance pipelines.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_array[string]_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/pipelines/architectures.json
+----
+
+Response:
+
+[source,json]
+----
+["x86_64","arm64"]
+----
+====
+
+==== Pipelines Formats
+
+`GET /\{instance}/pipelines/formats.json`
+
+Returns the artifacts formats defined in instance pipelines with their
+distributions and associated build environments and derivatives.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+|===
+
+===== Query Parameters
+
+[cols="{tbl-queryparams-cols-specs}"]
+|===
+|Name|Description|Type|Required|Example
+
+|`format`
+|Name of artifact format, to filter responses for this particular format.
+|_string_
+|
+| `deb` or `rpm`
+
+|`distribution`
+|Name of registry distribution, to filter responses for this particular
+distribution.
+|_string_
+|
+|`bullseye` or `el8`
+
+|`derivative`
+|Name of registry distribution derivative, to filter responses for this
+particular distribution derivative.
+|_string_
+|
+|`main`
+
+|`environment`
+|Name of artifact build environment, to filter responses for this particular
+build environment.
+|_string_
+|
+|`bullseye` or `rocky-8`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_xref:#object-pipeline-format[] object_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/pipelines/formats.json
+----
+
+Response:
+
+[source,json]
+----
+{
+  "deb": [
+    {
+      "derivatives": [
+        "main",
+        "foox"
+      ],
+      "distribution": "bookworm",
+      "environment": "bookworm"
+    },
+    {
+      "derivatives": [
+        "main",
+        "foox"
+      ],
+      "distribution": "sid",
+      "environment": "sid"
+    }
+  ],
+  "osi": [
+    {
+      "derivatives": [
+        "main"
+      ],
+      "distribution": "containers",
+      "environment": null
+    }
+  ],
+  "rpm": [
+    {
+      "derivatives": [
+        "main",
+        "foox"
+      ],
+      "distribution": "el8",
+      "environment": "rocky-8"
+    }
+  ]
+}
+----
+
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/pipelines/formats.json?format=rpm
+----
+
+Response:
+
+[source,json]
+----
+{
+  "rpm": [
+    {
+      "derivatives": [
+        "main",
+        "foox"
+      ],
+      "distribution": "el8",
+      "environment": "rocky-8"
+    }
+  ]
+}
+----
+
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/pipelines/formats.json?distribution=el8
+----
+
+Response:
+
+[source,json]
+----
+{
+  "rpm": [
+    {
+      "derivatives": [
+        "main",
+        "foox"
+      ],
+      "distribution": "el8",
+      "environment": "rocky-8"
+    }
+  ]
+}
+----
+====

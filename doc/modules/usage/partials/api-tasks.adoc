@@ -1,0 +1,382 @@
+=== Tasks
+
+==== Submit Build Task
+
+`POST /\{instance}/build`
+
+Submit artifact build task in queue.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+|`prod` or `default`
+|===
+
+===== Consumes
+
+[cols="{tbl-consumes-cols-specs}"]
+|===
+|Content Type|Data Type
+
+|`multipart/form-data`
+|_xref:#object-build-submission[BuildSubmission] object_
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_xref:#object-submitted-task[]_
+
+|400
+|Missing form parameter
+|`text/html`
+|
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X POST \
+  -F "format=deb" \
+  -F "distribution=bullseye" \
+  -F "architectures=x84_64" \
+  -F "derivative=main" \
+  -F "artifact=fatbuildr" \
+  -F "user_name=John Doe" \
+  -F "user_email=john.doe@example.org" \
+  -F "message=Test new awesome feature" \
+  -F "tarball=@artifact.tar.xz" \
+  http://localhost:5000/default/build
+----
+
+Response:
+
+[source,json]
+----
+{
+  "task": "ef6176ad-9489-449a-804e-77370fee2540"
+}
+----
+====
+
+==== Running Task
+
+`GET /\{instance}/running.json`
+
+Returns information about the running task.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+|`prod` or `default`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_xref:#object-task[]_ object or _null_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/running.json
+----
+
+Response:
+
+[source,json]
+----
+{
+  "architectures": [
+    "x86_64"
+  ],
+  "artifact": "fatbuildr",
+  "derivative": "main",
+  "distribution": "bullseye",
+  "email": "john.doe@example.org",
+  "format": "deb",
+  "id": "c8c9935e-44c9-48de-a318-b6060c08b8c8",
+  "io": {
+    "console": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8/console.sock",
+    "interactive": null,
+    "journal": {
+      "path": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8/task.journal"
+    }
+  },
+  "message": "Test of new feature",
+  "name": "artifact build",
+  "place": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8",
+  "state": "running",
+  "submission": 1656074753,
+  "user": "John Doe"
+}
+----
+====
+
+==== Pending Tasks
+
+`GET /\{instance}/queue.json`
+
+Returns list of pending tasks.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+|`prod` or `default`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_array[xref:#object-task[] object]_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/queue.json
+----
+
+Response:
+
+[source,json]
+----
+[
+  {
+    "architectures": [
+      "x86_64"
+    ],
+    "artifact": "fatbuildr",
+    "derivative": "main",
+    "distribution": "bullseye",
+    "email": "john.doe@example.org",
+    "format": "deb",
+    "id": "604a1348-dd3a-4082-b78d-78563c728bef",
+    "io": {
+      "console": "/var/lib/fatbuildr/queue/604a1348-dd3a-4082-b78d-78563c728bef/console.sock",
+      "interactive": null,
+      "journal": {
+        "path": "/var/lib/fatbuildr/queue/604a1348-dd3a-4082-b78d-78563c728bef/task.journal"
+      }
+    },
+    "message": "Test of new feature on Debian bullseye",
+    "name": "artifact build",
+    "place": "/var/lib/fatbuildr/queue/604a1348-dd3a-4082-b78d-78563c728bef",
+    "state": "pending",
+    "submission": 1656075042,
+    "user": "John Doe"
+  },
+  {
+    "architectures": [
+      "x86_64"
+    ],
+    "artifact": "fatbuildr",
+    "derivative": "main",
+    "distribution": "bookworm",
+    "email": "john.doe@example.org",
+    "format": "deb",
+    "id": "ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6",
+    "io": {
+      "console": "/var/lib/fatbuildr/queue/ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6/console.sock",
+      "interactive": null,
+      "journal": {
+        "path": "/var/lib/fatbuildr/queue/ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6/task.journal"
+      }
+    },
+    "message": "Test of new feature on Debian bookworm",
+    "name": "artifact build",
+    "place": "/var/lib/fatbuildr/queue/ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6",
+    "state": "pending",
+    "submission": 1656075042,
+    "user": "John Doe"
+  }
+]
+----
+====
+
+==== Task Information
+
+`GET /\{instance}/tasks/\{task}.json`
+
+Returns information about an archived task.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+|`prod` or `default`
+
+|`task`
+|Task UUID
+|_uuid_
+|
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_xref:#object-task[]_ object or _null_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET  http://localhost:5000/default/tasks/c8c9935e-44c9-48de-a318-b6060c08b8c8.json
+----
+
+Response:
+
+[source,json]
+----
+{
+  "architectures": [
+    "x86_64"
+  ],
+  "artifact": "fatbuildr",
+  "derivative": "main",
+  "distribution": "bullseye",
+  "email": "john.doe@example.org",
+  "format": "deb",
+  "id": "c8c9935e-44c9-48de-a318-b6060c08b8c8",
+  "io": {
+    "console": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8/console.sock",
+    "interactive": null,
+    "journal": {
+      "path": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8/task.journal"
+    }
+  },
+  "message": "Test of new feature",
+  "name": "artifact build",
+  "place": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8",
+  "state": "finished",
+  "submission": 1656074753,
+  "user": "John Doe"
+}
+----
+====
+
+==== Task Journal
+
+`GET /\{instance}/watch/\{task}.journal`
+
+Returns the binary journal of either running or archived task.
+
+NOTE: The response is a binary file encoded with Fatbuildr specific
+`ConsoleMessage` protocol. This is supposed to be consumed by
+xref:fatbuildrctl.adoc[] `watch` command only.
+
+CAUTION: When the task is running, the output is streamed until the task is
+over. In this case, the duration of the response might be significant.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+|`prod` or `default`
+
+|`task`
+|Task UUID
+|_uuid_
+|
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/octet-stream`
+|_file_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/watch/c8c9935e-44c9-48de-a318-b6060c08b8c8.journal \
+  --output task.journal
+----
+
+Response:
+
+[source,shell]
+----
+$ file task.journal
+task.journal: data
+----
+====

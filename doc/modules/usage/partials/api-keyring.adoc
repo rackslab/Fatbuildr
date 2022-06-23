@@ -1,0 +1,52 @@
+=== Keyring
+
+==== Keyring Armored Public Key
+
+`GET /\{instance}/keyring.asc`
+
+Download instance keyring public key in armored format.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+|`prod` or `default`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`text/plain`
+|_string_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X GET http://localhost:5000/default/keyring.asc
+----
+
+Response:
+
+[source]
+----
+-----BEGIN PGP PUBLIC KEY BLOCK-----
+…
+-----END PGP PUBLIC KEY BLOCK-----
+----
+====
+
