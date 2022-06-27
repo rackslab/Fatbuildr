@@ -4,10 +4,12 @@
 <h1>{% if config['INSTANCE'] == 'all' %}{{ instance }} > {% endif %}task {{ task }}</h1>
 <pre>
 {%- for message in messages -%}
-  {%- set msg = message.data.decode() -%}
-  {%- if message.IS_LOG %}LOG: {{ msg }}
+  {%- if message.data is not none -%}
+    {%- set msg = message.data.decode() -%}
+    {%- if message.IS_LOG %}LOG: {{ msg }}
 {% else %}{{ msg }}
-  {%- endif %}
+    {%- endif %}
+  {%- endif -%}
 {%- endfor %}
 </pre>
 {% endblock %}
