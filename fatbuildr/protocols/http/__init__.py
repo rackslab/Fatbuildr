@@ -27,7 +27,7 @@ from ..wire import (
     WireTaskIO,
     WireTaskJournal,
 )
-from ..exports import ProtocolRegistry
+from ..exports import ProtocolRegistry, ExportableType
 
 
 def type_fields(type):
@@ -39,10 +39,18 @@ def type_fields(type):
     raise RuntimeError(f"Unable to find fields for json type {type}")
 
 
-def json_type(_dbus_type):
+def dbus_json_type(_dbus_type):
     """Returns the JsonData type for the given DBus type."""
     for native_type, dbus_type, json_type in TYPES_MAP:
         if dbus_type == _dbus_type:
+            return json_type
+    raise RuntimeError(f"Unable to find json type for dbus type {_dbus_type}")
+
+
+def native_json_type(_native_type):
+    """Returns the JsonData type for the given native type."""
+    for native_type, _, json_type in TYPES_MAP:
+        if native_type == _native_type:
             return json_type
     raise RuntimeError(f"Unable to find json type for dbus type {_dbus_type}")
 
@@ -52,7 +60,16 @@ class JsonData:
     def load_from_json(cls, fields, json):
         obj = cls()
         for field in fields:
-            setattr(obj, field.name, field.native(value=json[field.name]))
+            wire_value = json[field.name]
+            if issubclass(field.wire_type, ExportableType):
+                # If the field has an exportable type, convert the JSON to
+                # the corresponding JsonNativeData type.
+                native_value = native_json_type(
+                    field.native_type.__name__
+                ).load_from_json(wire_value)
+            else:
+                native_value = field.native(value=wire_value)
+            setattr(obj, field.name, native_value)
         return obj
 
     @classmethod
@@ -68,7 +85,9 @@ class JsonData:
             # if field value is a nested WireData object, call recursive
             # JsonData.export() on this value.
             if issubclass(type(wire_value), WireData):
-                value = json_type(type(wire_value).__name__).export(wire_value)
+                value = dbus_json_type(type(wire_value).__name__).export(
+                    wire_value
+                )
             else:
                 value = field.export(obj)
             result[field.name] = value
