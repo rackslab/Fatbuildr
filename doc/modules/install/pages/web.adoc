@@ -1,0 +1,64 @@
+= Fatbuildrweb
+
+Fatbuildrweb component is automatically installed with Fatbuildr, there is
+nothing more to install. However, it is not started by default. There are 2
+supported ways to start the service:
+
+* In autonomous mode, where the application starts with its built-in HTTP server
+* As WSGI application integrated with an existing HTTP server
+
+The autonomous mode is easy and straightforward to setup but it is not
+recommended for large setup with many users. The WSGI mode benefits from the
+better performances and scalability offered by advanced HTTP servers such as
+Apache2 and nginx.
+
+[#autonomous]
+== Autonomous Service
+
+Start _fatbuildrweb_ service with this command as root (or sudo):
+
+[source,shell]
+----
+# systemctl start fatbuildrweb.service
+----
+
+The service is available at this URL: http://localhost:5000/
+
+Please refer to the _Administration Guide_ to
+xref:admin:web.adoc#interface[configure an alternative listening interface and
+TCP port].
+
+To automatically start the service on system start, enable the service with this
+command:
+
+[source,shell]
+----
+# systemctl enable fatbuildrweb.service
+----
+
+== WSGI Application
+
+=== Apache2
+
+[source,bash]
+----
+a2enmod wsgi
+----
+
+[source]
+----
+WSGIDaemonProcess fatbuildrweb-all user=fatbuildr group=fatbuildr locale=en_US.UTF-8 threads=5
+WSGIScriptAlias / /usr/lib/fatbuildr/wsgi/fatbuildrweb.wsgi
+WSGIPassAuthorization On
+
+<Directory /usr/lib/fatbuildr/wsgi>
+  WSGIProcessGroup fatbuildrweb-all
+  WSGIApplicationGroup %{GLOBAL}
+  Require all granted
+</Directory>
+----
+
+[source,bash]
+----
+systemctl restart apache2.service
+----
