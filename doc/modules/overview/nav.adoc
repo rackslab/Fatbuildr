@@ -1,6 +1,5 @@
 * xref:start.adoc[]
-
-.Overview
+* xref:overview.adoc[]
 ** xref:what.adoc[]
 ** xref:continuous_delivery.adoc[]
 ** xref:architecture.adoc[]

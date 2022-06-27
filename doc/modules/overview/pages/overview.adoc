@@ -1,0 +1,15 @@
+= Overview
+
+This section provides explanations to learn about Fatbuildr software:
+
+* Discover how Fatbuildr helps software distribution with a description of its
+  role and main charateristics in page _« xref:what.adoc[] »_
+
+* Understand the concept and notion of
+  _xref:continuous_delivery.adoc[continuous delivery]_ with its role in software
+  development and release pipelines.
+
+* Get a detailed look of Fatbuildr inner workings in
+  xref:architecture.adoc[architecture] page.
+
+* Discover Fatbuildr most xref:features.adoc[advanced features] and advantages.
