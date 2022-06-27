@@ -174,7 +174,11 @@ class WebApp(Flask):
             self.add_url_rule('/<string:instance>' + path, **kwargs)
 
     def run(self):
-        super().run(host=self.conf.run.host, debug=self.conf.run.debug)
+        super().run(
+            host=self.conf.run.host,
+            port=self.conf.run.port,
+            debug=self.conf.run.debug,
+        )
 
     @locked_cached_property
     def jinja_loader(self):
