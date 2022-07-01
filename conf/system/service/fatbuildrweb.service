@@ -1,0 +1,11 @@
+[Unit]
+Description=Fatbuildr web interface and REST API
+After=systemd-sysusers.service
+
+[Service]
+ExecStart=/usr/libexec/fatbuildrweb
+Restart=on-failure
+User=fatbuildr
+
+[Install]
+WantedBy=multi-user.target
