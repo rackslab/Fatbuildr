@@ -1,1 +1,145 @@
 = D-Bus Permissions
+
+The permissions to access the D-Bus interface of `fatbuildrd` is controled using
+https://gitlab.freedesktop.org/polkit/polkit/[polkit] service. Fatbuildr
+classifies D-Bus calls in a set of _actions_ and delegates to polkit the
+responsibility of checking users permissions on these actions against the
+_policy_.
+
+== Polkit Actions
+
+The polkit actions defined in Fatbuildr are the following:
+
+org.rackslab.Fatbuildr.view-task:: List and view detailed information of tasks
+queue (pending and running tasks) and tasks archives.
+
+org.rackslab.Fatbuildr.build:: Submit artifact build tasks.
+
+org.rackslab.Fatbuildr.view-pipeline:: View definition of instances build
+pipelines.
+
+org.rackslab.Fatbuildr.view-registry:: View content of managed artifact
+registries.
+
+org.rackslab.Fatbuildr.edit-registry:: Submit tasks to edit content of managed
+artifact registries (ex: delete artifact).
+
+org.rackslab.Fatbuildr.view-keyring:: View keyring detailed information.
+
+org.rackslab.Fatbuildr.edit-keyring:: Submit tasks to edit keyring (ex: change
+expiry date).
+
+org.rackslab.Fatbuildr.manage-image:: Submit tasks to manage container images
+and build environment.
+
+== Default Policy
+
+By default in Fatbuildr, _root_ super user and members of group `fatbuildr` are
+granted to perform all actions.
+
+Users can be added to `fatbuildr` group to get access to Fatbuildr D-Bus
+service. For example, run this command as root to add user `john` in group
+`fatbuildr`:
+
+[source,shell]
+----
+# usermod -a -G fatbuildr john
+----
+
+This default policy can be modified with additional polkit configuration files
+as explained in the following section.
+
+== Configuration Files
+
+Polkit initially used the PKLA file format (PolicyKit Local Authority) and then
+changed to more flexible authorization rules file format (Javascript based).
+Unfortunately, some Linux distributions (ex: Debian, Ubuntu) do not support the
+latest file format. For this reason, Fatbuildr supports both file formats, as
+described in the following subsections.
+
+=== Authorization Rules
+
+Fatbuildr provides default vendor polkit rules located at
+`/usr/share/polkit-1/rules.d/org.rackslab.Fatbuildr.rules`. This file must not
+be changed or modifications will be lost on upgrades.
+
+The rules defined in this file can be overriden by creating a new file
+`/etc/polkit-1/rules.org.rackslab.Fatbuildr.rules`.
+
+For example, to restrict modification of registries, keyrings and image
+management to members of group `fatbuildr-admins`, the following rules can be
+defined in this file:
+
+[source,js]
+----
+// Restrict modifications of registries, keyring and images to members of
+// fatbuildr-admins group
+polkit.addRule(function(action, subject) {
+    if ((action.id == "org.rackslab.Fatbuildr.edit-registry" ||
+         action.id == "org.rackslab.Fatbuildr.edit-keyring" ||
+         action.id == "org.rackslab.Fatbuildr.manage-image") &&
+        subject.isInGroup ("fatbuildr-admins")) {
+            return polkit.Result.YES;
+        } else {
+            return polkit.Result.NO;
+        }
+});
+----
+
+=== PKLA Files
+
+Fatbuildr provides default vendor local authority file located at
+`/var/lib/polkit-1/localauthority/10-vendor.d/fatbuildr.pkla`. This file must
+not be changed or modifications will be lost on upgrades.
+
+The rules defined in this file can be overriden by creating a new file
+`/etc/polkit-1/localauthority/50-local.d/fatbuildr.pkla`.
+
+For example, to restrict modification of registries, keyrings and image
+management to members of group `fatbuildr-admins`, the following rules can be
+defined in this file:
+
+[source,ini]
+----
+[Allow members of fatbuildr-admins group to edit Fatbuildr registry content]
+Identity=unix-group:fatbuildr-admins
+Action=org.rackslab.Fatbuildr.edit-registry;
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+
+[Allow members of fatbuildr-admins group to edit Fatbuildr keyring]
+Identity=unix-group:fatbuildr-admins
+Action=org.rackslab.Fatbuildr.edit-keyring;
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+
+[Allow members of fatbuildr-admins group to manage Fatbuildr image and build environment]
+Identity=unix-group:fatbuildr-admins
+Action=org.rackslab.Fatbuildr.manage-image;
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+
+[Disallow members of fatbuildr group to edit Fatbuildr registry content]
+Identity=unix-group:fatbuildr
+Action=org.rackslab.Fatbuildr.edit-registry;
+ResultAny=no
+ResultInactive=no
+ResultActive=no
+
+[Disallow members of fatbuildr group to edit Fatbuildr keyring]
+Identity=unix-group:fatbuildr
+Action=org.rackslab.Fatbuildr.edit-keyring;
+ResultAny=no
+ResultInactive=no
+ResultActive=no
+
+[Disallow members of fatbuildr group to manage Fatbuildr image and build environment]
+Identity=unix-group:fatbuildr
+Action=org.rackslab.Fatbuildr.manage-image;
+ResultAny=no
+ResultInactive=no
+ResultActive=no
+----
