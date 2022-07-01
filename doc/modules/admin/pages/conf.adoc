@@ -1,1 +1,175 @@
 = Configuration Files
+
+== Paths
+
+Fatbuildr is installed with a vendor configuration file located at
+`/usr/lib/fatbuildr/fatbuildr.ini`. This configuration file *must not* be
+modified as changes would be lost on upgrades.
+
+Parameters can be overriden in site configuration file
+`/etc/fatbuildr/fatbuildr.ini`. This file is empty by default. All parameters
+declared in this file take precedence over the vendor file.
+
+[#params]
+== Parameters
+
+The configuration files have the https://en.wikipedia.org/wiki/INI_file[INI file
+format], with sections and parameters.
+
+All sections with their parameters are described in the following sub-sections.
+
+=== `dirs`
+
+This section controls paths of main directories used by Fatbuildr. It includes
+the following parameters:
+
+`instances`:: Absolute path to directory with instances definitions files.
+
+`queue`:: Absolute path to directory for queued and running tasks working directories.
+
+`archives`:: Absolute path to directory for archived tasks working directories.
+
+`registry`:: Absolute path to directory for managed artifact registries.
+
+`cache`:: Absolute path to directory for cached artifacts.
+
+`tmp`:: Absolute path to temporary directory.
+
+=== `daemon`
+
+This section controls Fatbuildr daemon generic runtime parameters. It includes
+the following parameters:
+
+`debug`:: Boolean to control `fatbuildrd` daemon debug mode
+
+`fulldebug`:: Boolean to control `fatbuildrd` daemon full debug mode. In this
+mode, logs from external libraries are included in daemon logs. When disabled,
+logs from external libraries are filtered out. Enabling `fulldebug` implies
+`debug` enabled.
+
+=== `web`
+
+This section controls Fatbuildrweb service specific settings. It includes the
+following parameters:
+
+`debug`:: Boolean to control Fatbuildrweb service debug mode.
+
+`host`:: Host IP address to which Fatbuildrweb network socket is binded. Special
+value `0.0.0.0` means _all_ host network interfaces.
+
+`port`:: TCP port listened by Fatbuildrweb service.
+
+`instance`:: The name of Fatbuildr instance served by Fatbuildrweb service.
+Special value _all_ means all defined instances.
+
+CAUTION: `debug`, `host`, `port` and `instance` parameters are valid for
+Fatbuildrweb running as xref:install:web.adoc#autonomous[autonomous service]
+only. These parameters are ignored when Fatbuildrweb runs as WSGI application.
+
+`vendor_templates`:: Absolute path to directory of vendor HTML pages templates.
+
+`templates`:: Absolute path to directory of site HTML pages templates.
+
+`static`:: Absolute path to directory of static web assets.
+
+=== `images`
+
+This section controls container images settings. It includes the following
+parameters:
+
+`storage`:: Absolute path to directory for container images.
+
+`defs`:: Absolute path to directory with container images definition files and
+utilities.
+
+`formats`:: Comma-separated list of artifacts format supported by this Fatbuildr
+installation. This can be used to restrict the list of supported formats to a
+subset of all formats natively supported by Fatbuildr.
+
+`create_cmd`:: Command used to create container images.
+
+=== `containers`
+
+This section controls container instances settings. It includes the following
+parameters:
+
+`exec`:: Absolute path to executable for running containers.
+
+`init_opts`:: Command options passed to container instanciation executable for
+updating images, creating and update build environments. These options are not
+used when running commands for other types of tasks (ex: builds)
+
+`opts`:: Command options passed to container instanciation executable, for all
+commands.
+
+=== `registry`
+
+This section controls managed artifact registries settings. It includes the
+following parameters:
+
+`conf`:: Absolute path to directory for managed artifact registries.
+
+=== `keyring`
+
+This section controls the cryptographic signing keyring settings. It includes
+the following parameters:
+
+`storage`:: Absolute path to directory for cryptographic signing keyrings.
+
+`type`:: Algorithm used to generate the keys
+
+`size`:: Integer size of keys in bits
+
+`expires`:: Duration of keys validity. Special value 0 means the keys never
+expires. The value can be suffixed with units `w` (weeks), 'm' (months) or `y`
+(years). The default unit is days.
+
+=== `format:*`
+
+All artifacts supported by Fatbuildr have their dedicated section prefixed by
+`format:`. They contain all parameters to manage the content of container images
+specialized for the formats including the build environments (when applicable).
+
+Formats sections include both common and specific parameters. The specific
+parameters are detailed in following dedicated subsections. The common
+parameters shared by all formats are the following:
+
+`img_update_cmds`:: Command used in container to upgrade image software.
+
+=== `format:deb`
+
+`env_path`:: Absolute path to the build environment in the container image.
+
+`init_cmd`:: Command used in container to create build environment.
+
+`env_update_cmds`:: Command used in container to upgrade build environment
+software.
+
+`prescript_deps`:: Space-separated list of packages installed in build
+environment before prescripts are run.
+
+=== `format:rpm`
+
+`env_path`:: Absolute path to the build environment in the container image.
+
+`init_cmd`:: Command used in container to create build environment.
+
+`env_update_cmds`:: Command used in container to upgrade build environment
+software.
+
+`prescript_deps`:: Space-separated list of packages installed in build
+environment before prescripts are run.
+
+=== `format:osi`
+
+There is no specific parameter for the OSI format.
+
+== Default Values
+
+This is the content of the vendor configuration file with all parameters default
+values:
+
+[source,ini]
+----
+include::example$fatbuildr.ini[]
+----
