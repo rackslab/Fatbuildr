@@ -281,6 +281,7 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         self.debug = None
         self.host = None
         self.port = None
+        self.instance = None
         self.vendor_templates = None
         self.templates = None
         self.static = None
@@ -290,6 +291,7 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         self.debug = config.getboolean(section, 'debug')
         self.host = config.get(section, 'host')
         self.port = config.getint(section, 'port')
+        self.instance = config.get(section, 'instance')
         self.vendor_templates = config.get(section, 'vendor_templates')
         self.templates = config.get(section, 'templates')
         self.static = config.get(section, 'static')
@@ -299,6 +301,7 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         logger.debug("  debug: %s", self.debug)
         logger.debug("  host: %s", self.host)
         logger.debug("  port: %i", self.port)
+        logger.debug("  instance: %s", self.instance)
         logger.debug("  vendor_templates: %s", self.vendor_templates)
         logger.debug("  static: %s", self.static)
 

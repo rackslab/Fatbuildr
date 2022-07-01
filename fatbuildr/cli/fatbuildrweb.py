@@ -56,8 +56,7 @@ class FatbuildrWeb(FatbuildrCliRun):
         parser.add_argument(
             '-i',
             '--instance',
-            help="Instance to serve (default: %(default)s)",
-            default='all',
+            help="Instance to serve (default: all)",
         )
         args = parser.parse_args()
 
@@ -65,7 +64,7 @@ class FatbuildrWeb(FatbuildrCliRun):
 
         self.conf = RuntimeConfWeb()
         self.load(args)
-        self.app = WebApp(self.conf, args.instance)
+        self.app = WebApp(self.conf, self.conf.run.instance)
         self.app.run()
 
     def load(self, args):
@@ -75,5 +74,8 @@ class FatbuildrWeb(FatbuildrCliRun):
 
         if args.debug:
             self.conf.run.debug = True
+
+        if args.instance is not None:
+            self.conf.run.instance = args.instance
 
         self.conf.dump()
