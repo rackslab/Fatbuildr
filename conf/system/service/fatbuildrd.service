@@ -4,7 +4,7 @@ After=systemd-sysusers.service
 
 [Service]
 BusName=org.rackslab.Fatbuildr
-ExecStart=/usr/bin/fatbuildrd
+ExecStart=/usr/libexec/fatbuildrd
 WatchdogSec=3min
 Restart=on-failure
 User=fatbuildr
