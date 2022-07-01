@@ -36,18 +36,45 @@ command:
 # systemctl enable fatbuildrweb.service
 ----
 
+[#wsgi]
 == WSGI Application
 
-=== Apache2
+Setting up a WSGI application depends on the HTTP server and the WSGI module.
+The following subsections provides installation instructions for some
+combinations of those.
 
-[source,bash]
+NOTE: If you need help to setup Fatbuildrweb as a WSGI application with a
+different combination of HTTP server and WSGI module, please
+https://github.com/rackslab/fatbuildr/issues/new[open an issue]. If you want to
+contribute documentation for an additional HTTP server or WSGI module, please
+https://github.com/rackslab/fatbuildr/compare[open a pull request]!
+
+=== Apache2 and `mod_wsgi`
+
+Install Apache2 HTTP service with WSGI module:
+
+* On Debian/Ubuntu:
++
+[source,shell]
 ----
-a2enmod wsgi
+# apt install apache2 libapache2-mod-wsgi-py3
+# a2enmod wsgi  # The module must be enabled manually.
 ----
+
+* On RHEL:
++
+[source,shell]
+----
+# dnf install httpd python3-mod_wsgi
+# systemctl enable httpd.service  # and enabled manually.
+----
+
+Add the following lines in the most appropriate `VirtualHost` of your Apache2
+configuration:
 
 [source]
 ----
-WSGIDaemonProcess fatbuildrweb-all user=fatbuildr group=fatbuildr locale=en_US.UTF-8 threads=5
+WSGIDaemonProcess fatbuildrweb-all user=fatbuildr group=fatbuildr locale=en_US.UTF-8
 WSGIScriptAlias / /usr/lib/fatbuildr/wsgi/fatbuildrweb.wsgi
 WSGIPassAuthorization On
 
@@ -58,7 +85,25 @@ WSGIPassAuthorization On
 </Directory>
 ----
 
-[source,bash]
+Finally, restart the service to enable modifications:
+
+* On Debian/Ubuntu:
++
+[source,shell]
 ----
-systemctl restart apache2.service
+# systemctl restart apache2.service
 ----
+
+* On RHEL:
++
+[source,shell]
+----
+# systemctl restart httpd.service
+----
+
+At this stage, Fatbuildrweb is available to the root path of your `VirtualHost`.
+
+NOTE: With the Apache2 configuration snippet provided, Fatbuildrweb application
+is started in _multi-instances mode_. Find out
+xref:admin:web.adoc#monoinstance[_mono-instance mode_ configuration
+instructions] to change this setting.

@@ -1,3 +1,211 @@
 = Fatbuildrweb
 
-Custom templates
+[#interface]
+== Listening interface and port
+
+CAUTION: These instructions are valid only for Fatbuildrweb running as an
+xref:install:web.adoc#autonomous[autonomous service]. Please refer to your HTTP
+server reference documentation to control this setting for Fatbuildrweb running
+as a xref:install:web.adoc#wsgi[WSGI application].
+
+By default, Fatbuildrweb autonomous service listens on _localhost_ interface and
+port TCP/5000.
+
+Edit Fatbuildr site configuration file `/etc/fatbuildr/fatbuildr.ini`. If not
+already present, add `[web]` section.
+
+In this section, define parameter `host` with the host IP address to which
+Fatbuildrweb should bind its socket listening for incoming connections. Special
+value `0.0.0.0` means _all_ network interfaces.
+
+The TCP port can also be changed with `port` parameter (ex: `1234``).
+
+For example:
+
+[source,ini]
+----
+[web]
+host = 0.0.0.0
+port = 1234
+----
+
+To apply the settings, restart the service:
+
+[source,shell]
+----
+# systemctl restart fatbuildrweb.service
+----
+
+Please refer to xref:conf.adoc#parameters[configuration parameters reference
+documentation] for full details about available parameters.
+
+[NOTE]
+====
+Binding network socket to priviled ports <= 1024 (_ex:_ 80/HTTP) requires
+`CAP_NET_BIND_SERVICE` Linux capability. By default, only the _root_ user has
+this capability. Fatbuildrweb autonomous service can be given this capability
+with a systemd _drop-in_ unit configuration file for `fatbuildrweb.service`.
+
+First create service _drop-in_ directory:
+
+[source,shell]
+----
+# mkdir /etc/systemd/system/fatbuildrweb.service.d
+----
+
+Create configuration file in this directory (_ex:_
+`/etc/systemd/system/fatbuildrweb.service.d/net-bind-cap.conf`) with this
+parameter:
+
+[source,ini]
+----
+[Service]
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+----
+
+Make systemd reload unit configuration files:
+
+[source,shell]
+----
+# systemctl daemon-reload
+----
+
+Edit Fatbuildr site configuration file `/etc/fatbuildr/fatbuildr.ini` to setup
+the port value below 1024 (ex: 80/HTTP), and apply the configuration by
+restarting the service:
+
+[source,shell]
+----
+# systemctl restart fatbuildrweb.service
+----
+====
+
+[#monoinstance]
+== Mono-instance mode
+
+By default, Fatbuildrweb is setup in multi-instances modes, it serves all
+instances defined in Fatbuildr installation. This can be changed to serve one
+specific instance and remove instance name in URL paths.
+
+This feature can typically be used to serve instances behind their specific
+Apache2 virtual hosts or nginx sites with their dedicated network server names
+(ex: `prod.example.org` and `staging.example.org`).
+
+=== Autonomous Service
+
+Edit Fatbuildr site configuration file `/etc/fatbuildr/fatbuildr.ini`. If not
+already present, add `[web]` section.
+
+In this section, define parameter `instance` with the name of the Fatbuildr
+instance to serve. For example:
+
+[source,ini]
+----
+[web]
+instance = prod
+----
+
+Apply the new configuration by restarting the service:
+
+[source,shell]
+----
+# systemctl restart fatbuildrweb.service
+----
+
+=== WSGI Application
+
+Settings of WSGI application depends on the HTTP server and the WSGI module.
+The following subsections provides configuration instructions for some
+combinations of those.
+
+NOTE: If you need help to setup Fatbuildrweb as a WSGI application in
+mono-instance mode with a different combination of HTTP server and WSGI module,
+please https://github.com/rackslab/fatbuildr/issues/new[open an issue]. If you
+want to contribute documentation for an additional HTTP server or WSGI module,
+please https://github.com/rackslab/fatbuildr/compare[open a pull request]!
+
+==== Apache2 and `mod_wsgi`
+
+Edit the configuration snippet used to xref:install:web.adoc#wsgi[declare
+Fatbuildr WSGI application] in Apache2 HTTP server configuration file to modify
+the first argument of the `WSGIDaemonProcess` directive:
+
+[source,diff]
+----
+--- a/site.conf
++++ b/site.conf
+@@ -1,4 +1,4 @@
+-WSGIDaemonProcess fatbuildrweb-all user=fatbuildr group=fatbuildr locale=en_US.UTF-8
++WSGIDaemonProcess fatbuildrweb-prod user=fatbuildr group=fatbuildr locale=en_US.UTF-8
+ WSGIScriptAlias / /usr/lib/fatbuildr/wsgi/fatbuildrweb.wsgi
+ WSGIPassAuthorization On
+----
+
+The `-all` special suffix value enables _multi-instances mode_. For example, to
+setup _mono-instance mode_ on the  _prod_ instance, replace the `-all` suffix by
+`-prod`.
+
+Finally reload the Apache2 HTTP service to enable modifications:
+
+* On Debian/Ubuntu:
++
+[source,shell]
+----
+# systemctl reload apache2.service
+----
+
+* On RHEL:
++
+[source,shell]
+----
+# systemctl reload httpd.service
+----
+
+== Custom HTML templates
+
+The HTML pages served by Fatbuildrweb are rendered based on templates. Fatbuildr
+provides vendor templates installed in directory
+`/usr/lib/fatbuildr/web/templates`.
+
+All these vendor templates can be individually overriden by site custom
+templates.
+
+NOTE: By default, Fatbuildr searches for custom site rendered templates in
+directory `/etc/fatbuildr/web/templates` but this can be changed by setting
+another value to `templates` parameter in `[web]` section of site configuration
+file. Please refer to xref:conf.adoc#parameters[configuration parameters
+reference documentation] for full details about available parameters.
+
+For example, this feature can be used to add a link in the footer of all HTML
+pages.
+
+First, copy the corresponding vendor template in template site directory:
+
+[source,shell]
+----
+# mkdir /etc/fatbuildr/web/templates/layout
+# cp /usr/lib/fatbuildr/web/templates/layout/base.html.j2 \
+     /etc/fatbuildr/web/templates/layout
+----
+
+Edit the new file, for example:
+
+[source,diff]
+----
+--- /usr/lib/fatbuildr/web/templates/layout/base.html.j2
++++ /etc/fatbuildr/web/templates/layout/base.html.j2
+@@ -32,6 +32,7 @@
+       </main>
+       <footer class="pt-5 my-5 text-muted border-top">
+         Created by Fatbuildr
++        <a href="https://company.ltd">COMPANY HOME</a>
+       </footer>
+     </div>
+     <script src="{{ url_for('static', filename='js/bootstrap.bundle.min.js') }}"></script>
+----
+
+Restart Fatbuildrweb service or HTTP server to apply changes.
+
+Et voilà !
+
+image::template_modification_example.png[]
