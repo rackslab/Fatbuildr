@@ -132,9 +132,11 @@ class TaskIO(ExportableType):
         self.sock.listen(1)
         self.console.chmod(0o770)
 
-    def dispatch(self):
+    def dispatch(self, task_id):
         """Starts dispatch thread."""
-        self.thread = threading.Thread(target=self._dispatch)
+        self.thread = threading.Thread(
+            target=self._dispatch, name=f"dispatch-{task_id}"
+        )
         self.thread.start()
         logger.debug("Started task io dispatching thread")
 
@@ -305,7 +307,7 @@ class RunnableTask:
         self.io.open()
 
         # start IO dispatcher thread
-        self.io.dispatch()
+        self.io.dispatch(self.id)
 
         # duplicate log in interactive output fifo
         self.io.plug_logger()

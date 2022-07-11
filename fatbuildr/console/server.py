@@ -95,7 +95,9 @@ def tty_runcmd(cmd, io, **kwargs):
         logger.debug("Captured PID %d return code %d", pid, proc.returncode)
 
     # Start background thread to capture child return code
-    wait_thread = threading.Thread(target=wait_child, args=(pid,))
+    wait_thread = threading.Thread(
+        target=wait_child, name=f"wait-{pid}", args=(pid,)
+    )
     wait_thread.start()
 
     # Initialize epoll to multiplex subprocess and task io input/ouputs
