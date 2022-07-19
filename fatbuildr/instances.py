@@ -96,6 +96,16 @@ class InstancePipelines:
                 result.append(derivative)
         return result
 
+    def env_mirror(self, environment):
+        """Return the environment mirror or None if not defined."""
+        for format, dists in self._formats.items():
+            for dist in dists:
+                if 'env' in dist and dist['env'] == environment:
+                    if 'mirror' in dist:
+                        return dist['mirror']
+                    else:
+                        return None
+
     def format_dists(self, format):
         """Return the list of distributions for the given format."""
         return [dist['name'] for dist in self._formats[format]]
@@ -157,7 +167,7 @@ class RunningInstance(ExportableType):
         self.tasks_mgr = ServerTasksManager(self.conf, self)
         self.registry_mgr = RegistryManager(self.conf, self)
         self.archives_mgr = ArchivesManager(self.conf, self)
-        self.images_mgr = ImagesManager(self.conf, self.id)
+        self.images_mgr = ImagesManager(self.conf, self)
         self.keyring = InstanceKeyring(self.conf, self)
         self.crun = ContainerRunner(self.conf)
         self.cache = CacheManager(self.conf, self)

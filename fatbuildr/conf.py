@@ -183,6 +183,7 @@ class RuntimeSubConfFormatDeb(object):
         self.init_cmd = None
         self.img_update_cmds = None
         self.env_update_cmds = None
+        self.env_default_mirror = None
         self.prescript_deps = []
 
     def load(self, config):
@@ -191,6 +192,7 @@ class RuntimeSubConfFormatDeb(object):
         self.init_cmd = config.get(section, 'init_cmd')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
         self.env_update_cmds = config.get(section, 'env_update_cmds')
+        self.env_default_mirror = config.get(section, 'env_default_mirror')
         self.prescript_deps = config.get(section, 'prescript_deps').split(' ')
 
     def dump(self):
@@ -199,6 +201,7 @@ class RuntimeSubConfFormatDeb(object):
         logger.debug("  init_cmd: %s", self.init_cmd)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
         logger.debug("  env_update_cmds: %s", self.env_update_cmds)
+        logger.debug("  env_default_mirror: %s", self.env_default_mirror)
         logger.debug("  prescript_deps: %s", self.prescript_deps)
 
 

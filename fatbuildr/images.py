@@ -135,11 +135,12 @@ class Image(object):
 
 
 class BuildEnv(object):
-    def __init__(self, conf, image, environment, architecture):
+    def __init__(self, conf, image, environment, architecture, pipelines):
         self.conf = conf
         self.image = image
         self.environment = environment
         self.architecture = architecture
+        self.pipelines = pipelines
 
     def __str__(self):
         return f"{self.environment}-{self.architecture}"
@@ -174,9 +175,22 @@ class BuildEnv(object):
                 "image because init_cmd is not defined for this format"
             )
 
+        # Select the mirror defined in instance pipelines definition
+        mirror = self.pipelines.env_mirror(self.environment)
+        if mirror is None:
+            # If the mirror is not defined in pipelines definition, select the
+            # environment default mirror in system configuration. If it is also
+            # not defined in system configuration (it is not available for all
+            # formats), fallback to None.
+            try:
+                mirror = getattr(self.conf, self.image.format).env_default_mirror
+            except AttributeError:
+                mirror = None
+
         cmd = Templeter().srender(
             getattr(self.conf, self.image.format).init_cmd,
             environment=self.environment,
+            mirror=mirror,
             architecture=self.native_architecture,
             name=self.name,
             path=self.path,
@@ -216,14 +230,20 @@ class ImagesManager(object):
         self.instance = instance
 
     def image(self, format):
-        return Image(self.conf, self.instance, format)
+        return Image(self.conf, self.instance.id, format)
 
     def build_env(self, format, name, architecture):
-        return BuildEnv(self.conf, self.image(format), name, architecture)
+        return BuildEnv(
+            self.conf,
+            self.image(format),
+            name,
+            architecture,
+            self.instance.pipelines,
+        )
 
     def prepare(self):
         """Creates images storage directory if it is missing."""
-        path = self.conf.images.storage.joinpath(self.instance)
+        path = self.conf.images.storage.joinpath(self.instance.name)
         if not path.exists():
             logger.info("Creating instance image directory %s", path)
             path.mkdir()
