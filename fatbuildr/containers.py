@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import shlex
+
 from .exec import runcmd
 from .utils import current_user
 from .log import logr
@@ -83,7 +85,8 @@ class ContainerRunner(object):
         for _env in envs:
             _cmd.extend(['--setenv', _env])
         if isinstance(cmd, str):
-            _cmd.extend(cmd.split(' '))
+            # Use shlex.split(cmd) instead of cmd.split(' ') to be quote aware.
+            _cmd.extend(shlex.split(cmd))
         else:
             _cmd.extend(cmd)
 
