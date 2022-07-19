@@ -175,22 +175,39 @@ class BuildEnv(object):
                 "image because init_cmd is not defined for this format"
             )
 
-        # Select the mirror defined in instance pipelines definition
+        # Get the mirror defined in instance pipelines definition
         mirror = self.pipelines.env_mirror(self.environment)
         if mirror is None:
-            # If the mirror is not defined in pipelines definition, select the
+            # If the mirror is not defined in pipelines definition, get the
             # environment default mirror in system configuration. If it is also
             # not defined in system configuration (it is not available for all
             # formats), fallback to None.
             try:
-                mirror = getattr(self.conf, self.image.format).env_default_mirror
+                mirror = getattr(
+                    self.conf, self.image.format
+                ).env_default_mirror
             except AttributeError:
                 mirror = None
+
+        # Get the components defined in instance pipelines definition
+        components = self.pipelines.env_components(self.environment)
+        if components is None:
+            # If the components is not defined in pipelines definition, get the
+            # environment default components in system configuration. If it is
+            # also not defined in system configuration (it is not available for
+            # all formats), fallback to None.
+            try:
+                components = getattr(
+                    self.conf, self.image.format
+                ).env_default_components
+            except AttributeError:
+                components = None
 
         cmd = Templeter().srender(
             getattr(self.conf, self.image.format).init_cmd,
             environment=self.environment,
             mirror=mirror,
+            components=components,
             architecture=self.native_architecture,
             name=self.name,
             path=self.path,

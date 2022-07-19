@@ -106,6 +106,16 @@ class InstancePipelines:
                     else:
                         return None
 
+    def env_components(self, environment):
+        """Return the environment components or None if not defined."""
+        for format, dists in self._formats.items():
+            for dist in dists:
+                if 'env' in dist and dist['env'] == environment:
+                    if 'components' in dist:
+                        return dist['components']
+                    else:
+                        return None
+
     def format_dists(self, format):
         """Return the list of distributions for the given format."""
         return [dist['name'] for dist in self._formats[format]]

@@ -145,8 +145,12 @@ parameters shared by all formats are the following:
 `env_update_cmds`:: Command used in container to upgrade build environment
 software.
 
-`env_default_mirror`:: URL of APT mirror used by default to create build
-environment, unless overriden in instance pipelines definitions.
+`env_default_mirror`:: URL of APT mirror used by default to create deb build
+environments, unless overridden in instance pipelines definitions.
+
+`env_default_components`:: Space separated list of APT repository components
+used by default to create deb build environments, unless overridden in instance
+pipelines definitions.
 
 `prescript_deps`:: Space-separated list of packages installed in build
 environment before prescripts are run.
