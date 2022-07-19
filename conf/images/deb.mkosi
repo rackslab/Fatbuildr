@@ -8,5 +8,5 @@ Format=directory
 [Content]
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
-Packages=cowbuilder,libdistro-info-perl,qemu-user-static,devscripts,neovim,man-db,less
+Packages=cowbuilder,ubuntu-keyring,zstd,libdistro-info-perl,qemu-user-static,devscripts,neovim,man-db,less
 PostInstallationScript=/usr/lib/fatbuildr/images/scripts/deb-postinstall.sh
