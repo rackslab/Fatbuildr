@@ -694,7 +694,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             args.interactive = False
 
         # If user asks for interactive build also force watch feature, otherwise
-        # interactive would be pointless.
+        # interactive would be pointless.
         if args.interactive:
             args.watch = True
 
