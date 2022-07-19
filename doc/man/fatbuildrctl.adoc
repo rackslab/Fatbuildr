@@ -1,9 +1,7 @@
 = fatbuildrctl(1)
 Rackslab: https://rackslab.io
-v1.0.0
 :doctype: manpage
 :manmanual: FATBUILDRCTL
-:mansource: FATBUILDRCTL
 :man-linkstyle: pass:[blue R < >]
 
 == Name
