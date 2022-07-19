@@ -343,8 +343,14 @@ class ArtifactEnvBuild(ArtifactBuild):
 
     def prescript_token(self, token):
         """Returns the list of values found for the given token parameter in the
-        prescript. If the parameter is not found, an empty list is returned."""
+        prescript. If the prescript is absent or if the parameter is not found,
+        an empty list is returned."""
         in_file = []
+
+        # Check the prescript is present or return an empty list
+        if not self.prescript_path.exists():
+            return in_file
+
         with open(self.prescript_path, "r") as fh:
             for line in fh:
                 if line.startswith(f"#PRESCRIPT_{token}"):
