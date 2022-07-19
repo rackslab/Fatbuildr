@@ -374,7 +374,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         """Execute prescript in RPM build environment using mock and
         snapshots."""
         logger.info(
-            "Executing prescript in deb build environment %s",
+            "Executing prescript in rpm build environment %s",
             self.native_env.name,
         )
 
