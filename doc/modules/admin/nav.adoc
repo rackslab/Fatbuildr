@@ -1,5 +1,6 @@
 .Administration Guide
 * xref:conf.adoc[]
+* xref:instances.adoc[]
 * xref:polkit.adoc[]
 * xref:web.adoc[]
 * xref:troubleshooting.adoc[]

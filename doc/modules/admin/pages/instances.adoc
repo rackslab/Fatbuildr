@@ -1,0 +1,181 @@
+= Instances Pipelines Definitions
+
+A Fatbuildr installation can support multiple independent and isolated
+instances, with their specific build and distribution pipelines. At least one
+instance must be defined. For more details about instances roles and internals,
+please refer to the description of
+xref:overview:architecture.adoc#instances[instances & pipelines architecture].
+
+This page contains the reference documentation of instance definitions files.
+
+Instance definitions files are YAML files located in directory
+`/etc/fatbuildr/instances.d/`. Definitions files must have the extension
+`*.yml`. The name of the file is the ID of the instance (_ex:_ `prod.yml` for
+instance ID _prod_).
+
+The content of the YAML file is a hash with keys described in the following
+sub-sections.
+
+== General Parameters
+
+`name`:: The name of the instance, as a free text form. This is essentially used
+for presentation in Fatbuildrweb HTML pages and API.
+
+== Keyring
+
+Instance keyring parameters are declared as a hash associated to the `gpg` key.
+It defines the metadata of the instance keyring GPG keys. It must contain the
+following keys:
+
+`name`:: The full name of instance keyring owner (_ex:_ _John Doe_, or _My Corp_)
+
+`email`:: The email address of the instance keyring owner.
+
+== Formats
+
+The formats supported by the Fatbuildr instances are declared as a hash
+associated to the `formats` key.
+
+Each key of this hash is the name of a supported format (_ex_: `deb` or `rpm`).
+The `formats` hash must contain at least one supported format, or the instance
+would be useless. The value of this hash is a list of supported distributions
+for the associated format.
+
+A distribution is a hash. The keys of this hash depends on the format of the
+distribution.
+
+=== `deb` Distributions
+
+`name`:: The name of the distribution. This should be an alphanumeric string
+without spaces.
+
+`env`:: The name of the subsequent `debootstrap` supported distribution used to
+generate the cowbuilder build environment (_ex:_ _bookworm_ or _jammy_)
+
+`tag`:: The tag appended to packages release number for this distribution. This
+is expected to be a short string with few alphanumeric characters.
+
+`mirror`:: An alternative URL of the APT mirror used as packages source for
+creating the build environment for this distribution. This parameter is
+*optional*. When absent, the `env_default_mirror` from xref:conf.adoc[system
+configuration] is used.
+
+`components`:: The space separated list of components enabled on the APT
+repository used to create the build environment for this distribution. This
+parameter is *optional*. When absent, the `env_default_components` from
+xref:conf.adoc[system configuration] is used.
+
+=== `rpm` Distributions
+
+`name`:: The name of the distribution. This should be an alphanumeric string
+without spaces.
+
+`env`:: The name of the `mock` supported distribution used to generate the build
+environment (_ex:_ _rocky-8_ or _fedora-36_).
+
+`tag`:: The tag appended to packages release number for this distribution. This
+is expected to be a short string with few alphanumeric characters.
+
+=== `osi` Distributions
+
+`name`:: The name of the distribution. This should be an alphanumeric string
+without spaces.
+
+== Derivatives
+
+For details about this concept, please refer to the
+xref:overview:features.adoc#derivatives[derivatives feature description].
+
+Derivatives are *optional* in instance definitions. Without additional defined
+derivative, only the default _main_ derivative is considered by Fatbuildr.
+
+Derivatives are defined as hash in the `derivatives` key. The keys in this hash
+are the names of the derivatives. The value associated to all derivative keys is
+also a hash containing an optional set of parameters for this derivative.
+
+The available parameters for derivatives are:
+
+`formats`:: An array of formats supporting this derivative. The formats absent
+from this array do not support this derivative. This can be used to restrict a
+derivative to a subset of all formats supported by the instance. This parameter
+is *optional*. When absent, the full list of instance supported formats is
+considered.
+
+`extends`:: The name of another derivative extended by this derivative. This
+allows defining a tree of derivatives. This parameter is *optional*. When
+absent, the derivative extends the default _main_ derivative by default.
+
+NOTE: The derivatives cannot be restricted to particular distributions of a
+format. When the derivative is defined with a supporting format, the derivative
+is available for all distributions of this format.
+
+== Full Example
+
+This is complete example of instance definition file content:
+
+[source,yaml]
+----
+name: Corporation production instance
+gpg:
+  name: Infrastructure team
+  email: infra@corp.tld
+formats:
+  deb:
+  - name: bullseye
+    env: bullseye
+    tag: deb11
+  - name: ubuntu22.04
+    env: jammy
+    tag: u2204
+    mirror: http://distrib-coffee.ipsl.jussieu.fr/pub/linux/ubuntu/
+    components: main restricted universe multiverse
+  rpm:
+  - name: el8
+    env: rocky-8
+    tag: el8
+  - name: f36
+    env: fedora-36
+    tag: f36
+  osi:
+  - name: ci
+  - name: ia
+derivatives:
+  extra:
+    formats: [deb, rpm]
+  full:
+    extends: extra
+  customera: {}
+  customerb:
+    formats: [deb]
+----
+
+In this example instance, 3 formats are supported: `deb`, `rpm` and `osi`.
+
+The distributions of `deb` format are:
+
+* `bullseye`, using the corresponding debootstrap distribution to create the
+  build environment for this distribution. The package release number published
+  for this distribution are suffixed with `deb11` tag.
+* `ubuntu22.04`, using the `jammy` debootstrap distribution and `u2204`
+  release number tag. The build environment is created using a specific mirror
+  a packages source for build environment with all `main`, `restricted`,
+  `universe` and `multiverse` components enabled.
+
+The distributions of `rpm` format are:
+
+* `el8` using the _rocky-8_ Mock environment and `el8` package release number
+  tag.
+* `f36` using the _fedora-36_ Mock environment and f36` package release number
+  tag.
+
+The distributions of `osi` formats are `ci` and `ai`.
+
+This instance is defined with 4 derivatives:
+
+* `extra` restricted to formats `deb` and `rpm` (ie. `osi` is not supported).
+  It extends the _main_ default derivative.
+* `full` that extends the `extra` derivative.
+* `customera` available for all supported formats, it extends the _main_
+  derivative.
+* `customerb` restricted to format `deb`. It also extends the _main_ default
+  derivative.
