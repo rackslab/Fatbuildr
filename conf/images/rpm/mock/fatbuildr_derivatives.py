@@ -50,6 +50,7 @@ class FatbuildrDerivatives:
         getLog().info("enabled FatbuildrDerivatives plugin")
 
         repo = Path(self.opts['repo'])
+        keyring = Path(self.opts['keyring'])
 
         if self.buildroot.is_bootstrap:
             # During the boostrap phase, add bind-mount of the repo directory in
@@ -59,11 +60,26 @@ class FatbuildrDerivatives:
                 self.buildroot.mounts.add(
                     BindMountPoint(srcpath=repo, bindpath=mountpoint)
                 )
-                getLog().info("Add bind-mount of %s in chroot", repo)
+                getLog().info(
+                    "Add bind-mount of repository directory %s in chroot", repo
+                )
             else:
                 getLog().info(
                     "Skipping bind-mount of %s in chroot because unexisting",
                     repo,
+                )
+            # Also bind-mount the keyring directory in the final chroot, if the
+            # keyring is available, so dnf/yum can access it.
+            if keyring.exists():
+                mountpoint = self.buildroot.make_chroot_path(
+                    str(keyring.parent)
+                )
+                self.buildroot.mounts.add(
+                    BindMountPoint(srcpath=keyring.parent, bindpath=mountpoint)
+                )
+                getLog().info(
+                    "Add bind-mount of keyring directory %s in chroot",
+                    keyring.parent,
                 )
         else:
             # In the final chroot, add all the build derivatives repositories in
@@ -88,7 +104,7 @@ class FatbuildrDerivatives:
                         f"baseurl=file://{repos_dir}/$basearch",
                         'enabled=1',
                         f"priority={priority}",
-                        f"gpgkey=file://{self.opts['keyring']}",
+                        f"gpgkey=file://{keyring}",
                         'gpgcheck=1',
                         'skip_if_unavailable=False',
                         '',
