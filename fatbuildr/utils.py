@@ -69,7 +69,10 @@ def verify_checksum(path, format, value):
     f_hash = hasher(format)
 
     with open(path, "rb") as fh:
-        while chunk := fh.read(8192):
+        while True:
+            chunk = fh.read(8192)
+            if not chunk:
+                break
             f_hash.update(chunk)
 
     if f_hash.hexdigest() != value:
