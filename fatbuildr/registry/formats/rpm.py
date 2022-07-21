@@ -81,20 +81,7 @@ class RegistryRpm(Registry):
             path.mkdir(parents=True)
 
     def _publish_rpm_arch(self, build, rpm, arch):
-        # Search for older versions of package and remove them.
         repo_path = self.repo_path(build.distribution, build.derivative, arch)
-        for path in self.packages_paths(
-            build.distribution, build.derivative, arch, build.artifact
-        ):
-            logger.debug("Removing replaced RPM %s", path)
-            if not path.exists():
-                logger.warning(
-                    "Replaced RPM file %s not found, unable to delete",
-                    path,
-                )
-                continue
-            path.unlink()
-
         pkg_dir = self.pkg_dir(build.distribution, build.derivative, arch)
         self._mk_missing_dirs(pkg_dir)
         logger.debug("Copying RPM %s to %s", rpm, pkg_dir)
@@ -120,6 +107,23 @@ class RegistryRpm(Registry):
         for arch in archs:
             self._publish_rpm_arch(build, rpm, arch)
 
+    def _remove_deprecated_rpms(self, build):
+        # Search for older versions of source and binary packages having the
+        # same source package name in all architectures repositories and remove
+        # them.
+        for arch in self.instance.pipelines.architectures:
+            for path in self.packages_paths(
+                build.distribution, build.derivative, arch, build.artifact
+            ):
+                logger.info("Removing replaced RPM %s", path)
+                if not path.exists():
+                    logger.warning(
+                        "Replaced RPM file %s not found, unable to delete",
+                        path,
+                    )
+                    continue
+                path.unlink()
+
     def publish(self, build):
         """Publish RPM (including SRPM) in yum/dnf repository."""
 
@@ -128,7 +132,9 @@ class RegistryRpm(Registry):
             build.artifact,
             build.distribution,
         )
-
+        # first remove deprecated RPM packages
+        self._remove_deprecated_rpms(build)
+        # then publish new version of packages
         for rpm in build.place.glob('*.rpm'):
             self._publish_rpm(build, rpm)
 
