@@ -1,0 +1,59 @@
+= Troubleshooting
+
+== deb error `packages database contains unused *`
+
+This error message can be encountered during deb package builds:
+
+[source]
+----
+ ⚬ ERROR: error while running task <id>: Command reprepro --basedir /var/lib/fatbuildr/registry/default/deb --component main --list-format '${$architecture}|${version}\n' list bullseye fatbuildr failed with exit code 255: Error: packages database contains unused 'ubuntu22.04|main|amd64' database.
+This usually means you removed some component, architecture or even
+a whole distribution from conf/distributions.
+In that case you most likely want to call reprepro clearvanished to get rid
+of the databases belonging to those removed parts.
+(Another reason to get this error is using conf/ and db/ directories
+ belonging to different reprepro repositories).
+To ignore use --ignore=undefinedtarget.
+There have been errors!
+----
+
+As stated in the error message, this error can happen when `reprepro`, the tool
+used by Fatbuildr manages APT repository, detects entities in repository
+database later removed from repository distributions configuration file. This
+can typically happen with Fatbuildr after failed attempts to build deb packages
+for a new distribution.
+
+The way to clear this error is to run this command:
+
+[source,shell]
+----
+$ sudo -u fatbuildr reprepro --basedir /var/lib/fatbuildr/registry/$instance/deb clearvanished
+----
+
+Where `$instance` is the name of the Fatbuildr instance (ex: _default_ in the
+above example error message).
+
+== rpm error `Command failed: /usr/sbin/usermod -u 998 mockbuild`
+
+This error message can be encountered during RPM package builds:
+
+[source]
+----
+Mock Version: 3.0
+INFO: Mock Version: 3.0
+ERROR: Command failed: 
+ # /usr/sbin/usermod -u 998 mockbuild
+ ⚬ ERROR: Error while running prescript: Command /usr/libexec/fatbuildr/u-nspawn --directory /var/lib/fatbuildr/images/default/rpm.img --bind /usr/lib/fatbuildr/images/rpm --bind /usr/lib/fatbuildr/images/common --quiet --register=no --keep-unit --user fatbuildr --bind /var/lib/fatbuildr/queue/a10e8176-677d-4afd-bfdc-ff99e47708fd --bind /var/cache/fatbuildr/default/fatbuildr --bind /var/lib/fatbuildr/registry/default/rpm mock --root rocky-8-x86_64 --enable-plugin fatbuildr_derivatives --plugin-option fatbuildr_derivatives:repo=/var/lib/fatbuildr/registry/default/rpm --plugin-option fatbuildr_derivatives:distribution=el8 --plugin-option fatbuildr_derivatives:derivatives=main --plugin-option fatbuildr_derivatives:keyring=/var/lib/fatbuildr/queue/a10e8176-677d-4afd-bfdc-ff99e47708fd/keyring.asc --dnf-cmd install wget failed with exit code 8
+----
+
+One solution to clear this error is to clean and scrub the build environment
+with the following commands:
+
+[source,shell]
+----
+$ sudo systemd-nspawn --directory /var/lib/fatbuildr/images/default/rpm.img mock --root $environment --clean
+$ sudo systemd-nspawn --directory /var/lib/fatbuildr/images/default/rpm.img mock --root $environment --scrub all
+----
+
+Where `$environment` is the name of the build environment (ex: _rocky-8-x86_64_
+in the above example error message).

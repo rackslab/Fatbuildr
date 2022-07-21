@@ -2,3 +2,4 @@
 * xref:conf.adoc[]
 * xref:polkit.adoc[]
 * xref:web.adoc[]
+* xref:troubleshooting.adoc[]
