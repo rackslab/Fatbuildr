@@ -29,6 +29,14 @@ from .log import logr
 logger = logr(__name__)
 
 
+def parse_patch(patch):
+    """Read the given patch file and parse metadata in deb822 format."""
+    # read the patch and parse metadata
+    with open(patch, 'rb') as fh:
+        content = fh.read()
+    return deb822.Deb822(content)
+
+
 class GitRepository:
     def __init__(self, path, author, email):
         self.path = path

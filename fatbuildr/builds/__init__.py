@@ -31,7 +31,7 @@ from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artifact import ArtifactDefsFactory
 from ..registry.formats import ArtifactVersion
-from ..git import GitRepository
+from ..git import GitRepository, parse_patch
 from ..templates import Templeter
 from ..utils import (
     dl_file,
@@ -128,6 +128,33 @@ class ArtifactBuild(RunnableTask):
     def checksum_value(self):
         return self.defs.checksum_value(self.derivative)
 
+    def patch_selected(self, patch):
+        """Check in the patch metadata in deb822 format if is it restricted to
+        specific distributions or formats and in this case, check if it can be
+        selected for the current build."""
+        meta = parse_patch(patch)
+        # check format
+        if 'Formats' in meta and self.format not in meta['Formats'].split(' '):
+            logger.info(
+                "Skipping patch %s because it is restricted to other formats "
+                "'%s'",
+                patch,
+                meta['Formats'],
+            )
+            return False
+        # check distribution
+        if 'Distributions' in meta and self.distribution not in meta[
+            'Distributions'
+        ].split(' '):
+            logger.info(
+                "Skipping patch %s because it is restricted to other "
+                "distributions '%s'",
+                patch,
+                meta['Distributions'],
+            )
+            return False
+        return True
+
     @property
     def patches_dir(self):
         """Returns the Path to the artifact patches directory."""
@@ -137,7 +164,13 @@ class ArtifactBuild(RunnableTask):
     def patches(self):
         """Returns the sorted list of Path of patches found in artifact patches
         directory."""
-        return sorted([item for item in self.patches_dir.iterdir()])
+        return sorted(
+            [
+                item
+                for item in self.patches_dir.iterdir()
+                if self.patch_selected(item)
+            ]
+        )
 
     @property
     def has_patches(self):
