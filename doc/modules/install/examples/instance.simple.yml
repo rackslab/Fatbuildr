@@ -1,0 +1,21 @@
+name: Corporation production instance
+gpg:
+  name: Infrastructure team
+  email: infra@corp.tld
+formats:
+  deb:
+  - name: bullseye
+    env: bullseye
+    tag: deb11
+  - name: ubuntu22.04
+    env: jammy
+    tag: u2204
+    mirror: http://archive.canonical.com/
+    components: main restricted universe multiverse
+  rpm:
+  - name: el8
+    env: rocky-8
+    tag: el8
+  - name: fc36
+    env: fedora-36
+    tag: fc36

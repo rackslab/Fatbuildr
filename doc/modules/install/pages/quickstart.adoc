@@ -1,12 +1,333 @@
 = Quickstart
 
-WIP
+This quickstart guide provides the first steps to get Fatbuildr up and ready!
 
-////
-Installation instructions cannot be defined at this stage as Fatbuildr
-distribution method has not be prepared yet.
+== Installation
 
-It is planned to build and distribute deb and RPM packages, this work is tracked
-in GitHub issues #4 and #5. This quickstart guide will be written once these
-issues are fixed.
-////
+=== Deb (Debian, Ubuntu)
+
+First download packages repository signing key:
+
+[source,shell]
+----
+# curl -sS https://pkgs.rackslab.io/keyring.asc | gpg --dearmor | tee /usr/share/keyrings/rackslab.gpg > /dev/null
+----
+
+Create `/etc/apt/sources.list.d/fatbuildr.list` with this content:
+
+* Debian 11 _« bullseye »_ :
++
+[source]
+----
+deb [signed-by=/usr/share/keyrings/rackslab.gpg arch=amd64] https://pkgs.rackslab.io/deb bullseye main
+----
+
+* Debian 12 _« bookworm »_ :
++
+[source]
+----
+deb [signed-by=/usr/share/keyrings/rackslab.gpg arch=amd64] https://pkgs.rackslab.io/deb bookworm main
+----
+
+* Debian unstable _« sid »_ :
++
+[source]
+----
+deb [signed-by=/usr/share/keyrings/rackslab.gpg arch=amd64] https://pkgs.rackslab.io/deb sid main
+----
+
+* Ubuntu 22.04 LTS _« jammy »_ :
++
+[source]
+----
+deb [signed-by=/usr/share/keyrings/rackslab.gpg arch=amd64] https://pkgs.rackslab.io/deb ubuntu22.04 main
+----
+
+Update packages sources metadata:
+
+[source,shell]
+----
+# apt update
+----
+
+Install Fatbuildr packages and dependencies:
+
+[source,shell]
+----
+# apt install fatbuildr
+----
+
+=== RPM (RHEL, CentOS, Rocky Linux, Fedora)
+
+[NOTE]
+====
+On RHEL8, CentOS 8 and Rocky Linux 8 some dependencies are missing in
+standard distribution repositories. You must enable
+https://docs.fedoraproject.org/en-US/epel/[EPEL] _el8_ repositories to get all
+requirements on these distributions:
+
+[source,shell]
+----
+# dnf install -y epel-release
+----
+====
+
+Download and save RPM repository kerying:
+
+[source,shell]
+----
+# curl https://pkgs.rackslab.io/keyring.asc --output /etc/pki/rpm-gpg/RPM-GPG-KEY-Rackslab
+----
+
+Create DNF repository file `/etc/yum.repos.d/fatbuildr.repo`:
+
+* For RHEL8, CentOS 8 and Rocky Linux 8 :
+
+[source]
+----
+[fatbuildr]
+name=Fatbuildr
+baseurl=https://pkgs.rackslab.io/rpm/el8/main/$basearch/
+gpgcheck=1
+enabled=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rackslab
+----
+
+* For Fedora 36 :
+
+[source]
+----
+[fatbuildr]
+name=Fatbuildr
+baseurl=https://pkgs.rackslab.io/rpm/fc36/main/$basearch/
+gpgcheck=1
+enabled=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rackslab
+----
+
+Install Fatbuildr packages:
+
+[source,shell]
+----
+# dnf install fatbuildr
+----
+
+== Instance
+
+To setup Fatbuildr installation, you must define at least one instance with its
+build pipelines. For this quickstart, you can define the _default_ instance by
+creating file `/etc/fatbuildr/instances.d/default.yml` with this basic content:
+
+[source,yaml]
+----
+include::example$instance.simple.yml[]
+----
+
+In this generic example, you probably see some parameters you might want to
+adjust with your personal settings. Go ahead! The definitions of the instances
+and their build pipelines highly depend on their specific purposes. Please refer
+to xref:admin:instances.adoc[instances pipelines definitions reference
+documentation] for all details.
+
+To grant users the permissions to use Fatbuildr, add them to _fatbuildr_ system
+group:
+
+[source,shell]
+----
+# usermod -a -G fatbuildr $user
+----
+
+Where `$user` is the login of your user account (ex: _john_).
+
+At this stage, you should be able to start using Fatbuildr with your user
+account. Try to list running tasks!
+
+[source,shell]
+----
+$ fatbuildrctl list
+No running task
+----
+
+== Keyring
+
+The first step is to initialize the instance keyring with this command:
+
+[source,shell]
+----
+$ fatbuildrctl keyring create
+----
+
+This submits an asynchronous task, the random keys are securely generated on
+server side. After few seconds, you can get the information about the generated
+keyring:
+
+[source,shell]
+----
+$ fatbuildrctl keyring
+----
+
+== Build environments
+
+Then, container images must be created according to the instance build
+pipelines:
+
+[source,shell]
+----
+$ fatbuildrctl images --create --watch
+----
+
+This command submits tasks to create one container image per artifact format
+declared in the instance build pipeline. For example, with the basic _default_
+instance definition provided above, it submit two tasks to create _deb_ and
+_rpm_ container images.
+
+Then, build environment must be created in the container images by running this
+command:
+
+[source,shell]
+----
+$ fatbuildrctl images --create-envs --watch
+----
+
+This submits tasks to create all build environments required for every
+distributions defined in the build pipelines. For example, with the _default_
+instance definition provided above, four tasks are submited to create build
+environment for _bullseye_, _ubuntu22.04_, _el8_ and _fc36_ distributions,
+
+Fatbuildr is now ready to build artifacts!
+
+== Artifacts
+
+You can build your first artifacts based on the examples provided with
+Fatbuildr installation:
+
+[source,shell]
+----
+$ fatbuildrctl build --artifact hello --distribution bullseye \
+  --basedir /usr/share/doc/fatbuildr/examples \
+  --name 'John Doe' --email john.doe@company.tld --message "First build!" --watch
+----
+
+This submits a task to:
+
+* Download the source tarball of https://www.gnu.org/software/hello/[GNU Hello].
+  The URL and the version of the tarball is defined in
+  xref:usage:repo.adoc#_meta[artifact definition `meta.yml`] file located in
+  `/usr/share/doc/fatbuildr/examples/hello` directory.
+* And build Deb package of this software in Debian 10 _« bullseye »_ build
+  environment, using the packaging code available in
+  `/usr/share/doc/fatbuildr/examples/hello/deb` directory.
+
+After a successful build, packages are available in directory
+`/var/lib/fatbuildr/registry/default`.
+
+To avoid repetitive command line parameters, you should definititely set your
+name and email address in your xref:usage:fatbuildrctl.adoc#man-pref[preferences
+file].
+
+Then you can build your first RPM package:
+
+[source,shell]
+----
+$ fatbuildrctl build --artifact hello --distribution el8 \
+  --basedir /usr/share/doc/fatbuildr/examples \
+  --message "First RPM build!" --watch
+----
+
+This submits a task to build RPM packages of the same GNU Hello software for
+RHEL8 distribution.
+
+== Fatbuildrweb
+
+To explore and distribute built packages, you can launch Fatbuildrweb:
+
+[source,shell]
+----
+$ /usr/libexec/fatbuildrweb
+----
+
+With a web browser, connect to this URL: http://localhost:5000
+
+In the web page, you should see the defined _default_ instance. If you click on
+this instance, you can explore archives tasks outputs and all artifacts
+published in this instance registry.
+
+Fatbuildrweb can also be used to deploy the packages. For example:
+
+* On Debian 10 « bullseye » :
++
+--
+Install the instance the keyring:
+
+[source,shell]
+----
+$ curl -sS http://localhost:5000/default/keyring.asc | gpg --dearmor | \
+  sudo tee /usr/share/keyrings/fatbuildr-default.gpg > /dev/null
+----
+
+Create APT source file `/etc/apt/sources.list.d/fatbuildr-default.list` with
+this content:
+
+[source]
+----
+deb [signed-by=/usr/share/keyrings/fatbuildr-default.gpg arch=amd64] http://localhost:5000/default/deb bullseye main
+----
+
+You can then install your _hello_ package with these commands:
+
+[source,shell]
+----
+$ sudo apt update && sudo apt install hello
+----
+--
+
+* On RHEL8:
++
+--
+Install the instance keyring:
+
+[source,shell]
+----
+$ curl -sS http://localhost:5000/default/keyring.asc | \
+  sudo tee /etc/pki/rpm-gpg/RPM-GPG-KEY-Fatbuildr-default
+----
+
+Create DNF repository file `/etc/yum.repos.d/fatbuildr-default.repo` with this
+content:
+
+[source]
+----
+[fatbuildr-default]
+name=Fatbuildr default instance
+baseurl=http://localhost:5000/default/rpm/el8/main/$basearch/
+gpgcheck=1
+enabled=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Fatbuildr-default
+----
+
+You can then install your _hello_ package with this command:
+
+[source,shell]
+----
+$ sudo dnf install hello
+----
+--
+
+== Next steps
+
+After this quickstart guide, you should get an overview of Fatbuildr purpose,
+features and capabilities.
+
+The next steps are probably to:
+
+* Initialize your own xref:usage:repo.adoc[artifacts repository] with your
+  artifact definitions.
+* Explore xref:usage:fatbuildrctl.adoc[] command features.
+* Define and customize xref:admin:instances.adoc[instances build pipelines
+  definitions].
+* xref:web.adoc[Setup Fatbuildrweb] to execute it permanently, and
+  xref:admin:web.adoc[tune its settings].
+* _**Have fun!**_
