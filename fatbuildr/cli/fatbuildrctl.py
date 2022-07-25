@@ -178,9 +178,19 @@ class Fatbuildrctl(FatbuildrCliRun):
             help=f"URI of Fatbuildr server (default: {DEFAULT_URI})",
         )
 
-        subparsers = parser.add_subparsers(
-            help='Action to perform', dest='action', required=True
-        )
+        # Unfortunately, Python 3.6 does support add_subparsers() required
+        # attribute. The requirement is later handled with a AttributeError on
+        # args.func to provide the same functionnal level.
+        # This Python version conditionnal test can be removed when support of
+        # Python 3.6 is dropped in Fatbuildr.
+        if sys.version_info[1] >= 3 and sys.version_info[1] >= 7:
+            subparsers = parser.add_subparsers(
+                help='Action to perform', dest='action', required=True
+            )
+        else:
+            subparsers = parser.add_subparsers(
+                help='Action to perform', dest='action'
+            )
 
         # Parser for the images command
         parser_images = subparsers.add_parser(
@@ -377,6 +387,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         # permission error returned by fatbuildrd.
         try:
             args.func(args)
+        except AttributeError:
+            parser.print_usage()
+            logger.error("The action argument must be given")
         except PermissionError as err:
             logger.error("You are not authorized to %s", err)
             sys.exit(1)
