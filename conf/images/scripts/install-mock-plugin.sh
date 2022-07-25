@@ -16,5 +16,5 @@ if [ -z "${BUILDROOT}" ]; then
 fi
 
 echo "Installing fatbuildr mock plugins"
-cp -v /usr/lib/fatbuildr/images/rpm/mock/*.py \
+cp -v /usr/share/fatbuildr/images/rpm/mock/*.py \
     $BUILDROOT/usr/lib/python*/site-packages/mockbuild/plugins

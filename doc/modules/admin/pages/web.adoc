@@ -137,7 +137,7 @@ the first argument of the `WSGIDaemonProcess` directive:
 @@ -1,4 +1,4 @@
 -WSGIDaemonProcess fatbuildrweb-all user=fatbuildr group=fatbuildr locale=en_US.UTF-8
 +WSGIDaemonProcess fatbuildrweb-prod user=fatbuildr group=fatbuildr locale=en_US.UTF-8
- WSGIScriptAlias / /usr/lib/fatbuildr/wsgi/fatbuildrweb.wsgi
+ WSGIScriptAlias / /usr/share/fatbuildr/wsgi/fatbuildrweb.wsgi
  WSGIPassAuthorization On
 ----
 
@@ -165,7 +165,7 @@ Finally reload the Apache2 HTTP service to enable modifications:
 
 The HTML pages served by Fatbuildrweb are rendered based on templates. Fatbuildr
 provides vendor templates installed in directory
-`/usr/lib/fatbuildr/web/templates`.
+`/usr/share/fatbuildr/web/templates`.
 
 All these vendor templates can be individually overriden by site custom
 templates.
@@ -184,7 +184,7 @@ First, copy the corresponding vendor template in template site directory:
 [source,shell]
 ----
 # mkdir /etc/fatbuildr/web/templates/layout
-# cp /usr/lib/fatbuildr/web/templates/layout/base.html.j2 \
+# cp /usr/share/fatbuildr/web/templates/layout/base.html.j2 \
      /etc/fatbuildr/web/templates/layout
 ----
 
@@ -192,7 +192,7 @@ Edit the new file, for example:
 
 [source,diff]
 ----
---- /usr/lib/fatbuildr/web/templates/layout/base.html.j2
+--- /usr/share/fatbuildr/web/templates/layout/base.html.j2
 +++ /etc/fatbuildr/web/templates/layout/base.html.j2
 @@ -32,6 +32,7 @@
        </main>

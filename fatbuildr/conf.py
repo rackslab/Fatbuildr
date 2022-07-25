@@ -336,7 +336,7 @@ class RuntimeConf(object):
         self.config = configparser.ConfigParser()
         # read vendor configuration file and override with site specific
         # configuration file
-        vendor_conf_path = '/usr/lib/fatbuildr/fatbuildr.ini'
+        vendor_conf_path = '/usr/share/fatbuildr/fatbuildr.ini'
         site_conf_path = '/etc/fatbuildr/fatbuildr.ini'
         logger.debug("Loading vendor configuration file %s", vendor_conf_path)
         self.config.read_file(open(vendor_conf_path))

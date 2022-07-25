@@ -9,4 +9,4 @@ Format=directory
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
 Packages=cowbuilder,ubuntu-keyring,zstd,libdistro-info-perl,qemu-user-static,devscripts,neovim,man-db,less
-PostInstallationScript=/usr/lib/fatbuildr/images/scripts/deb-postinstall.sh
+PostInstallationScript=/usr/share/fatbuildr/images/scripts/deb-postinstall.sh

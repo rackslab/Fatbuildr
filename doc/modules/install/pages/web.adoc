@@ -75,10 +75,10 @@ configuration:
 [source]
 ----
 WSGIDaemonProcess fatbuildrweb-all user=fatbuildr group=fatbuildr locale=en_US.UTF-8
-WSGIScriptAlias / /usr/lib/fatbuildr/wsgi/fatbuildrweb.wsgi
+WSGIScriptAlias / /usr/share/fatbuildr/wsgi/fatbuildrweb.wsgi
 WSGIPassAuthorization On
 
-<Directory /usr/lib/fatbuildr/wsgi>
+<Directory /usr/share/fatbuildr/wsgi>
   WSGIProcessGroup fatbuildrweb-all
   WSGIApplicationGroup %{GLOBAL}
   Require all granted

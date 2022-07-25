@@ -3,7 +3,7 @@
 == Files Paths
 
 Fatbuildr is installed with a vendor configuration file located at
-`/usr/lib/fatbuildr/fatbuildr.ini`. This configuration file *must not* be
+`/usr/share/fatbuildr/fatbuildr.ini`. This configuration file *must not* be
 modified as changes would be lost on upgrades.
 
 Parameters can be overriden in site configuration file
