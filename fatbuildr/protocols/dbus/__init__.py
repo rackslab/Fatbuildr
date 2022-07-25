@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import inspect
+
 from dasbus.connection import SystemMessageBus
 from dasbus.error import DBusError, ErrorMapper, get_error_decorator
 from dasbus.identifier import DBusServiceIdentifier, DBusInterfaceIdentifier
@@ -160,7 +162,9 @@ class FatbuildrDBusData:
                 field.wire_type is str and wire_value == '∅'
             ):
                 native_value = None
-            elif issubclass(field.wire_type, ExportableType):
+            elif inspect.isclass(field.wire_type) and issubclass(
+                field.wire_type, ExportableType
+            ):
                 # If the field has an exportable type, convert the structure to
                 # the corresponding FatbuildrNativeDBusData type.
                 native_value = dbus_type(
@@ -189,7 +193,9 @@ class FatbuildrDBusData:
                     wire_value = -1
                 else:
                     wire_value = '∅'
-            elif issubclass(field.wire_type, ExportableType):
+            elif inspect.isclass(field.wire_type) and issubclass(
+                field.wire_type, ExportableType
+            ):
                 # If the type is directly exportable on the wire, convert it
                 # to (nested) structure.
                 wire_value = dbus_type(field.wire_type.__name__).to_structure(
@@ -199,7 +205,9 @@ class FatbuildrDBusData:
                 wire_value = field.export(task)
 
             # If the type is exported, declare it as Structure type
-            if issubclass(field.wire_type, ExportableType):
+            if inspect.isclass(field.wire_type) and issubclass(
+                field.wire_type, ExportableType
+            ):
                 wire_type = Structure
             else:
                 wire_type = field.wire_type

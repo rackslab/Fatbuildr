@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import inspect
 
 from ..wire import (
     WireData,
@@ -61,7 +62,9 @@ class JsonData:
         obj = cls()
         for field in fields:
             wire_value = json[field.name]
-            if issubclass(field.wire_type, ExportableType):
+            if inspect.isclass(field.wire_type) and issubclass(
+                field.wire_type, ExportableType
+            ):
                 # If the field has an exportable type, convert the JSON to
                 # the corresponding JsonNativeData type.
                 native_value = native_json_type(

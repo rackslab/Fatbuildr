@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import List
 import re
 
 from ...specifics import ArchMap
@@ -129,7 +130,7 @@ class ChangelogEntry(ExportableType):
         ExportableField('version'),
         ExportableField('author'),
         ExportableField('date', int),
-        ExportableField('changes', list[str]),
+        ExportableField('changes', List[str]),
     }
 
     def __init__(self, version, author, date, changes):

@@ -23,6 +23,8 @@ import tarfile
 import stat
 from pathlib import Path
 from datetime import date
+from typing import List
+
 try:
     from functools import cached_property
 except ImportError:
@@ -63,7 +65,7 @@ class ArtifactBuild(RunnableTask):
     EXFIELDS = {
         ExportableTaskField('format'),
         ExportableTaskField('distribution'),
-        ExportableTaskField('architectures', list[str]),
+        ExportableTaskField('architectures', List[str]),
         ExportableTaskField('derivative'),
         ExportableTaskField('artifact'),
         ExportableTaskField('user'),

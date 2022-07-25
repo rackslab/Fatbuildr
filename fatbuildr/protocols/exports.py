@@ -18,6 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import types
+import inspect
 from datetime import datetime
 from pathlib import Path
 
@@ -50,7 +51,9 @@ class ExportableField:
             return int(value.timestamp())
         elif self.native_type is Path:
             return str(value)
-        elif issubclass(self.native_type, ExportableType):
+        elif inspect.isclass(self.native_type) and issubclass(
+            self.native_type, ExportableType
+        ):
             return value.export()
         return value
 
@@ -66,7 +69,9 @@ class ExportableField:
             return datetime.fromtimestamp(value)
         elif self.native_type is Path:
             return Path(value)
-        elif issubclass(self.native_type, ExportableType):
+        elif inspect.isclass(self.native_type) and issubclass(
+            self.native_type, ExportableType
+        ):
             return self.native_type(**value)
         return value
 
