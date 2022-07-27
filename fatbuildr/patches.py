@@ -103,14 +103,14 @@ class PatchQueue:
         self.git = GitRepository(repo_path, self.user, self.email)
 
         # import existing patches in queue
-        patches_dir = self.apath.joinpath('patches', self.version)
-        self.git.import_patches(patches_dir)
+        patches_dir = self.apath.joinpath('patches')
+        self.git.import_patches(patches_dir, self.version)
 
         # launch subshell and wait user to exit
         self._launch_subshell()
 
         # export patch queue
-        self.git.export_queue(patches_dir)
+        self.git.export_queue(patches_dir, self.version)
 
     def _launch_subshell(self):
         # Launch subshell

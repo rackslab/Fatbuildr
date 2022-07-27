@@ -340,11 +340,18 @@ software. For example, patches for _foo_ version 1.2 must be saved into
 `patches/1.2/` subdirectory of _foo_ artifact definition directory. This layout
 gives the possibility to maintain patches for multiple versions.
 
+It is also possible to write and save generic patches in `patches/generic/` of
+the artifact definition directory. These patches are applied for all versions of
+the artifact. This can be useful for example to create an additional file in
+artifact source tree, without need to maintain the same patch for multiple
+versions.
+
 The patches are assembled into a serie by Fatbuildr and integrated in the source
 packages (SRPM or dsc). They are applied by respective build tools at the
 beginning of the build phase.
 
-When multiples patches are present, they are applied in lexicographic order.
+Generic patches are applied before version specific patches. When multiples
+patches are present in a subdirectory, they are applied in lexicographic order.
 
 TIP: The xref:fatbuildrctl.adoc[] `patches` command provides a convenient way
 to maintain artifact patches subdirectory using Git version control system. It

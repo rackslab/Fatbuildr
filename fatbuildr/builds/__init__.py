@@ -158,25 +158,38 @@ class ArtifactBuild(RunnableTask):
     @property
     def patches_dir(self):
         """Returns the Path to the artifact patches directory."""
-        return self.place.joinpath('patches', self.version.main)
+        return self.place.joinpath('patches')
 
     @property
     def patches(self):
         """Returns the sorted list of Path of patches found in artifact patches
-        directory."""
-        return sorted(
-            [
-                item
-                for item in self.patches_dir.iterdir()
-                if self.patch_selected(item)
-            ]
+        subdirectories."""
+        patches = []
+        patches_subdirs = (
+            self.patches_dir.joinpath('generic'),
+            self.patches_dir.joinpath(self.version.main),
         )
+        for patches_subdir in patches_subdirs:
+            # skip subdir if it does not exists
+            if not patches_subdir.exists():
+                continue
+            patches += sorted(
+                [
+                    item
+                    for item in patches_subdir.iterdir()
+                    if self.patch_selected(item)
+                ]
+            )
+        return patches
 
     @property
     def has_patches(self):
-        """Returns True if artifact patches directory exists, False
-        otherwise."""
-        return self.patches_dir.exists()
+        """Returns True if at least one artifact patches subdirectory exists, or
+        False otherwise."""
+        return (
+            self.patches_dir.joinpath('generic').exists()
+            or self.patches_dir.joinpath(self.version.main).exists()
+        )
 
     def run(self):
         logger.info("Running build %s", self.id)
@@ -463,7 +476,7 @@ class ArtifactEnvBuild(ArtifactBuild):
 
         # import existing patches in queue
         if self.has_patches:
-            git.import_patches(self.patches_dir)
+            git.import_patches(self.patches_dir, self.version.main)
 
         # Now run the prescript!
         self.prescript_in_env(tarball_subdir)
@@ -492,7 +505,7 @@ class ArtifactEnvBuild(ArtifactBuild):
             self.prescript_supp_tarball(tarball_subdir)
             # Export patch with symlinks in patch queue
             git.commit_export(
-                self.patches_dir,
+                self.patches_dir.joinpath(self.version.main),
                 9999,
                 'fatbuildr-prescript-symlinks',
                 self.user,
@@ -504,7 +517,7 @@ class ArtifactEnvBuild(ArtifactBuild):
         else:
             # Export git repo diff in patch queue
             git.commit_export(
-                self.patches_dir,
+                self.patches_dir.joinpath(self.version.main),
                 9999,
                 'fatbuildr-prescript',
                 self.user,
