@@ -51,6 +51,8 @@ class PatchQueue:
         defs,
         user,
         email,
+        version,
+        src_tarball = None
     ):
         self.apath = apath
         self.derivative = derivative
@@ -58,12 +60,47 @@ class PatchQueue:
         self.defs = defs
         self.user = user
         self.email = email
-        self.version = self.defs.version(self.derivative)
+        self.version = version
+        self.src_tarball = src_tarball
         self.git = None
 
     def run(self):
         logger.debug("Running patch queue for artifact %s", self.artifact)
 
+        # If the tarball has been generated, use it directely. Otherwise,
+        # download the tarball.
+        if self.src_tarball:
+            tarball_path = self.src_tarball
+        else:
+            tarball_path = self._dl_tarball()
+
+        # create tmp directory for the git repository
+        tmpdir = Path(tempfile.mkdtemp(prefix=f"fatbuildr-pq-{self.artifact}"))
+        CleanupRegistry.add_tmpdir(tmpdir)
+        logger.debug(f"Created temporary directory %s", tmpdir)
+
+        # extract tarball in the tmp directory
+        with tarfile.open(tarball_path, 'r') as tar:
+            tar_safe_extractall(tar, tmpdir)
+            repo_path = tmpdir.joinpath(tar_subdir(tar))
+
+        # init the git repository with its initial commit
+        self.git = GitRepository(repo_path, self.user, self.email)
+
+        # import existing patches in queue
+        patches_dir = self.apath.joinpath('patches')
+        self.git.import_patches(patches_dir, self.version)
+
+        # launch subshell and wait user to exit
+        self._launch_subshell()
+
+        # export patch queue
+        self.git.export_queue(patches_dir, self.version)
+
+    def _dl_tarball(self):
+        """Download artifact tarball using the URL found in artifact definition
+        metadata file, unless already present in cache, and verify its checksum.
+        Return the path to the tarball in cache."""
         tarball_url = self.defs.tarball_url(self.version)
 
         cache_dir = default_user_cache().expanduser()
@@ -89,28 +126,7 @@ class PatchQueue:
             self.defs.checksum_value(self.derivative),
         )
 
-        # create tmp directory for the git repository
-        tmpdir = Path(tempfile.mkdtemp(prefix=f"fatbuildr-pq-{self.artifact}"))
-        CleanupRegistry.add_tmpdir(tmpdir)
-        logger.debug(f"Created temporary directory %s", tmpdir)
-
-        # extract tarball in the tmp directory
-        with tarfile.open(tarball_path, 'r') as tar:
-            tar_safe_extractall(tar, tmpdir)
-            repo_path = tmpdir.joinpath(tar_subdir(tar))
-
-        # init the git repository with its initial commit
-        self.git = GitRepository(repo_path, self.user, self.email)
-
-        # import existing patches in queue
-        patches_dir = self.apath.joinpath('patches')
-        self.git.import_patches(patches_dir, self.version)
-
-        # launch subshell and wait user to exit
-        self._launch_subshell()
-
-        # export patch queue
-        self.git.export_queue(patches_dir, self.version)
+        return tarball_path
 
     def _launch_subshell(self):
         # Launch subshell

@@ -334,6 +334,19 @@ This command accepts the following options:
   artifact definition under the path composed by _BASEDIR_ concatenated with
   _SUBDIR_. By default, _SUBDIR_ is the artifact name.
 
+*--source-dir*=_SOURCE_DIR_::
+  Generate artifact source tarball using the source code in directory
+  _SOURCE_DIR_, instead of using the source tarball from the URL defined in
+  `meta.yml` file in artifact definition directory. This option must be used
+  in combination with *--source-version* option.
+
+*--source-version*=_VERSION_::
+  The version number used to tag the artifact source tarball generated with
+  sources located in _SOURCE_DIR_. The generated source tarball is named
+  _ARTEFACT_VERSION_.tar.xz, with a directory named _ARTEFACT-VERSION_ at
+  its root containing artifact source code. This option must be used in
+  combination with *--source-dir* option.
+
 *-n, --name*=_NAME_::
   User name for temporary Git repository initial commit author and commiter.
   This option is required, unless the user name is defined in user preferences
@@ -364,6 +377,10 @@ This command accepts the following options:
   Edit patch queue of artifact _foo_. This initial commit of temporary Git
   repository will created using `John Doe <john@doe.org>` identity as author and
   commiter.
+
+`$ fatbuildrctl patches --artifact foo --source-dir ~/path/to/sources --source-version 1.2.3`::
+  Edit patch queue of artifact _foo_ based on a generated source tarball with
+  files located in directory `~/path/to/sources` tagged with version _1.2.3_.
 --
 
 *registry*::

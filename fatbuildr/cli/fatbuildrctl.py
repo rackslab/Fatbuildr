@@ -312,6 +312,18 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_patches.add_argument('-n', '--name', help='Maintainer name')
         parser_patches.add_argument('-e', '--email', help='Maintainer email')
+        parser_patches.add_argument(
+            '--source-dir',
+            help=(
+                'Generate artifact source tarball using the source code in '
+                'this directory'
+            ),
+            type=Path,
+        )
+        parser_patches.add_argument(
+            '--source-version',
+            help='Alternate version for generated artifact source tarball',
+        )
         parser_patches.set_defaults(func=self._run_patches)
 
         # Parser for the watch command
@@ -801,6 +813,21 @@ class Fatbuildrctl(FatbuildrCliRun):
         defs = ArtifactDefs(apath)
         user_name = self._get_user_name(args)
         user_email = self._get_user_email(args)
+
+        # If the user specified a source directory in argument, generate the
+        # source tarball using it.
+        if args.source_dir:
+            src_tarball = prepare_source_tarball(
+                args.artifact,
+                args.source_dir,
+                args.source_version or defs.version(args.derivative),
+                False,
+            )
+            version = args.source_version
+        else:
+            src_tarball = None
+            version = defs.version(args.derivative)
+
         patch_queue = PatchQueue(
             apath,
             args.derivative,
@@ -808,8 +835,15 @@ class Fatbuildrctl(FatbuildrCliRun):
             defs,
             user_name,
             user_email,
+            version,
+            src_tarball,
         )
         patch_queue.run()
+
+        # If the source tarball has been generated, remove it before leaving.
+        if src_tarball:
+            logger.debug("Removing generated source tarball %s", src_tarball)
+            src_tarball.unlink()
 
     def _submit_watch(self, caller, task_name, watch, *args, interactive=False):
         task_id = caller(*args)
