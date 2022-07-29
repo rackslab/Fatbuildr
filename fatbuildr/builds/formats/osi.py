@@ -74,7 +74,7 @@ class ArtifactBuildOsi(ArtifactBuild):
             )
 
         cmd = [
-            'mkosi',
+            self.image.builder,
             '--default',
             str(def_path),
             '--output-dir',

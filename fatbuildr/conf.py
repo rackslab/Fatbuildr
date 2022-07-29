@@ -182,6 +182,7 @@ class RuntimeSubConfFormatDeb(object):
 
     def __init__(self):
 
+        self.builder = None
         self.env_path = None
         self.init_cmd = None
         self.img_update_cmds = None
@@ -192,6 +193,7 @@ class RuntimeSubConfFormatDeb(object):
 
     def load(self, config):
         section = 'format:deb'
+        self.builder = config.get(section, 'builder')
         self.env_path = config.get(section, 'env_path')
         self.init_cmd = config.get(section, 'init_cmd')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
@@ -204,6 +206,7 @@ class RuntimeSubConfFormatDeb(object):
 
     def dump(self):
         logger.debug("[format:deb]")
+        logger.debug("  builder: %s", self.builder)
         logger.debug("  env_path: %s", self.env_path)
         logger.debug("  init_cmd: %s", self.init_cmd)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
@@ -220,6 +223,7 @@ class RuntimeSubConfFormatRpm(object):
 
     def __init__(self):
 
+        self.builder = None
         self.env_path = None
         self.init_cmd = None
         self.img_update_cmds = None
@@ -228,6 +232,7 @@ class RuntimeSubConfFormatRpm(object):
 
     def load(self, config):
         section = 'format:rpm'
+        self.builder = config.get(section, 'builder')
         self.env_path = config.get(section, 'env_path')
         self.init_cmd = config.get(section, 'init_cmd')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
@@ -236,6 +241,7 @@ class RuntimeSubConfFormatRpm(object):
 
     def dump(self):
         logger.debug("[format:rpm]")
+        logger.debug("  builder: %s", self.builder)
         logger.debug("  env_path: %s", self.env_path)
         logger.debug("  init_cmd: %s", self.init_cmd)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
@@ -248,15 +254,17 @@ class RuntimeSubConfFormatOsi(object):
 
     def __init__(self):
 
-        self.init_cmd = None
+        self.builder = None
         self.img_update_cmds = None
 
     def load(self, config):
         section = 'format:osi'
+        self.builder = config.get(section, 'builder')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
 
     def dump(self):
         logger.debug("[format:osi]")
+        logger.debug("  builder: %s", self.builder)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
 
 

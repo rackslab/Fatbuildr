@@ -275,7 +275,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
 
         # run SRPM build
         cmd = [
-            'mock',
+            self.image.builder,
             '--root',
             self.native_env.name,
             '--config-opts',
@@ -314,7 +314,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         )
 
         cmd = [
-            'mock',
+            self.image.builder,
             '--root',
             env.name,
             '--config-opts',
@@ -368,7 +368,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         """Run mock overlayfs snapshot related command on host native build
         environment."""
         cmd = [
-            'mock',
+            self.image.builder,
             '--root',
             self.native_env.name,
             '--enable-plugin',
@@ -408,7 +408,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             )
 
             cmd = [
-                'mock',
+                self.image.builder,
                 '--root',
                 self.native_env.name,
                 '--enable-plugin',
@@ -433,7 +433,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
 
             # run prescript
             cmd = [
-                'mock',
+                self.image.builder,
                 '--root',
                 self.native_env.name,
                 '--config-opts',

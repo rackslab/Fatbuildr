@@ -52,6 +52,10 @@ class Image(object):
         return self.def_path.exists()
 
     @property
+    def builder(self):
+        return getattr(self.conf, self.format).builder
+
+    @property
     def prescript_deps(self):
         return getattr(self.conf, self.format).prescript_deps
 

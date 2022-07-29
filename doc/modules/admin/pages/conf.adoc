@@ -140,6 +140,8 @@ Formats sections include both common and specific parameters. The specific
 parameters are detailed in following dedicated subsections. The common
 parameters shared by all formats are the following:
 
+`builder`:: Path to artifact builder command in container.
+
 `img_update_cmds`:: Command used in container to upgrade image software.
 
 === `format:deb`

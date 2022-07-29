@@ -252,7 +252,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         # tarballs generated with prescript. It is safer to ensure the sources
         # are included in changes file for every builds.
         cmd = [
-            'cowbuilder',
+            self.image.builder,
             '--build',
             '--hookdir',
             self.image.format_libdir.joinpath('hooks'),
@@ -301,7 +301,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         )
 
         cmd = [
-            'cowbuilder',
+            self.image.builder,
             '--execute',
             '--hookdir',
             self.image.format_libdir.joinpath('hooks'),
