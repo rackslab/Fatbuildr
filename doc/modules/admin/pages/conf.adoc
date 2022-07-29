@@ -102,6 +102,9 @@ used when running commands for other types of tasks (ex: builds)
 `opts`:: Command options passed to container instanciation executable, for all
 commands.
 
+`seccomp`:: Boolean to control whether Linux seccomp feature is used to filter
+the syscalls available to containers.
+
 === `registry`
 
 This section controls managed artifact registries settings. It includes the

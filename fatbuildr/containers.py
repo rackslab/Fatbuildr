@@ -103,4 +103,11 @@ class ContainerRunner(object):
         # One solution is to tune environment to make systemd-nspawn sends its
         # notifications elsewhere. Note that the purpose of systemd-nspawn
         # --notify-ready=no is totally different.
-        runcmd(_cmd, env={'NOTIFY_SOCKET': '/dev/null'}, io=io)
+        env = {'NOTIFY_SOCKET': '/dev/null'}
+
+        # Setup systemd-nspawn to ignore seccomp if disabled in configuration
+        if not self.conf.containers.seccomp:
+            env['SYSTEMD_SECCOMP'] = '0'
+
+        # Finally, run the command!
+        runcmd(_cmd, env=env, io=io)

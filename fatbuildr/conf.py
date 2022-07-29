@@ -105,6 +105,7 @@ class RuntimeSubConfContainers(object):
         self.exec = None
         self.init_opts = None
         self.opts = None
+        self.seccomp = None
 
     def load(self, config):
         section = 'containers'
@@ -120,12 +121,14 @@ class RuntimeSubConfContainers(object):
             self.opts = None
         else:
             self.opts = _opts.split(' ')
+        self.seccomp = config.getboolean(section, 'seccomp')
 
     def dump(self):
         logger.debug("[containers]")
         logger.debug("  exec: %s", self.exec)
         logger.debug("  init_opts: %s", self.init_opts)
         logger.debug("  opts: %s", self.opts)
+        logger.debug("  seccomp: %s", self.seccomp)
 
 
 class RuntimeSubConfKeyring(object):
