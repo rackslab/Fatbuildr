@@ -10,6 +10,9 @@ Parameters can be overriden in site configuration file
 `/etc/fatbuildr/fatbuildr.ini`. This file is empty by default. All parameters
 declared in this file take precedence over the vendor file.
 
+TIP: Parameters can be defined with interpolation using
+https://docs.python.org/3/library/configparser.html#configparser.ExtendedInterpolation[Python extended interpolation syntax].
+
 [#params]
 == Parameters
 

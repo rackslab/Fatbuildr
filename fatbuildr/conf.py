@@ -336,7 +336,9 @@ class RuntimeConf(object):
 
     def load(self):
         """Load configuration files and set runtime parameters accordingly."""
-        self.config = configparser.ConfigParser()
+        self.config = configparser.ConfigParser(
+            interpolation=configparser.ExtendedInterpolation()
+        )
         # read vendor configuration file and override with site specific
         # configuration file
         vendor_conf_path = '/usr/share/fatbuildr/fatbuildr.ini'
