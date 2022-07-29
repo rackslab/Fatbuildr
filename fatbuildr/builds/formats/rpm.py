@@ -266,7 +266,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         # Otherwise, move the tarball from the build place to the sources
         # subdirectory.
         source = self.source_path.joinpath(self.tarball.name)
-        if not self.tarball.is_relative_to(self.place):
+        if not self.tarball_in_build_place:
             logger.info("Creating symlink %s → %s", source, self.tarball)
             source.symlink_to(self.tarball)
         else:
@@ -292,7 +292,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         # If the source tarball is not in build place (ie. in cache),
         # bind-mount the tarball directory in mock environment so rpmbuild can
         # access to the target of the tarball symlink in build place.
-        if not self.tarball.is_relative_to(self.place):
+        if not self.tarball_in_build_place:
             cmd[3:3] = [
                 '--plugin-option',
                 "bind_mount:dirs="

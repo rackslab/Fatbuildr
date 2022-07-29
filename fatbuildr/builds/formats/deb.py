@@ -215,7 +215,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         # If the artifact tarball is the build place, create a relative symbolic
         # link, so the link stays valid when the task is moved in archives.
         # Otherwise (ie. the tarball is in cache), use the absolute path.
-        if self.tarball.is_relative_to(self.place):
+        if self.tarball_in_build_place:
             dest = self.tarball.relative_to(self.tarball.parent)
         else:
             dest = self.tarball

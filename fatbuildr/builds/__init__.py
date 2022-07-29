@@ -142,6 +142,21 @@ class ArtifactBuild(RunnableTask):
     def checksum_value(self):
         return self.defs.checksum_value(self.derivative)
 
+    @property
+    def tarball_in_build_place(self):
+        """Returns True if the artifact tarball is located in build place (ie.
+        the tarball was provided by the user within the build request), or False
+        otherwise.
+        This code does not call self.tarball.is_relative_to(self.place) method
+        because Fatbuildr supports Python 3.6+ and this method is only available
+        starting from Python 3.9.
+        """
+        try:
+            self.tarball.relative_to(self.place)
+            return True
+        except ValueError:
+            return False
+
     def patch_selected(self, patch):
         """Check in the patch metadata in deb822 format if is it restricted to
         specific distributions or formats and in this case, check if it can be
