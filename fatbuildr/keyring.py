@@ -338,7 +338,7 @@ class InstanceKeyring:
 
         # Load GPG in agent using the passphrase
         cmd = [
-            '/usr/lib/gnupg/gpg-preset-passphrase',
+            self.conf.keyring.seeder,
             '--preset',
             self.masterkey.subkey.keygrip,
         ]

@@ -140,6 +140,7 @@ class RuntimeSubConfKeyring(object):
         self.type = None
         self.size = None
         self.expires = None
+        self.seeder = None
 
     def _parse_duration(self, _expires):
         m = re.search(r'(\d+)([a-z])', _expires)
@@ -168,6 +169,7 @@ class RuntimeSubConfKeyring(object):
             raise ValueError(
                 "keyring expires must be set with a duration to be enabled"
             )
+        self.seeder = config.get(section, 'seeder')
 
     def dump(self):
         logger.debug("[keyring]")
@@ -175,6 +177,7 @@ class RuntimeSubConfKeyring(object):
         logger.debug("  type: %s", self.type)
         logger.debug("  size: %s", self.size)
         logger.debug("  expires: %s", str(self.expires))
+        logger.debug("  seeder: %s", self.seeder)
 
 
 class RuntimeSubConfFormatDeb(object):

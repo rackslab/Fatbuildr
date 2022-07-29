@@ -130,6 +130,9 @@ the following parameters:
 expires. The value can be suffixed with units `w` (weeks), 'm' (months) or `y`
 (years). The default unit is days.
 
+`seeder`:: Path to utility used to seed the internal cache of a running
+`gpg-agent` with keyring passphrase.
+
 === `format:*`
 
 All artifacts supported by Fatbuildr have their dedicated section prefixed by
