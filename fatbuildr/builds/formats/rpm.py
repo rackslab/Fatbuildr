@@ -182,13 +182,16 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             supplementary_tarballs=self.prescript_tarballs,
         )
 
-        if self.has_patches:
+        if not self.patches_dir.empty:
             # Move patches in the sources subdirectory
-            patches = self.patches
-            for patch in patches:
+            for patch in self.patches:
                 patch.rename(self.source_path.joinpath(patch.name))
-            patches_decl = templater.srender(PATCHES_DECL_TPL, patches=patches)
-            patches_prep = templater.srender(PATCHES_PREP_TPL, patches=patches)
+            patches_decl = templater.srender(
+                PATCHES_DECL_TPL, patches=self.patches
+            )
+            patches_prep = templater.srender(
+                PATCHES_PREP_TPL, patches=self.patches
+            )
 
         # Check if existing source package and get version
         existing_version = self.registry.source_version(

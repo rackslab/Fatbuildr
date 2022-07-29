@@ -31,7 +31,7 @@ from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artifact import ArtifactDefsFactory
 from ..registry.formats import ArtifactVersion
-from ..git import GitRepository, parse_patch
+from ..git import GitRepository, PatchesDir
 from ..templates import Templeter
 from ..utils import (
     dl_file,
@@ -102,6 +102,8 @@ class ArtifactBuild(RunnableTask):
         # Path the upstream tarball, initialized in prepare(), after optional
         # pre-script is processed.
         self.tarball = None
+        # Initialized in prepare(), as it requires the version to be known.
+        self.patches_dir = None
 
     def __getattr__(self, name):
         # try in defs
@@ -132,64 +134,43 @@ class ArtifactBuild(RunnableTask):
         """Check in the patch metadata in deb822 format if is it restricted to
         specific distributions or formats and in this case, check if it can be
         selected for the current build."""
-        meta = parse_patch(patch)
-        # check format
-        if 'Formats' in meta and self.format not in meta['Formats'].split(' '):
+        if 'Formats' in patch.meta and not patch.in_field(
+            'Formats', self.format
+        ):
             logger.info(
                 "Skipping patch %s because it is restricted to other formats "
                 "'%s'",
-                patch,
-                meta['Formats'],
+                patch.fullname,
+                patch.meta['Formats'],
             )
             return False
-        # check distribution
-        if 'Distributions' in meta and self.distribution not in meta[
-            'Distributions'
-        ].split(' '):
+        if 'Distributions' in patch.meta and not patch.in_field(
+            'Distributions', self.distribution
+        ):
             logger.info(
                 "Skipping patch %s because it is restricted to other "
                 "distributions '%s'",
-                patch,
-                meta['Distributions'],
+                patch.fullname,
+                patch.meta['Distributions'],
             )
             return False
         return True
 
-    @property
-    def patches_dir(self):
-        """Returns the Path to the artifact patches directory."""
-        return self.place.joinpath('patches')
-
-    @property
+    @cached_property
     def patches(self):
-        """Returns the sorted list of Path of patches found in artifact patches
+        """Returns the list of selected PatchFile found in artifact patches
         subdirectories."""
         patches = []
-        patches_subdirs = (
-            self.patches_dir.joinpath('generic'),
-            self.patches_dir.joinpath(self.version.main),
-        )
-        for patches_subdir in patches_subdirs:
+        for patches_subdir in self.patches_dir.subdirs:
             # skip subdir if it does not exists
             if not patches_subdir.exists():
                 continue
-            patches += sorted(
-                [
-                    item
-                    for item in patches_subdir.iterdir()
-                    if self.patch_selected(item)
-                ]
-            )
+            patches += [
+                item
+                for item in patches_subdir.patches
+                if self.patch_selected(item)
+            ]
         return patches
-
-    @property
-    def has_patches(self):
-        """Returns True if at least one artifact patches subdirectory exists, or
-        False otherwise."""
-        return (
-            self.patches_dir.joinpath('generic').exists()
-            or self.patches_dir.joinpath(self.version.main).exists()
-        )
 
     def run(self):
         logger.info("Running build %s", self.id)
@@ -276,6 +257,9 @@ class ArtifactBuild(RunnableTask):
                 self.cache.tarball,
             )
             self.tarball = self.cache.tarball
+
+        # Define patches_dir attribute now that version is well known
+        self.patches_dir = PatchesDir(self.place, self.version.main)
 
         # run prescript if present
         self.prescript()
@@ -475,8 +459,8 @@ class ArtifactEnvBuild(ArtifactBuild):
         git = GitRepository(tarball_subdir, self.user, self.email)
 
         # import existing patches in queue
-        if self.has_patches:
-            git.import_patches(self.patches_dir, self.version.main)
+        if not self.patches_dir.empty:
+            git.import_patches(self.patches_dir)
 
         # Now run the prescript!
         self.prescript_in_env(tarball_subdir)
@@ -505,7 +489,7 @@ class ArtifactEnvBuild(ArtifactBuild):
             self.prescript_supp_tarball(tarball_subdir)
             # Export patch with symlinks in patch queue
             git.commit_export(
-                self.patches_dir.joinpath(self.version.main),
+                self.patches_dir.version_subdir,
                 9999,
                 'fatbuildr-prescript-symlinks',
                 self.user,
@@ -517,7 +501,7 @@ class ArtifactEnvBuild(ArtifactBuild):
         else:
             # Export git repo diff in patch queue
             git.commit_export(
-                self.patches_dir.joinpath(self.version.main),
+                self.patches_dir.version_subdir,
                 9999,
                 'fatbuildr-prescript',
                 self.user,

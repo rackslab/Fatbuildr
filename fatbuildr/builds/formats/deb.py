@@ -134,10 +134,9 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
 
         # Generate patches tree if patches are provided
 
-        if self.has_patches:
+        if not self.patches_dir.empty:
             logger.info("Generating debian patches tree")
 
-            patches = self.patches
             patches_to = tarball_subdir.joinpath('debian', 'patches')
 
             # If the patches directory destination path already exists, remove
@@ -152,13 +151,13 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             patches_to.chmod(0o755)
 
             # Move patches in debian patches subdir
-            for patch in patches:
+            for patch in self.patches:
                 patch.rename(patches_to.joinpath(patch.name))
 
             # Generate patches series file
             logger.debug("Generating patches series files with patches")
             with open(patches_to.joinpath('series'), 'w+') as fh:
-                fh.writelines([path.name + '\n' for path in patches])
+                fh.writelines([path.name + '\n' for path in self.patches])
 
         # Check if existing source package and get version
         existing_version = self.registry.source_version(

@@ -23,7 +23,7 @@ import os
 from pathlib import Path
 import tarfile
 
-from .git import GitRepository
+from .git import GitRepository, PatchesDir
 from .utils import dl_file, verify_checksum, tar_subdir, tar_safe_extractall
 from .cleanup import CleanupRegistry
 from .log import logr
@@ -52,7 +52,7 @@ class PatchQueue:
         user,
         email,
         version,
-        src_tarball = None
+        src_tarball=None,
     ):
         self.apath = apath
         self.derivative = derivative
@@ -88,14 +88,14 @@ class PatchQueue:
         self.git = GitRepository(repo_path, self.user, self.email)
 
         # import existing patches in queue
-        patches_dir = self.apath.joinpath('patches')
-        self.git.import_patches(patches_dir, self.version)
+        patches_dir = PatchesDir(self.apath, self.version)
+        self.git.import_patches(patches_dir)
 
         # launch subshell and wait user to exit
         self._launch_subshell()
 
         # export patch queue
-        self.git.export_queue(patches_dir, self.version)
+        self.git.export_queue(patches_dir)
 
     def _dl_tarball(self):
         """Download artifact tarball using the URL found in artifact definition

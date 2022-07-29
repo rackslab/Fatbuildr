@@ -20,6 +20,8 @@
 import subprocess
 import re
 from datetime import datetime
+from pathlib import Path
+from functools import cached_property
 
 import pygit2
 from debian import deb822
@@ -29,18 +31,136 @@ from .log import logr
 logger = logr(__name__)
 
 
-def parse_patch(patch):
-    """Read the given patch file and parse metadata in deb822 format."""
-    # read the patch and parse metadata
-    with open(patch, 'rb') as fh:
-        content = fh.read()
-    return deb822.Deb822(content)
+def parse_commit_meta(commit):
+    return deb822.Deb822(commit.message.split("\n", 2)[2])
 
 
 def is_meta_generic(meta):
     """Returns True if the patch metadata indicates a generic (ie. not version
     specific) patch, or False otherwise."""
     return 'Generic' in meta and meta['Generic'] == 'yes'
+
+
+# It is not possible to inherit directory from pathlib.Path as this class
+# constructor actually returns the specialized type according to the underlying
+# OS. One solution is to discover the actual specialized type for the current OS
+# and inherit from it.
+PATH_TYPE = type(Path())
+
+
+class PatchesDir(PATH_TYPE):
+    """Class to manipulatz patches directories and their subdirs. In pathlib
+    classes the attributes are given as arguments to the constructor, and not to
+    the __init__() method. This class overrides the constructor to add the
+    version argument."""
+
+    def __new__(cls, path, version):
+        obj = super().__new__(cls, path.joinpath('patches'))
+        obj.version = version
+        return obj
+
+    @cached_property
+    def generic_subdir(self):
+        return PatchesSubdir(self, self.joinpath('generic'))
+
+    @cached_property
+    def version_subdir(self):
+        return PatchesSubdir(self, self.joinpath(self.version))
+
+    @property
+    def subdirs(self):
+        return (self.generic_subdir, self.version_subdir)
+
+    @property
+    def empty(self):
+        """Returns True is either one subdirectory exists, False otherwise."""
+        return (
+            not self.generic_subdir.exists()
+            and not self.version_subdir.exists()
+        )
+
+    def ensure(self):
+        """Create patches directory if it does not exist yet."""
+        if not self.exists():
+            logger.debug("Creating artifact patches directory %s", self)
+            self.mkdir()
+            self.chmod(0o755)
+
+
+class PatchesSubdir(PATH_TYPE):
+    """Class to manipulate patches subdirectories. In pathlib classes the
+    attributes are given as arguments to the constructor, and not to the
+    __init__() method. This class overrides the constructor to add the
+    patches_dir argument."""
+
+    def __new__(cls, patches_dir, path):
+        obj = super().__new__(cls, path)
+        obj.patches_dir = patches_dir
+        return obj
+
+    @property
+    def patches(self):
+        """Return sorted list of PatchFiles available in subdir."""
+        return sorted([PatchFile(patch) for patch in self.iterdir()])
+
+    def ensure(self):
+        """Create patches subdirectory if it does not exist yet."""
+        # First ensure parent patches directory
+        self.patches_dir.ensure()
+
+        if not self.exists():
+            logger.debug("Creating patches subdirectory %s", self)
+            self.mkdir()
+            self.chmod(0o755)
+
+    def clean(self):
+        """Remove all existing patches in subdir."""
+        if not self.exists():
+            return
+        for patch in self.patches:
+            logger.debug("Removing old patch %s", patch.fullname)
+            patch.unlink()
+
+
+class PatchFile(PATH_TYPE):
+    """Class to manipulate patch files."""
+
+    @property
+    def fullname(self):
+        return f"{self.parent.name}/{self.name}"
+
+    @cached_property
+    def content(self):
+        with open(self, 'rb') as fh:
+            return fh.read()
+
+    @cached_property
+    def title(self):
+        # Extract commit title (1st line) from patch filename, by removing
+        # the patch index before the first dash.
+        return self.name.split('-', 1)[1]
+
+    @cached_property
+    def meta(self):
+        return deb822.Deb822(self.content)
+
+    def in_field(self, field, value):
+        """Returns True if value in found in space separated list field, or
+        False otherwise."""
+        return value in self.meta[field].split(' ')
+
+    @property
+    def generic(self):
+        return self.parent.name == 'generic'
+
+    @staticmethod
+    def create(subdir, title):
+        return PatchFile(subdir.joinpath(title))
+
+    def write(self, meta, diff):
+        with open(self, 'w+') as fh:
+            fh.write(str(meta) + '\n\n')
+            fh.write(diff)
 
 
 class GitRepository:
@@ -93,14 +213,10 @@ class GitRepository:
         parent. When the diff is empty, None is returned."""
         return self._repo.diff(commit.parents[0], commit).patch
 
-    def import_patches(self, patches_dir, version):
-        """Import patches in patches_dir, starting with generic followed by
-        version specific patches."""
+    def import_patches(self, patches_dir):
+        """Import patches from all subdirs of patches_dir."""
 
-        patches_subdirs = [
-            patches_dir.joinpath('generic'),
-            patches_dir.joinpath(version),
-        ]
+        patches_subdirs = patches_dir.subdirs
 
         for patches_subdir in patches_subdirs:
             self._import_patches_subdir(patches_subdir)
@@ -113,44 +229,34 @@ class GitRepository:
         if not patches_subdir.exists():
             return
 
-        sorted_patches = sorted([patch for patch in patches_subdir.iterdir()])
-
-        for patch in sorted_patches:
+        for patch in patches_subdir.patches:
             self._apply_patch(patch)
 
     def _apply_patch(self, patch):
 
-        with open(patch, 'rb') as fh:
-            content = fh.read()
-
-        # Extract commit title (1st line) from patch filename, by removing
-        # the patch index before the first dash.
-        title = patch.name.split('-', 1)[1]
-
         # Parse metadata of the patch in deb822 format
-        meta = deb822.Deb822(content)
         author_key = None
         # Search for accepted author key in metadata
         for key in ['Author', 'From']:
-            if key in meta:
+            if key in patch.meta:
                 author_key = key
         # If an accepted author key has been found in meta, parse it. Otherwise
         # use default 'unknown' author
         if author_key:
             author_re = re.match(
-                r'(?P<author>.+) <(?P<email>.+)>', meta[author_key]
+                r'(?P<author>.+) <(?P<email>.+)>', patch.meta[author_key]
             )
             author = author_re.group('author')
             email = author_re.group('email')
-            del meta[author_key]
+            del patch.meta[author_key]
         else:
             author = 'Unknown Author'
             email = 'unknown@email.com'
 
         # If the patch is loaded from the generic subdir, add the corresponding
         # field in commit metadata
-        if patch.parent.name == 'generic':
-            meta['Generic'] = 'yes'
+        if patch.generic:
+            patch.meta['Generic'] = 'yes'
 
         # Apply the patch. The patch command is used because pygit2 does not
         # offer API to apply patches that allows not well formatted patch, with
@@ -168,34 +274,21 @@ class GitRepository:
             "--reject-file=-",
             "-p1",
         ]
-        logger.info("Applying patch %s", patch.name)
-        subprocess.run(cmd, input=content, cwd=self.path)
+        logger.info("Applying patch %s", patch.fullname)
+        subprocess.run(cmd, input=patch.content, cwd=self.path)
 
         # Commit modifications
-        self._commit(author, email, title, meta, files=None)
+        self._commit(author, email, patch.title, patch.meta, files=None)
 
-    def export_queue(self, patches_dir, version):
+    def export_queue(self, patches_dir):
         """Export all commits in the repository into successive patches in
         patches_dir."""
 
-        # Create destination patches directory if it does not exist yet
-        if not patches_dir.exists():
-            logger.debug("Creating artifact patches directory %s", patches_dir)
-            patches_dir.mkdir()
+        patches_dir.ensure()
 
         # Remove all existing patches
-        for patches_subdir in [
-            patches_dir.joinpath('generic'),
-            patches_dir.joinpath(version),
-        ]:
-            if patches_subdir.exists():
-                for patch in patches_subdir.iterdir():
-                    logger.debug(
-                        "Removing old patch %s/%s",
-                        patch.parent.name,
-                        patch.name,
-                    )
-                    patch.unlink()
+        for patches_subdir in patches_dir.subdirs:
+            patches_subdir.clean()
 
         # Count generic and version specific commits
         index_generic = 0
@@ -204,7 +297,7 @@ class GitRepository:
         for commit in self.walker():
             if not commit.parents:
                 break
-            meta = deb822.Deb822(commit.message.split("\n", 2)[2])
+            meta = parse_commit_meta(commit)
             if is_meta_generic(meta):
                 index_generic += 1
             else:
@@ -220,23 +313,21 @@ class GitRepository:
         for commit in self.walker():
             if not commit.parents:
                 break
-            meta = deb822.Deb822(commit.message.split("\n", 2)[2])
+            meta = parse_commit_meta(commit)
             if is_meta_generic(meta):
                 self._export_commit(
-                    patches_dir.joinpath('generic'), index_generic, commit, meta
+                    patches_dir.generic_subdir, index_generic, commit, meta
                 )
                 index_generic -= 1
             else:
                 self._export_commit(
-                    patches_dir.joinpath(version), index_version, commit, meta
+                    patches_dir.version_subdir, index_version, commit, meta
                 )
                 index_version -= 1
 
     def _export_commit(self, patches_subdir, index, commit, meta):
 
         meta['Author'] = f"{commit.author.name} <{commit.author.email}>"
-        patch_name = commit.message.split('\n')[0]
-        patch_path = patches_subdir.joinpath(f"{index:04}-{patch_name}")
 
         # If the Generic field is present in commit metadata, remove it. The
         # patch is saved in generic subdirectory, this is how Fatbuildr knowns
@@ -244,28 +335,26 @@ class GitRepository:
         if 'Generic' in meta:
             del meta['Generic']
 
-        logger.info(
-            f"Generating patch file {patches_subdir.name}/{patch_path.name}"
+        patch_name = commit.message.split('\n')[0]
+        patch_file = PatchFile.create(
+            subdir=patches_subdir, title=f"{index:04}-{patch_name}"
         )
 
+        logger.info(f"Generating patch file {patch_file.fullname}")
+
         diff = self.diff(commit)
+
         # Check if the diff is empty. When it is empty, just warn user, else
         # save patch in file.
         if diff:
-            # Create patches subdirectory if missing
-            if not patches_subdir.exists():
-                logger.debug("Creating patches subdirectory %s", patches_subdir)
-                patches_subdir.mkdir()
-                patches_subdir.chmod(0o755)
-            with open(patch_path, 'w+') as fh:
-                fh.write(str(meta) + '\n\n')
-                fh.write(diff)
+            patches_subdir.ensure()
+            patch_file.write(meta=meta, diff=diff)
         else:
             logger.warning("Patch diff is empty, skipping patch generation")
 
     def commit_export(
         self,
-        patches_dir,
+        patches_subdir,
         index,
         title,
         author,
@@ -285,12 +374,5 @@ class GitRepository:
 
         last_commit = self._repo[self._repo.head.target]
 
-        # Create patches directory if if does not exist.
-        if not patches_dir.exists():
-            logger.debug(
-                "Creating artifact version patches directory %s", patches_dir
-            )
-            patches_dir.mkdir(parents=True)
-
         meta = deb822.Deb822(last_commit.message.split("\n", 2)[2])
-        self._export_commit(patches_dir, index, last_commit, meta)
+        self._export_commit(patches_subdir, index, last_commit, meta)
