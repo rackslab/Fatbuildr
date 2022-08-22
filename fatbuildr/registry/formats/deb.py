@@ -58,6 +58,29 @@ class RegistryDeb(Registry):
     def derivatives(self, distribution):
         return self.components
 
+    def _remove_ddebs(self, changes_path):
+        """Remove ddeb entries from changes file, as a temporary workaround for
+        reprepro missing support of such files. For more details:
+        https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=730572
+
+        Note this is fixed in coming releases reprepro 5.4.0 and later."""
+        content = []  # content with *.ddeb removed
+        found = False  # flag triggered if *.ddeb found
+
+        with open(changes_path) as fh:
+            for line in fh:
+                if not line.strip().endswith('.ddeb'):
+                    content.append(line)
+                else:
+                    logger.warning(
+                        "Removing ddeb entry from changes file: %s",
+                        line.strip(),
+                    )
+                    found = True
+        if found:
+            with open(changes_path, 'w') as fh:
+                fh.writelines(content)
+
     def publish(self, build):
         """Publish both source and binary package in APT repository."""
 
@@ -102,6 +125,8 @@ class RegistryDeb(Registry):
         self.instance.keyring.load_agent()
 
         for changes_path in build.place.glob('*.changes'):
+            # Remove Ubuntu dbgsyms *.ddeb references from changes file
+            self._remove_ddebs(changes_path)
             # Skip source changes, source package is published in repository as
             # part of binary changes.
             if changes_path.match('*_source.changes'):
