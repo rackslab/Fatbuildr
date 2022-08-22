@@ -101,25 +101,6 @@ class RegistryDeb(Registry):
         # Load keyring in agent so repos are signed with new packages
         self.instance.keyring.load_agent()
 
-        # Check packages are not already present in this distribution of the
-        # repository with this version before trying to publish them, or fail
-        # when it is the case.
-        logger.debug(
-            "Checking if package %s is already present in distribution %s",
-            build.artifact,
-            build.distribution,
-        )
-        cmd = [
-            'reprepro',
-            '--basedir',
-            self.path,
-            '--list-format',
-            '${version}',
-            'list',
-            build.distribution,
-            build.artifact,
-        ]
-
         for changes_path in build.place.glob('*.changes'):
             # Skip source changes, source package is published in repository as
             # part of binary changes.
