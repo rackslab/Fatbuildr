@@ -33,6 +33,46 @@ $ sudo -u fatbuildr reprepro --basedir /var/lib/fatbuildr/registry/$instance/deb
 Where `$instance` is the name of the Fatbuildr instance (ex: _default_ in the
 above example error message).
 
+== deb error `already registered with different checksums!`
+
+During deb packages builds, `reprepro` can complain about conflicting packages
+files already present in APT repository while the respective files cannot be
+found while exploring the repository content. When this happens, this error
+message can be encountered at build time:
+
+[source]
+----
+File "pool/main/<p>/<package>.deb" is already registered with different checksums!
+md5 expected: <md5a>, got: <md5b>
+sha1 expected: <sha1a>, got: <sha256b>
+sha256 expected: <sha256a>, got: <sha256b>
+size expected: <sizea>, got: <sizeb>
+----
+
+With valid package file path and checksum values in placeholders.
+
+This may happen when the `reprepro` database references files that have been
+removed for filesystem, due to various kind of runtime errors. Such missing
+files can be listed with the following command:
+
+[source,shell]
+----
+$ sudo -u fatbuildr reprepro --basedir /var/lib/fatbuildr/registry/default/deb dumpunreferenced
+----
+
+Where `$instance` is the name of the Fatbuildr instance (ex: _default_ in the
+above example error message).
+
+If the previous command returns any value, it is highly recommended to delete
+all these references with this second command:
+
+[source,shell]
+----
+$ sudo -u fatbuildr reprepro --basedir /var/lib/fatbuildr/registry/default/deb deleteunreferenced
+----
+
+This should clear all unexpected error messages relating conflicting checksums.
+
 == rpm error `Command failed: /usr/sbin/usermod -u 998 mockbuild`
 
 This error message can be encountered during RPM package builds:
