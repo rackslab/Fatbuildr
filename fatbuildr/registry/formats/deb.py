@@ -143,8 +143,19 @@ class RegistryDeb(Registry):
                 build.distribution,
                 changes_path,
             ]
+            # The PATH is set to a minimal value in reprepro environment so it
+            # could find executables for uncompressors for compression formats
+            # whose native built-in support through libaries is not available
+            # (eg. zstd).
+            #
+            # The reprepro --unzstd argument has been tested with reprepro
+            # 5.3.0-1.4 but it fails with a segmentation fault.
             build.runcmd(
-                cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)}
+                cmd,
+                env={
+                    'GNUPGHOME': str(self.instance.keyring.homedir),
+                    'PATH': '/usr/bin',
+                },
             )
 
     def artifacts(self, distribution, derivative):
