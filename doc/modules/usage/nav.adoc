@@ -1,5 +1,6 @@
 .Usage Guide
 * xref:repo.adoc[]
 * xref:fatbuildrctl.adoc[]
+* xref:remote.adoc[]
 * xref:api.adoc[]
 * xref:web.adoc[]

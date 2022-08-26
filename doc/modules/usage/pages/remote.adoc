@@ -1,0 +1,76 @@
+= Local _vs_ remote features
+
+Some features are not available when using xref:fatbuildrctl.adoc[] with a
+remote Fatbuildr instance through the HTTP xref:api.adoc[REST API], compared to
+a local Fatbuildr instance through D-Bus. The differences are represented in
+this table:
+
+[cols="4,^1,^1"]
+|===
+|Features|Local D-Bus|HTTP REST API
+
+|List running and pending tasks
+|✅
+|✅
+
+|List task archives
+|✅
+|❌
+
+|Build artifact
+|✅
+|✅
+
+|Watch artifact build
+|✅
+|✅
+
+|Interactive artifact build
+|✅
+|❌
+
+|List registries content
+|✅
+|❌
+
+|Delete artifact in registries
+|✅
+|❌
+
+|Create build container images
+|✅
+|❌
+
+|Update build container images
+|✅
+|❌
+
+|Create build environments
+|✅
+|❌
+
+|Update build environments
+|✅
+|❌
+
+|Create keyring
+|✅
+|❌
+
+|Renew keyring
+|✅
+|❌
+
+|Show keyring information
+|✅
+|❌
+
+|Export keyring in armored format
+|✅
+|❌
+|===
+
+NOTE: This table represents the current state of Fatbuildr with HTTP REST API
+but it is not the targeted state, it is intended to evolve in future releases.
+If you miss any particular feature in `fatbuildrctl` with HTTP instance, please
+https://github.com/rackslab/fatbuildr/issues/new[open an issue].
