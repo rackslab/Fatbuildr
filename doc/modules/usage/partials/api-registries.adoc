@@ -4,6 +4,8 @@
 
 `GET /\{instance}/registry.json`
 
+Returns the list of artifacts formats available in a registry.
+
 ===== Path Parameters
 
 [cols="{tbl-pathparams-cols-specs}"]
