@@ -1,1 +1,239 @@
 = Web Interface
+:tbl-pathparams-cols-specs: 1,3,1,1
+:tbl-queryparams-cols-specs: 1,3,1,1,1
+
+Additionally to the xref:api.adoc[REST API], the Fatbuildrweb component provides
+HTML pages to explore tasks archives and the content of the registries in a
+graphical user interface with a web browser. The following section gives the
+list of all available HTML pages endpoints in Fatbuildrweb.
+
+== HTML Endpoints
+
+=== Instances
+
+==== List of Available Instances
+
+`GET /`:: The list of defined Fatbuildr instances
+
+WARNING: This endpoint is not available when Fatbuildrweb component runs in
+xref:admin:web.adoc#monoinstance[mono-instance mode].
+
+CAUTION: All the following API endpoints are composed of the _instance_ path
+parameter as they manipulate data from a specific instance. However, this
+_instance_ path attribute is not required when Fatbuildrweb component runs in
+xref:admin:web.adoc#monoinstance[mono-instance mode]. In this mode, all the
+following endpoints must be considered without the _instance_ path attribute.
+
+=== Registry
+
+==== Registry Formats
+
+`GET /\{instance}/registry/`
+
+This web page contains the following elements:
+
+* The list of formats for which artifacts have been published in the registry of
+  this instance.
+* The list of pending and running tasks for this instance.
+* The list of the 10 last tasks for this instance.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+|===
+
+==== Format Distributions
+
+`GET /\{instance}/registry/\{format}/`
+
+This web page contains the list of distributions for which artifacts have been
+published in this instance registry for this format.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+
+|`format`
+|Artifact format name
+|_string_
+|`deb` or `rpm`
+|===
+
+==== Distribution Derivatives
+
+`GET /\{instance}/registry/\{format}/\{distribution}/`
+
+This web page contains the list of derivatives for which artifacts have been
+published in this instance registry for this format and this distribution.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+
+|`format`
+|Artifact format name
+|_string_
+|`deb` or `rpm`
+
+|`distribution`
+|Distribution name
+|_string_
+|`bullseye` or `el8`
+|===
+
+==== Derivative Artifacts
+
+`GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}/`
+
+This web page contains the list of artifacts published in this instance registry
+for this format, distribution and derivative.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+
+|`format`
+|Artifact format name
+|_string_
+|`deb` or `rpm`
+
+|`distribution`
+|Distribution name
+|_string_
+|`bullseye` or `el8`
+
+|`derivative`
+|Name of distribution derivative
+|_string_
+|`main`
+|===
+
+==== Artifact Information
+
+`GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}/\{architecture}/\{artifact}`
+
+This web page contains the information about a specific artifact published in a
+registry. If this is a source artifact (_ie_. architecture is `src`), the list
+of all subsequent binary artifacts is provided. If this is binary artifact, the
+corresponding source artifact is indicated. The page also contains the changelog
+of the artifact, when possible.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+
+|`format`
+|Artifact format name
+|_string_
+|`deb` or `rpm`
+
+|`distribution`
+|Dis$tribution name
+|_string_
+|`bullseye` or `el8`
+
+|`derivative`
+|Name of distribution derivative
+|_string_
+|`main`
+
+|`architecture`
+|Name of CPU architecture of the artifact. The special value `src` refers to
+source artifact used as input to produce binary artifacts. The special value
+`noarch` refers to architecture independant artifacts.
+|_string_
+|`x86_64`, `src` or `noarch`
+|===
+
+==== Artifact Search
+
+`GET /\{instance}/search`
+
+The search results for a given part of artifact name. All founds artifacts are
+classified by respective formats, distributions and derivatives.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+|===
+
+===== Query Parameters
+
+[cols="{tbl-queryparams-cols-specs}"]
+|===
+|Name|Description|Type|Required|Example
+
+|`artifact`
+|Part of artifact name to search. All artifacts whose name contains this
+parameter are selected in results.
+|_string_
+|✓
+|`fatbuildr`
+|===
+
+=== Tasks
+
+==== Task Output
+
+`GET /\{instance}/watch/\{task}.html`
+
+This web page contains the outputs of a given task.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+|`prod` or `default`
+
+|`task`
+|Task UUID
+|_uuid_
+|
+|===

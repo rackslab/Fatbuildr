@@ -403,22 +403,3 @@ Properties:
 |✓
 |_string_
 |===
-
-== HTML pages
-
-=== Instances
-
-* `GET /`
-
-=== Registry
-
-* `GET /\{instance}/registry/`
-* `GET /\{instance}/registry/\{format}/`
-* `GET /\{instance}/registry/\{format}/\{distribution}/`
-* `GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}/`
-* `GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}/\{architecture}/\{artifact}`
-* `GET /\{instance}/search`
-
-=== Tasks
-
-* `GET /\{instance}/watch/\{task}.html`
