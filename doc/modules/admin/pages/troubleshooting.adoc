@@ -57,7 +57,7 @@ files can be listed with the following command:
 
 [source,shell]
 ----
-$ sudo -u fatbuildr reprepro --basedir /var/lib/fatbuildr/registry/default/deb dumpunreferenced
+$ sudo -u fatbuildr reprepro --basedir /var/lib/fatbuildr/registry/$instance/deb dumpunreferenced
 ----
 
 Where `$instance` is the name of the Fatbuildr instance (ex: _default_ in the
@@ -68,10 +68,11 @@ all these references with this second command:
 
 [source,shell]
 ----
-$ sudo -u fatbuildr reprepro --basedir /var/lib/fatbuildr/registry/default/deb deleteunreferenced
+$ sudo -u fatbuildr reprepro --basedir /var/lib/fatbuildr/registry/$instance/deb deleteunreferenced
 ----
 
-This should clear all unexpected error messages relating conflicting checksums.
+This should clear all unexpected error messages related to conflicting
+checksums.
 
 == rpm error `Command failed: /usr/sbin/usermod -u 998 mockbuild`
 
