@@ -104,9 +104,7 @@ class TimeredAuthorizationServerObjectHandler(ServerObjectHandler):
         """This method asks polkit for given sender authorization on the given
         action. It raises ErrorNotAuthorized exception if the authorization
         fails."""
-        proxy = BUS.get_proxy(
-            "org.freedesktop.DBus", "/org/freedesktop/DBus/Bus"
-        )
+        proxy = BUS.get_proxy("org.freedesktop.DBus", "/org/freedesktop/DBus")
         uid = proxy.GetConnectionUnixUser(sender)
         user = pwd.getpwuid(uid).pw_name
 
