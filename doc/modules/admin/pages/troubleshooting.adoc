@@ -74,6 +74,53 @@ $ sudo -u fatbuildr reprepro --basedir /var/lib/fatbuildr/registry/$instance/deb
 This should clear all unexpected error messages related to conflicting
 checksums.
 
+== deb error `Cannot bind debian directory!`
+
+This error message can be encountered during Deb package builds:
+
+[source]
+----
+ ⚬ INFO: Using artifact source tarball from cache /var/cache/fatbuildr/default/<tarball>
+ ⚬ INFO: Building source Deb packages for <artifact>
+ ⚬ INFO: Adding entry to changelog
+debchange: fatal error at line 651:
+Cannot find debian directory!
+Are you in the correct directory?
+ ⚬ ERROR: error while running task <id>: Command /usr/libexec/fatbuildr/u-nspawn --directory /var/lib/fatbuildr/images/default/deb.img --bind /usr/share/fatbuildr/images/deb --bind /usr/share/fatbuildr/images/common --quiet --register=no --keep-unit --user fatbuildr --bind /var/lib/fatbuildr/queue/<id> --bind /var/cache/fatbuildr/default/<artifact> --chdir /var/lib/fatbuildr/queue/<id>/<artifact>-<version> --setenv DEBEMAIL=<email> --setenv 'DEBFULLNAME=<name>' debchange --create --package <artifact> --newversion <version> --distribution bullseye --force-distribution '<message>' failed with exit code 13
+ ⚬ INFO: Task failed
+----
+
+This can happen because the UID/GID of the `fatbuildr` system user in _deb_
+container image does not match the UID/GID on the host.
+
+Check the UID/GID of the `fatbuildr` user on the host:
+
+[source,shell]
+----
+$ id fatbuildr
+----
+
+Then check the UID/GID of the `fatbuildr` system user in the _deb_ image on the
+associated instance:
+
+[source,shell]
+----
+$ sudo systemd-nspawn --quiet --directory /var/lib/fatbuildr/images/$instance/deb.img id fatbuildr
+----
+
+Where `$instance` is the name of the Fatbuildr instance (ex: _default_ in the
+above example error message).
+
+If it does not match the host, the UID/GID of the user must be changed in the
+container image by editing `/etc/passwd` and `/etc/group` file. This should be
+fix the previous error.
+
+NOTE: There is a logic involved in Fatbuildr to create the `fatbuildr` system
+user in container images with the same UID/GID as on the host. Unfortunately, it
+is not reliable in all situations. Typically, if base package create system
+users at image creation time and allocate the same UID/GID before Fatbuildr has
+the opportunity to tune the image, it may fail.
+
 == rpm error `Command failed: /usr/sbin/usermod -u 998 mockbuild`
 
 This error message can be encountered during RPM package builds:
