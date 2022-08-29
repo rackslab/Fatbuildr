@@ -92,9 +92,10 @@ with the following commands:
 
 [source,shell]
 ----
-$ sudo systemd-nspawn --directory /var/lib/fatbuildr/images/default/rpm.img mock --root $environment --clean
-$ sudo systemd-nspawn --directory /var/lib/fatbuildr/images/default/rpm.img mock --root $environment --scrub all
+$ sudo systemd-nspawn --directory /var/lib/fatbuildr/images/$instance/rpm.img mock --root $environment --clean
+$ sudo systemd-nspawn --directory /var/lib/fatbuildr/images/$instance/rpm.img mock --root $environment --scrub all
 ----
 
 Where `$environment` is the name of the build environment (ex: _rocky-8-x86_64_
-in the above example error message).
+in the above example error message), and `$instance` is the name of the
+Fatbuildr instance (ex: _default_ in the above example error message).
