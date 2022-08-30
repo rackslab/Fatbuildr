@@ -35,6 +35,10 @@ class RegistryManager:
         self.instance = instance
 
     def formats(self):
+        # return an empty list if the instance registry directory does not exist
+        if not self.conf.dirs.registry.joinpath(self.instance.id).exists():
+            return []
+
         return [
             item.name
             for item in self.conf.dirs.registry.joinpath(
