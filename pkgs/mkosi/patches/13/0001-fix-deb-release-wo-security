@@ -1,0 +1,19 @@
+Description: Fix the set of Debian releases for which the security and
+Last-Update: 2022-07-25
+Forwarded: https://github.com/systemd/mkosi/pull/1081
+Author: Rémi Palancher <remi@rackslab.io>
+
+
+diff --git a/mkosi/__init__.py b/mkosi/__init__.py
+index 3aab454..a178750 100644
+--- a/mkosi/__init__.py
++++ b/mkosi/__init__.py
+@@ -2914,7 +2914,7 @@ def install_debian_or_ubuntu(args: MkosiArgs, root: Path, *, do_run_build_script
+             if "VERSION_ID" not in os_release and "BUILD_ID" not in os_release:
+                 f.write(f"BUILD_ID=mkosi-{args.release}\n")
+ 
+-    if args.release not in ("testing", "unstable"):
++    if args.release not in ("unstable", "sid"):
+         if args.distribution == Distribution.ubuntu:
+             updates = f"deb http://archive.ubuntu.com/ubuntu {args.release}-updates {' '.join(repos)}"
+         else:

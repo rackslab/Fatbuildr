@@ -1,0 +1,19 @@
+conf/etc/fatbuildr.ini etc/fatbuildr
+conf/vendor/fatbuildr.ini usr/share/fatbuildr
+conf/registry usr/share/fatbuildr
+conf/images usr/share/fatbuildr
+conf/web usr/share/fatbuildr
+conf/system/service/* lib/systemd/system
+conf/dbus/*.conf usr/share/dbus-1/system.d
+conf/dbus/*.service usr/share/dbus-1/system-services
+conf/polkit/*.pkla var/lib/polkit-1/localauthority/10-vendor.d
+conf/polkit/*.policy usr/share/polkit-1/actions
+conf/polkit/*.rules usr/share/polkit-1/rules.d
+vendor/*.js usr/share/fatbuildr/web/static/js
+vendor/*.css usr/share/fatbuildr/web/static/css
+assets/* usr/share/fatbuildr/web/static
+lib/wsgi usr/share/fatbuildr
+usr/bin/fatbuildrctl
+usr/bin/fatbuildrd usr/libexec
+usr/bin/fatbuildrweb usr/libexec
+usr/lib/python*

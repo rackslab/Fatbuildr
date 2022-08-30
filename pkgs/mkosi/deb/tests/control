@@ -1,0 +1,2 @@
+Tests: python3-tests
+Depends: @builddeps@, python3-all:any,

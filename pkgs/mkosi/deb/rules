@@ -1,0 +1,10 @@
+#!/usr/bin/make -f
+
+#export DH_VERBOSE = 1
+
+include /usr/share/dpkg/pkg-info.mk
+
+export PYBUILD_NAME=mkosi
+
+%:
+	dh $@ --buildsystem=pybuild

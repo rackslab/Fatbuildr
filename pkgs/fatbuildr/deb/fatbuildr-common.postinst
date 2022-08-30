@@ -1,0 +1,16 @@
+#!/bin/sh
+# postinst script for fatbuildr-common
+
+set -e
+
+case "$1" in
+  configure)
+    if [ -d /run/systemd/system ]; then
+        # ensure fatbuildr system user is present
+        systemd-sysusers
+    fi
+esac
+
+#DEBHELPER#
+
+exit 0

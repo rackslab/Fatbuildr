@@ -1,0 +1,6 @@
+---
+version: 0.1
+rpm:
+  release: 1
+deb:
+  release: 1

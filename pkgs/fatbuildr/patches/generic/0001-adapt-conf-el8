@@ -1,0 +1,38 @@
+Description: Adapt vendor configuration for el8 distribution.
+Last-Update: 2022-07-29
+Distributions: el8
+Author: Rémi Palancher <remi@rackslab.io>
+
+
+diff --git a/conf/vendor/fatbuildr.ini b/conf/vendor/fatbuildr.ini
+index 8bf7f32..ecee493 100644
+--- a/conf/vendor/fatbuildr.ini
++++ b/conf/vendor/fatbuildr.ini
+@@ -47,21 +47,23 @@ exec = /usr/libexec/fatbuildr/u-nspawn
+ # The images built with mkosi have a symlink
+ # /etc/resolv.conf → /run/systemd/resolve/* as they expect systemd-resolved to
+ # run inside the containers (ie. systemd-nspawn -B).
+-init_opts = --resolv-conf=replace-stub
++init_opts = --resolv-conf=auto
+ # Disable registration to systemd-machined as recommended in systemd-nspawn(1)
+ # for containers not running service manager. Also keep fatbuildrd unit scope
+ # so processes in containers get the resources allocated to fatbuildrd service.
+ opts = --quiet --register=no --keep-unit
+ # Controls whether seccomp is used to filter the list of syscalls available to
+-# the containers.
+-seccomp = yes
++# the containers. This is disabled by default on el8 to workaround DNS resolve
++# issues on this system.
++# For reference: https://bugzilla.redhat.com/show_bug.cgi?id=1992708
++seccomp = no
+ 
+ [keyring]
+ storage = /var/lib/fatbuildr/keyring
+ type = rsa
+ size = 4096
+ expires = no
+-seeder = /usr/lib/gnupg/gpg-preset-passphrase
++seeder = /usr/libexec/gpg-preset-passphrase
+ 
+ #
+ # Formats specifics parameters

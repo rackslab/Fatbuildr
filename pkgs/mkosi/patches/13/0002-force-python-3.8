@@ -1,0 +1,26 @@
+Description: force usage of python3.8 interpreter on el8 as default
+Last-Update: 2022-07-25
+Distributions: el8
+Author: Rémi Palancher <remi@rackslab.io>
+
+
+diff --git a/bin/mkosi b/bin/mkosi
+index 721a36c..34dfc4b 100755
+--- a/bin/mkosi
++++ b/bin/mkosi
+@@ -24,12 +24,12 @@
+ 
+ PYROOT=$(dirname "$0")
+ 
+-if [[ -x "${PYROOT}/python3" ]]
++if [[ -x "${PYROOT}/python3.8" ]]
+ then
+-    PYTHON="${PYROOT}/python3"
++    PYTHON="${PYROOT}/python3.8"
+     SYSTEM_PYTHON_OR_VENV=true
+ else
+-    PYTHON=$(command -v python3)
++    PYTHON=$(command -v python3.8)
+     SYSTEM_PYTHON_OR_VENV=false
+ fi
+ 

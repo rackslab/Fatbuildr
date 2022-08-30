@@ -1,0 +1,24 @@
+Source: dasbus
+Section: python
+Priority: optional
+Maintainer: HPCKit team <maintainers@hpck.it>
+Homepage: https://github.com/rhinstaller/dasbus
+Build-Depends:
+ debhelper (>= 12),
+ python3-all (>= 3.4),
+ python3-setuptools,
+ dh-python,
+ python3-gi,
+ dbus,
+Standards-Version: 4.2.1
+
+Package: python3-dasbus
+Architecture: all
+Section: python
+Depends:
+ ${misc:Depends},
+ ${python3:Depends},
+ python3-gi
+Description: dasbus python3 library
+ Dasbus is a DBus library written in Python 3, based on GLib and inspired by
+ pydbus. 

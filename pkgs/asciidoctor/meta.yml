@@ -1,0 +1,8 @@
+---
+version: 2.0.15 
+tarball: https://github.com/asciidoctor/asciidoctor/archive/v{{ version }}/asciidoctor-{{ version }}.tar.gz
+checksums:
+  '2.0.15':
+    sha256: 19e8e2b6ac51221ca617e5d1587675283e0ad6c882a7b6597fc9aacf52c245cc
+rpm:
+  release: 1

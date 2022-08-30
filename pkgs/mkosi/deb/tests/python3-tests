@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -eu
+set -o pipefail
+
+for p in $(py3versions -s); do
+    "${p}" -m pytest -v
+done

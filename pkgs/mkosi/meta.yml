@@ -1,0 +1,10 @@
+---
+version: 13
+tarball: https://github.com/systemd/mkosi/archive/v{{ version }}/mkosi-{{ version }}.tar.gz
+checksums:
+  "13":
+    sha256: bbea73744001f14dfd9cf9be0e71dc7361a1592c0d0959e891713f5771d469ad
+rpm:
+  release: 1
+deb:
+  release: 1
