@@ -29,6 +29,8 @@ from flask import (
     stream_with_context,
     abort,
     Response,
+    url_for,
+    redirect,
 )
 from werkzeug.utils import secure_filename
 
@@ -125,6 +127,10 @@ def index(output='html'):
         )
     else:
         return render_template('index.html.j2', instances=instances)
+
+
+def index_redirect(instance):
+    redirect(url_for('registry', instance=instance, output='html'))
 
 
 def registry(instance, output='html'):
