@@ -106,6 +106,10 @@ class ArchivesManager:
         """Returns up to limit last tasks found in archives directory."""
         _archives = []
 
+        # Return empty list if directory does not exist
+        if not self.path.exists():
+            return _archives
+
         for task_dir in self.path.iterdir():
             try:
                 form = TaskForm.fromArchive(task_dir)
