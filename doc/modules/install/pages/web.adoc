@@ -49,6 +49,7 @@ https://github.com/rackslab/fatbuildr/issues/new[open an issue]. If you want to
 contribute documentation for an additional HTTP server or WSGI module, please
 https://github.com/rackslab/fatbuildr/compare[open a pull request]!
 
+[#wsgi-apache]
 === Apache2 and `mod_wsgi`
 
 Install Apache2 HTTP service with WSGI module:
@@ -66,7 +67,7 @@ Install Apache2 HTTP service with WSGI module:
 [source,shell]
 ----
 # dnf install httpd python3-mod_wsgi
-# systemctl enable httpd.service  # and enabled manually.
+# systemctl enable httpd.service
 ----
 
 Add the following lines in the most appropriate `VirtualHost` of your Apache2
@@ -107,3 +108,90 @@ NOTE: With the Apache2 configuration snippet provided, Fatbuildrweb application
 is started in _multi-instances mode_. Find out
 xref:admin:web.adoc#monoinstance[_mono-instance mode_ configuration
 instructions] to change this setting.
+
+[#wsgi-nginx]
+=== Nginx and uWSGI
+
+Install Nginx HTTP server and uWSGI server with its Python plugin:
+
+* On Debian/Ubuntu:
++
+[source,shell]
+----
+# apt install nginx uwsgi-core uwsgi-plugin-python3
+----
+
+* On RHEL:
++
+[source,shell]
+----
+# dnf install nginx uwsgi-core uwsgi-plugin-python3
+# systemctl enable nginx.service
+----
+
+Create a system service file `/etc/systemd/system/fatbuildrweb-uwsgi.service`
+with the following content:
+
+[source]
+----
+[Unit]
+Description=uWSGI instance for Fatbuildrweb
+After=network.target
+
+[Service]
+User=fatbuildr
+Group=fatbuildr
+RuntimeDirectory=fatbuildrweb
+ExecStart=/usr/bin/uwsgi --ini /usr/share/fatbuildr/wsgi/uwsgi/fatbuildrweb.ini
+
+[Install]
+WantedBy=multi-user.target
+----
+
+NOTE: With this service file, Fatbuildrweb application is started in
+_multi-instances mode_. Find out xref:admin:web.adoc#monoinstance[_mono-instance
+mode_ configuration instructions] to change this setting.
+
+Then load systemd service file changes:
+
+[source,shell]
+----
+# systemctl daemon-reload
+----
+
+Start the Fatbuildr uWSGI service:
+
+[source,shell]
+----
+# systemctl start fatbuildrweb-uwsgi.service
+----
+
+Optionally, enable the service to make it start automatically at server boot:
+
+[source,shell]
+----
+# systemctl enable fatbuildrweb-uwsgi.service
+----
+
+Edit your Nginx server serttings to add the following proxy settings snippet:
+
+[source]
+----
+server {
+    …
+
+    location / {
+        include proxy_params;
+        proxy_pass http://unix:/run/fatbuildrweb/uwsgi.sock;
+    }
+}
+----
+
+And restart Nginx to apply configuration changes:
+
+[source,shell]
+----
+# systemctl restart nginx.service
+----
+
+At this stage, Fatbuildrweb is available to the root path of your server.

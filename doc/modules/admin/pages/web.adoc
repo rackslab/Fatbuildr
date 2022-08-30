@@ -126,7 +126,7 @@ please https://github.com/rackslab/fatbuildr/compare[open a pull request]!
 
 ==== Apache2 and `mod_wsgi`
 
-Edit the configuration snippet used to xref:install:web.adoc#wsgi[declare
+Edit the configuration snippet used to xref:install:web.adoc#wsgi-apache[declare
 Fatbuildr WSGI application] in Apache2 HTTP server configuration file to modify
 the first argument of the `WSGIDaemonProcess` directive:
 
@@ -159,6 +159,39 @@ Finally reload the Apache2 HTTP service to enable modifications:
 [source,shell]
 ----
 # systemctl reload httpd.service
+----
+
+==== Nginx and uWSGI
+
+Edit Fatbuildr uWSGI service file
+`/etc/systemd/system/fatbuildrweb-uwsgi.service`, as deployed in
+xref:install:web.adoc#wsgi-nginx[corresponding installation guide], to append
+the targeted instance name in executable argument:
+
+[source,diff]
+----
+--- a/etc/systemd/system/fatbuildrweb-uwsgi.service
++++ b/etc/systemd/system/fatbuildrweb-uwsgi.service
+@@ -6,7 +6,7 @@
+ User=fatbuildr
+ Group=fatbuildr
+ RuntimeDirectory=fatbuildrweb
+-ExecStart=/usr/bin/uwsgi --ini /usr/share/fatbuildr/wsgi/uwsgi/fatbuildrweb.ini
++ExecStart=/usr/bin/uwsgi --ini /usr/share/fatbuildr/wsgi/uwsgi/fatbuildrweb.ini --pyargv=prod
+ 
+ [Install]
+ WantedBy=multi-user.target
+----
+
+For example, to setup _mono-instance mode_ on the _prod_ instance, append
+`--pyargv=prod` argument. The default value of the `pyargv` parameter is _all_,
+it is defined in the INI file and it enables _multi-instances mode_.
+
+Finally restart the service to apply changes:
+
+[source,shell]
+----
+# systemctl restart fatbuildrweb-uwsgi.service
 ----
 
 == Custom HTML templates
