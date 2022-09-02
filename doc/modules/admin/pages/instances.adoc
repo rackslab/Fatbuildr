@@ -115,38 +115,7 @@ This is complete example of instance definition file content:
 
 [source,yaml]
 ----
-name: Corporation production instance
-gpg:
-  name: Infrastructure team
-  email: infra@corp.tld
-formats:
-  deb:
-  - name: bullseye
-    env: bullseye
-    tag: deb11
-  - name: ubuntu22.04
-    env: jammy
-    tag: u2204
-    mirror: http://distrib-coffee.ipsl.jussieu.fr/pub/linux/ubuntu/
-    components: main restricted universe multiverse
-  rpm:
-  - name: el8
-    env: rocky-8
-    tag: el8
-  - name: f36
-    env: fedora-36
-    tag: f36
-  osi:
-  - name: ci
-  - name: ia
-derivatives:
-  extra:
-    formats: [deb, rpm]
-  full:
-    extends: extra
-  customera: {}
-  customerb:
-    formats: [deb]
+include::example$instance.full.yml[]
 ----
 
 In this example instance, 3 formats are supported: `deb`, `rpm` and `osi`.
