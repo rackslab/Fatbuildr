@@ -1,5 +1,9 @@
 ---
 version: 1.0.0
+tarball: https://github.com/rackslab/fatbuildr/archive/refs/tags/v{{ version }}.tar.gz
+checksums:
+  '1.0.0':
+    sha256: 97a5b2393a32ede34a27d023d437272f5c8d67093910147046239d5becddf204
 rpm:
   release: 1
 deb:
