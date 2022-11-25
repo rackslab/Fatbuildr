@@ -156,6 +156,10 @@ parameters shared by all formats are the following:
 `env_update_cmds`:: Command used in container to upgrade build environment
 software.
 
+`env_as_root`:: Boolean to control if commands to manage build environments
+(creation and update) are run as root, instead the user running `fatbuildrd`
+daemon.
+
 `env_default_mirror`:: URL of APT mirror used by default to create deb build
 environments, unless overridden in xref:instances.adoc[instance pipelines
 definitions].
@@ -175,6 +179,10 @@ environment before prescripts are run.
 
 `env_update_cmds`:: Command used in container to upgrade build environment
 software.
+
+`env_as_root`:: Boolean to control if commands to manage build environments
+(creation and update) are run as root, instead the user running `fatbuildrd`
+daemon.
 
 `prescript_deps`:: Space-separated list of packages installed in build
 environment before prescripts are run.
