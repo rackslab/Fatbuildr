@@ -383,13 +383,17 @@ class Fatbuildrctl(FatbuildrCliRun):
         # method.
         self._connection = None
 
+        # Check action is provided in argument by checking default subparser
+        # func is defined.
+        if not hasattr(args, 'func'):
+            parser.print_usage()
+            logger.error("The action argument must be given")
+            sys.exit(1)
+
         # Run the method corresponding to the provided action, catching optional
         # permission error returned by fatbuildrd.
         try:
             args.func(args)
-        except AttributeError:
-            parser.print_usage()
-            logger.error("The action argument must be given")
         except PermissionError as err:
             logger.error("You are not authorized to %s", err)
             sys.exit(1)

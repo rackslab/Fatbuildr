@@ -15,6 +15,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 - pkgs: remove useless symbolic link in pre
+- cli: avoid catching unwanted AttributeError exceptions while checking for
+  action argument on Python < 3.7.
 
 ### Changed
 - pkgs:
