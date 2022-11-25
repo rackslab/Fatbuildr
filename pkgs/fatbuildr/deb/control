@@ -26,7 +26,7 @@ Depends:
  policykit-1 | polkitd,
  createrepo-c,
  dnf,
- mkosi,
+ mkosi (>= 14),
  reprepro,
  rpm,
  systemd-container,

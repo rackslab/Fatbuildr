@@ -14,7 +14,7 @@ Requires:       %{name}-common
 Requires:       %{name}-wrappers
 Requires:       createrepo_c
 Requires:       dnf
-Requires:       mkosi >= 13
+Requires:       mkosi >= 14
 Requires:       reprepro
 Requires:       rpm
 Requires:       rpm-sign
