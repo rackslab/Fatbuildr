@@ -1,6 +1,6 @@
 [Distribution]
 Distribution=fedora
-Release=35
+Release=37
 
 [Output]
 Format=directory
