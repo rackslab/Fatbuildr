@@ -13,7 +13,7 @@ First download packages repository signing key:
 # curl -sS https://pkgs.rackslab.io/keyring.asc | gpg --dearmor | tee /usr/share/keyrings/rackslab.gpg > /dev/null
 ----
 
-Create `/etc/apt/sources.list.d/fatbuildr.list` with this content:
+Create `/etc/apt/sources.list.d/rackslab.list` with this content:
 
 * Debian 11 _« bullseye »_ :
 +
@@ -85,8 +85,8 @@ Create DNF repository file `/etc/yum.repos.d/fatbuildr.repo`:
 
 [source]
 ----
-[fatbuildr]
-name=Fatbuildr
+[rackslab]
+name=Rackslab
 baseurl=https://pkgs.rackslab.io/rpm/el8/main/$basearch/
 gpgcheck=1
 enabled=1
@@ -98,8 +98,8 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rackslab
 
 [source]
 ----
-[fatbuildr]
-name=Fatbuildr
+[rackslab]
+name=Rackslab
 baseurl=https://pkgs.rackslab.io/rpm/fc36/main/$basearch/
 gpgcheck=1
 enabled=1

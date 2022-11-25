@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Update Fatbuildr packages to depend on mkosi >= 14
 - conf: rename mkosi --skeleton option to --skeleton-tree to follow mkosi 14
   change
+- docs: set more generic names for packages repositories in install guide
 
 ## [1.0.0] - 2022-09-05
 
