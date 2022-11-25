@@ -13,6 +13,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - pkgs: remove useless symbolic link in pre
 
+### Changed
+- pkgs: bump mkosi from 13 to 14
+
 ## [1.0.0] - 2022-09-05
 
 [unreleased]: https://github.com/rackslab/fatbuildr/compare/v1.0.0...HEAD
