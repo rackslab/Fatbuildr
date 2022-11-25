@@ -53,7 +53,9 @@ def _runcmd_noninteractive(cmd, io, **kwargs):
         # because it is only available starting from Python 3.7 but Fatbuildr
         # aims to support Python 3.6. The capture_output argument could be
         # adopted when Python 3.6 support is dropped in Fatbuildr.
-        return subprocess.run(cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs)
+        return subprocess.run(
+            cmd, stdout=subprocess.PIPE, stderr=subprocess.PIPE, **kwargs
+        )
     else:
         return subprocess.run(
             cmd, stdout=io.output_w, stderr=io.output_w, **kwargs
