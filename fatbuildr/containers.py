@@ -36,7 +36,7 @@ class ContainerRunner(object):
         cmd,
         init=False,
         opts=None,
-        user=current_user()[1],  # run in container w/ the same user by default
+        asroot=False,
         binds=[],
         chdir=None,
         envs=[],
@@ -61,6 +61,12 @@ class ContainerRunner(object):
             #
             # Failed to create mount point [/mnt/point]: Read-only file system
             _cmd.append('--volatile=state')
+
+        if asroot:
+            user = 'root'
+        else:
+            # run in container w/ the same user by default
+            user = current_user()[1]
 
         # Bind-mount image format and common libdirs if they exist
         for path in [image.format_libdir, image.common_libdir]:

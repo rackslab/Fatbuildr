@@ -86,7 +86,7 @@ class ArtifactBuildOsi(ArtifactBuild):
             '--checksum',
         ]
         # mkosi requires being run as root
-        self.cruncmd(cmd, user='root')
+        self.cruncmd(cmd, asroot=True)
 
         # Load keyring in agent
         self.instance.keyring.load_agent()

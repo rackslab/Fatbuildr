@@ -281,7 +281,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
 
         self.cruncmd(
             cmd,
-            user='root',  # cowbuilder must be run as root
+            asroot=True,  # cowbuilder must be run as root
             envs=[
                 f"FATBUILDR_REPO={self.registry.path}",
                 f"FATBUILDR_KEYRING={self.build_keyring}",
@@ -323,7 +323,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
 
         self.cruncmd(
             cmd,
-            user='root',  # cowbuilder must be run as root
+            asroot=True,  # cowbuilder must be run as root
             # All these environments variables are consumed by pre-deb-stage1.sh
             # and pre-wrapper.sh scripts, and also by F10derivatives cowbuilder
             # hook, to prepare the environment for the prescript.

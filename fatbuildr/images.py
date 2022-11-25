@@ -135,7 +135,7 @@ class Image(object):
         ]
         for cmd in cmds:
             # Package manager must be run as root
-            task.cruncmd(self, cmd, init=True, user='root')
+            task.cruncmd(self, cmd, init=True, asroot=True)
 
 
 class BuildEnv(object):
@@ -206,7 +206,6 @@ class BuildEnv(object):
                 ).env_default_components
             except AttributeError:
                 components = None
-
         cmd = Templeter().srender(
             getattr(self.conf, self.image.format).init_cmd,
             environment=self.environment,
@@ -218,7 +217,7 @@ class BuildEnv(object):
         )
         # Some build environment manager (eg. cowbuilder) must be run as root,
         # then use root for all commands in container at this point.
-        task.cruncmd(self.image, cmd, init=True, user='root')
+        task.cruncmd(self.image, cmd, init=True, asroot=True)
 
     def update(self, task):
         logger.info(
@@ -242,7 +241,7 @@ class BuildEnv(object):
         for cmd in cmds:
             # Some build environment manager (eg. cowbuilder) must be run as
             # root, then use root for all commands in container at this point.
-            task.cruncmd(self.image, cmd, init=True, user='root')
+            task.cruncmd(self.image, cmd, init=True, asroot=True)
 
 
 class ImagesManager(object):
