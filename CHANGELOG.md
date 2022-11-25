@@ -9,6 +9,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - docs: add large Fatbuildr logos intended for docs.rackslab.io landing page
+- conf: add env_as_root boolean parameter in format:{deb,rpm} section to control
+  if commands to create and update build environments are executed as root
+  super-user or the user running fatbuildrd daemon.
 
 ### Fixed
 - pkgs: remove useless symbolic link in pre

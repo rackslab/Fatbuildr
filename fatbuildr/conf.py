@@ -190,6 +190,7 @@ class RuntimeSubConfFormatDeb(object):
         self.init_cmd = None
         self.img_update_cmds = None
         self.env_update_cmds = None
+        self.env_as_root = None
         self.env_default_mirror = None
         self.env_default_components = None
         self.prescript_deps = []
@@ -201,6 +202,7 @@ class RuntimeSubConfFormatDeb(object):
         self.init_cmd = config.get(section, 'init_cmd')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
         self.env_update_cmds = config.get(section, 'env_update_cmds')
+        self.env_as_root = config.getboolean(section, 'env_as_root')
         self.env_default_mirror = config.get(section, 'env_default_mirror')
         self.env_default_components = config.get(
             section, 'env_default_components'
@@ -214,6 +216,7 @@ class RuntimeSubConfFormatDeb(object):
         logger.debug("  init_cmd: %s", self.init_cmd)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
         logger.debug("  env_update_cmds: %s", self.env_update_cmds)
+        logger.debug("  env_as_root: %s", self.env_as_root)
         logger.debug("  env_default_mirror: %s", self.env_default_mirror)
         logger.debug(
             "  env_default_components: %s", self.env_default_components
@@ -231,6 +234,7 @@ class RuntimeSubConfFormatRpm(object):
         self.init_cmd = None
         self.img_update_cmds = None
         self.env_update_cmds = None
+        self.env_as_root = None
         self.prescript_deps = []
 
     def load(self, config):
@@ -240,6 +244,7 @@ class RuntimeSubConfFormatRpm(object):
         self.init_cmd = config.get(section, 'init_cmd')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
         self.env_update_cmds = config.get(section, 'env_update_cmds')
+        self.env_as_root = config.getboolean(section, 'env_as_root')
         self.prescript_deps = config.get(section, 'prescript_deps').split(' ')
 
     def dump(self):
@@ -249,6 +254,7 @@ class RuntimeSubConfFormatRpm(object):
         logger.debug("  init_cmd: %s", self.init_cmd)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
         logger.debug("  env_update_cmds: %s", self.env_update_cmds)
+        logger.debug("  env_as_root: %s", self.env_as_root)
         logger.debug("  prescript_deps: %s", self.prescript_deps)
 
 

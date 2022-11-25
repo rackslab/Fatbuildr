@@ -206,6 +206,10 @@ class BuildEnv(object):
                 ).env_default_components
             except AttributeError:
                 components = None
+        # Define if the environment creation command must be run as root in
+        # container.
+        asroot = getattr(self.conf, self.image.format).env_as_root
+
         cmd = Templeter().srender(
             getattr(self.conf, self.image.format).init_cmd,
             environment=self.environment,
@@ -215,9 +219,7 @@ class BuildEnv(object):
             name=self.name,
             path=self.path,
         )
-        # Some build environment manager (eg. cowbuilder) must be run as root,
-        # then use root for all commands in container at this point.
-        task.cruncmd(self.image, cmd, init=True, asroot=True)
+        task.cruncmd(self.image, cmd, init=True, asroot=asroot)
 
     def update(self, task):
         logger.info(
@@ -226,6 +228,9 @@ class BuildEnv(object):
             self.architecture,
             self.image.format,
         )
+        # Define if the environment update command must be run as root in
+        # container.
+        asroot = getattr(self.conf, self.image.format).env_as_root
         cmds = [
             Templeter().srender(
                 _cmd.strip(),
@@ -239,9 +244,7 @@ class BuildEnv(object):
             ).env_update_cmds.split('&&')
         ]
         for cmd in cmds:
-            # Some build environment manager (eg. cowbuilder) must be run as
-            # root, then use root for all commands in container at this point.
-            task.cruncmd(self.image, cmd, init=True, asroot=True)
+            task.cruncmd(self.image, cmd, init=True, asroot=asroot)
 
 
 class ImagesManager(object):
