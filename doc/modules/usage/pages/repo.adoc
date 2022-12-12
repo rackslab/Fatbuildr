@@ -470,3 +470,24 @@ available. Then, `go` command is used to do _vendoring_ of all dependencies.
 After the execution, Fatbuildr will generate one supplementary tarball with the
 content of the `vendor/` subdirectory.
 --
+
+== Template filters
+
+Additionally to
+https://jinja.palletsprojects.com/en/latest/templates/#builtin-filters[Jinja2
+built-in filters], Fatbuildr also provides some filters available to use in your
+templates:
+
+[cols="1u,3a"]
+|===
+|Name|Description
+
+|`gittag`
+| It replaces in a string characters disallowed in Git tags. For reference, see
+https://git-scm.com/docs/git-check-ref-format[`git check-ref-format` manpage].
+It is notably useful to transform a complex version number into a valid Git tag
+in tarball URL.
+
+_Ex:_ `1.2.3~beta1` → `1.2.3-beta1`
+
+|===
