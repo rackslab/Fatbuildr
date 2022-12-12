@@ -14,6 +14,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 
 === Added
 * docs: add large Fatbuildr logos intended for docs.rackslab.io landing page
+* docs: add Release notes page based on CHANGELOG.adoc
 * conf: add env_as_root boolean parameter in format:{deb,rpm} section to control
   if commands to create and update build environments are executed as root
   super-user or the user running fatbuildrd daemon.

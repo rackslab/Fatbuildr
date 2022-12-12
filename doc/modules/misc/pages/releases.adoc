@@ -1,0 +1,10 @@
+= Release notes
+
+This page contains the releases notes of Fatbuildr with details about the new
+features, modifications and bug fixes coming with all releases.
+
+NOTE: This page is rendered based on the content of
+https://github.com/rackslab/fatbuildr/blob/main/CHANGELOG.adoc[`CHANGELOG.adoc`]
+in Fatbuildr source code.
+
+include::partial$CHANGELOG.adoc[tag=!header]
