@@ -24,6 +24,13 @@ from .log import logr
 logger = logr(__name__)
 
 
+def filter_gittag(value):
+    """Filter to replace characters not authorized in Git tags. This can be
+       especially usefull for versions numbers in tarballs URL when the URL is
+       composed of the Git tag."""
+    return value.replace('~', '-')
+
+
 class Templeter:
     """Class to abstract backend templating library."""
 
@@ -35,6 +42,7 @@ class Templeter:
         self.env = jinja2.Environment(
             trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True
         )
+        self.env.filters['gittag'] = filter_gittag
 
     def srender(self, str, **kwargs):
         """Render a string template."""

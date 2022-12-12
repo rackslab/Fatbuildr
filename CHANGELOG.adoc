@@ -19,6 +19,8 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
   if commands to create and update build environments are executed as root
   super-user or the user running fatbuildrd daemon.
 * pkgs: add CHANGELOG.adoc in {deb,rpm} packages
+* templates: add gittag filter which is notably useful to transform version
+  number into valid Git tag in tarball URL.
 
 === Fixed
 * pkgs: remove useless symbolic link in pre
