@@ -13,27 +13,29 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 == {unreleased}[Unreleased]
 
 === Added
-* docs: add large Fatbuildr logos intended for docs.rackslab.io landing page
-* docs: add Release notes page based on CHANGELOG.adoc
-* conf: add env_as_root boolean parameter in format:{deb,rpm} section to control
-  if commands to create and update build environments are executed as root
-  super-user or the user running fatbuildrd daemon.
-* pkgs: add CHANGELOG.adoc in {deb,rpm} packages
-* templates: add gittag filter which is notably useful to transform version
+* docs:
+** Add large Fatbuildr logos intended for docs.rackslab.io landing page
+** Add Release notes page based on `CHANGELOG.adoc`
+* conf: add `env_as_root` boolean parameter in `format:{deb,rpm}` section to
+  control if commands to create and update build environments are executed as
+  root super-user or the user running `fatbuildrd` daemon.
+* pkgs: add `CHANGELOG.adoc` in {deb,rpm} packages
+* templates: add `gittag` filter which is notably useful to transform version
   number into valid Git tag in tarball URL.
 
 === Fixed
-* pkgs: remove useless symbolic link in pre
-* cli: avoid catching unwanted AttributeError exceptions while checking for
+* pkgs: remove useless symbolic link in prescript
+* cli: avoid catching unwanted `AttributeError` exceptions while checking for
   action argument on Python < 3.7.
 
 === Changed
 * pkgs:
 ** Bump the packaged version of mkosi from 13 to 14
 ** Update Fatbuildr packages to depend on mkosi >= 14
-* conf: rename mkosi --skeleton option to --skeleton-tree to follow mkosi 14
-  change
+* conf:
+** Rename mkosi `--skeleton` option to `--skeleton-tree` to follow mkosi 14
+   change.
+** Bump Fedora release from 35 to 37 in rpm and osi container images
 * docs: set more generic names for packages repositories in install guide
-* conf: bump Fedora release from 35 to 37 in rpm and osi container images
 
 == {v100}[1.0.0] - 2022-09-05
