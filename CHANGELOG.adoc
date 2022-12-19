@@ -27,6 +27,8 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 * pkgs: remove useless symbolic link in prescript
 * cli: avoid catching unwanted `AttributeError` exceptions while checking for
   action argument on Python < 3.7.
+* web: add missing return to fix the index redirect view (from `/` to
+  `/registry`) when Fatbuildrweb is executed in mono-instance mode.
 
 === Changed
 * pkgs:

@@ -130,7 +130,7 @@ def index(output='html'):
 
 
 def index_redirect(instance):
-    redirect(url_for('registry', instance=instance, output='html'))
+    return redirect(url_for('registry', instance=instance, output='html'))
 
 
 def registry(instance, output='html'):
