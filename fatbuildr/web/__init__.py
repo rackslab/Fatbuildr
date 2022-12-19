@@ -51,7 +51,7 @@ class WebApp(Flask):
                 defaults={'output': 'json'},
             )
         else:
-            # Redirect the root URL / to the registry of the currenbt instance
+            # Redirect the root URL / to the registry of the current instance
             self.add_url_rule(
                 '/',
                 view_func=views.index_redirect,
