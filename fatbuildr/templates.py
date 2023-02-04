@@ -26,8 +26,8 @@ logger = logr(__name__)
 
 def filter_gittag(value):
     """Filter to replace characters not authorized in Git tags. This can be
-       especially usefull for versions numbers in tarballs URL when the URL is
-       composed of the Git tag."""
+    especially usefull for versions numbers in tarballs URL when the URL is
+    composed of the Git tag."""
     return value.replace('~', '-')
 
 
