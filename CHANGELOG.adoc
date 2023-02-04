@@ -22,6 +22,7 @@ and this project adheres to https://semver.org/spec/v2.0.0.html[Semantic Version
 * pkgs: add `CHANGELOG.adoc` in {deb,rpm} packages
 * templates: add `gittag` filter which is notably useful to transform version
   number into valid Git tag in tarball URL.
+* lib: make PatchQueue subshell optional
 
 === Fixed
 * pkgs: remove useless symbolic link in prescript

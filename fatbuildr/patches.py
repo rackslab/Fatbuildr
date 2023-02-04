@@ -65,7 +65,7 @@ class PatchQueue:
         self.src_tarball = src_tarball
         self.git = None
 
-    def run(self):
+    def run(self, launch_subshell: bool = True):
         logger.debug("Running patch queue for artifact %s", self.artifact)
 
         # If the tarball has been generated, use it directely. Otherwise,
@@ -92,8 +92,9 @@ class PatchQueue:
         patches_dir = PatchesDir(self.apath, self.version)
         self.git.import_patches(patches_dir)
 
-        # launch subshell and wait user to exit
-        self._launch_subshell()
+        if launch_subshell:
+            # launch subshell and wait user to exit
+            self._launch_subshell()
 
         # export patch queue
         self.git.export_queue(patches_dir)
