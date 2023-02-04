@@ -1,0 +1,136 @@
+= Utilities
+
+== Import source RPM
+
+Fatbuildr provides a utility named `import-srcrpm` which can be used to import
+an existing source RPM package and convert it into an artifact definition ready
+to be consumed by Fatbuildr.
+
+It can be executed with the following command:
+
+[source,console]
+----
+$ /usr/share/fatbuildr/utils/import-srcrpm -h
+usage: import-srcrpm [-h] --author AUTHOR --email EMAIL --dest DEST --tarballs-dest TARBALLS_DEST
+                     src_rpm [src_rpm ...]
+
+Import source RPM package into Fatbuildr artifact format.
+
+positional arguments:
+  src_rpm
+
+options:
+  -h, --help            show this help message and exit
+  --author AUTHOR
+  --email EMAIL
+  --dest DEST
+  --tarballs-dest TARBALLS_DEST
+----
+
+As an example, consider the import of _hello_ source RPM packages in destination
+xref:repo.adoc#repository[artifact repository] `~/base` and the source tarball
+in destination `~/sources` directory.
+
+The destination directories must be existing before running the utility. Create
+them if necessary:
+
+[source,console]
+----
+$ mkdir ~/base ~/sources
+----
+
+Run the utility with the following command:
+
+[source,console]
+----
+$ /usr/share/fatbuildr/utils/import-srcrpm --author 'John Doe' --email john.doe@corp.org --dest ~/base --tarballs-dest ~/sources hello-2.10-1.el8.src.rpm 
+[INFO]  ⸬fatbuildr.import-srcrpm:81     ↦ software: hello, version: 2.10, release: 1
+[INFO]  ⸬fatbuildr.import-srcrpm:87     ↦ Creating directory /home/remi/base/hello
+hello-2.10.tar.gz
+hello.spec
+1421 blocs
+[INFO]  ⸬fatbuildr.import-srcrpm:125    ↦ sources: ['hello-2.10.tar.gz'] patches: []
+[WARNING]⸬fatbuildr.import-srcrpm:129    ↦ Source is not a valid URL: hello-2.10.tar.gz
+[DEBUG] ⸬fatbuildr.import-srcrpm:183    ↦ section %prep found: %prep
+[DEBUG] ⸬fatbuildr.import-srcrpm:198    ↦ skipping section %prep line: 
+[DEBUG] ⸬fatbuildr.import-srcrpm:198    ↦ skipping section %prep line: %setup -q -n hello-2.10
+[DEBUG] ⸬fatbuildr.import-srcrpm:198    ↦ skipping section %prep line: 
+[DEBUG] ⸬fatbuildr.import-srcrpm:198    ↦ skipping section %prep line: 
+[DEBUG] ⸬fatbuildr.import-srcrpm:198    ↦ skipping section %prep line: 
+[DEBUG] ⸬fatbuildr.import-srcrpm:195    ↦ end of section %prep found
+[DEBUG] ⸬fatbuildr.import-srcrpm:183    ↦ section %changelog found: %changelog
+[DEBUG] ⸬fatbuildr.import-srcrpm:198    ↦ skipping section %changelog line: * Fri Sep 02 2022 John Doe <john.doe@corp.org> 2.10-1.el8
+[DEBUG] ⸬fatbuildr.import-srcrpm:198    ↦ skipping section %changelog line: - Maintenance build
+[DEBUG] ⸬fatbuildr.import-srcrpm:198    ↦ skipping section %changelog line: 
+[DEBUG] ⸬fatbuildr.import-srcrpm:198    ↦ skipping section %changelog line: 
+[INFO]  ⸬fatbuildr.import-srcrpm:251    ↦ Moving source /home/john/base/hello/hello-2.10.tar.gz to /home/john/sources
+--- a/hello.spec
++++ b/hello.spec
+@@ -1,11 +1,12 @@
++Version: {{ version }}
++Release: {{ release }}
++{{ source }}
++{{ patches }}
+ Name:     hello
+-Version:  2.10
+-Release:  1.el8
+ Summary:  Produces a familiar, friendly greeting
+ License:  GPLv3+
+ URL:      https://www.gnu.org/software/hello/
+ 
+-Source: hello-2.10.tar.gz
+ 
+ 
+ 
+@@ -19,10 +20,8 @@
+ you run it.
+ 
+ %prep
+-
+-%setup -q -n hello-2.10
+-
+-
++{{ prep_sources }}
++{{ prep_patches }}
+ 
+ %build
+ %configure
+@@ -41,8 +40,4 @@
+ %license COPYING
+ 
+ 
+-%changelog
+-* Fri Sep 02 2022 John Doe <john.doe@corp.org> 2.10-1.el8
+-- Maintenance build
+-
+-
++{{ changelog }}
+----
+
+The utility modifies the spec file found in the source RPM package so it can
+benefit from Fatbuildr features. It reports the differences between the original
+and the newly generated RPM spec file so you can inspect the modifications.
+
+This command produces the following directory structure:
+
+[source,console]
+----
+$ tree ~/base ~/sources
+/home/remi/base
+└── hello
+    ├── meta.yml
+    └── rpm
+        └── hello.spec
+/home/remi/sources
+└── hello-2.10.tar.gz
+----
+
+If Fatbuildr is setup with xref:admin:instances.adoc[an instance] defined with
+_el8_ distribution, then the imported source RPM package can be built with this
+command:
+
+[source,console]
+----
+$ fatbuildrctl build --artifact hello --basedir ~/base --distribution el8 --watch
+----
+

@@ -6,6 +6,7 @@ releases, etc) and build rules (_ex:_ packaging code).
 
 This sections explains how to write these artifact definitions.
 
+[#repository]
 == Artifact Repository
 
 While Fatbuildr can naturally be used to build only one artifact, it is also

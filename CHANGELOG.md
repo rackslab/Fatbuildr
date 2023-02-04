@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - templates: add `gittag` filter which is notably useful to transform version
   number into valid Git tag in tarball URL.
 - lib: make PatchQueue subshell optional
+- utils: add import-srcrpm utility to import an existing source RPM package and
+  convert it into an artifact defined ready to be consumed by Fatbuildr.
 
 ### Fixed
 - pkgs: remove useless symbolic link in prescript

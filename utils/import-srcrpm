@@ -1,0 +1,324 @@
+#!/usr/bin/env python3
+#
+# Copyright (C) 2023 Rackslab
+#
+# This file is part of Fatbuildr.
+#
+# Fatbuildr is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Fatbuildr is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
+
+from __future__ import annotations
+import sys
+import os
+import argparse
+from pathlib import Path
+import subprocess
+import re
+import hashlib
+import atexit
+import logging
+from dataclasses import dataclass
+import urllib
+import difflib
+
+import yaml
+
+from fatbuildr.patches import PatchQueue
+from fatbuildr.artifact import ArtifactDefs
+from fatbuildr.cleanup import CleanupRegistry
+from fatbuildr.log.formatters import TTYFormatter
+
+logger = logging.getLogger('fatbuildr.import-srcrpm')
+
+
+def fail(*args):
+    logger.error(*args)
+    sys.exit(1)
+
+
+def setup_logger():
+    logger = logging.getLogger()
+    logger.setLevel(logging.DEBUG)
+    handler = logging.StreamHandler()
+    handler.setLevel(logging.DEBUG)
+    formatter = TTYFormatter(True)
+    handler.setFormatter(formatter)
+    logger.addHandler(handler)
+
+
+@dataclass
+class FieldToRemove:
+    pattern: Pattern
+    once: bool = False
+    found: bool = False
+
+
+@dataclass
+class SectionToReplace:
+    name: str
+    value: str
+    found: bool = False
+    over: bool = False
+
+
+def import_src_rpm(
+    src_rpm_path: Path, author: str, email: str, dest: Path, tarballs_dest: Path
+) -> None:
+    if not src_rpm_path.exists():
+        fail("Unable to find source RPM file: %s", src_rpm_path)
+    (software, version, releaseandstuff) = src_rpm_path.name.rsplit('-', 2)
+    release = releaseandstuff.rsplit('.', 3)[0]
+    logger.info(
+        "software: %s, version: %s, release: %s", software, version, release
+    )
+
+    software_dir = dest / software
+    if not software_dir.exists():
+        logger.info("Creating directory %s", software_dir)
+        software_dir.mkdir(parents=True)
+
+    # extract the *.src.rpm into software directory
+    p1 = subprocess.Popen(['rpm2cpio', src_rpm_path], stdout=subprocess.PIPE)
+    subprocess.run(['cpio', '-idmv'], stdin=p1.stdout, cwd=software_dir)
+
+    # parse the rpmspec
+    spec_paths = list(software_dir.glob('*.spec'))
+    if len(spec_paths) > 1:
+        fail(
+            "Found multiple spec files for software %s: %s",
+            software,
+            spec_paths,
+        )
+    spec_path = spec_paths[0]
+
+    proc = subprocess.run(['rpmspec', '-P', spec_path], capture_output=True)
+    if proc.returncode:
+        fail(
+            "Unable to decode spec file %s:\n%s",
+            spec_path,
+            proc.stderr.decode(),
+        )
+
+    spec_content = proc.stdout.decode()
+
+    # search for sources in spec content
+    sources = []
+    patches = []
+    for spec_line in spec_content.split('\n'):
+        m = re.match(r"Source(\d+)?:\s+(.+)$", spec_line)
+        if m:
+            sources.append(m.group(2))
+        m = re.match(r"Patch(\d+)?:\s+(.+)$", spec_line)
+        if m:
+            patches.append(m.group(2))
+
+    logger.info("sources: %s patches: %s", sources, patches)
+
+    main_source = urllib.parse.urlparse(sources[0])
+    if main_source.scheme == '':
+        logger.warning("Source is not a valid URL: %s", main_source.geturl())
+
+    # Generate the spec with Fatbuildr templating tokens
+
+    generated_spec = (
+        'Version: {{ version }}\n'
+        'Release: {{ release }}\n'
+        '{{ source }}\n'
+        '{{ patches }}\n'
+    )
+
+    fields_to_remove = (
+        FieldToRemove(r"Version:\s.*$", once=True),
+        FieldToRemove(r"Release:\s.*$", once=True),
+        FieldToRemove(r"Source(\d+)?:\s+(.+)$"),
+        FieldToRemove(r"Patch(\d+)?:\s+(.+)$"),
+    )
+    sections_to_replace = (
+        SectionToReplace(
+            '%prep', '%prep\n{{ prep_sources }}\n{{ prep_patches }}\n\n'
+        ),
+        SectionToReplace('%changelog', '{{ changelog }}\n'),
+    )
+
+    existing_sections = (
+        '%description',
+        '%build',
+        '%install',
+        '%check',
+        '%files',
+        '%changelog',
+        '%pre',
+        '%post',
+        '%preun',
+        '%post',
+    )
+
+    with open(spec_path) as fh:
+        for spec_line in fh:
+            spec_line_stripped = spec_line.rstrip()
+            skip = False
+            for field in fields_to_remove:
+                if not field.found and re.match(
+                    field.pattern, spec_line_stripped
+                ):
+                    if field.once:
+                        field.found = True
+                    skip = True
+                    break
+            for section in sections_to_replace:
+                if (
+                    not section.over
+                    and spec_line_stripped.lower() == section.name
+                ):
+                    logger.debug(
+                        "section %s found: %s", section.name, spec_line_stripped
+                    )
+                    section.found = True
+                    generated_spec += section.value
+                    skip = True
+                    break
+                if (
+                    section.found
+                    and not section.over
+                    and spec_line_stripped.lower() in existing_sections
+                ):
+                    logger.debug("end of section %s found", section.name)
+                    section.over = True
+                if section.found and not section.over:
+                    logger.debug(
+                        "skipping section %s line: %s",
+                        section.name,
+                        spec_line_stripped,
+                    )
+                    skip = True
+                    break
+            # logger.debug("Adding line to generated spec: %s", spec_line_stripped)
+            if not skip:
+                generated_spec += spec_line_stripped + '\n'
+
+    # write generated spec in rpm subdirectory
+    rpm_dir = software_dir / 'rpm'
+    if not rpm_dir.exists():
+        rpm_dir.mkdir()
+    generated_spec_path = rpm_dir / (software + '.spec')
+    with open(generated_spec_path, 'w+') as fh:
+        fh.write(generated_spec)
+
+    # calculate tarball checksum
+    with open(software_dir / os.path.basename(main_source.path), 'rb') as fh:
+        checksum = hashlib.sha256(fh.read()).hexdigest()
+
+    # define meta.yml content
+    meta_content = {
+        'version': version,
+        'tarball': main_source.geturl().replace(version, '{{ version }}'),
+        'checksums': {
+            version: {
+                'sha256': checksum,
+            },
+        },
+        'rpm': {
+            'release': release,
+        },
+    }
+    with open(software_dir / 'meta.yml', 'w+') as fh:
+        fh.write(yaml.dump(meta_content, sort_keys=False))
+
+    # move patches in version subdirectory
+    patches_dir = software_dir / 'patches' / version
+
+    if len(patches) and not patches_dir.exists():
+        logger.info("Creating patches directory %s", patches_dir)
+        patches_dir.mkdir(parents=True)
+    for number, patch in enumerate(patches):
+        (software_dir / patch).replace(
+            patches_dir / (f"{number+1:04}- " + patch)
+        )
+
+    # move sources tarballs in in tarballs destination directory
+    for source in sources:
+        source_filename = os.path.basename(urllib.parse.urlparse(source).path)
+        logger.info(
+            "Moving source %s to %s",
+            (software_dir / source_filename),
+            tarballs_dest,
+        )
+        (software_dir / source_filename).replace(
+            tarballs_dest / source_filename
+        )
+
+    # import patches in git
+    if len(patches):
+        pq = PatchQueue(
+            software_dir,
+            'main',
+            software,
+            ArtifactDefs(software_dir),
+            author,
+            email,
+            version,
+        )
+        pq.run(launch_subshell=False)
+
+    # generate and print the unified diff on the spec
+
+    with open(spec_path) as fh:
+        original_spec_content = fh.readlines()
+    with open(generated_spec_path) as fh:
+        generated_spec_content = fh.readlines()
+
+    sys.stdout.writelines(
+        difflib.unified_diff(
+            original_spec_content,
+            generated_spec_content,
+            fromfile='a/' + spec_path.name,
+            tofile='b/' + generated_spec_path.name,
+        )
+    )
+
+    # remove original spec file
+    spec_path.unlink()
+
+
+def main():
+
+    atexit.register(CleanupRegistry.clean)
+    setup_logger()
+
+    parser = argparse.ArgumentParser(
+        description='Import source RPM package into Fatbuildr artifact format.'
+    )
+    parser.add_argument('--author', required=True)
+    parser.add_argument('--email', required=True)
+    parser.add_argument('--dest', type=Path, required=True)
+    parser.add_argument('--tarballs-dest', type=Path, required=True)
+    parser.add_argument('src_rpm', nargs='+')
+    args = parser.parse_args()
+
+    if not args.dest.exists():
+        fail("Destination directory %s not found", args.dest)
+    if not args.tarballs_dest.exists():
+        fail("Tarballs destination directory %s not found", args.tarballs_dest)
+
+    for src_rpm in [Path(path) for path in args.src_rpm]:
+        import_src_rpm(
+            src_rpm,
+            author=args.author,
+            email=args.email,
+            dest=args.dest,
+            tarballs_dest=args.tarballs_dest,
+        )
+
+
+if __name__ == '__main__':
+    main()
