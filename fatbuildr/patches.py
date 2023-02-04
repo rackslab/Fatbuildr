@@ -22,6 +22,7 @@ import subprocess
 import os
 from pathlib import Path
 import tarfile
+import shutil
 
 from .git import GitRepository, PatchesDir
 from .utils import dl_file, verify_checksum, tar_subdir, tar_safe_extractall
@@ -96,6 +97,11 @@ class PatchQueue:
 
         # export patch queue
         self.git.export_queue(patches_dir)
+
+        # remove temporary directory
+        logger.debug(f"Removing temporary directory %s", tmpdir)
+        shutil.rmtree(tmpdir)
+        CleanupRegistry.del_tmpdir(tmpdir)
 
     def _dl_tarball(self):
         """Download artifact tarball using the URL found in artifact definition
