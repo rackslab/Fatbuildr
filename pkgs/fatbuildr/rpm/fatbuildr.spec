@@ -118,7 +118,7 @@ rm -rf %{buildroot}
 %files
 %license LICENSE
 %doc README.md
-%doc CHANGELOG.adoc
+%doc CHANGELOG.md
 %doc examples
 %{python3_sitelib}/fatbuildr/
 %{python3_sitelib}/Fatbuildr-*.egg-info/
