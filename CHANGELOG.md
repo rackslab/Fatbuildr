@@ -47,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     change.
   - Bump Fedora release from 35 to 37 in rpm and osi container images
 * docs: set more generic names for packages repositories in install guide
+* docs: `doc` folder in sources renamed to `docs`
 
 ## [1.0.0] - 2022-09-05
 

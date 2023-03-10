@@ -15,6 +15,6 @@ nav:
 ext:
   collector:
     run:
-      command: sh doc/generate-changelog.sh
+      command: sh docs/generate-changelog.sh
     scan:
       dir: generated-doc
