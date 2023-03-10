@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import inspect
 import io
 
 from flask import (
@@ -387,11 +388,19 @@ def keyring(instance):
     mem = io.BytesIO()
     mem.write(connection.keyring_export().encode())
     mem.seek(0)
+    filename = 'keyring.asc'
+    # Starting with Flask >= 2.0, send_file attachment_filename argument has
+    # been renamed download_name. Fatbuildr has the goal to support systems with
+    # Flask < 2.0 then logic is implemented to support both interfaces.
+    if 'download_name' in inspect.getfullargspec(send_file).args:
+        kwargs = { 'download_name': filename }
+    else:
+        kwargs = { 'attachment_filename': filename }
     return send_file(
         mem,
         as_attachment=True,
-        attachment_filename='keyring.asc',
         mimetype='text/plain',
+        **kwargs,
     )
 
 

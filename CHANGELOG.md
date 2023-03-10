@@ -29,8 +29,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     argument on Python < 3.7.
   - Remove temporary directory after the patch queue is exported instead of
     relying on cleanup registry.
-- web: add missing return to fix the index redirect view (from `/` to
-  `/registry`) when Fatbuildrweb is executed in mono-instance mode.
+- web:
+  - Add missing return to fix the index redirect view (from `/` to
+    `/registry`) when Fatbuildrweb is executed in mono-instance mode.
+  - Fix support of Flask >= 2.0
+    ([#69](https://github.com/rackslab/fatbuildr/issues/69))
 
 ### Changed
 - pkgs:
