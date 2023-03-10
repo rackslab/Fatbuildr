@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.1.0] - 2023-03-13
+
 ### Added
 
 - docs:
@@ -52,4 +54,5 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [1.0.0] - 2022-09-05
 
 [unreleased]: https://github.com/rackslab/fatbuildr/compare/v1.0.0...HEAD
+[1.1.0]: https://github.com/rackslab/fatbuildr/releases/tag/v1.1.0
 [1.0.0]: https://github.com/rackslab/fatbuildr/releases/tag/v1.0.0

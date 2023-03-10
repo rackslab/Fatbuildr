@@ -32,6 +32,6 @@ Response:
 
 [source]
 ----
-Fatbuildr v1.0.0
+Fatbuildr v1.1.0
 ----
 ====
