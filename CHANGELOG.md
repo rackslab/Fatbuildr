@@ -13,6 +13,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add large Fatbuildr logos intended for docs.rackslab.io landing page
   - Add Release notes page based on `CHANGELOG.md`
   - Use tabs for distributions in quickstart guide
+  - Mention support of Fedora 37 in quickstart guide
+    ([#68](https://github.com/rackslab/fatbuildr/issues/68))
 - conf: add `env_as_root` boolean parameter in `format:{deb,rpm}` section to
   control if commands to create and update build environments are executed as
   root super-user or the user running `fatbuildrd` daemon.
