@@ -70,7 +70,7 @@ Fatbuildr components.
 %set_build_flags
 %py3_build
 make -C lib/wrappers
-make -C doc
+make -C docs
 
 %install
 %py3_install
@@ -114,7 +114,7 @@ install -p -D -m 0644 conf/system/sysuser/%{name}.conf -t %{buildroot}%{_sysuser
 
 # man pages
 install -d %{buildroot}/%{_mandir}/man1
-install -p -m 0644 doc/man/fatbuildrctl.1 %{buildroot}/%{_mandir}/man1/
+install -p -m 0644 docs/man/fatbuildrctl.1 %{buildroot}/%{_mandir}/man1/
 
 %clean
 rm -rf %{buildroot}
