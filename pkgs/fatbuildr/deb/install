@@ -17,3 +17,4 @@ usr/bin/fatbuildrctl
 usr/bin/fatbuildrd usr/libexec
 usr/bin/fatbuildrweb usr/libexec
 usr/lib/python*
+utils usr/share/fatbuildr

@@ -101,6 +101,10 @@ install -d %{buildroot}%{_datadir}/fatbuildr/wsgi/uwsgi
 install -p -D -m 0644 lib/wsgi/*.wsgi -t %{buildroot}%{_datadir}/fatbuildr/wsgi
 install -p -D -m 0644 lib/wsgi/uwsgi/* -t %{buildroot}%{_datadir}/fatbuildr/wsgi/uwsgi
 
+# Install utilities
+install -d %{buildroot}%{_datadir}/fatbuildr/utils
+install -p -D -m 0755 utils/* -t %{buildroot}%{_datadir}/fatbuildr/utils
+
 # Move service executables out of $PATH in libexec directory
 mv %{buildroot}%{_bindir}/fatbuildrd %{buildroot}%{_libexecdir}
 mv %{buildroot}%{_bindir}/fatbuildrweb %{buildroot}%{_libexecdir}
