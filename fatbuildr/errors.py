@@ -32,3 +32,7 @@ class FatbuildrServerPermissionError(FatbuildrServerError):
 
 class FatbuildrPipelineError(Exception):
     pass
+
+
+class FatbuildrArtifactError(Exception):
+    pass

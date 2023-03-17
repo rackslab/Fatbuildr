@@ -22,6 +22,7 @@ import os
 import yaml
 
 from .templates import Templeter
+from .errors import FatbuildrArtifactError
 from .log import logr
 
 logger = logr(__name__)
@@ -50,6 +51,11 @@ class ArtifactDefs:
                         self.SUPPORTED_FILENAMES[0][0],
                     )
                 break
+
+        if not defs_yml_f.exists():
+            raise FatbuildrArtifactError(
+                "Unable to find artifact YAML definition file"
+            )
 
         logger.debug("Loading artifact definitions from %s", defs_yml_f)
         with open(defs_yml_f) as fh:
