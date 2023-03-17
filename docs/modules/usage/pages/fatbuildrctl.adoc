@@ -92,7 +92,7 @@ This command accepts the following options:
 *--source-dir*=_SOURCE_DIR_::
   Generate artifact source tarball using the source code in directory
   _SOURCE_DIR_, instead of using the source tarball from the URL defined in
-  `meta.yml` file in artifact definition directory. This option must be used
+  `artifact.yml` file in artifact definition directory. This option must be used
   in combination with *--source-version* option.
 
 *--source-version*=_VERSION_::
@@ -161,7 +161,7 @@ for _osi_ format artifacts as this format does not contain changelogs.
 `$ fatbuildrctl build --artifact foo --distribution bar --derivative baz`::
   Submit task to build artifact _foo_ for derivative _baz_ of distribution
   _bar_. The _baz_ derivate must be declared in instance pipelines definitions
-  and `meta.yml` file of artifact definition directory.
+  and `artifact.yml` file of artifact definition directory.
 
 `$ fatbuildrctl build --artifact foo --distribution bar --watch`::
   Submit task to build artifact _foo_ for distribution _bar_, then wait for the
@@ -337,7 +337,7 @@ This command accepts the following options:
 *--source-dir*=_SOURCE_DIR_::
   Generate artifact source tarball using the source code in directory
   _SOURCE_DIR_, instead of using the source tarball from the URL defined in
-  `meta.yml` file in artifact definition directory. This option must be used
+  `artifact.yml` file in artifact definition directory. This option must be used
   in combination with *--source-version* option.
 
 *--source-version*=_VERSION_::

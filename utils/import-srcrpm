@@ -218,8 +218,8 @@ def import_src_rpm(
     with open(software_dir / os.path.basename(main_source.path), 'rb') as fh:
         checksum = hashlib.sha256(fh.read()).hexdigest()
 
-    # define meta.yml content
-    meta_content = {
+    # define content of YAML artifact definition file artifact.yml
+    defs_content = {
         'version': version,
         'tarball': main_source.geturl().replace(version, '{{ version }}'),
         'checksums': {
@@ -231,8 +231,8 @@ def import_src_rpm(
             'release': release,
         },
     }
-    with open(software_dir / 'meta.yml', 'w+') as fh:
-        fh.write(yaml.dump(meta_content, sort_keys=False))
+    with open(software_dir / 'artifact.yml', 'w+') as fh:
+        fh.write(yaml.dump(defs_content, sort_keys=False))
 
     # move patches in version subdirectory
     patches_dir = software_dir / 'patches' / version

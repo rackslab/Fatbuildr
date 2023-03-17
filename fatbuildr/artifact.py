@@ -28,67 +28,85 @@ logger = logr(__name__)
 
 
 class ArtifactDefs:
-    """Generic class to manipulate an artifact metadata definitions."""
+    """Generic class to manipulate a YAML artifact definition file."""
+
+    SUPPORTED_FILENAMES = (
+        ('artifact.yml', False),
+        ('artifact.yaml', False),
+        ('meta.yml', True),  # deprecated
+    )
 
     def __init__(self, place):
         self.place = place
-        meta_yml_f = place.joinpath('meta.yml')
-        logger.debug("Loading artifact definitions from %s", meta_yml_f)
-        with open(meta_yml_f) as fh:
-            self.meta = yaml.safe_load(fh)
+
+        for filename in self.SUPPORTED_FILENAMES:
+            defs_yml_f = place.joinpath(filename[0])
+            if defs_yml_f.exists():
+                if filename[1]:
+                    logger.warn(
+                        "Using deprecated filename %s as YAML artifact "
+                        "definition file, please rename to %s",
+                        filename[0],
+                        self.SUPPORTED_FILENAMES[0][0],
+                    )
+                break
+
+        logger.debug("Loading artifact definitions from %s", defs_yml_f)
+        with open(defs_yml_f) as fh:
+            self.defs = yaml.safe_load(fh)
 
     @property
     def has_tarball(self):
-        return 'tarball' in self.meta
+        return 'tarball' in self.defs
 
     @property
     def supported_formats(self):
         return [
             key
-            for key in self.meta.keys()
+            for key in self.defs.keys()
             if key not in ['version', 'versions', 'tarball', 'checksums']
         ]
 
     @property
     def derivatives(self):
         results = []
-        if 'versions' in self.meta:
-            results.extend(self.meta['versions'].keys())
+        if 'versions' in self.defs:
+            results.extend(self.defs['versions'].keys())
         else:
             results.append('main')
         logger.debug("Supported derivatives: %s", results)
         return results
 
     def version(self, derivative):
-        if derivative == 'main' and 'version' in self.meta:
-            return str(self.meta['version'])
+        if derivative == 'main' and 'version' in self.defs:
+            return str(self.defs['version'])
         else:
-            return str(self.meta['versions'][derivative])
+            return str(self.defs['versions'][derivative])
 
     def checksum_format(self, derivative):
         version = self.version(derivative)
-        if version not in self.meta['checksums']:
+        if version not in self.defs['checksums']:
             raise RuntimeError(
                 f"Checksum of version {version} not found in artifact "
                 "definition"
             )
-        return list(self.meta['checksums'][self.version(derivative)].keys())[
+        return list(self.defs['checksums'][self.version(derivative)].keys())[
             0
         ]  # pickup the first format
 
     def checksum_value(self, derivative):
-        return self.meta['checksums'][self.version(derivative)][
+        return self.defs['checksums'][self.version(derivative)][
             self.checksum_format(derivative)
         ]
 
     def tarball_url(self, version):
-        tarball = Templeter().srender(self.meta['tarball'], version=version)
+        tarball = Templeter().srender(self.defs['tarball'], version=version)
         if '!' in tarball:
             return tarball.split('!')[0]
         return tarball
 
     def tarball_filename(self, version):
-        tarball = Templeter().srender(self.meta['tarball'], version=version)
+        tarball = Templeter().srender(self.defs['tarball'], version=version)
         if '!' in tarball:
             return tarball.split('!')[1]
         return os.path.basename(tarball)
@@ -106,7 +124,7 @@ class ArtifactFormatDefs(ArtifactDefs):
 
     @property
     def release(self):
-        return str(self.meta[self.format]['release'])
+        return str(self.defs[self.format]['release'])
 
     def fullversion(self, derivative):
         return self.version(derivative) + '-' + self.release
@@ -161,11 +179,11 @@ class ArtifactRpmDefs(ArtifactFormatDefs):
 
     @property
     def has_buildargs(self):
-        return 'buildargs' in self.meta[self.format]
+        return 'buildargs' in self.defs[self.format]
 
     @property
     def buildargs(self):
-        return self.meta[self.format]['buildargs'].split(' ')
+        return self.defs[self.format]['buildargs'].split(' ')
 
 
 class ArtifactOsiDefs(ArtifactDefs):

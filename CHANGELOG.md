@@ -20,6 +20,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   management.
 
 ### Changed
+- artifacts: rename YAML artifact definition file from `meta.yml` to
+  `artifact.yml`. The old name is still supported but the user is warned with a
+  deprecation notice ([#73](https://github.com/rackslab/fatbuildr/issues/73)).
 - docs: convert APT sources file in quickstart guide from one-line format to
   Deb822-style format ([#72](https://github.com/rackslab/fatbuildr/issues/72))
 

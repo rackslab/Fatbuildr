@@ -118,7 +118,7 @@ This command produces the following directory structure:
 $ tree ~/base ~/sources
 /home/remi/base
 └── hello
-    ├── meta.yml
+    ├── artifact.yml
     └── rpm
         └── hello.spec
 /home/remi/sources

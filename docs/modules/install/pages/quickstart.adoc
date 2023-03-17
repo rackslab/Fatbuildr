@@ -272,7 +272,7 @@ This submits a task to:
 
 * Download the source tarball of https://www.gnu.org/software/hello/[GNU Hello].
   The URL and the version of the tarball is defined in
-  xref:usage:repo.adoc#_meta[artifact definition `meta.yml`] file located in
+  xref:usage:repo.adoc#_meta[artifact definition `artifact.yml`] file located in
   `/usr/share/doc/fatbuildr/examples/hello` directory.
 * And build Deb package of this software in Debian 10 _« bullseye »_ build
   environment, using the packaging code available in

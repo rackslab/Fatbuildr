@@ -44,8 +44,12 @@ directories. These are described in the following subsections.
 
 === Meta
 
-An artifact definition directory must contain a metadata file formatted in YAML
-and named `meta.yml`.
+An artifact definition directory must contain a definition file formatted in
+YAML and named `artifact.yml`.
+
+NOTE: As an alternative, the file can also be named `artifact.yaml`, depending
+upon your preference. The filename `meta.yml` is also supported for historical
+reason and it is *deprecated*.
 
 This file can contain the following parameters:
 
@@ -153,7 +157,7 @@ deb:
 osi: {}
 ----
 
-For reference, here are some examples of full Artifact `meta.yml`:
+For reference, here are some examples of full Artifact `artifact.yml`:
 
 * With one version for _main_ derivative in RPM format only:
 +
