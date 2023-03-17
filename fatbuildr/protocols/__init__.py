@@ -24,6 +24,8 @@ from .http.client import HttpClient
 
 from .dbus.server import DBusServer
 
+from ..errors import FatbuildrRuntimeError
+
 
 class ClientFactory(object):
     @staticmethod
@@ -32,12 +34,14 @@ class ClientFactory(object):
         instance = uri.path.strip('/')
         if uri.scheme == 'dbus':
             if not instance:
-                raise RuntimeError("Instance must be defined in DBus URI")
+                raise FatbuildrRuntimeError(
+                    "Instance must be defined in DBus URI"
+                )
             return DBusClient(address, uri.scheme, instance)
         elif uri.scheme in ['http', 'https']:
             return HttpClient(address, uri.scheme)
         else:
-            raise RuntimeError(f"unsupported URI {uri}")
+            raise FatbuildrRuntimeError(f"unsupported URI {uri}")
 
 
 class ServerFactory(object):

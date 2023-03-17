@@ -35,6 +35,11 @@ from ..protocols.crawler import register_protocols
 from ..artifact import ArtifactDefs, ArtifactDefsFactory
 from ..patches import PatchQueue
 from ..console.client import tty_console_renderer
+from ..errors import (
+    FatbuildrRuntimeError,
+    FatbuildrServerError,
+    FatbuildrServerPermissionError,
+)
 
 logger = logr(__name__)
 
@@ -379,8 +384,8 @@ class Fatbuildrctl(FatbuildrCliRun):
         logger.setup(args.debug or args.fulldebug, args.fulldebug)
         self.load(args)
 
-        # Connection to fatbuildrd, initialized when needed in connection property
-        # method.
+        # Connection to fatbuildrd, initialized when needed in connection
+        # property method.
         self._connection = None
 
         # Check action is provided in argument by checking default subparser
@@ -391,11 +396,17 @@ class Fatbuildrctl(FatbuildrCliRun):
             sys.exit(1)
 
         # Run the method corresponding to the provided action, catching optional
-        # permission error returned by fatbuildrd.
+        # server, permission and runtime error returned by fatbuildrd.
         try:
             args.func(args)
-        except PermissionError as err:
-            logger.error("You are not authorized to %s", err)
+        except FatbuildrServerPermissionError as err:
+            logger.error("server permission error for %s", err)
+            sys.exit(1)
+        except FatbuildrServerError as err:
+            logger.error("server error: %s", err)
+            sys.exit(1)
+        except FatbuildrRuntimeError as err:
+            logger.error("runtime error: %s", err)
             sys.exit(1)
 
     @property
@@ -800,7 +811,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 args.interactive,
                 interactive=args.interactive,
             )
-        except RuntimeError as err:
+        except FatbuildrRuntimeError as err:
             logger.error("Error while submitting build: %s", err)
             sys.exit(1)
 
@@ -820,7 +831,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 for task in queue:
                     task.report()
 
-        except RuntimeError as err:
+        except FatbuildrRuntimeError as err:
             logger.error("Error while listing tasks: %s", err)
             sys.exit(1)
 
@@ -869,11 +880,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             self._watch_task(task_id, interactive)
 
     def _watch_task(self, task_id, interactive):
-        try:
-            task = self.connection.get(task_id)
-        except RuntimeError as err:
-            logger.error(err)
-            sys.exit(1)
+        task = self.connection.get(task_id)
 
         warned_pending = False
         # if build is pending, wait

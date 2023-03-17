@@ -41,6 +41,8 @@ from ...console.client import (
     console_reader,
 )
 
+from ...errors import FatbuildrServerPermissionError, FatbuildrServerError
+
 
 def check_authorization(method):
     """Decorator for DBusClient methods to catch ErrorNotAuthorized that could
@@ -50,9 +52,9 @@ def check_authorization(method):
         try:
             return method(*args, **kwargs)
         except FatbuildrDBusErrorNotAuthorized as err:
-            raise PermissionError(err)
+            raise FatbuildrServerPermissionError(err)
         except FatbuildrDBusError as err:
-            raise RuntimeError(err)
+            raise FatbuildrServerError(err)
 
     return authorization_wrapper
 
@@ -221,7 +223,7 @@ class DBusClient(AbstractClient):
         for _task in self.archives(limit=0):
             if _task.id == task_id:
                 return _task
-        raise RuntimeError(f"Unable to find task {task_id} on server")
+        raise FatbuildrRuntimeError(f"Unable to find task {task_id} on server")
 
     def watch(self, task, binary=False):
         """Returns a generator of the given task ConsoleMessages output."""
