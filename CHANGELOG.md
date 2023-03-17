@@ -15,6 +15,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     ([#71](https://github.com/rackslab/fatbuildr/issues/71))
   - Handle connection error to HTTP URI with readable error message
     ([#10](https://github.com/rackslab/fatbuildr/issues/10))
+- daemon: avoid global hazardous catch of all RuntimeErrors and restrict
+  handling to supported FatbuildrRuntimeError, as a basis for better error
+  management.
 
 ### Changed
 - docs: convert APT sources file in quickstart guide from one-line format to

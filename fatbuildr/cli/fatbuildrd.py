@@ -30,6 +30,7 @@ from ..protocols import ServerFactory
 from ..instances import Instances
 from ..timer import ServerTimer
 from ..services import ServiceManager
+from ..errors import FatbuildrRuntimeError
 from ..log import logr
 
 logger = logr(__name__)
@@ -130,7 +131,7 @@ class Fatbuildrd(FatbuildrCliRun):
                     # lock the timer while tasks are in the queue
                     self.timer.register_worker(instance.id)
                     instance.tasks_mgr.run(task)
-            except RuntimeError as err:
+            except FatbuildrRuntimeError as err:
                 logger.error("Error while processing task: %s", err)
             if instance.tasks_mgr.queue.empty():
                 # If the queue is empty, wait for extra seconds in case a
