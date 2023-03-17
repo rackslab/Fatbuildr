@@ -44,11 +44,12 @@ from ...console.client import (
 from ...errors import FatbuildrServerPermissionError, FatbuildrServerError
 
 
-def check_authorization(method):
-    """Decorator for DBusClient methods to catch ErrorNotAuthorized that could
-    be sent by DBusServer and transform them in generic PermissionError."""
+def check_dbus_errors(method):
+    """Decorator for DBusClient methods to catch various FatbuildrDBusError that
+    could be sent by DBusServer and transform them in generic Fatbuildr errors.
+    """
 
-    def authorization_wrapper(*args, **kwargs):
+    def error_handler_wrapper(*args, **kwargs):
         try:
             return method(*args, **kwargs)
         except FatbuildrDBusErrorNotAuthorized as err:
@@ -56,11 +57,11 @@ def check_authorization(method):
         except FatbuildrDBusError as err:
             raise FatbuildrServerError(err)
 
-    return authorization_wrapper
+    return error_handler_wrapper
 
 
 class DBusClient(AbstractClient):
-    @check_authorization
+    @check_dbus_errors
     def __init__(self, uri, scheme, instance):
         super().__init__(uri, scheme)
         self.service_proxy = FATBUILDR_SERVICE.get_proxy()
@@ -72,66 +73,66 @@ class DBusClient(AbstractClient):
 
     # instances and pipelines
 
-    @check_authorization
+    @check_dbus_errors
     def instances(self):
         return DBusInstance.from_structure_list(self.service_proxy.Instances)
 
-    @check_authorization
+    @check_dbus_errors
     def instance(self, id):
         return DBusInstance.from_structure(self.proxy.Instance)
 
-    @check_authorization
+    @check_dbus_errors
     def pipelines_formats(self):
         return self.proxy.PipelinesFormats
 
-    @check_authorization
+    @check_dbus_errors
     def pipelines_architectures(self):
         return self.proxy.PipelinesArchitectures
 
-    @check_authorization
+    @check_dbus_errors
     def pipelines_format_distributions(self, format):
         return self.proxy.PipelinesFormatDistributions(format)
 
-    @check_authorization
+    @check_dbus_errors
     def pipelines_distribution_format(self, distribution):
         return self.proxy.PipelinesDistributionFormat(distribution)
 
-    @check_authorization
+    @check_dbus_errors
     def pipelines_distribution_derivatives(self, distribution):
         return self.proxy.PipelinesDistributionDerivatives(distribution)
 
-    @check_authorization
+    @check_dbus_errors
     def pipelines_distribution_environment(self, distribution):
         env = self.proxy.PipelinesDistributionEnvironment(distribution)
         if env == 'none':
             return None
         return env
 
-    @check_authorization
+    @check_dbus_errors
     def pipelines_derivative_formats(self, derivative):
         return self.proxy.PipelinesDerivativeFormats(derivative)
 
     # registries
 
-    @check_authorization
+    @check_dbus_errors
     def formats(self):
         return self.proxy.Formats
 
-    @check_authorization
+    @check_dbus_errors
     def distributions(self, fmt):
         return self.proxy.Distributions(fmt)
 
-    @check_authorization
+    @check_dbus_errors
     def derivatives(self, fmt, distribution):
         return self.proxy.Derivatives(fmt, distribution)
 
-    @check_authorization
+    @check_dbus_errors
     def artifacts(self, fmt, distribution, derivative):
         return DBusArtifact.from_structure_list(
             self.proxy.Artifacts(fmt, distribution, derivative)
         )
 
-    @check_authorization
+    @check_dbus_errors
     def delete_artifact(self, fmt, distribution, derivative, artifact):
         return self.proxy.ArtifactDelete(
             fmt,
@@ -140,13 +141,13 @@ class DBusClient(AbstractClient):
             DBusArtifact.to_structure(artifact),
         )
 
-    @check_authorization
+    @check_dbus_errors
     def artifact_bins(self, fmt, distribution, derivative, artifact):
         return DBusArtifact.from_structure_list(
             self.proxy.ArtifactBinaries(fmt, distribution, derivative, artifact)
         )
 
-    @check_authorization
+    @check_dbus_errors
     def artifact_src(self, fmt, distribution, derivative, artifact):
         try:
             return DBusArtifact.from_structure(
@@ -157,7 +158,7 @@ class DBusClient(AbstractClient):
         except FatbuildrDBusErrorArtifactNotFound:
             return None
 
-    @check_authorization
+    @check_dbus_errors
     def changelog(self, fmt, distribution, derivative, architecture, artifact):
         return DBusChangelogEntry.from_structure_list(
             self.proxy.Changelog(
@@ -169,7 +170,7 @@ class DBusClient(AbstractClient):
             )
         )
 
-    @check_authorization
+    @check_dbus_errors
     def build(
         self,
         format,
@@ -198,18 +199,18 @@ class DBusClient(AbstractClient):
             interactive,
         )
 
-    @check_authorization
+    @check_dbus_errors
     def queue(self):
         return DBusRunnableTask.from_structure_list(self.proxy.Queue)
 
-    @check_authorization
+    @check_dbus_errors
     def running(self):
         try:
             return DBusRunnableTask.from_structure(self.proxy.Running)
         except FatbuildrDBusErrorNoRunningTask:
             return None
 
-    @check_authorization
+    @check_dbus_errors
     def archives(self, limit):
         return DBusRunnableTask.from_structure_list(self.proxy.Archives(limit))
 
@@ -241,42 +242,42 @@ class DBusClient(AbstractClient):
 
     # keyring
 
-    @check_authorization
+    @check_dbus_errors
     def keyring_create(self):
         return self.proxy.KeyringCreate()
 
-    @check_authorization
+    @check_dbus_errors
     def keyring_renew(self, duration):
         return self.proxy.KeyringRenew(duration)
 
-    @check_authorization
+    @check_dbus_errors
     def keyring(self):
         try:
             return DBusKeyring.from_structure(self.proxy.Keyring)
         except FatbuildrDBusErrorNoKeyring:
             return None
 
-    @check_authorization
+    @check_dbus_errors
     def keyring_export(self):
         return self.proxy.KeyringExport
 
     # images
 
-    @check_authorization
+    @check_dbus_errors
     def image_create(self, format, force):
         return self.proxy.ImageCreate(format, force)
 
-    @check_authorization
+    @check_dbus_errors
     def image_update(self, format):
         return self.proxy.ImageUpdate(format)
 
-    @check_authorization
+    @check_dbus_errors
     def image_environment_create(self, format, environment, architecture):
         return self.proxy.ImageEnvironmentCreate(
             format, environment, architecture
         )
 
-    @check_authorization
+    @check_dbus_errors
     def image_environment_update(self, format, environment, architecture):
         return self.proxy.ImageEnvironmentUpdate(
             format, environment, architecture
