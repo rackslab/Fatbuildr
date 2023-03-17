@@ -45,8 +45,10 @@ from . import (
     FatbuildrDBusErrorNoRunningTask,
     FatbuildrDBusErrorNoKeyring,
     FatbuildrDBusErrorArtifactNotFound,
+    FatbuildrDBusErrorPipeline,
     valueornone,
 )
+from ...errors import FatbuildrPipelineError
 from ...log import logr
 
 
@@ -469,13 +471,22 @@ class FatbuildrDBusInstance(Publishable):
         return self._instance.pipelines.format_dists(format)
 
     def pipelines_distribution_format(self, distribution: Str):
-        return self._instance.pipelines.dist_format(distribution)
+        try:
+            return self._instance.pipelines.dist_format(distribution)
+        except FatbuildrPipelineError as err:
+            raise FatbuildrDBusErrorPipeline(err)
 
     def pipelines_distribution_derivatives(self, distribution: Str):
-        return self._instance.pipelines.dist_derivatives(distribution)
+        try:
+            return self._instance.pipelines.dist_derivatives(distribution)
+        except FatbuildrPipelineError as err:
+            raise FatbuildrDBusErrorPipeline(err)
 
     def pipelines_distribution_environment(self, distribution: Str):
-        return self._instance.pipelines.dist_env(distribution)
+        try:
+            return self._instance.pipelines.dist_env(distribution)
+        except FatbuildrPipelineError as err:
+            raise FatbuildrDBusErrorPipeline(err)
 
     def pipelines_derivative_formats(self, derivative: Str):
         return self._instance.pipelines.derivative_formats(derivative)

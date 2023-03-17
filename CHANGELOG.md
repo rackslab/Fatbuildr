@@ -8,8 +8,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
-- cli: avoid hazardous handling of unsupported errors, as a basis for better
-  error management.
+- cli:
+  - Avoid hazardous handling of unsupported errors, as a basis for better
+    error management.
+  - Handle unknown distribution error in server pipeline
+    ([#71](https://github.com/rackslab/fatbuildr/issues/71))
 
 ### Changed
 - docs: convert APT sources file in quickstart guide from one-line format to

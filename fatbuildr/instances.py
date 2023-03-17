@@ -30,6 +30,7 @@ from .containers import ContainerRunner
 from .cache import CacheManager
 from .protocols.exports import ExportableType, ExportableField
 from .utils import Singleton, host_architecture
+from .errors import FatbuildrPipelineError
 from .log import logr
 
 logger = logr(__name__)
@@ -54,7 +55,7 @@ class InstancePipelines:
             for dist in dists:
                 if dist['name'] == distribution:
                     return format
-        raise RuntimeError(
+        raise FatbuildrPipelineError(
             "Unable to find format corresponding to "
             f"distribution {distribution}"
         )
@@ -67,7 +68,7 @@ class InstancePipelines:
             for dist in dists:
                 if dist['name'] == distribution and 'env' in dist:
                     return dist['env']
-        raise RuntimeError(
+        raise FatbuildrPipelineError(
             "Unable to find environment corresponding "
             f"to distribution {distribution}"
         )
@@ -79,7 +80,7 @@ class InstancePipelines:
             for dist in dists:
                 if dist['name'] == distribution:
                     return dist['tag']
-        raise RuntimeError(
+        raise FatbuildrPipelineError(
             "Unable to find release tag corresponding "
             f"to distribution {distribution}"
         )

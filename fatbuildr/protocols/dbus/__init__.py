@@ -99,6 +99,11 @@ class FatbuildrDBusErrorArtifactNotFound(FatbuildrDBusError):
     pass
 
 
+@dbus_error("ErrorPipeline", namespace=FATBUILDR_NAMESPACE)
+class FatbuildrDBusErrorPipeline(FatbuildrDBusError):
+    pass
+
+
 # Utilities to handle null values
 
 
