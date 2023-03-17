@@ -54,7 +54,10 @@ class ArtifactDefs:
 
         if not defs_yml_f.exists():
             raise FatbuildrArtifactError(
-                "Unable to find artifact YAML definition file"
+                f"Unable to find artifact YAML definition file in path {place}/"
+                '{'
+                + ','.join(filename[0] for filename in self.SUPPORTED_FILENAMES)
+                + '}'
             )
 
         logger.debug("Loading artifact definitions from %s", defs_yml_f)

@@ -37,6 +37,7 @@ from ..patches import PatchQueue
 from ..console.client import tty_console_renderer
 from ..errors import (
     FatbuildrRuntimeError,
+    FatbuildrArtifactError,
     FatbuildrServerError,
     FatbuildrServerPermissionError,
 )
@@ -404,6 +405,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             sys.exit(1)
         except FatbuildrServerError as err:
             logger.error("server error: %s", err)
+            sys.exit(1)
+        except FatbuildrArtifactError as err:
+            logger.error("artifact error: %s", err)
             sys.exit(1)
         except FatbuildrRuntimeError as err:
             logger.error("runtime error: %s", err)
