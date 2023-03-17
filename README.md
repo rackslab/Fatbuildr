@@ -8,7 +8,7 @@ software and artifact definitions inputs, then it builds artifacts based on
 definitions and publish them in registries.
 
 <img
-  src="doc/modules/overview/images/fatbuildr_overview.svg"
+  src="docs/modules/overview/images/fatbuildr_overview.svg"
   alt="Fatbuildr Overview"
   style="display: inline-block; margin: 0 auto; max-width: 600px">
 
