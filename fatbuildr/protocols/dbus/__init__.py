@@ -70,29 +70,28 @@ dbus_error = get_error_decorator(ERROR_MAPPER)
 
 # Define errors.
 @dbus_error("ErrorNotAuthorized", namespace=FATBUILDR_NAMESPACE)
-class ErrorNotAuthorized(DBusError):
+class FatbuildrDBusErrorNotAuthorized(DBusError):
     pass
 
 
 @dbus_error("ErrorUnknownInstance", namespace=FATBUILDR_NAMESPACE)
-class ErrorUnknownInstance(DBusError):
+class FatbuildrDBusErrorUnknownInstance(DBusError):
     pass
 
 
 @dbus_error("ErrorNoRunningTask", namespace=FATBUILDR_NAMESPACE)
-class ErrorNoRunningTask(DBusError):
+class FatbuildrDBusErrorNoRunningTask(DBusError):
     pass
 
 
 @dbus_error("ErrorNoKeyring", namespace=FATBUILDR_NAMESPACE)
-class ErrorNoKeyring(DBusError):
+class FatbuildrDBusErrorNoKeyring(DBusError):
     pass
 
 
 @dbus_error("ErrorArtifactNotFound", namespace=FATBUILDR_NAMESPACE)
-class ErrorArtifactNotFound(DBusError):
+class FatbuildrDBusErrorArtifactNotFound(DBusError):
     pass
-
 
 # Utilities to handle null values
 

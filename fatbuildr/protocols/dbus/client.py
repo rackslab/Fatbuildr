@@ -26,11 +26,11 @@ from . import (
     DBusArtifact,
     DBusChangelogEntry,
     DBusKeyring,
-    ErrorNotAuthorized,
-    ErrorUnknownInstance,
-    ErrorNoRunningTask,
-    ErrorNoKeyring,
-    ErrorArtifactNotFound,
+    FatbuildrDBusErrorNotAuthorized,
+    FatbuildrDBusErrorUnknownInstance,
+    FatbuildrDBusErrorNoRunningTask,
+    FatbuildrDBusErrorNoKeyring,
+    FatbuildrDBusErrorArtifactNotFound,
     valueornull,
 )
 from ..client import AbstractClient
@@ -48,7 +48,7 @@ def check_authorization(method):
     def authorization_wrapper(*args, **kwargs):
         try:
             return method(*args, **kwargs)
-        except ErrorNotAuthorized as err:
+        except FatbuildrDBusErrorNotAuthorized as err:
             raise PermissionError(err)
         except DBusError as err:
             raise RuntimeError(err)
@@ -63,8 +63,8 @@ class DBusClient(AbstractClient):
         self.service_proxy = FATBUILDR_SERVICE.get_proxy()
         try:
             obj_path = self.service_proxy.GetInstance(instance)
-        except ErrorUnknownInstance:
-            raise RuntimeError(f"Unknown instance {instance} at {uri}")
+        except FatbuildrDBusErrorUnknownInstance:
+            raise FatbuildrServerError(f"Unknown instance {instance} at {uri}")
         self.proxy = FATBUILDR_SERVICE.get_proxy(obj_path)
 
     # instances and pipelines
@@ -151,7 +151,7 @@ class DBusClient(AbstractClient):
                     fmt, distribution, derivative, artifact
                 )
             )
-        except ErrorArtifactNotFound:
+        except FatbuildrDBusErrorArtifactNotFound:
             return None
 
     @check_authorization
@@ -203,7 +203,7 @@ class DBusClient(AbstractClient):
     def running(self):
         try:
             return DBusRunnableTask.from_structure(self.proxy.Running)
-        except ErrorNoRunningTask:
+        except FatbuildrDBusErrorNoRunningTask:
             return None
 
     @check_authorization
@@ -250,7 +250,7 @@ class DBusClient(AbstractClient):
     def keyring(self):
         try:
             return DBusKeyring.from_structure(self.proxy.Keyring)
-        except ErrorNoKeyring:
+        except FatbuildrDBusErrorNoKeyring:
             return None
 
     @check_authorization

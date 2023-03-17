@@ -40,14 +40,15 @@ from . import (
     DBusArtifact,
     DBusChangelogEntry,
     DBusKeyring,
-    ErrorNotAuthorized,
-    ErrorUnknownInstance,
-    ErrorNoRunningTask,
-    ErrorNoKeyring,
-    ErrorArtifactNotFound,
+    FatbuildrDBusErrorNotAuthorized,
+    FatbuildrDBusErrorUnknownInstance,
+    FatbuildrDBusErrorNoRunningTask,
+    FatbuildrDBusErrorNoKeyring,
+    FatbuildrDBusErrorArtifactNotFound,
     valueornone,
 )
 from ...log import logr
+
 
 logger = logr(__name__)
 
@@ -102,8 +103,8 @@ class TimeredAuthorizationServerObjectHandler(ServerObjectHandler):
     @staticmethod
     def check_auth(sender, action):
         """This method asks polkit for given sender authorization on the given
-        action. It raises ErrorNotAuthorized exception if the authorization
-        fails."""
+        action. It raises FatbuildrDBusErrorNotAuthorized exception if the
+        authorization fails."""
         proxy = BUS.get_proxy("org.freedesktop.DBus", "/org/freedesktop/DBus")
         uid = proxy.GetConnectionUnixUser(sender)
         user = pwd.getpwuid(uid).pw_name
@@ -126,7 +127,7 @@ class TimeredAuthorizationServerObjectHandler(ServerObjectHandler):
                 "Authorization refused for user %s(%d) on %s", user, uid, action
             )
             action_name = action.rsplit('.', 1)[1].replace('-', ' ')
-            raise ErrorNotAuthorized(action_name)
+            raise FatbuildrDBusErrorNotAuthorized(action_name)
 
         logger.debug(
             "Successful authorization for user %s(%d) on %s", user, uid, action
@@ -142,7 +143,7 @@ class FatbuildrDBusServiceInterface(InterfaceTemplate):
         try:
             return self.implementation.get_instance(id)
         except KeyError:
-            raise ErrorUnknownInstance()
+            raise FatbuildrDBusErrorUnknownInstance()
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
@@ -334,7 +335,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             fmt, distribution, derivative, bin_artifact
         )
         if not src:
-            raise ErrorArtifactNotFound()
+            raise FatbuildrDBusErrorArtifactNotFound()
         return DBusArtifact.to_structure(src)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
@@ -401,7 +402,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         try:
             return DBusKeyring.to_structure(self.implementation.keyring())
         except AttributeError:
-            raise ErrorNoKeyring()
+            raise FatbuildrDBusErrorNoKeyring()
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-keyring")
@@ -484,10 +485,10 @@ class FatbuildrDBusInstance(Publishable):
         return self._instance.tasks_mgr.queue.dump()
 
     def running(self):
-        """The currently running task. ErrorNoRunningTask is raised if no task
-        is currently running."""
+        """The currently running task. FatbuildrDBusErrorNoRunningTask is raised
+        if no task is currently running."""
         if not self._instance.tasks_mgr.running:
-            raise ErrorNoRunningTask()
+            raise FatbuildrDBusErrorNoRunningTask()
         return self._instance.tasks_mgr.running
 
     def archives(self, limit):
