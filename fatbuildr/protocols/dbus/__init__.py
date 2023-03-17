@@ -68,30 +68,36 @@ FATBUILDR_INSTANCE = DBusInterfaceIdentifier(
 # The decorator for DBus errors.
 dbus_error = get_error_decorator(ERROR_MAPPER)
 
+
+class FatbuildrDBusError(DBusError):
+    pass
+
+
 # Define errors.
 @dbus_error("ErrorNotAuthorized", namespace=FATBUILDR_NAMESPACE)
-class FatbuildrDBusErrorNotAuthorized(DBusError):
+class FatbuildrDBusErrorNotAuthorized(FatbuildrDBusError):
     pass
 
 
 @dbus_error("ErrorUnknownInstance", namespace=FATBUILDR_NAMESPACE)
-class FatbuildrDBusErrorUnknownInstance(DBusError):
+class FatbuildrDBusErrorUnknownInstance(FatbuildrDBusError):
     pass
 
 
 @dbus_error("ErrorNoRunningTask", namespace=FATBUILDR_NAMESPACE)
-class FatbuildrDBusErrorNoRunningTask(DBusError):
+class FatbuildrDBusErrorNoRunningTask(FatbuildrDBusError):
     pass
 
 
 @dbus_error("ErrorNoKeyring", namespace=FATBUILDR_NAMESPACE)
-class FatbuildrDBusErrorNoKeyring(DBusError):
+class FatbuildrDBusErrorNoKeyring(FatbuildrDBusError):
     pass
 
 
 @dbus_error("ErrorArtifactNotFound", namespace=FATBUILDR_NAMESPACE)
-class FatbuildrDBusErrorArtifactNotFound(DBusError):
+class FatbuildrDBusErrorArtifactNotFound(FatbuildrDBusError):
     pass
+
 
 # Utilities to handle null values
 

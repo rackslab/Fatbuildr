@@ -26,6 +26,7 @@ from . import (
     DBusArtifact,
     DBusChangelogEntry,
     DBusKeyring,
+    FatbuildrDBusError,
     FatbuildrDBusErrorNotAuthorized,
     FatbuildrDBusErrorUnknownInstance,
     FatbuildrDBusErrorNoRunningTask,
@@ -50,7 +51,7 @@ def check_authorization(method):
             return method(*args, **kwargs)
         except FatbuildrDBusErrorNotAuthorized as err:
             raise PermissionError(err)
-        except DBusError as err:
+        except FatbuildrDBusError as err:
             raise RuntimeError(err)
 
     return authorization_wrapper
