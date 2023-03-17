@@ -393,9 +393,9 @@ def keyring(instance):
     # been renamed download_name. Fatbuildr has the goal to support systems with
     # Flask < 2.0 then logic is implemented to support both interfaces.
     if 'download_name' in inspect.getfullargspec(send_file).args:
-        kwargs = { 'download_name': filename }
+        kwargs = {'download_name': filename}
     else:
-        kwargs = { 'attachment_filename': filename }
+        kwargs = {'attachment_filename': filename}
     return send_file(
         mem,
         as_attachment=True,
