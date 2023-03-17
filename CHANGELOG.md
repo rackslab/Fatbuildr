@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+- docs: convert APT sources file in quickstart guide from one-line format to
+  Deb822-style format ([#72](https://github.com/rackslab/fatbuildr/issues/72))
+
 ## [1.1.0] - 2023-03-13
 
 ### Added

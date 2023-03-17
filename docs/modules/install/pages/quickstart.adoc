@@ -13,7 +13,7 @@ First download packages repository signing key:
 # curl -sS https://pkgs.rackslab.io/keyring.asc | gpg --dearmor | tee /usr/share/keyrings/rackslab.gpg > /dev/null
 ----
 
-Create `/etc/apt/sources.list.d/rackslab.list` with this content:
+Create `/etc/apt/sources.list.d/rackslab.sources` with this content:
 
 [tabs]
 ======
@@ -22,7 +22,12 @@ Debian 11 _« bullseye »_::
 ====
 [source]
 ----
-deb [signed-by=/usr/share/keyrings/rackslab.gpg arch=amd64] https://pkgs.rackslab.io/deb bullseye main
+Types: deb
+URIs: https://pkgs.rackslab.io/deb
+Suites: bullseye
+Components: main
+Architectures: amd64
+Signed-By: /usr/share/keyrings/rackslab.gpg
 ----
 ====
 
@@ -31,7 +36,12 @@ Debian 12 _« bookworm »_::
 ====
 [source]
 ----
-deb [signed-by=/usr/share/keyrings/rackslab.gpg arch=amd64] https://pkgs.rackslab.io/deb bookworm main
+Types: deb
+URIs: https://pkgs.rackslab.io/deb
+Suites: bookworm
+Components: main
+Architectures: amd64
+Signed-By: /usr/share/keyrings/rackslab.gpg
 ----
 ====
 
@@ -40,7 +50,12 @@ Debian unstable _« sid »_::
 ====
 [source]
 ----
-deb [signed-by=/usr/share/keyrings/rackslab.gpg arch=amd64] https://pkgs.rackslab.io/deb sid main
+Types: deb
+URIs: https://pkgs.rackslab.io/deb
+Suites: sid
+Components: main
+Architectures: amd64
+Signed-By: /usr/share/keyrings/rackslab.gpg
 ----
 ====
 
@@ -49,7 +64,12 @@ Ubuntu 22.04 LTS _« jammy »_::
 ====
 [source]
 ----
-deb [signed-by=/usr/share/keyrings/rackslab.gpg arch=amd64] https://pkgs.rackslab.io/deb ubuntu22.04 main
+Types: deb
+URIs: https://pkgs.rackslab.io/deb
+Suites: ubuntu22.04
+Components: main
+Architectures: amd64
+Signed-By: /usr/share/keyrings/rackslab.gpg
 ----
 ====
 ======
@@ -305,12 +325,17 @@ $ curl -sS http://localhost:5000/default/keyring.asc | gpg --dearmor | \
   sudo tee /usr/share/keyrings/fatbuildr-default.gpg > /dev/null
 ----
 
-Create APT source file `/etc/apt/sources.list.d/fatbuildr-default.list` with
+Create APT source file `/etc/apt/sources.list.d/fatbuildr-default.sources` with
 this content:
 
 [source]
 ----
-deb [signed-by=/usr/share/keyrings/fatbuildr-default.gpg arch=amd64] http://localhost:5000/default/deb bullseye main
+Types: deb
+URIs: http://localhost:5000/default/deb
+Suites: bullseye
+Components: main
+Architectures: amd64
+Signed-By: /usr/share/keyrings/fatbuildr-default.gpg
 ----
 
 You can then install your _hello_ package with these commands:
