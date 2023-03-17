@@ -21,38 +21,60 @@ import requests
 
 from . import JsonInstance, JsonRunnableTask
 from ..client import AbstractClient
+from ...errors import FatbuildrServerError
 from ...log import logr
 from ...console.client import console_http_client
 
 logger = logr(__name__)
 
 
+def check_http_errors(method):
+    """Decorator for HttpClient methods to catch requests errors and transform
+    them into generic Fatbuildr errors.
+    """
+
+    def error_handler_wrapper(*args, **kwargs):
+        try:
+            return method(*args, **kwargs)
+        except requests.exceptions.ConnectionError as err:
+            raise FatbuildrServerError(
+                f"unable to connect to {args[0].uri}: {err}"
+            )
+
+    return error_handler_wrapper
+
+
 class HttpClient(AbstractClient):
     def __init__(self, uri, scheme):
         super().__init__(uri, scheme)
 
+    @check_http_errors
     def instance(self):
         url = f"{self.uri}/instance.json"
         response = requests.get(url)
         return JsonInstance.load_from_json(response.json())
 
+    @check_http_errors
     def pipelines_architectures(self):
         url = f"{self.uri}/pipelines/architectures.json"
         response = requests.get(url)
         return response.json()
 
+    @check_http_errors
     def pipelines_format_distributions(self, format):
         url = f"{self.uri}/pipelines/formats.json?format={format}"
         response = requests.get(url)
         formats = response.json()
         return [item['distribution'] for item in formats[format]]
 
+    @check_http_errors
     def pipelines_distribution_format(self, distribution):
         url = f"{self.uri}/pipelines/formats.json?distribution={distribution}"
         response = requests.get(url)
         formats = response.json()
         return list(formats.keys())[0]
 
+    @check_http_errors
     def pipelines_distribution_environment(self, distribution):
         url = f"{self.uri}/pipelines/formats.json?distribution={distribution}"
         response = requests.get(url)
@@ -62,12 +84,14 @@ class HttpClient(AbstractClient):
         # request filter.
         return next(iter(formats.items()))[1][0]['environment']
 
+    @check_http_errors
     def pipelines_derivative_formats(self, derivative):
         url = f"{self.uri}/pipelines/formats.json?derivative={derivative}"
         response = requests.get(url)
         formats = response.json()
         return list(formats.keys())
 
+    @check_http_errors
     def build(
         self,
         format,
@@ -113,6 +137,7 @@ class HttpClient(AbstractClient):
 
         return response.json()['task']
 
+    @check_http_errors
     def queue(self):
         url = f"{self.uri}/queue.json"
         response = requests.get(url)
@@ -120,6 +145,7 @@ class HttpClient(AbstractClient):
             JsonRunnableTask.load_from_json(task) for task in response.json()
         ]
 
+    @check_http_errors
     def running(self):
         url = f"{self.uri}/running.json"
         response = requests.get(url)
@@ -128,6 +154,7 @@ class HttpClient(AbstractClient):
             return None
         return JsonRunnableTask.load_from_json(json_task)
 
+    @check_http_errors
     def get(self, task_id):
         url = f"{self.uri}/tasks/{task_id}.json"
         response = requests.get(url)
@@ -142,6 +169,7 @@ class HttpClient(AbstractClient):
             "instances"
         )
 
+    @check_http_errors
     def watch(self, task):
         """Generate task log lines with a streaming request."""
         url = f"{self.uri}/watch/{task.id}.journal"
