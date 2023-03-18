@@ -205,7 +205,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_images.add_argument(
             'operation',
             help='Operation to realize on image or build environment',
-            choices=['create', 'update', 'env-create', 'env-update'],
+            choices=['create', 'update', 'shell', 'env-create', 'env-update'],
         )
         parser_images.add_argument(
             '--format',
@@ -435,6 +435,13 @@ class Fatbuildrctl(FatbuildrCliRun):
     def _run_images(self, args):
         logger.debug("running images task")
 
+        if args.operation == 'shell' and not args.format:
+            logger.error(
+                "Running a shell into an image requires the format of the "
+                "targeted image to be specified"
+            )
+            sys.exit(1)
+
         if args.format:
             selected_formats = [args.format]
         else:
@@ -459,6 +466,14 @@ class Fatbuildrctl(FatbuildrCliRun):
                     args.watch,
                     format,
                 )
+        elif args.operation == 'shell':
+            self._submit_watch(
+                self.connection.image_shell,
+                f"{args.format} image shell",
+                True,
+                args.format,
+                interactive=True,
+            )
         else:
             # At this stage, the operation is on build environments
             for format in selected_formats:

@@ -27,6 +27,7 @@ from ..tasks.keyring import KeyringCreationTask, KeyringRenewalTask
 from ..tasks.images import (
     ImageCreationTask,
     ImageUpdateTask,
+    ImageShellTask,
     ImageEnvironmentCreationTask,
     ImageEnvironmentUpdateTask,
 )
@@ -48,6 +49,7 @@ def register_protocols():
         (KeyringRenewalTask,),
         (ImageCreationTask,),
         (ImageUpdateTask,),
+        (ImageShellTask,),
         (ImageEnvironmentCreationTask,),
         (ImageEnvironmentUpdateTask,),
     ]:

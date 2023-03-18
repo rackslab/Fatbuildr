@@ -68,6 +68,26 @@ class ImageUpdateTask(RunnableTask):
         img.update(self)
 
 
+class ImageShellTask(RunnableTask):
+
+    TASK_NAME = 'image shell'
+    EXFIELDS = {
+        ExportableTaskField('format'),
+    }
+
+    def __init__(self, task_id, place, instance, format):
+        super().__init__(task_id, place, instance, interactive=True)
+        self.format = format
+
+    def run(self):
+        logger.info(
+            "Running image shell task %s",
+            self.id,
+        )
+        img = self.instance.images_mgr.image(self.format)
+        img.shell(self)
+
+
 class ImageEnvironmentCreationTask(RunnableTask):
 
     TASK_NAME = 'image build environment creation'
