@@ -216,6 +216,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             help='Manage build environment for this distribution',
         )
         parser_images.add_argument(
+            '--architecture',
+            help='Manage build environment for this hardware architecture',
+        )
+        parser_images.add_argument(
             '--force',
             action='store_true',
             help='Force creation of images even they already exist',
@@ -524,14 +528,35 @@ class Fatbuildrctl(FatbuildrCliRun):
                 logger.debug(
                     "Build environments found for format %s: %s", format, envs
                 )
-                architectures = self.connection.pipelines_architectures()
+                available_architectures = (
+                    self.connection.pipelines_architectures()
+                )
                 logger.debug(
-                    "Architectures defined in pipelines: %s", architectures
+                    "Architectures defined in pipelines: %s", available_architectures
+                )
+                if args.architecture:
+                    if args.architecture not in available_architectures:
+                        logger.error(
+                            "Selected architecture %s is not available in this "
+                            "instance pipelines",
+                            args.architecture,
+                        )
+                        logger.info(
+                            "Select an architecture among the architectures "
+                            "available in this instance pipelines: %s",
+                            ' '.join(available_architectures),
+                        )
+                        sys.exit(1)
+                    selected_architectures = [args.architecture]
+                else:
+                    selected_architectures = available_architectures
+                logger.debug(
+                    "Selected architectures: %s", selected_architectures
                 )
 
                 if args.operation == 'env-create':
                     for env in envs:
-                        for architecture in architectures:
+                        for architecture in selected_architectures:
                             self._submit_watch(
                                 self.connection.image_environment_create,
                                 f"{format} {env}-{architecture} build "
@@ -543,7 +568,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                             )
                 elif args.operation == 'env-update':
                     for env in envs:
-                        for architecture in architectures:
+                        for architecture in selected_architectures:
                             self._submit_watch(
                                 self.connection.image_environment_update,
                                 f"{format} {env}-{architecture} build "
