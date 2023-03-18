@@ -14,6 +14,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     format ([#18](https://github.com/rackslab/fatbuildr/issues/18)).
   - Add `--distribution` option to `fatbuildrctl images` command to filter the
     container images or the build environments targeted by the operation.
+  - Add `--architecture` option to `fatbuildrctl images` command to limit the
+    build environments targeted by the operation to a specific hardware
+    architecture.
 
 ### Fixed
 - cli:
