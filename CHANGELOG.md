@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - daemon: avoid global hazardous catch of all RuntimeErrors and restrict
   handling to supported FatbuildrRuntimeError, as a basis for better error
   management.
+- Remove useless imports
 
 ### Changed
 - artifacts: rename YAML artifact definition file from `meta.yml` to
