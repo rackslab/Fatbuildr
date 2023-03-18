@@ -187,26 +187,31 @@ for _osi_ format artifacts as this format does not contain changelogs.
 The *images* command accepts the following subcommands:
 
 *create*::
-  Create container image. Unless `--format` filter is used, all images for all
-  formats declared in instance pipelines are created. One task per image is
-  created on server side.
+  Submit tasks to create container images. Unless `--format` filter is used, all
+  images for all formats declared in instance pipelines are created. One task
+  per image is submitted on server side.
 
 *update*::
-  Update OS packages of container image. Unless `--format` filter is used, all
-  images for all formats declared in instance pipelines are updated. One task
-  per image is created on server side.
+  Submit tasks to update OS packages of container images. Unless `--format`
+  filter is used, all images for all formats declared in instance pipelines are
+  updated. One task per image is submitted on server side.
+
+*shell*::
+  Submit task to run an interactive shell as root in a container image. The
+  `--format` filter is required to select the image. The task is terminated when
+  the shell is exited.
 
 *env-create*::
-  Create the build environments in the container images. Unless `--format`
-  filter is used, all build environments for all formats declared in instance
-  pipelines are created. One task per build environment is created on server
-  side.
+  Submit tasks to create the build environments in the container images. Unless
+  `--format` filter is used, all build environments for all formats declared in
+  instance pipelines are created. One task per build environment is submitted on
+  server side.
 
 *env-update*::
-  Update the build environments in the container images. Unless `--format`
-  filter is used, all build environments for all formats declared in instance
-  pipelines are updated. One task per build environment is created on server
-  side.
+  Submit tasks to update the build environments in the container images. Unless
+  `--format` filter is used, all build environments for all formats declared in
+  instance pipelines are updated. One task per build environment is submitted on
+  server side.
 
 The *images* command accepts the following option:
 
@@ -230,6 +235,10 @@ The *images* command accepts the following option:
 `$ fatbuildrctl images update --format rpm --watch`::
   Submit tasks to update container image for RPM format and watch its output
   until its completion.
+
+`$ fatbuildrctl images shell --format deb`::
+  Submit tasks to open an interactive shell in an instance of a container
+  running the image for Deb format.
 
 `$ fatbuildrctl images env-create --format deb --watch`::
   Submit tasks to create all build environments declared in instance pipelines

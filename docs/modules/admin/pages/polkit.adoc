@@ -29,8 +29,8 @@ org.rackslab.Fatbuildr.view-keyring:: View keyring detailed information.
 org.rackslab.Fatbuildr.edit-keyring:: Submit tasks to edit keyring (ex: change
 expiry date).
 
-org.rackslab.Fatbuildr.manage-image:: Submit tasks to manage container images
-and build environment.
+org.rackslab.Fatbuildr.manage-image:: Submit tasks to create, update and open
+interactive shell in container images and build environment.
 
 == Default Policy
 

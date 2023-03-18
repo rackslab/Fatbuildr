@@ -137,6 +137,16 @@ class Image(object):
             # Package manager must be run as root
             task.cruncmd(self, cmd, init=True, asroot=True)
 
+    def shell(self, task):
+        logger.info(
+            "Launching interactive shell in image for %s format", self.format
+        )
+        if not self.exists:
+            raise RuntimeError(
+                f"Image {self.path} does not exist, create it first"
+            )
+        task.cruncmd(self, None, init=True, asroot=True)
+
 
 class BuildEnv(object):
     def __init__(self, conf, image, environment, architecture, pipelines):

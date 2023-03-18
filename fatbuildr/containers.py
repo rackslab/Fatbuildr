@@ -44,7 +44,7 @@ class ContainerRunner(object):
         readonly=False,
     ):
         """Generic fully featured method to run command in container using
-        systemd-nspawn."""
+        systemd-nspawn. If cmd is None, an interactive shell is launched."""
         _cmd = [
             self.conf.containers.exec,
             '--directory',
@@ -90,11 +90,18 @@ class ContainerRunner(object):
             _cmd.extend(['--chdir', chdir])
         for _env in envs:
             _cmd.extend(['--setenv', _env])
-        if isinstance(cmd, str):
-            # Use shlex.split(cmd) instead of cmd.split(' ') to be quote aware.
-            _cmd.extend(shlex.split(cmd))
-        else:
-            _cmd.extend(cmd)
+        # When cmd is None, do not expand the command line. By default,
+        # systemd-nspawn executes an interactive shell. If cmd is not None,
+        # check if it is a list or a string. If the latter, transform this
+        # string into a list with shlex for handling complex shell stuff such as
+        # quotes.
+        if cmd:
+            if isinstance(cmd, str):
+                # Use shlex.split(cmd) instead of cmd.split(' ') to be quote
+                # aware.
+                _cmd.extend(shlex.split(cmd))
+            else:
+                _cmd.extend(cmd)
 
         # Environment is set with NOTIFY_SOCKET=/dev/null to prevent
         # systemd-nspawn from notifying systemd its readiness. When

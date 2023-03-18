@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- cli: add `shell` operation to `fatbuildrctl images` command to open an
+  interactive shell in a container running the image dedicated to a given format
+  ([#18](https://github.com/rackslab/fatbuildr/issues/18))
+
 ### Fixed
 - cli:
   - Avoid hazardous handling of unsupported errors, as a basis for better
