@@ -212,6 +212,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             help='Manage image and build environment for this format',
         )
         parser_images.add_argument(
+            '--distribution',
+            help='Manage build environment for this distribution',
+        )
+        parser_images.add_argument(
             '--force',
             action='store_true',
             help='Force creation of images even they already exist',
@@ -435,14 +439,21 @@ class Fatbuildrctl(FatbuildrCliRun):
     def _run_images(self, args):
         logger.debug("running images task")
 
-        if args.operation == 'shell' and not args.format:
-            logger.error(
-                "Running a shell into an image requires the format of the "
-                "targeted image to be specified"
+        if args.distribution:
+            dist_fmt = self.connection.pipelines_distribution_format(
+                args.distribution
             )
-            sys.exit(1)
-
-        if args.format:
+            # if format is also given, check it matches
+            if args.format and args.format != dist_fmt:
+                logger.error(
+                    "Specified format %s does not match the format "
+                    "of the specified distribution %s",
+                    args.format,
+                    args.distribution,
+                )
+                sys.exit(1)
+            selected_formats = [dist_fmt]
+        elif args.format:
             selected_formats = [args.format]
         else:
             selected_formats = self.connection.pipelines_formats()
@@ -467,21 +478,42 @@ class Fatbuildrctl(FatbuildrCliRun):
                     format,
                 )
         elif args.operation == 'shell':
+            # Verify that only one format is selected at this stage or fail.
+            try:
+                assert len(selected_formats) == 1
+            except AssertionError:
+                logger.error(
+                    "Unable to define container image for the shell among {%s} "
+                    "formats",
+                    ','.join(selected_formats),
+                )
+                logger.info(
+                    "Please use --format or --distribution filters to select "
+                    "the image for running the shell"
+                )
+                sys.exit(1)
+
+            selected_format = selected_formats[0]
             self._submit_watch(
                 self.connection.image_shell,
-                f"{args.format} image shell",
+                f"{selected_format} image shell",
                 True,
-                args.format,
+                selected_format,
                 interactive=True,
             )
         else:
             # At this stage, the operation is on build environments
             for format in selected_formats:
-                distributions = self.connection.pipelines_format_distributions(
-                    format
-                )
-                if not distributions:
-                    logger.info("No distribution defined for %s image", format)
+                if args.distribution:
+                    distributions = [args.distribution]
+                else:
+                    distributions = (
+                        self.connection.pipelines_format_distributions(format)
+                    )
+                    if not distributions:
+                        logger.info(
+                            "No distribution defined for %s image", format
+                        )
                 envs = []
                 for distribution in distributions:
                     env = self.connection.pipelines_distribution_environment(

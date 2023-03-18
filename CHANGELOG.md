@@ -8,9 +8,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- cli: add `shell` operation to `fatbuildrctl images` command to open an
-  interactive shell in a container running the image dedicated to a given format
-  ([#18](https://github.com/rackslab/fatbuildr/issues/18))
+- cli:
+  - Add `shell` operation to `fatbuildrctl images` command to open an
+    interactive shell in a container running the image dedicated to a given
+    format ([#18](https://github.com/rackslab/fatbuildr/issues/18)).
+  - Add `--distribution` option to `fatbuildrctl images` command to filter the
+    container images or the build environments targeted by the operation.
 
 ### Fixed
 - cli:
