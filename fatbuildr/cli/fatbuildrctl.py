@@ -203,10 +203,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             'images', help='Manage build images'
         )
         parser_images.add_argument(
-            '--create', action='store_true', help='Create the images'
-        )
-        parser_images.add_argument(
-            '--update', action='store_true', help='Update the images'
+            'operation',
+            help='Operation to realize on image or build environment',
+            choices=['create', 'update', 'env-create', 'env-update'],
         )
         parser_images.add_argument(
             '--format',
@@ -216,16 +215,6 @@ class Fatbuildrctl(FatbuildrCliRun):
             '--force',
             action='store_true',
             help='Force creation of images even they already exist',
-        )
-        parser_images.add_argument(
-            '--create-envs',
-            action='store_true',
-            help='Create the build environments in the images',
-        )
-        parser_images.add_argument(
-            '--update-envs',
-            action='store_true',
-            help='Update the build environments in the images',
         )
         parser_images.add_argument(
             '-w',
@@ -446,18 +435,6 @@ class Fatbuildrctl(FatbuildrCliRun):
     def _run_images(self, args):
         logger.debug("running images task")
 
-        if (
-            not args.create
-            and not args.update
-            and not args.create_envs
-            and not args.update_envs
-        ):
-            print(
-                "An operation on the images must be specified, type "
-                f"'{progname()} images --help' for details"
-            )
-            sys.exit(1)
-
         if args.format:
             selected_formats = [args.format]
         else:
@@ -465,7 +442,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         logger.debug("Selected formats: %s", selected_formats)
 
         # check if operation is on images and run it
-        if args.create:
+        if args.operation == 'create':
             for format in selected_formats:
                 self._submit_watch(
                     self.connection.image_create,
@@ -474,7 +451,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                     format,
                     args.force,
                 )
-        elif args.update:
+        elif args.operation == 'update':
             for format in selected_formats:
                 self._submit_watch(
                     self.connection.image_update,
@@ -505,7 +482,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                     "Architectures defined in pipelines: %s", architectures
                 )
 
-                if args.create_envs:
+                if args.operation == 'env-create':
                     for env in envs:
                         for architecture in architectures:
                             self._submit_watch(
@@ -517,7 +494,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                                 env,
                                 architecture,
                             )
-                elif args.update_envs:
+                elif args.operation == 'env-update':
                     for env in envs:
                         for architecture in architectures:
                             self._submit_watch(

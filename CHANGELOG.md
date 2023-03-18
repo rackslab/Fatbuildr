@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Remove useless imports
 
 ### Changed
+- cli: transform `images` command options `--create`, `--update`,
+  `--create-envs` and `--update-envs` into an operation positional argument with
+  the corresponding possible values `create`, `update`, `env-create`,
+  `env-update`.
 - artifacts: rename YAML artifact definition file from `meta.yml` to
   `artifact.yml`. The old name is still supported but the user is warned with a
   deprecation notice ([#73](https://github.com/rackslab/fatbuildr/issues/73)).
