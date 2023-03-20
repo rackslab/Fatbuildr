@@ -423,9 +423,9 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         return self.implementation.submit('image update', format)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
-    def ImageShell(self, format: Str) -> Str:
+    def ImageShell(self, format: Str, term: Str) -> Str:
         """Submit an image shell task and returns the task id."""
-        return self.implementation.submit('image shell', format)
+        return self.implementation.submit('image shell', format, term)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
     def ImageEnvironmentCreate(
@@ -453,7 +453,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
     def ImageEnvironmentShell(
-        self, format: Str, environment: Str, architecture: Str
+        self, format: Str, environment: Str, architecture: Str, term: Str
     ) -> Str:
         """Submit an image build environment shell task and returns the task id."""
         return self.implementation.submit(
@@ -461,6 +461,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             format,
             environment,
             architecture,
+            term,
         )
 
 
