@@ -215,14 +215,17 @@ class Fatbuildrctl(FatbuildrCliRun):
             ],
         )
         parser_images.add_argument(
+            '-f',
             '--format',
             help='Manage image and build environment for this format',
         )
         parser_images.add_argument(
+            '-d',
             '--distribution',
             help='Manage build environment for this distribution',
         )
         parser_images.add_argument(
+            '-a',
             '--architecture',
             help='Manage build environment for this hardware architecture',
         )
