@@ -53,17 +53,6 @@ def progname():
     return Path(sys.argv[0]).name
 
 
-def default_user_pref():
-    """Returns the default path to the user preferences file, through
-    XDG_CONFIG_HOME environment variable if it is set."""
-    ini = 'fatbuildr.ini'
-    xdg_env = os.getenv('XDG_CONFIG_HOME')
-    if xdg_env:
-        return Path(xdg_env).join(ini)
-    else:
-        return Path(f"~/.config/{ini}")
-
-
 def prepare_tarball(apath, rundir: bool):
     """Generates tarball container artifact definition. If rundir is True, the
     tarball is generated in fatbuildrd system runtime directory. Otherwise, it
@@ -176,7 +165,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             '--preferences',
             help="Path to user preference file (default: %(default)s)",
             type=Path,
-            default=default_user_pref(),
+            default=UserPreferences.DEFAULT,
         )
         parser.add_argument(
             '--uri',
