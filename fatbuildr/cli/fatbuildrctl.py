@@ -570,6 +570,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 f"{selected_format} image shell",
                 True,
                 selected_format,
+                os.getenv('TERM'),
                 interactive=True,
             )
         elif args.operation == 'env-create':
@@ -659,6 +660,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 selected_format,
                 selected_env,
                 selected_architecture,
+                os.getenv('TERM'),
                 interactive=True,
             )
 

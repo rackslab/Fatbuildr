@@ -73,11 +73,13 @@ class ImageShellTask(RunnableTask):
     TASK_NAME = 'image shell'
     EXFIELDS = {
         ExportableTaskField('format'),
+        ExportableTaskField('term'),
     }
 
-    def __init__(self, task_id, place, instance, format):
+    def __init__(self, task_id, place, instance, format, term):
         super().__init__(task_id, place, instance, interactive=True)
         self.format = format
+        self.term = term
 
     def run(self):
         logger.info(
@@ -85,7 +87,7 @@ class ImageShellTask(RunnableTask):
             self.id,
         )
         img = self.instance.images_mgr.image(self.format)
-        img.shell(self)
+        img.shell(self, self.term)
 
 
 class ImageEnvironmentCreationTask(RunnableTask):
@@ -151,15 +153,17 @@ class ImageEnvironmentShellTask(RunnableTask):
         ExportableTaskField('format'),
         ExportableTaskField('environment'),
         ExportableTaskField('architecture'),
+        ExportableTaskField('term'),
     }
 
     def __init__(
-        self, task_id, place, instance, format, environment, architecture
+        self, task_id, place, instance, format, environment, architecture, term
     ):
         super().__init__(task_id, place, instance, interactive=True)
         self.format = format
         self.environment = environment
         self.architecture = architecture
+        self.term = term
 
     def run(self):
         logger.info(
@@ -169,4 +173,4 @@ class ImageEnvironmentShellTask(RunnableTask):
         build_env = self.instance.images_mgr.build_env(
             self.format, self.environment, self.architecture
         )
-        build_env.shell(self)
+        build_env.shell(self, self.term)

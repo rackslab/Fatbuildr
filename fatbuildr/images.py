@@ -137,7 +137,7 @@ class Image(object):
             # Package manager must be run as root
             task.cruncmd(self, cmd, init=True, asroot=True)
 
-    def shell(self, task):
+    def shell(self, task, term):
         logger.info(
             "Launching interactive shell in image for %s format", self.format
         )
@@ -145,7 +145,7 @@ class Image(object):
             raise RuntimeError(
                 f"Image {self.path} does not exist, create it first"
             )
-        task.cruncmd(self, None, init=True, asroot=True)
+        task.cruncmd(self, None, envs=[f"TERM={term}"], init=True, asroot=True)
 
 
 class BuildEnv(object):
@@ -256,7 +256,7 @@ class BuildEnv(object):
         for cmd in cmds:
             task.cruncmd(self.image, cmd, init=True, asroot=asroot)
 
-    def shell(self, task):
+    def shell(self, task, term):
         logger.info(
             "Running a shell in build environment %s for architecture %s in %s "
             "image",
@@ -271,7 +271,9 @@ class BuildEnv(object):
             name=self.name,
             path=self.path,
         )
-        task.cruncmd(self.image, cmd, init=True, asroot=True)
+        task.cruncmd(
+            self.image, cmd, envs=[f"TERM={term}"], init=True, asroot=True
+        )
 
 
 class ImagesManager(object):
