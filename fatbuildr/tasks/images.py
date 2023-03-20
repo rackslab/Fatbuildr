@@ -142,3 +142,31 @@ class ImageEnvironmentUpdateTask(RunnableTask):
             self.format, self.environment, self.architecture
         )
         build_env.update(self)
+
+
+class ImageEnvironmentShellTask(RunnableTask):
+
+    TASK_NAME = 'image build environment shell'
+    EXFIELDS = {
+        ExportableTaskField('format'),
+        ExportableTaskField('environment'),
+        ExportableTaskField('architecture'),
+    }
+
+    def __init__(
+        self, task_id, place, instance, format, environment, architecture
+    ):
+        super().__init__(task_id, place, instance, interactive=True)
+        self.format = format
+        self.environment = environment
+        self.architecture = architecture
+
+    def run(self):
+        logger.info(
+            "Running image build environment shell task %s",
+            self.id,
+        )
+        build_env = self.instance.images_mgr.build_env(
+            self.format, self.environment, self.architecture
+        )
+        build_env.shell(self)

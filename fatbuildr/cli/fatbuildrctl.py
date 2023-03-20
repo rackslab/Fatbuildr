@@ -205,7 +205,14 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_images.add_argument(
             'operation',
             help='Operation to realize on image or build environment',
-            choices=['create', 'update', 'shell', 'env-create', 'env-update'],
+            choices=[
+                'create',
+                'update',
+                'shell',
+                'env-create',
+                'env-update',
+                'env-shell',
+            ],
         )
         parser_images.add_argument(
             '--format',
@@ -463,6 +470,63 @@ class Fatbuildrctl(FatbuildrCliRun):
             selected_formats = self.connection.pipelines_formats()
         logger.debug("Selected formats: %s", selected_formats)
 
+        def select_build_environments(format):
+            """Returns the list of selected build environments for the
+            operation. If the distribution option is defined in the command
+            line, it returns the build environment associated to this
+            distribution and the given format. Otherwise, it returns the build
+            environments associated to all distributions declared in instance
+            pipelines for the given format."""
+            if args.distribution:
+                distributions = [args.distribution]
+            else:
+                distributions = self.connection.pipelines_format_distributions(
+                    format
+                )
+                if not distributions:
+                    logger.info("No distribution defined for %s image", format)
+            result = []
+            for distribution in distributions:
+                env = self.connection.pipelines_distribution_environment(
+                    distribution
+                )
+                if env is not None:
+                    result.append(env)
+                logger.debug(
+                    "Build environments found for format %s: %s", format, env
+                )
+            return result
+
+        def select_architectures():
+            """Returns the list of selected architecture for the build
+            environment operation. If the architecture option is defined in
+            command line, it checks if the architecture is well declared in
+            instance pipelines and returns this value. Otherwise, it returns the
+            list of all architectures declared in instance pipelines."""
+            available_architectures = self.connection.pipelines_architectures()
+            logger.debug(
+                "Architectures defined in pipelines: %s",
+                available_architectures,
+            )
+            if args.architecture:
+                if args.architecture not in available_architectures:
+                    logger.error(
+                        "Selected architecture %s is not available in this "
+                        "instance pipelines",
+                        args.architecture,
+                    )
+                    logger.info(
+                        "Select an architecture among the architectures "
+                        "available in this instance pipelines: %s",
+                        ' '.join(available_architectures),
+                    )
+                    sys.exit(1)
+                result = [args.architecture]
+            else:
+                result = available_architectures
+                logger.debug("Selected architectures: %s", result)
+            return result
+
         # check if operation is on images and run it
         if args.operation == 'create':
             for format in selected_formats:
@@ -487,7 +551,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 assert len(selected_formats) == 1
             except AssertionError:
                 logger.error(
-                    "Unable to define container image for the shell among {%s} "
+                    "Unable to define container image for the shell among {%s}"
                     "formats",
                     ','.join(selected_formats),
                 )
@@ -505,79 +569,95 @@ class Fatbuildrctl(FatbuildrCliRun):
                 selected_format,
                 interactive=True,
             )
-        else:
-            # At this stage, the operation is on build environments
+        elif args.operation == 'env-create':
+            selected_architectures = select_architectures()
             for format in selected_formats:
-                if args.distribution:
-                    distributions = [args.distribution]
-                else:
-                    distributions = (
-                        self.connection.pipelines_format_distributions(format)
-                    )
-                    if not distributions:
-                        logger.info(
-                            "No distribution defined for %s image", format
+                for env in select_build_environments(format):
+                    for architecture in selected_architectures:
+                        self._submit_watch(
+                            self.connection.image_environment_create,
+                            f"{format} {env}-{architecture} build "
+                            "environment creation",
+                            args.watch,
+                            format,
+                            env,
+                            architecture,
                         )
-                envs = []
-                for distribution in distributions:
-                    env = self.connection.pipelines_distribution_environment(
-                        distribution
-                    )
-                    if env is not None:
-                        envs.append(env)
-                logger.debug(
-                    "Build environments found for format %s: %s", format, envs
-                )
-                available_architectures = (
-                    self.connection.pipelines_architectures()
-                )
-                logger.debug(
-                    "Architectures defined in pipelines: %s", available_architectures
-                )
-                if args.architecture:
-                    if args.architecture not in available_architectures:
-                        logger.error(
-                            "Selected architecture %s is not available in this "
-                            "instance pipelines",
-                            args.architecture,
+        elif args.operation == 'env-update':
+            selected_architectures = select_architectures()
+            for format in selected_formats:
+                for env in select_build_environments(format):
+                    for architecture in selected_architectures:
+                        self._submit_watch(
+                            self.connection.image_environment_update,
+                            f"{format} {env}-{architecture} build "
+                            "environment update",
+                            args.watch,
+                            format,
+                            env,
+                            architecture,
                         )
-                        logger.info(
-                            "Select an architecture among the architectures "
-                            "available in this instance pipelines: %s",
-                            ' '.join(available_architectures),
-                        )
-                        sys.exit(1)
-                    selected_architectures = [args.architecture]
-                else:
-                    selected_architectures = available_architectures
-                logger.debug(
-                    "Selected architectures: %s", selected_architectures
+        elif args.operation == 'env-shell':
+            # Verify that only one format is selected at this stage or fail.
+            try:
+                assert len(selected_formats) == 1
+            except AssertionError:
+                logger.error(
+                    "Unable to define the format for the build environment "
+                    "shell among {%s} formats",
+                    ','.join(selected_formats),
                 )
-
-                if args.operation == 'env-create':
-                    for env in envs:
-                        for architecture in selected_architectures:
-                            self._submit_watch(
-                                self.connection.image_environment_create,
-                                f"{format} {env}-{architecture} build "
-                                "environment creation",
-                                args.watch,
-                                format,
-                                env,
-                                architecture,
-                            )
-                elif args.operation == 'env-update':
-                    for env in envs:
-                        for architecture in selected_architectures:
-                            self._submit_watch(
-                                self.connection.image_environment_update,
-                                f"{format} {env}-{architecture} build "
-                                "environment update",
-                                args.watch,
-                                format,
-                                env,
-                                architecture,
-                            )
+                logger.info(
+                    "Please use --format or --distribution filters to select "
+                    "the build environment for running the shell"
+                )
+                sys.exit(1)
+            selected_format = selected_formats[0]
+            selected_envs = select_build_environments(selected_format)
+            # Verify that only one build environment is selected at this
+            # stage or fail.
+            try:
+                assert len(selected_envs) == 1
+            except AssertionError:
+                logger.error(
+                    "Unable to define the build environment for the "
+                    "shell among {%s}",
+                    ','.join(selected_envs),
+                )
+                logger.info(
+                    "Please use --distribution filter to select a "
+                    "specific build environment for running the shell"
+                )
+                sys.exit(1)
+            selected_env = selected_envs[0]
+            selected_architectures = select_architectures()
+            # Verify that only one hardware architecture is selected at thi
+            # stage or fail.
+            try:
+                assert len(selected_architectures) == 1
+            except AssertionError:
+                logger.error(
+                    "Unable to define the hardware architecture for "
+                    "the shell among {%s}",
+                    ','.join(selected_architectures),
+                )
+                logger.info(
+                    "Please use --architecture filter to select a "
+                    "specific build environment hardware architecture "
+                    "for running the shell"
+                )
+                sys.exit(1)
+            selected_architecture = selected_architectures[0]
+            self._submit_watch(
+                self.connection.image_environment_shell,
+                f"{selected_format} {selected_env}-{selected_architecture} "
+                "build environment shell",
+                True,  # watch
+                selected_format,
+                selected_env,
+                selected_architecture,
+                interactive=True,
+            )
 
     def _run_keyring(self, args):
         logger.debug("running keyring operation")

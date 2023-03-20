@@ -214,6 +214,11 @@ The *images* command accepts the following subcommands:
   environments for all formats and architectures declared in instance pipelines
   are updated. One task per build environment is submitted on server side.
 
+*env-shell*::
+  Submit a task to run an interactive shell as root in a build environment. The
+  build environment must be selected with `--format`, `--distribution` and
+  `--architecture` filters. The task is terminated when the shell is exited.
+
 The *images* command accepts the following option:
 
 *--format*=_FORMAT_::
@@ -262,6 +267,11 @@ The *images* command accepts the following option:
 `$ fatbuildrctl images env-update --distribution sid --architecture x86_64`::
   Submit a task to update the build environments declared in instances pipelines
   for the _sid_ distribution for `x86_64` hardware architecture only.
+
+`$ fatbuildrctl images env-shell --distribution el8 --architecture arm64`::
+  Submit a task to open an interactive shell in the build environment declared
+  in instances pipelines for the _el8_ distribution for `arm64` hardware
+  architecture.
 --
 
 *keyring*::

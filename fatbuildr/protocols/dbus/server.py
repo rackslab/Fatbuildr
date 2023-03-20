@@ -451,6 +451,18 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             architecture,
         )
 
+    @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
+    def ImageEnvironmentShell(
+        self, format: Str, environment: Str, architecture: Str
+    ) -> Str:
+        """Submit an image build environment shell task and returns the task id."""
+        return self.implementation.submit(
+            'image build environment shell',
+            format,
+            environment,
+            architecture,
+        )
+
 
 class FatbuildrDBusInstance(Publishable):
     """The implementation of FatbuildrDBusInstanceInterface."""
