@@ -47,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   deprecation notice ([#73](https://github.com/rackslab/fatbuildr/issues/73)).
 - docs: convert APT sources file in quickstart guide from one-line format to
   Deb822-style format ([#72](https://github.com/rackslab/fatbuildr/issues/72))
+- Rename `fatbuildr.web` module to `fatbuildr.procotols.http.server` for more
+  proximity with `fatbuildr.procotols.http.client` code.
 
 ## [1.1.0] - 2023-03-13
 

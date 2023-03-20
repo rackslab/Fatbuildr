@@ -35,9 +35,9 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 
-from ..version import __version__
-from ..protocols import ClientFactory
-from ..protocols.http import (
+from ....version import __version__
+from ... import ClientFactory
+from .. import (
     JsonInstance,
     JsonRunnableTask,
     JsonArtifact,

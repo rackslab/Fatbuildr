@@ -25,7 +25,7 @@ from flask.helpers import locked_cached_property
 from jinja2 import FileSystemLoader
 
 from . import views
-from ..log import logr
+from ....log import logr
 
 logger = logr(__name__)
 
