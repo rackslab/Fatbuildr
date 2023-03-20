@@ -256,6 +256,23 @@ class BuildEnv(object):
         for cmd in cmds:
             task.cruncmd(self.image, cmd, init=True, asroot=asroot)
 
+    def shell(self, task):
+        logger.info(
+            "Running a shell in build environment %s for architecture %s in %s "
+            "image",
+            self.name,
+            self.architecture,
+            self.image.format,
+        )
+        cmd = Templeter().srender(
+            getattr(self.conf, self.image.format).shell_cmd,
+            environment=self.environment,
+            architecture=self.architecture,
+            name=self.name,
+            path=self.path,
+        )
+        task.cruncmd(self.image, cmd, init=True, asroot=True)
+
 
 class ImagesManager(object):
     def __init__(self, conf, instance):

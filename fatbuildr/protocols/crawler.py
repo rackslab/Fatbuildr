@@ -30,6 +30,7 @@ from ..tasks.images import (
     ImageShellTask,
     ImageEnvironmentCreationTask,
     ImageEnvironmentUpdateTask,
+    ImageEnvironmentShellTask,
 )
 
 # types
@@ -52,6 +53,7 @@ def register_protocols():
         (ImageShellTask,),
         (ImageEnvironmentCreationTask,),
         (ImageEnvironmentUpdateTask,),
+        (ImageEnvironmentShellTask,),
     ]:
         registry.register_task(*task)
     for _type in [
