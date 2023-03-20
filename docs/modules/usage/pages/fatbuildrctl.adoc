@@ -187,48 +187,52 @@ for _osi_ format artifacts as this format does not contain changelogs.
 The *images* command accepts the following subcommands:
 
 *create*::
-  Submit tasks to create container images. Unless `--format` or `--distribution`
-  filters are used, all images for all formats declared in instance pipelines
-  are created. One task per image is submitted on server side.
+  Submit tasks to create container images. Unless `-f, --format` or
+  `-d, --distribution` filters are used, all images for all formats declared in
+  instance pipelines are created. One task per image is submitted on server
+  side.
 
 *update*::
-  Submit tasks to update OS packages of container images. Unless `--format` or
-  `--distribution` filters are used, all images for all formats declared in
-  instance pipelines are updated. One task per image is submitted on server
+  Submit tasks to update OS packages of container images. Unless `-f, --format`
+  or `-d, --distribution` filters are used, all images for all formats declared
+  in instance pipelines are updated. One task per image is submitted on server
   side.
 
 *shell*::
   Submit a task to run an interactive shell as root in a container image. One of
-  `--format` or `--distribution` filters is required to select the image. The
-  task is terminated when the shell is exited.
+  `-f, --format` or `-d, --distribution` filters is required to select the
+  image. The task is terminated when the shell is exited.
 
 *env-create*::
   Submit tasks to create the build environments in the container images. Unless
-  `--format`, `--distribution` or `--architecture` filters are used, all build
-  environments for all formats and architectures declared in instance pipelines
-  are created. One task per build environment is submitted on server side.
+  `-f, --format`, `-d, --distribution` or `-a, --architecture` filters are used,
+  all build environments for all formats and architectures declared in instance
+  pipelines are created. One task per build environment is submitted on server
+  side.
 
 *env-update*::
   Submit tasks to update the build environments in the container images. Unless
-  `--format`, `--distribution` or `--architecture` filters are used, all build
-  environments for all formats and architectures declared in instance pipelines
-  are updated. One task per build environment is submitted on server side.
+  `-f, --format`, `-d, --distribution` or `-a, --architecture` filters are used,
+  all build environments for all formats and architectures declared in instance
+  pipelines are updated. One task per build environment is submitted on server
+  side.
 
 *env-shell*::
   Submit a task to run an interactive shell as root in a build environment. The
-  build environment must be selected with `--format`, `--distribution` and
-  `--architecture` filters. The task is terminated when the shell is exited.
+  build environment must be selected with `-f, --format`, `-d, --distribution`
+  and `-a, --architecture` filters. The task is terminated when the shell is
+  exited.
 
 The *images* command accepts the following option:
 
-*--format*=_FORMAT_::
+*-f, --format*=_FORMAT_::
   Filter operation on container image dedicated to format _FORMAT_.
 
-*--distribution*=_DISTRIBUTION_::
+*-d, --distribution*=_DISTRIBUTION_::
   Filter operation on container image or build environment targeting
   distribution _DISTRIBUTION_.
 
-*--architecture*=_ARCHITECTURE_::
+*-a, --architecture*=_ARCHITECTURE_::
   Filter operation on build environment for the hardware architecture
   _ARCHITECTURE_. Without this option, all hardware architectures declared in
   instance pipelines are considered. This option is ignored for operations
