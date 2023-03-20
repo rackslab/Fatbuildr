@@ -61,6 +61,10 @@ this table:
 |✅
 |❌
 
+|Generate JWT token for authentication on HTTP REST API
+|✅
+|❌
+
 |Create keyring
 |✅
 |❌

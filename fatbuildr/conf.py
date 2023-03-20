@@ -180,6 +180,22 @@ class RuntimeSubConfKeyring(object):
         logger.debug("  seeder: %s", self.seeder)
 
 
+class RuntimeSubConfTokens(object):
+    """Runtime sub-configuration class to hold tokens settings."""
+
+    def __init__(self):
+
+        self.storage = None
+
+    def load(self, config):
+        section = 'tokens'
+        self.storage = Path(config.get(section, 'storage'))
+
+    def dump(self):
+        logger.debug("[tokens]")
+        logger.debug("  storage: %s", self.storage)
+
+
 class RuntimeSubConfFormatDeb(object):
     """Runtime sub-configuration class to hold Deb format settings."""
 
@@ -352,6 +368,7 @@ class RuntimeConf(object):
         self.registry = RuntimeSubConfRegistry()
         self.containers = RuntimeSubConfContainers()
         self.keyring = RuntimeSubConfKeyring()
+        self.tokens = RuntimeSubConfTokens()
         self.deb = RuntimeSubConfFormatDeb()
         self.rpm = RuntimeSubConfFormatRpm()
         self.osi = RuntimeSubConfFormatOsi()
@@ -378,6 +395,7 @@ class RuntimeConf(object):
         self.registry.load(self.config)
         self.containers.load(self.config)
         self.keyring.load(self.config)
+        self.tokens.load(self.config)
         self.deb.load(self.config)
         self.rpm.load(self.config)
         self.osi.load(self.config)
@@ -392,6 +410,7 @@ class RuntimeConf(object):
         self.registry.dump()
         self.containers.dump()
         self.keyring.dump()
+        self.tokens.dump()
         self.deb.dump()
         self.rpm.dump()
         self.osi.dump()

@@ -32,6 +32,9 @@ expiry date).
 org.rackslab.Fatbuildr.manage-image:: Submit tasks to create, update and open
 interactive shell in container images and build environment.
 
+org.rackslab.Fatbuildr.manage-tokens:: Manage JWT tokens used for authentication
+to HTTP REST API.
+
 == Default Policy
 
 By default in Fatbuildr, _root_ super user and members of group `fatbuildr` are

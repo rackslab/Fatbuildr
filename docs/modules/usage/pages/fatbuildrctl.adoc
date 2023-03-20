@@ -477,6 +477,10 @@ The command accepts the following options:
   _main_ default derivative).
 --
 
+*token*::
+
+  Generate token for authentication to HTTP REST API.
+
 *watch*::
 
   Get output of running and archived tasks.

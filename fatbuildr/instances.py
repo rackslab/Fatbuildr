@@ -25,6 +25,7 @@ from .tasks.manager import ServerTasksManager
 from .registry.manager import RegistryManager
 from .archives import ArchivesManager
 from .keyring import InstanceKeyring
+from .tokens import TokensManager
 from .images import ImagesManager
 from .containers import ContainerRunner
 from .cache import CacheManager
@@ -180,6 +181,7 @@ class RunningInstance(ExportableType):
         self.archives_mgr = ArchivesManager(self.conf, self)
         self.images_mgr = ImagesManager(self.conf, self)
         self.keyring = InstanceKeyring(self.conf, self)
+        self.tokens_mgr = TokensManager(self.conf, self)
         self.crun = ContainerRunner(self.conf)
         self.cache = CacheManager(self.conf, self)
         self.keyring.load()

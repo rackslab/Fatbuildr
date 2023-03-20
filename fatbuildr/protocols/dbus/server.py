@@ -61,6 +61,14 @@ REQUIRE_POLKIT_AUTHORIZATION_ATTRIBUTE = (
 )
 
 
+def dbus_user(sender):
+    """Returns a tuple container the UID and the name of the user initiating the
+    provided DBus sender connection name."""
+    proxy = BUS.get_proxy("org.freedesktop.DBus", "/org/freedesktop/DBus")
+    uid = proxy.GetConnectionUnixUser(sender)
+    return (uid, pwd.getpwuid(uid).pw_name)
+
+
 def require_polkit_authorization(action):
     """Decorator for InterfaceTemplate methods to check for polkit authorization
     on the given action prior to running the method. The decorator actually
@@ -107,9 +115,7 @@ class TimeredAuthorizationServerObjectHandler(ServerObjectHandler):
         """This method asks polkit for given sender authorization on the given
         action. It raises FatbuildrDBusErrorNotAuthorized exception if the
         authorization fails."""
-        proxy = BUS.get_proxy("org.freedesktop.DBus", "/org/freedesktop/DBus")
-        uid = proxy.GetConnectionUnixUser(sender)
-        user = pwd.getpwuid(uid).pw_name
+        (uid, user) = dbus_user(sender)
 
         proxy = BUS.get_proxy(
             "org.freedesktop.PolicyKit1",
@@ -478,6 +484,14 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             term,
         )
 
+    @accepts_additional_arguments
+    @require_polkit_authorization("org.rackslab.Fatbuildr.manage-token")
+    def TokenGenerate(self, *, call_info) -> Str:
+        """Returns a generated token for REST API."""
+        return self.implementation.generate_token(
+            dbus_user(call_info['sender'])[1]
+        )
+
 
 class FatbuildrDBusInstance(Publishable):
     """The implementation of FatbuildrDBusInstanceInterface."""
@@ -592,6 +606,10 @@ class FatbuildrDBusInstance(Publishable):
     def keyring_export(self):
         """Returns armored public key of instance keyring."""
         return self._instance.keyring.export()
+
+    def generate_token(self, user: Str):
+        """Returns a generated token for HTTP REST API usage."""
+        return self._instance.tokens_mgr.generate(user)
 
 
 class DBusServer(object):

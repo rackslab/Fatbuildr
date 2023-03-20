@@ -133,6 +133,13 @@ expires. The value can be suffixed with units `w` (weeks), 'm' (months) or `y`
 `seeder`:: Path to utility used to seed the internal cache of a running
 `gpg-agent` with keyring passphrase.
 
+=== `tokens`
+
+This section controls the JWT tokens settings for HTTP REST API authentication.
+It includes the following parameters:
+
+`storage`:: Absolute path to directory for storing the JWT tokens encoding keys.
+
 === `format:*`
 
 All artifacts supported by Fatbuildr have their dedicated section prefixed by

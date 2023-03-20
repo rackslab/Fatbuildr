@@ -8,7 +8,8 @@ polkit.addRule(function(action, subject) {
          action.id == "org.rackslab.Fatbuildr.edit-registry" ||
          action.id == "org.rackslab.Fatbuildr.view-keyring" ||
          action.id == "org.rackslab.Fatbuildr.edit-keyring" ||
-         action.id == "org.rackslab.Fatbuildr.manage-image") &&
+         action.id == "org.rackslab.Fatbuildr.manage-image" ||
+         action.id == "org.rackslab.Fatbuildr.manage-token") &&
         subject.isInGroup ("fatbuildr")) {
             return polkit.Result.YES;
         }
