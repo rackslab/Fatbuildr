@@ -376,6 +376,12 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         parser_registry.set_defaults(func=self._run_registry)
 
+        # Parser for the token command
+        parser_token = subparsers.add_parser(
+            'token', help='Manage REST API token'
+        )
+        parser_token.set_defaults(func=self._run_token)
+
         args = parser.parse_args()
 
         logger.setup(args.debug or args.fulldebug, args.fulldebug)
@@ -1092,3 +1098,6 @@ class Fatbuildrctl(FatbuildrCliRun):
                 print(
                     f"Submitted artifact {artifact.name} deletion task {task_id}"
                 )
+
+    def _run_token(self, args):
+        print(self.connection.token_generate())

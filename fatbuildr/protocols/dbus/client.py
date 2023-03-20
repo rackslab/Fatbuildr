@@ -292,3 +292,8 @@ class DBusClient(AbstractClient):
         return self.proxy.ImageEnvironmentShell(
             format, environment, architecture, term
         )
+
+    # token
+    @check_dbus_errors
+    def token_generate(self):
+        return self.proxy.TokenGenerate()

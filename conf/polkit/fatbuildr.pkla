@@ -53,3 +53,10 @@ Action=org.rackslab.Fatbuildr.manage-image;
 ResultAny=yes
 ResultInactive=yes
 ResultActive=yes
+
+[Allow members of fatbuildr group to manage Fatbuildr token]
+Identity=unix-group:fatbuildr
+Action=org.rackslab.Fatbuildr.manage-token;
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes

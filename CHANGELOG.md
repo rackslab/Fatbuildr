@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     architecture.
   - Add short option `-f` as an alternative to `--format` long option of
     `fatbuildrctl images` command.
+  - Add `fatbuildrctl token` command to generate JWT token for HTTP REST API
+    authentication.
 
 ### Fixed
 - cli:
