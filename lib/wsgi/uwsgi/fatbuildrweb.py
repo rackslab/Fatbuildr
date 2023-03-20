@@ -19,7 +19,7 @@
 
 import sys
 
-from fatbuildr.web import WebApp
+from fatbuildr.protocols.http.server import WebApp
 from fatbuildr.conf import RuntimeConfWeb
 from fatbuildr.protocols.crawler import register_protocols
 from fatbuildr.log import logr

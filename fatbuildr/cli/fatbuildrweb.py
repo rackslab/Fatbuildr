@@ -23,7 +23,7 @@ from . import FatbuildrCliRun
 from ..conf import RuntimeConfWeb
 from ..version import __version__
 from ..protocols.crawler import register_protocols
-from ..web import WebApp
+from ..protocols.http.server import WebApp
 from ..log import logr
 
 logger = logr(__name__)
