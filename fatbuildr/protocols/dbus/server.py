@@ -219,7 +219,12 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesDistributionFormat(self, distribution: Str) -> Str:
         """Returns the format of the given distribution in the pipelines of the instance."""
-        return self.implementation.pipelines_distribution_format(distribution)
+        try:
+            return self.implementation.pipelines_distribution_format(
+                distribution
+            )
+        except FatbuildrPipelineError as err:
+            raise FatbuildrDBusErrorPipeline(err)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesDistributionEnvironment(self, distribution: Str) -> Str:
@@ -228,15 +233,18 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             return self.implementation.pipelines_distribution_environment(
                 distribution
             )
-        except RuntimeError:
+        except FatbuildrPipelineError:
             return 'none'
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesDistributionDerivatives(self, distribution: Str) -> List[Str]:
         """Returns the derivatives of the given distribution in the pipelines of the instance."""
-        return self.implementation.pipelines_distribution_derivatives(
-            distribution
-        )
+        try:
+            return self.implementation.pipelines_distribution_derivatives(
+                distribution
+            )
+        except FatbuildrPipelineError as err:
+            raise FatbuildrDBusErrorPipeline(err)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesDerivativeFormats(self, derivative: Str) -> List[Str]:
@@ -252,8 +260,12 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
     def Running(self) -> Structure:
-        """The currently running task"""
-        return DBusRunnableTask.to_structure(self.implementation.running())
+        """The currently running task. FatbuildrDBusErrorNoRunningTask is raised
+        if no task is currently running."""
+        running = self.implementation.running()
+        if running is None:
+            raise FatbuildrDBusErrorNoRunningTask()
+        return DBusRunnableTask.to_structure(running)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
     def Archives(self, limit: Int) -> List[Structure]:
@@ -491,22 +503,13 @@ class FatbuildrDBusInstance(Publishable):
         return self._instance.pipelines.format_dists(format)
 
     def pipelines_distribution_format(self, distribution: Str):
-        try:
-            return self._instance.pipelines.dist_format(distribution)
-        except FatbuildrPipelineError as err:
-            raise FatbuildrDBusErrorPipeline(err)
+        return self._instance.pipelines.dist_format(distribution)
 
     def pipelines_distribution_derivatives(self, distribution: Str):
-        try:
-            return self._instance.pipelines.dist_derivatives(distribution)
-        except FatbuildrPipelineError as err:
-            raise FatbuildrDBusErrorPipeline(err)
+        return self._instance.pipelines.dist_derivatives(distribution)
 
     def pipelines_distribution_environment(self, distribution: Str):
-        try:
-            return self._instance.pipelines.dist_env(distribution)
-        except FatbuildrPipelineError as err:
-            raise FatbuildrDBusErrorPipeline(err)
+        return self._instance.pipelines.dist_env(distribution)
 
     def pipelines_derivative_formats(self, derivative: Str):
         return self._instance.pipelines.derivative_formats(derivative)
@@ -516,10 +519,7 @@ class FatbuildrDBusInstance(Publishable):
         return self._instance.tasks_mgr.queue.dump()
 
     def running(self):
-        """The currently running task. FatbuildrDBusErrorNoRunningTask is raised
-        if no task is currently running."""
-        if not self._instance.tasks_mgr.running:
-            raise FatbuildrDBusErrorNoRunningTask()
+        """The currently running task."""
         return self._instance.tasks_mgr.running
 
     def archives(self, limit):
