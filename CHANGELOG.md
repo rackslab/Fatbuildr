@@ -22,6 +22,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `fatbuildrctl images` command.
   - Add `fatbuildrctl token` command to generate JWT token for HTTP REST API
     authentication.
+- web: add JWT token based authentication with RBAC policy for managing access
+  permissions to the REST API and the HTML web endpoints
+  ([#21](https://github.com/rackslab/fatbuildr/issues/21)). Fatbuildr provides a
+  default policy that can be overriden by site administrators.
 
 ### Fixed
 - cli:

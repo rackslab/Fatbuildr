@@ -337,6 +337,8 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         self.vendor_templates = None
         self.templates = None
         self.static = None
+        self.vendor_policy = None
+        self.policy = None
 
     def load(self, config):
         section = 'web'
@@ -347,6 +349,8 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         self.vendor_templates = config.get(section, 'vendor_templates')
         self.templates = config.get(section, 'templates')
         self.static = config.get(section, 'static')
+        self.vendor_policy = Path(config.get(section, 'vendor_policy'))
+        self.policy = Path(config.get(section, 'policy'))
 
     def dump(self):
         logger.debug("[web]")
@@ -356,6 +360,8 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         logger.debug("  instance: %s", self.instance)
         logger.debug("  vendor_templates: %s", self.vendor_templates)
         logger.debug("  static: %s", self.static)
+        logger.debug("  vendor_policy: %s", self.vendor_policy)
+        logger.debug("  policy: %s", self.policy)
 
 
 class RuntimeConf(object):

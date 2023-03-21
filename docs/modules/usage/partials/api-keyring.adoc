@@ -4,6 +4,8 @@
 
 `GET /\{instance}/keyring.asc`
 
+*Permission action:* `view-keyring`
+
 Download instance keyring public key in armored format.
 
 ===== Path Parameters
@@ -28,6 +30,11 @@ Download instance keyring public key in armored format.
 |Operation successful
 |`text/plain`
 |_string_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples

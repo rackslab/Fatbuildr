@@ -4,6 +4,8 @@
 
 `GET /instances.json`
 
+*No permission action required.*
+
 Returns the list of available instances on Fatbuildr server.
 
 WARNING: This endpoint is not available when Fatbuildrweb component runs in
@@ -60,6 +62,8 @@ following endpoints must be considered without the _instance_ path attribute.
 
 `GET /\{instance}/instance.json`
 
+*Permission action:* `view-registry`
+
 Returns instance information.
 
 ===== Path Parameters
@@ -84,6 +88,11 @@ Returns instance information.
 |Operation successful
 |`application/json`
 |_xref:#object-instance[] object_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples

@@ -194,6 +194,114 @@ Finally restart the service to apply changes:
 # systemctl restart fatbuildrweb-uwsgi.service
 ----
 
+[#policy]
+== Access Policy
+
+[#policy-def]
+=== Policy definition files
+
+The permissions to access Fatbuildrweb HTML and REST API endpoints are defined
+by a policy. By default, the vendor policy is defined in file
+`/usr/share/fatbuildr/web/policy.acl`. This default policy can be overriden with
+a site policy by creating a file `/etc/fatbuildr/web/policy.acl`.
+
+CAUTION: Do not modify the vendor policy file or your modifications can be lost
+at the next Fatbuildr package upgrade.
+
+NOTE: The paths to the policy files can be changed in xref:conf.adoc[Fatbuildr
+system configuration file].
+
+The policy files have the https://en.wikipedia.org/wiki/INI_file[INI file
+format], with sections and parameters.
+
+A policy file must have a global `[roles]` section. The options of this section
+are the names of the roles involved in the policy. The values of all options
+except the `anonymous` role are a comma-separated list of role members. The list
+can contain invidual users or group names prefixed by `@`.
+
+NOTE: Fatbuildr only supports
+https://en.wikipedia.org/wiki/Name_Service_Switch[UNIX NSS backend] for
+retrieving users and groups. If users and groups of your organization are
+defined in an LDAP directory or SQL database, you must setup a NSS source (eg.
+https://sssd.io/[sssd]) to make the users and groups available to Fatbuildr.
+
+.Example of role members:
+====
+[source,ini]
+----
+[roles]
+users=@devs,john
+----
+
+This policy defines the _users_ role whose members are the individual user
+_john_ and the members of _devs_ group.
+====
+
+For each declared role, a section must be defined with the `actions` option. The
+value of this option is comma-separated of _permission actions_ allowed to this
+role. This list can also contain values prefixed by `@` followed by a role name
+to include the actions allowed to another role. This makes simple to define a
+role as an extension of another role.
+
+.Example of role actions:
+====
+[source,ini]
+----
+[roles]
+users=@devs,john
+admins=mary
+
+[users]
+actions=view-task
+
+[admins]
+actions=@users,view-keyring
+----
+
+This policy defines 2 roles _users_ and _admins_. The _users_ role is allowed to
+perform the _view-task_ action. The _admins_ is allowed to perform actions
+allowed to _users_ role and the _view-keyring_ action.
+====
+
+TIP: When the _anonymous_ role is declared with allowed actions, all other roles
+are automatically allowed to perform these actions.
+
+.Vendor policy
+[%collapsible]
+====
+For reference, here is the content of the default vendor policy file:
+
+[source,ini]
+----
+include::example$policy.acl[lines=10..-1]
+----
+====
+
+[#perms]
+=== Permission actions
+
+Fatbuildrweb supports the following _permission actions_:
+
+[cols="1m,3"]
+|===
+|Name|Description
+
+|view-pipeline
+|View content instance pipelines definition
+
+|view-registry
+|View content of artifact registries
+
+|view-task
+|View tasks queue (running and pending), archives and outputs
+
+|view-keyring
+|Get information about keyring public key
+
+|build
+|Submit build tasks
+|===
+
 == Custom HTML templates
 
 The HTML pages served by Fatbuildrweb are rendered based on templates. Fatbuildr

@@ -19,6 +19,7 @@
 
 import inspect
 import io
+from functools import wraps
 
 from flask import (
     request,
@@ -43,10 +44,68 @@ from .. import (
     JsonArtifact,
     JsonChangelogEntry,
 )
+from ....log import logr
+
+logger = logr(__name__)
 
 
 def error_bad_request(e):
     return render_template('error.html.j2', error="bad request (400)"), 400
+
+
+def error_forbidden(e):
+    if 'output' in request.view_args and request.view_args['output'] == 'html':
+        return (
+            render_template('error.html.j2', error=f"{e.description} (403)"),
+            403,
+        )
+    else:
+        return jsonify(error=e.description), 403
+
+
+def check_instance_token_permission(action):
+    """Decorator for Flask views functions check for valid authentification JWT
+    token and permission in policy."""
+
+    def inner_decorator(view):
+        @wraps(view)
+        def wrapped(instance, *args, **kwargs):
+            if 'Authorization' in request.headers:
+                auth = request.headers['Authorization']
+                if not auth.startswith('Bearer '):
+                    logger.warning(
+                        "Malformed authorization header found in request"
+                    )
+                    abort(403, "No valid token provided")
+                token = auth.split(' ', 1)[1]
+                user = current_app.token_manager(instance).decode(token)
+                if not current_app.policy.validate_user_action(user, action):
+                    logger.warning(
+                        "Unauthorized access from user %s to action %s",
+                        user,
+                        action,
+                    )
+                    abort(
+                        403,
+                        f"user {user} is not allowed to perform action "
+                        f"{action}",
+                    )
+            elif (
+                not current_app.policy.allow_anonymous
+                or not current_app.policy.validate_anonymous_action(action)
+            ):
+                logger.warning(
+                    "Unauthorized anonymous access to action %s", action
+                )
+                abort(
+                    403,
+                    f"anonymous role is not allowed to perform action {action}",
+                )
+            return view(instance, *args, **kwargs)
+
+        return wrapped
+
+    return inner_decorator
 
 
 def get_connection(instance='default'):
@@ -68,17 +127,20 @@ def version():
     return Response(f"Fatbuildr v{__version__}", mimetype='text/plain')
 
 
+@check_instance_token_permission('view-pipeline')
 def instance(instance):
     connection = get_connection(instance)
     _instance = connection.instance(instance)
     return jsonify(JsonInstance.export(_instance))
 
 
+@check_instance_token_permission('view-pipeline')
 def pipelines_architectures(instance):
     connection = get_connection(instance)
     return jsonify(connection.pipelines_architectures())
 
 
+@check_instance_token_permission('view-pipeline')
 def pipelines_formats(instance):
     connection = get_connection(instance)
     result = {}
@@ -134,6 +196,7 @@ def index_redirect(instance):
     return redirect(url_for('registry', instance=instance, output='html'))
 
 
+@check_instance_token_permission('view-registry')
 def registry(instance, output='html'):
     connection = get_connection(instance)
     formats = connection.formats()
@@ -154,6 +217,7 @@ def registry(instance, output='html'):
         )
 
 
+@check_instance_token_permission('view-registry')
 def format(instance, fmt, output='html'):
     connection = get_connection(instance)
     distributions = connection.distributions(fmt)
@@ -168,6 +232,7 @@ def format(instance, fmt, output='html'):
         )
 
 
+@check_instance_token_permission('view-registry')
 def distribution(instance, fmt, distribution, output='html'):
     connection = get_connection(instance)
     derivatives = connection.derivatives(fmt, distribution)
@@ -183,6 +248,7 @@ def distribution(instance, fmt, distribution, output='html'):
         )
 
 
+@check_instance_token_permission('view-registry')
 def derivative(instance, fmt, distribution, derivative, output='html'):
     connection = get_connection(instance)
     artifacts = connection.artifacts(fmt, distribution, derivative)
@@ -199,6 +265,7 @@ def derivative(instance, fmt, distribution, derivative, output='html'):
         )
 
 
+@check_instance_token_permission('view-registry')
 def artifact(
     instance,
     fmt,
@@ -263,6 +330,7 @@ def artifact(
         )
 
 
+@check_instance_token_permission('view-registry')
 def search(instance, output='html'):
     connection = get_connection(instance)
     formats = connection.formats()
@@ -309,6 +377,7 @@ def search(instance, output='html'):
         )
 
 
+@check_instance_token_permission('build')
 def build(instance):
     tarball = request.files['tarball']
     tarball_path = current_app.config['UPLOAD_FOLDER'].joinpath(
@@ -341,6 +410,7 @@ def build(instance):
     return jsonify({'task': task_id})
 
 
+@check_instance_token_permission('view-task')
 def running(instance):
     connection = get_connection(instance)
     running = connection.running()
@@ -349,18 +419,21 @@ def running(instance):
     return jsonify(None)
 
 
+@check_instance_token_permission('view-task')
 def queue(instance):
     connection = get_connection(instance)
     tasks = connection.queue()
     return jsonify([JsonRunnableTask.export(task) for task in tasks])
 
 
+@check_instance_token_permission('view-task')
 def task(instance, task_id):
     connection = get_connection(instance)
     task = connection.get(task_id)
     return jsonify(JsonRunnableTask.export(task))
 
 
+@check_instance_token_permission('view-task')
 def watch(instance, task_id, output='html'):
     """Stream lines obtained by DBusClient.watch() generator."""
     connection = get_connection(instance)
@@ -383,6 +456,7 @@ def watch(instance, task_id, output='html'):
         )
 
 
+@check_instance_token_permission('view-keyring')
 def keyring(instance):
     connection = get_connection(instance)
     mem = io.BytesIO()

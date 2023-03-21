@@ -4,6 +4,8 @@
 
 `POST /\{instance}/build`
 
+*Permission action:* `build`
+
 Submit artifact build task in queue.
 
 ===== Path Parameters
@@ -43,6 +45,11 @@ Submit artifact build task in queue.
 |Missing form parameter
 |`text/html`
 |
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -79,6 +86,8 @@ Response:
 
 `GET /\{instance}/running.json`
 
+*Permission action:* `view-task`
+
 Returns information about the running task.
 
 ===== Path Parameters
@@ -103,6 +112,11 @@ Returns information about the running task.
 |Operation successful
 |`application/json`
 |_xref:#object-task[]_ object or _null_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -150,6 +164,8 @@ Response:
 
 `GET /\{instance}/queue.json`
 
+*Permission action:* `view-task`
+
 Returns list of pending tasks.
 
 ===== Path Parameters
@@ -174,6 +190,11 @@ Returns list of pending tasks.
 |Operation successful
 |`application/json`
 |_array[xref:#object-task[] object]_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -247,6 +268,8 @@ Response:
 
 `GET /\{instance}/tasks/\{task}.json`
 
+*Permission action:* `view-task`
+
 Returns information about an archived task.
 
 ===== Path Parameters
@@ -276,6 +299,11 @@ Returns information about an archived task.
 |Operation successful
 |`application/json`
 |_xref:#object-task[]_ object or _null_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -323,6 +351,8 @@ Response:
 
 `GET /\{instance}/watch/\{task}.journal`
 
+*Permission action:* `view-task`
+
 Returns the binary journal of either running or archived task.
 
 NOTE: The response is a binary file encoded with Fatbuildr specific
@@ -359,6 +389,11 @@ over. In this case, the duration of the response might be significant.
 |Operation successful
 |`application/octet-stream`
 |_file_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples

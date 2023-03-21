@@ -7,6 +7,15 @@ HTML pages to explore tasks archives and the content of the registries in a
 graphical user interface with a web browser. The following section gives the
 list of all available HTML pages endpoints in Fatbuildrweb.
 
+CAUTION: For consistency with the xref:api.adoc[REST API], HTML endpoints are
+associated to xref:admin:web.adoc#perms[_permission actions_] in
+xref:admin:web.adoc#policy[Fatbuildrweb policy]. Currently, authentication is
+not supported in Fatbuildrweb HTML endpoints. Therefore, all accesses to the
+HTML endpoints with a browser are performered with _anonymous role_. This
+implies that if a _permission action_ is not permitted to the _anonymous role_
+by the policy, the accesses to the HTML endpoints associated to this _permission
+action_ are refused with a HTTP/403 _Forbidden_ response.
+
 == HTML Endpoints
 
 === Instances
@@ -14,6 +23,8 @@ list of all available HTML pages endpoints in Fatbuildrweb.
 ==== List of Available Instances
 
 `GET /`:: The list of defined Fatbuildr instances
+
+*No permission action required.*
 
 WARNING: This endpoint is not available when Fatbuildrweb component runs in
 xref:admin:web.adoc#monoinstance[mono-instance mode].
@@ -29,6 +40,8 @@ following endpoints must be considered without the _instance_ path attribute.
 ==== Registry Formats
 
 `GET /\{instance}/registry/`
+
+*Permission action:* `view-registry`
 
 This web page contains the following elements:
 
@@ -76,6 +89,8 @@ published in this instance registry for this format.
 ==== Distribution Derivatives
 
 `GET /\{instance}/registry/\{format}/\{distribution}/`
+
+*Permission action:* `view-registry`
 
 This web page contains the list of derivatives for which artifacts have been
 published in this instance registry for this format and this distribution.
@@ -140,6 +155,8 @@ for this format, distribution and derivative.
 
 `GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}/\{architecture}/\{artifact}`
 
+*Permission action:* `view-registry`
+
 This web page contains the information about a specific artifact published in a
 registry. If this is a source artifact (_ie_. architecture is `src`), the list
 of all subsequent binary artifacts is provided. If this is binary artifact, the
@@ -184,6 +201,8 @@ source artifact used as input to produce binary artifacts. The special value
 
 `GET /\{instance}/search`
 
+*Permission action:* `view-registry`
+
 The search results for a given part of artifact name. All founds artifacts are
 classified by respective formats, distributions and derivatives.
 
@@ -218,6 +237,8 @@ parameter are selected in results.
 ==== Task Output
 
 `GET /\{instance}/watch/\{task}.html`
+
+*Permission action:* `view-task`
 
 This web page contains the outputs of a given task.
 
