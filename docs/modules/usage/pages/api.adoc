@@ -5,6 +5,41 @@
 :tbl-obj-props-cols-specs: 2,6,1,3
 :tbl-consumes-cols-specs: 1,1
 
+== Authentication
+
+Fatbuildrweb supports optional authentication, depending on the
+xref:admin:web.adoc#policy[loaded policy]. The authentication is based on
+https://en.wikipedia.org/wiki/JSON_Web_Token[JWT tokens]. Users can obtain a
+valid token by running this command:
+
+[source,console]
+----
+$ fatbuildrctl token
+----
+
+TIP: Refer to xref:usage:fatbuildrctl.adoc[`fatbuildrctl` manpage] for more
+details about this command.
+
+CAUTION: This command only works on local Fatbuildr instance through DBus
+interface. For remote authentication, first connect to the remote server (eg.
+with SSH) to obtain this token and copy/paste it on the client host.
+
+The tokens must be transmitted to the server as a _Bearer token_ through the
+`Authorization` HTTP request header, as defined in
+https://www.rfc-editor.org/rfc/rfc6750[RFC6750].
+
+Most endpoints are associated to a
+xref:admin:web.adoc#perms[_permission action_] as referenced in the
+sections below. The policy defines which roles (including the _anonymous_ role)
+are granted to perform these actions.
+
+Fatbuildrweb determines the user encoded in the JWT token provided the request
+headers. Then, it searches for the roles associated this user. If the request is
+sent without token, the _anonymous_ role is selected. Then, Fatbuildrweb checks
+one of the roles is permitted to perform the _permission action_ associated to
+the endpoint. If the user is not permitted for this _permission action_, the
+server responds with HTTP/403 _Forbidden_ code.
+
 == API Endpoints
 
 include::partial$api-utilities.adoc[]
@@ -400,6 +435,21 @@ Properties:
 
 |`path`
 |Absolute path to task binary journal file
+|✓
+|_string_
+|===
+
+[#object-error]
+=== Error
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`error`
+|Error message
 |✓
 |_string_
 |===

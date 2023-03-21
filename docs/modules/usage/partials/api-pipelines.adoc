@@ -4,6 +4,8 @@
 
 `GET /\{instance}/pipelines/architectures.json`
 
+*Permission action:* `view-pipeline`
+
 Returns the list of CPU architectures supported in the instance pipelines.
 
 ===== Path Parameters
@@ -28,6 +30,11 @@ Returns the list of CPU architectures supported in the instance pipelines.
 |Operation successful
 |`application/json`
 |_array[string]_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -51,6 +58,8 @@ Response:
 ==== Pipelines Formats
 
 `GET /\{instance}/pipelines/formats.json`
+
+*Permission action:* `view-pipeline`
 
 Returns the artifacts formats defined in instance pipelines with their
 distributions and associated build environments and derivatives.
@@ -111,6 +120,11 @@ build environment.
 |Operation successful
 |`application/json`
 |_xref:#object-pipeline-format[] object_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples

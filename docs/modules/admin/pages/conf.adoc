@@ -75,6 +75,20 @@ only. These parameters are ignored when Fatbuildrweb runs as WSGI application.
 
 `static`:: Absolute path to directory of static web assets.
 
+`vendor_policy`:: Absolute path to the vendor policy file which defines the
+default permissions to access Fatbuildrweb REST API and HTML endpoints.
+
+`policy`:: Absolute path to the side policy file which defines the alternative
+permissions to access Fatbuildrweb REST API and HTML endpoints.
+
+NOTE: By default, the file pointed by `policy` parameter does not exist. In this
+case, Fatbuildrweb loads the policy pointed by `vendor_policy`. If the file
+pointed by the `policy` parameter is created by an administrator, Fatbuildrweb
+loads this site policy and the `vendor_policy` is completely ignored.
+
+TIP: Please refer to xref:web.adoc#policy[Fatbuildrweb policy management]
+section for more details the access policy and the underlying permissions.
+
 === `images`
 
 This section controls container images settings. It includes the following

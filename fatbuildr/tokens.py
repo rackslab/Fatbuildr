@@ -22,6 +22,7 @@ from datetime import datetime, timezone, timedelta
 
 import jwt
 
+from .errors import FatbuildrRuntimeError
 from .log import logr
 
 logger = logr(__name__)
@@ -31,26 +32,51 @@ class TokensManager:
     def __init__(self, conf, instance):
         self.conf = conf
         self.instance = instance
-        self.path = self.conf.tokens.storage.joinpath(instance.id)
+        self.path = self.conf.tokens.storage.joinpath(instance)
+        self.encryption_key = None
+
+    def load(self, create=False):
+        """Load the encryption key for file saved in tokens manager directory.
+        If create argument is True, the directory and the encryption key file
+        are created if not present. Raises FatbuildrRuntimeError if create
+        argument is False and the encryption key file is not found."""
         # Create instance tokens directory if missing
-        if not self.path.exists():
+        if not self.path.exists() and create:
             logger.info("Creating tokens directory %s", self.path)
             self.path.mkdir()
             self.path.chmod(0o755)  # be umask agnostic
-        # Generate instance tokens encoding key file if missing
+        # Generate instance tokens encryption key file if missing
         key_path = self.path.joinpath('key')
         if not key_path.exists():
-            logger.info(
-                "Generating tokens random encoding key file %s", key_path
-            )
-            with open(key_path, 'w+') as fh:
-                fh.write(secrets.token_hex(32))
-            key_path.chmod(0o400)  # restrict access to encoding key
-        # Load the instance tokens encoding key
+            if create:
+                logger.info(
+                    "Generating tokens random encryption key file %s", key_path
+                )
+                with open(key_path, 'w+') as fh:
+                    fh.write(secrets.token_hex(32))
+                key_path.chmod(0o400)  # restrict access to encryption key
+            else:
+                raise FatbuildrRuntimeError(
+                    f"Token encryption key file {key_path} not found"
+                )
+        # Load the instance tokens encryption key
         with open(key_path, 'r') as fh:
-            self.encoding_key = fh.read()
+            self.encryption_key = fh.read()
+
+    def decode(self, token):
+        """Decode the given token with the encryption key an returns the user of
+        this token."""
+        payload = jwt.decode(
+            token,
+            self.encryption_key,
+            audience='fatbuildr',
+            algorithms=['HS256'],
+        )
+        return payload['sub']
 
     def generate(self, user):
+        """Returns a JWT token for the given user, signed with the encryption
+        key, valid for fatbuildr audience for 30 days."""
         return jwt.encode(
             {
                 'iat': datetime.now(tz=timezone.utc),
@@ -58,6 +84,6 @@ class TokensManager:
                 'aud': 'fatbuildr',
                 'sub': user,
             },
-            self.encoding_key,
+            self.encryption_key,
             algorithm='HS256',
         )

@@ -4,6 +4,8 @@
 
 `GET /\{instance}/registry.json`
 
+*Permission action:* `view-registry`
+
 Returns the list of artifacts formats available in a registry.
 
 ===== Path Parameters
@@ -28,6 +30,11 @@ Returns the list of artifacts formats available in a registry.
 |Operation successful
 |`application/json`
 |_array[string]_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -51,6 +58,8 @@ Response:
 ==== Format Distributions
 
 `GET /\{instance}/registry/\{format}.json`
+
+*Permission action:* `view-registry`
 
 Returns the list of available distributions in a registry for a given format.
 
@@ -81,6 +90,11 @@ Returns the list of available distributions in a registry for a given format.
 |Operation successful
 |`application/json`
 |_array[string]_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -104,6 +118,8 @@ Response:
 ==== Distribution Derivatives
 
 `GET /\{instance}/registry/\{format}/\{distribution}.json`
+
+*Permission action:* `view-registry`
 
 Returns the list of derivatives available for the distribution.
 
@@ -139,6 +155,11 @@ Returns the list of derivatives available for the distribution.
 |Operation successful
 |`application/json`
 |_array[string]_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -165,6 +186,8 @@ Response:
 ==== Derivative Artifacts
 
 `GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}.json`
+
+*Permission action:* `view-registry`
 
 Returns the list of artifacts in a distribution derivative.
 
@@ -205,6 +228,11 @@ Returns the list of artifacts in a distribution derivative.
 |Operation successful
 |`application/json`
 |_array[xref:#object-artifact[] object]_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -255,6 +283,8 @@ Response:
 
 `GET /\{instance}/registry/\{format}/\{distribution}/\{derivative}/\{architecture}/\{artifact}.json`
 
+*Permission action:* `view-registry`
+
 Returns full description of an artifact in registry.
 
 ===== Path Parameters
@@ -301,6 +331,11 @@ source artifact used as input to produce binary artifacts. The special value
 |Operation successful
 |`application/json`
 |_xref:#object-artifact-desc[]_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -406,6 +441,8 @@ Response:
 
 `GET /\{instance}/search.json`
 
+*Permission action:* `view-registry`
+
 Search for artifacts in instance registries.
 
 ===== Path Parameters
@@ -449,6 +486,11 @@ parameter are selected in results.
 |Missing _artifact_ query parameter
 |`text/html`
 |
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples

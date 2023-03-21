@@ -25,6 +25,8 @@ from flask.helpers import locked_cached_property
 from jinja2 import FileSystemLoader
 
 from . import views
+from .policy import PolicyManager
+from ....tokens import TokensManager
 from ....log import logr
 
 logger = logr(__name__)
@@ -39,6 +41,8 @@ class WebApp(Flask):
         super().__init__('fatbuildr', static_folder=conf.run.static)
         self.conf = conf
         self.instance = instance
+        self.policy = PolicyManager(conf)
+        self.token_mgrs = dict()
         self.add_url_rule('/version', view_func=views.version)
 
         if self.allinstances:
@@ -161,11 +165,18 @@ class WebApp(Flask):
         self.add_instance_url_rule('/keyring.asc', view_func=views.keyring)
 
         self.register_error_handler(400, views.error_bad_request)
+        self.register_error_handler(403, views.error_forbidden)
 
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
         self.config['UPLOAD_FOLDER'] = Path('/run/fatbuildr')
         self.config['REGISTRY_FOLDER'] = self.conf.dirs.registry
         self.config['INSTANCE'] = self.instance
+
+    def token_manager(self, instance):
+        if instance not in self.token_mgrs:
+            self.token_mgrs[instance] = TokensManager(self.conf, instance)
+            self.token_mgrs[instance].load()
+        return self.token_mgrs[instance]
 
     @property
     def allinstances(self):

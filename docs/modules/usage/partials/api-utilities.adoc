@@ -4,6 +4,8 @@
 
 `GET /version`
 
+*No permission action required.*
+
 Returns the version of Fatbuildr server.
 
 ===== Responses
