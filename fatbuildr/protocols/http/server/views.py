@@ -36,6 +36,7 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 
+from ....errors import FatbuildrTokenError
 from ....version import __version__
 from ... import ClientFactory
 from .. import (
@@ -78,7 +79,10 @@ def check_instance_token_permission(action):
                     )
                     abort(403, "No valid token provided")
                 token = auth.split(' ', 1)[1]
-                user = current_app.token_manager(instance).decode(token)
+                try:
+                    user = current_app.token_manager(instance).decode(token)
+                except FatbuildrTokenError as err:
+                    abort(403, str(err))
                 if not current_app.policy.validate_user_action(user, action):
                     logger.warning(
                         "Unauthorized access from user %s to action %s",

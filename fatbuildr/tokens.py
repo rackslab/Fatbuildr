@@ -22,7 +22,7 @@ from datetime import datetime, timezone, timedelta
 
 import jwt
 
-from .errors import FatbuildrRuntimeError
+from .errors import FatbuildrRuntimeError, FatbuildrTokenError
 from .log import logr
 
 logger = logr(__name__)
@@ -66,12 +66,17 @@ class TokensManager:
     def decode(self, token):
         """Decode the given token with the encryption key an returns the user of
         this token."""
-        payload = jwt.decode(
-            token,
-            self.encryption_key,
-            audience='fatbuildr',
-            algorithms=['HS256'],
-        )
+        try:
+            payload = jwt.decode(
+                token,
+                self.encryption_key,
+                audience='fatbuildr',
+                algorithms=['HS256'],
+            )
+        except jwt.InvalidSignatureError:
+            raise FatbuildrTokenError("token is invalid")
+        except jwt.ExpiredSignatureError:
+            raise FatbuildrTokenError("token is expired")
         return payload['sub']
 
     def generate(self, user):
