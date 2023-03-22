@@ -129,7 +129,9 @@ class TimeredAuthorizationServerObjectHandler(ServerObjectHandler):
                 "Authorization refused for user %s(%d) on %s", user, uid, action
             )
             action_name = action.rsplit('.', 1)[1].replace('-', ' ')
-            raise FatbuildrDBusErrorNotAuthorized(action_name)
+            raise FatbuildrDBusErrorNotAuthorized(
+                f"action {action_name} not authorized to user {user}({uid})"
+            )
 
         logger.debug(
             "Successful authorization for user %s(%d) on %s", user, uid, action

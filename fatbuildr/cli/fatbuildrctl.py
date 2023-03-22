@@ -408,7 +408,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         try:
             args.func(args)
         except FatbuildrServerPermissionError as err:
-            logger.error("server permission error for %s", err)
+            logger.error("server permission error: %s", err)
             sys.exit(1)
         except FatbuildrServerError as err:
             logger.error("server error: %s", err)
