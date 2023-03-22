@@ -29,12 +29,9 @@ logger = logr(__name__)
 def default_user_pref():
     """Returns the default path to the user preferences file, through
     XDG_CONFIG_HOME environment variable if it is set."""
-    ini = 'fatbuildr.ini'
-    xdg_env = os.getenv('XDG_CONFIG_HOME')
-    if xdg_env:
-        return Path(xdg_env).join(ini)
-    else:
-        return Path(f"~/.config/{ini}")
+    return Path(os.getenv('XDG_CONFIG_HOME', '~/.config')).joinpath(
+        'fatbuildr.ini'
+    )
 
 
 class UserPreferences:
