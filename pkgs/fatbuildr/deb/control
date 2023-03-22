@@ -9,6 +9,7 @@ Build-Depends:
  python3-dasbus,
  python3-debian,
  python3-flask,
+ python3-jwt,
  python3-pygit2,
  python3-requests,
  python3-yaml,
