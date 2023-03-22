@@ -49,8 +49,8 @@ class InstancePipelines:
         return list(self._formats.keys())
 
     def dist_format(self, distribution):
-        """Which format (ex: RPM) for this distribution? Raise RuntimeError if
-        the format has not been found."""
+        """Which format (ex: RPM) for this distribution? Raises
+        FatbuildrPipelineError if the format has not been found."""
         for format, dists in self._formats.items():
             for dist in dists:
                 if dist['name'] == distribution:
@@ -62,8 +62,8 @@ class InstancePipelines:
 
     def dist_env(self, distribution):
         """Return the name of the build environment for the given
-        distribution. Raise RuntimeError if the environment has not been
-        found."""
+        distribution. Raise FatbuildrPipelineError if the environment has not
+        been found."""
         for format, dists in self._formats.items():
             for dist in dists:
                 if dist['name'] == distribution and 'env' in dist:
@@ -74,8 +74,8 @@ class InstancePipelines:
         )
 
     def dist_tag(self, distribution):
-        """Return the release tag for the given distribution. Raise RuntimeError
-        if the tag has not been found."""
+        """Return the release tag for the given distribution. Raises
+        FatbuildrPipelineError if the tag has not been found."""
         for format, dists in self._formats.items():
             for dist in dists:
                 if dist['name'] == distribution:
