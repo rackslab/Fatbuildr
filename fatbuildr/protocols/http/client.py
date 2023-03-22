@@ -21,7 +21,7 @@ import requests
 
 from . import JsonInstance, JsonRunnableTask
 from ..client import AbstractClient
-from ...errors import FatbuildrServerError
+from ...errors import FatbuildrServerPermissionError
 from ...log import logr
 from ...console.client import console_http_client
 
@@ -45,39 +45,59 @@ def check_http_errors(method):
 
 
 class HttpClient(AbstractClient):
-    def __init__(self, uri, scheme):
+    def __init__(self, uri, scheme, token):
         super().__init__(uri, scheme)
+        self.token = token
+
+    @property
+    def headers(self):
+        if self.token:
+            return {"Authorization": f"Bearer {self.token}"}
+        else:
+            return None
+
+    def _auth_request(self, call, *args, **kwargs):
+        if 'headers' in kwargs:
+            kwargs['headers'].update(self.headers)
+        else:
+            kwargs['headers'] = self.headers
+        response = call(*args, **kwargs)
+        if response.status_code == 403:
+            raise FatbuildrServerPermissionError(
+                f"{response.json()['error']} (403)"
+            )
+        return response
 
     @check_http_errors
     def instance(self):
         url = f"{self.uri}/instance.json"
-        response = requests.get(url)
+        response = self._auth_request(requests.get, url)
         return JsonInstance.load_from_json(response.json())
 
     @check_http_errors
     def pipelines_architectures(self):
         url = f"{self.uri}/pipelines/architectures.json"
-        response = requests.get(url)
+        response = self._auth_request(requests.get, url)
         return response.json()
 
     @check_http_errors
     def pipelines_format_distributions(self, format):
         url = f"{self.uri}/pipelines/formats.json?format={format}"
-        response = requests.get(url)
+        response = self._auth_request(requests.get, url)
         formats = response.json()
         return [item['distribution'] for item in formats[format]]
 
     @check_http_errors
     def pipelines_distribution_format(self, distribution):
         url = f"{self.uri}/pipelines/formats.json?distribution={distribution}"
-        response = requests.get(url)
+        response = self._auth_request(requests.get, url)
         formats = response.json()
         return list(formats.keys())[0]
 
     @check_http_errors
     def pipelines_distribution_environment(self, distribution):
         url = f"{self.uri}/pipelines/formats.json?distribution={distribution}"
-        response = requests.get(url)
+        response = self._auth_request(requests.get, url)
         formats = response.json()
         # Return the environment of the first distribution of the first format,
         # because there is only one format and distribution thanks to the
@@ -87,7 +107,7 @@ class HttpClient(AbstractClient):
     @check_http_errors
     def pipelines_derivative_formats(self, derivative):
         url = f"{self.uri}/pipelines/formats.json?derivative={derivative}"
-        response = requests.get(url)
+        response = self._auth_request(requests.get, url)
         formats = response.json()
         return list(formats.keys())
 
@@ -113,7 +133,8 @@ class HttpClient(AbstractClient):
         if source_tarball:
             files['source'] = open(source_tarball, 'rb')
 
-        response = requests.post(
+        response = self._auth_request(
+            requests.post,
             url,
             data={
                 'format': format,
@@ -140,7 +161,7 @@ class HttpClient(AbstractClient):
     @check_http_errors
     def queue(self):
         url = f"{self.uri}/queue.json"
-        response = requests.get(url)
+        response = self._auth_request(requests.get, url)
         return [
             JsonRunnableTask.load_from_json(task) for task in response.json()
         ]
@@ -148,7 +169,7 @@ class HttpClient(AbstractClient):
     @check_http_errors
     def running(self):
         url = f"{self.uri}/running.json"
-        response = requests.get(url)
+        response = self._auth_request(requests.get, url)
         json_task = response.json()
         if json_task is None:
             return None
@@ -157,7 +178,7 @@ class HttpClient(AbstractClient):
     @check_http_errors
     def get(self, task_id):
         url = f"{self.uri}/tasks/{task_id}.json"
-        response = requests.get(url)
+        response = self._auth_request(requests.get, url)
         json_task = response.json()
         if json_task is None:
             return None
@@ -173,5 +194,5 @@ class HttpClient(AbstractClient):
     def watch(self, task):
         """Generate task log lines with a streaming request."""
         url = f"{self.uri}/watch/{task.id}.journal"
-        response = requests.get(url, stream=True)
+        response = self._auth_request(requests.get, url, stream=True)
         return console_http_client(response)
