@@ -421,7 +421,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         connection and returns it."""
         if self._connection:
             return self._connection
-        self._connection = ClientFactory.get(self.uri)
+        self._connection = ClientFactory.get(self.uri, self.prefs.token)
         return self._connection
 
     def load(self, args):

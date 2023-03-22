@@ -34,6 +34,14 @@ def default_user_pref():
     )
 
 
+def default_user_token():
+    """Returns the default path to the user token file, through XDG_DATA_HOME
+    environment variable if it is set."""
+    return Path(os.getenv('XDG_DATA_HOME', '~/.local/share')).joinpath(
+        'fatbuildr/token'
+    )
+
+
 class UserPreferences:
     DEFAULT = default_user_pref()
 
@@ -65,6 +73,18 @@ class UserPreferences:
             basedir = Path(basedir).expanduser()
         self.basedir = basedir
         self.message = config.get('prefs', 'message', fallback=None)
+        token_path = Path(
+            config.get(
+                'prefs',
+                'token',
+                fallback=default_user_token(),
+            )
+        ).expanduser()
+        if token_path.exists():
+            with open(token_path) as fh:
+                self.token = fh.read().strip()
+        else:
+            self.token = None
 
     def dump(self):
         if not logger.has_debug():
@@ -77,3 +97,4 @@ class UserPreferences:
         logger.debug("   uri: %s", self.uri)
         logger.debug("   basedir: %s", self.basedir)
         logger.debug("   message: %s", self.message)
+        logger.debug("   token: %s", self.token)

@@ -29,7 +29,7 @@ from ..errors import FatbuildrRuntimeError
 
 class ClientFactory(object):
     @staticmethod
-    def get(address):
+    def get(address, token=None):
         uri = urlparse(address)
         instance = uri.path.strip('/')
         if uri.scheme == 'dbus':
@@ -39,7 +39,7 @@ class ClientFactory(object):
                 )
             return DBusClient(address, uri.scheme, instance)
         elif uri.scheme in ['http', 'https']:
-            return HttpClient(address, uri.scheme)
+            return HttpClient(address, uri.scheme, token)
         else:
             raise FatbuildrRuntimeError(f"unsupported URI {uri}")
 
