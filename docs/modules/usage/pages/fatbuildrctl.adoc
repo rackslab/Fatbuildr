@@ -484,9 +484,14 @@ The command accepts the following options:
 --
 This command accepts the following subcommands:
 
+*list*::
+  Print the list of JWT tokens available in the tokens directory defined in the
+  <<man-prefs,user preferences file>> with all their details (path, associated
+  URI, expiration date, etc). This is the default subcommand.
+
 *generate*::
   Generate a token. This subcommand only works for local instance through DBus
-  interface. This is the default subcommand.
+  interface.
 
 *save*::
   Reads a token on standard input and saves it to a local file. The `--uri`
@@ -502,6 +507,9 @@ The command accepts the following options:
 *Examples:*
 
 `$ fatbuildrctl tokens`::
+`$ fatbuildrctl tokens list`::
+  Print the list of JWT tokens available in the tokens directory.
+
 `$ fatbuildrctl tokens generate`::
   Generates a JWT token for remote authentification on the local instance. The
   token is printed on standard output.

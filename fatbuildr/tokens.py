@@ -107,6 +107,16 @@ class ClientToken:
         self.aud = aud
         self.sub = sub
 
+    def __str__(self):
+        return (
+            f"path: {self.path}\n"
+            f"uri: {self.uri}\n"
+            f"user: {self.sub}\n"
+            f"issued at: {datetime.fromtimestamp(self.iat).isoformat()}\n"
+            f"expiration: {datetime.fromtimestamp(self.exp).isoformat()}\n"
+            f"audience: {self.aud}"
+        )
+
 
 class ClientTokensManager:
     """Class to manager JWT tokens in a given path on client side."""
@@ -115,6 +125,20 @@ class ClientTokensManager:
 
     def __init__(self, path):
         self.path = path
+
+    def tokens(self):
+        """Returns the list of ClientTokens available in the manager path."""
+        return [
+            ClientToken(
+                token_path,
+                self._path_token_uri(token_path),
+                *self._load_path(token_path),
+            )
+            for token_path in self.path.glob('*' + self.EXTENSION)
+        ]
+
+    def _path_token_uri(self, path):
+        return base64.b64decode(path.stem.encode()).decode()
 
     def _uri_token_filename(self, uri):
         return base64.b64encode(uri.encode()).decode() + self.EXTENSION

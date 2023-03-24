@@ -385,8 +385,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             'operation',
             help='Operation on tokens (default: %(default)s)',
             nargs='?',
-            choices=['generate', 'save'],
-            default='generate',
+            choices=['list', 'generate', 'save'],
+            default='list',
         )
         parser_tokens.add_argument(
             '--uri', help='URI associated to saved token'
@@ -1114,7 +1114,10 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
 
     def _run_tokens(self, args):
-        if args.operation == 'generate':
+        if args.operation == 'list':
+            for token in ClientTokensManager(self.prefs.tokens_dir).tokens():
+                print("token:\n  " + '\n  '.join(str(token).split('\n')))
+        elif args.operation == 'generate':
             print(self.connection.token_generate())
         elif args.operation == 'save':
             token = sys.stdin.readline()
