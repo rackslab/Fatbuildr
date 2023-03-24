@@ -186,14 +186,23 @@ class RuntimeSubConfTokens(object):
     def __init__(self):
 
         self.storage = None
+        self.duration = None
+        self.algorithm = None
+        self.audience = None
 
     def load(self, config):
         section = 'tokens'
         self.storage = Path(config.get(section, 'storage'))
+        self.duration = config.getint(section, 'duration')
+        self.algorithm = config.get(section, 'algorithm')
+        self.audience = config.get(section, 'audience')
 
     def dump(self):
         logger.debug("[tokens]")
         logger.debug("  storage: %s", self.storage)
+        logger.debug("  duration: %d", self.duration)
+        logger.debug("  algorithm: %s", self.algorithm)
+        logger.debug("  audience: %s", self.audience)
 
 
 class RuntimeSubConfFormatDeb(object):

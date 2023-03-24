@@ -29,6 +29,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   permissions to the REST API and the HTML web endpoints
   ([#21](https://github.com/rackslab/fatbuildr/issues/21)). Fatbuildr provides a
   default policy that can be overriden by site administrators.
+- conf: add `[tokens]` section with settings to control generation and
+  validation of JWT tokens.
 
 ### Fixed
 - cli:
