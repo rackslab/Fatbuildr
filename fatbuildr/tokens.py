@@ -174,6 +174,17 @@ class ClientTokensManager:
     def save(self, uri, token):
         """Save the given token in manager path with a filename associated to
         the given URI."""
+        if not self.path.exists():
+            try:
+                logger.debug("creating user's tokens directory %s", self.path)
+                self.path.mkdir()
+                self.path.chmod(0o700)
+            except FileNotFoundError as err:
+                # Parent does not exist, fail instead of potentially messing
+                # with user's files by creating all missing parents directories
+                raise FatbuildrRuntimeError(
+                    f"unable to create user's tokens directory: {err}"
+                )
         token_path = self.path.joinpath(self._uri_token_filename(uri))
         with open(token_path, 'w+') as fh:
             fh.write(token)
