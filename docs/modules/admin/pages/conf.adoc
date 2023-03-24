@@ -154,6 +154,19 @@ It includes the following parameters:
 
 `storage`:: Absolute path to directory for storing the JWT tokens encoding keys.
 
+`duration`:: The numbers of days for which the generated token are valid before
+expiration.
+
+`algorithm`:: The cryptographic algorithm used for signing generated JWT tokens
+and verifying client tokens. Supported algorithms are HS256, HS384 and HS512.
+
+TIP: For more details, please refer to
+https://pyjwt.readthedocs.io/en/stable/algorithms.html[PyJWT library algorithms
+documentation].
+
+`audience`:: The name of the audience claimed in the payload of generated and
+accepted JWT tokens.
+
 === `format:*`
 
 All artifacts supported by Fatbuildr have their dedicated section prefixed by

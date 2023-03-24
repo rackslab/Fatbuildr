@@ -71,8 +71,8 @@ class TokensManager:
             payload = jwt.decode(
                 token,
                 self.encryption_key,
-                audience='fatbuildr',
-                algorithms=['HS256'],
+                audience=self.conf.tokens.audience,
+                algorithms=[self.conf.tokens.algorithm],
             )
         except jwt.InvalidSignatureError:
             raise FatbuildrTokenError("token is invalid")
@@ -82,16 +82,17 @@ class TokensManager:
 
     def generate(self, user):
         """Returns a JWT token for the given user, signed with the encryption
-        key, valid for fatbuildr audience for 30 days."""
+        key, valid for the configured audience and duration."""
         return jwt.encode(
             {
                 'iat': datetime.now(tz=timezone.utc),
-                'exp': datetime.now(tz=timezone.utc) + timedelta(days=30),
-                'aud': 'fatbuildr',
+                'exp': datetime.now(tz=timezone.utc)
+                + timedelta(days=self.conf.tokens.duration),
+                'aud': self.conf.tokens.audience,
                 'sub': user,
             },
             self.encryption_key,
-            algorithm='HS256',
+            algorithm=self.conf.tokens.algorithm,
         )
 
 
