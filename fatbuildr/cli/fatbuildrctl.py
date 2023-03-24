@@ -34,6 +34,7 @@ from ..protocols import ClientFactory
 from ..protocols.crawler import register_protocols
 from ..artifact import ArtifactDefs, ArtifactDefsFactory
 from ..patches import PatchQueue
+from ..tokens import ClientTokensManager
 from ..console.client import tty_console_renderer
 from ..errors import (
     FatbuildrRuntimeError,
@@ -421,7 +422,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         connection and returns it."""
         if self._connection:
             return self._connection
-        self._connection = ClientFactory.get(self.uri, self.prefs.token)
+        self._connection = ClientFactory.get(
+            self.uri, ClientTokensManager(self.prefs.tokens_dir).load(self.uri)
+        )
         return self._connection
 
     def load(self, args):

@@ -14,7 +14,7 @@ valid token by running this command:
 
 [source,console]
 ----
-$ fatbuildrctl token
+$ fatbuildrctl tokens generate
 ----
 
 TIP: Refer to xref:usage:fatbuildrctl.adoc[`fatbuildrctl` manpage] for more

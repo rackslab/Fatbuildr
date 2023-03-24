@@ -19,6 +19,7 @@
 
 import secrets
 from datetime import datetime, timezone, timedelta
+import base64
 
 import jwt
 
@@ -92,3 +93,49 @@ class TokensManager:
             self.encryption_key,
             algorithm='HS256',
         )
+
+
+class ClientToken:
+    def __init__(self, path, uri, raw, iat, exp, aud, sub):
+        self.path = path
+        self.uri = uri
+        self.raw = raw
+        self.iat = iat
+        self.exp = exp
+        self.aud = aud
+        self.sub = sub
+
+
+class ClientTokensManager:
+    EXTENSION = '.token'
+
+    def __init__(self, path):
+        self.path = path
+
+    def _uri_token_filename(self, uri):
+        return base64.b64encode(uri.encode()).decode() + self.EXTENSION
+
+    def _load_path(self, path):
+        if not path.exists():
+            raise FatbuildrRuntimeError(f"token file {path} not found")
+        with open(path) as fh:
+            token = fh.read().strip()
+        payload = jwt.decode(token, options={'verify_signature': False})
+        return (
+            token,
+            payload['iat'],
+            payload['exp'],
+            payload['aud'],
+            payload['sub'],
+        )
+
+    def load(self, uri):
+        token_path = self.path.joinpath(self._uri_token_filename(uri))
+        try:
+            token = ClientToken(token_path, uri, *self._load_path(token_path))
+        except FatbuildrRuntimeError as err:
+            logger.debug("unable to load token for uri %s: %s", uri, err)
+            return None
+        else:
+            logger.debug("loaded token file %s", token_path)
+            return token.raw
