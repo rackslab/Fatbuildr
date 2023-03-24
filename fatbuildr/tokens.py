@@ -96,6 +96,8 @@ class TokensManager:
 
 
 class ClientToken:
+    """Class to hold information about a Fatbuildr JWT token."""
+
     def __init__(self, path, uri, raw, iat, exp, aud, sub):
         self.path = path
         self.uri = uri
@@ -107,6 +109,8 @@ class ClientToken:
 
 
 class ClientTokensManager:
+    """Class to manager JWT tokens in a given path on client side."""
+
     EXTENSION = '.token'
 
     def __init__(self, path):
@@ -130,6 +134,9 @@ class ClientTokensManager:
         )
 
     def load(self, uri):
+        """Loads the token file in manager path associated to the given URI and
+        return its raw value. If for any reason the token cannot be loaded for
+        this URI, returns None."""
         token_path = self.path.joinpath(self._uri_token_filename(uri))
         try:
             token = ClientToken(token_path, uri, *self._load_path(token_path))
@@ -139,3 +146,12 @@ class ClientTokensManager:
         else:
             logger.debug("loaded token file %s", token_path)
             return token.raw
+
+    def save(self, uri, token):
+        """Save the given token in manager path with a filename associated to
+        the given URI."""
+        token_path = self.path.joinpath(self._uri_token_filename(uri))
+        with open(token_path, 'w+') as fh:
+            fh.write(token)
+        logger.info("token saved in file %s", token_path)
+        token_path.chmod(0o600)  # restrict permission on token file to user

@@ -377,11 +377,22 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         parser_registry.set_defaults(func=self._run_registry)
 
-        # Parser for the token command
-        parser_token = subparsers.add_parser(
-            'token', help='Manage REST API token'
+        # Parser for the tokens command
+        parser_tokens = subparsers.add_parser(
+            'tokens', help='Manage REST API tokens'
         )
-        parser_token.set_defaults(func=self._run_token)
+        parser_tokens.add_argument(
+            'operation',
+            help='Operation on tokens (default: %(default)s)',
+            nargs='?',
+            choices=['generate', 'save'],
+            default='generate',
+        )
+        parser_tokens.add_argument(
+            '--uri', help='URI associated to saved token'
+        )
+
+        parser_tokens.set_defaults(func=self._run_tokens)
 
         args = parser.parse_args()
 
@@ -1102,5 +1113,9 @@ class Fatbuildrctl(FatbuildrCliRun):
                     f"Submitted artifact {artifact.name} deletion task {task_id}"
                 )
 
-    def _run_token(self, args):
-        print(self.connection.token_generate())
+    def _run_tokens(self, args):
+        if args.operation == 'generate':
+            print(self.connection.token_generate())
+        elif args.operation == 'save':
+            token = sys.stdin.readline()
+            ClientTokensManager(self.prefs.tokens_dir).save(self.uri, token)
