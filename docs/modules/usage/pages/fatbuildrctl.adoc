@@ -486,23 +486,25 @@ This command accepts the following subcommands:
 
 *list*::
   Print the list of JWT tokens available in the tokens directory defined in the
-  <<man-prefs,user preferences file>> with all their details (path, associated
-  URI, expiration date, etc). This is the default subcommand.
+  user preferences file with all their details (path, associated URI, expiration
+  date, etc). See <<man-pref,*PREFERENCES FILE*>> section for more details. This
+  is the default subcommand.
 
 *generate*::
   Generate a token. This subcommand only works for local instance through DBus
   interface.
 
 *save*::
-  Reads a token on standard input and saves it to a local file. The `--uri`
+  Reads a token on standard input and saves it to a local file. The *--uri*
   option is required to determine the file name. The file is saved in the
-  tokens directory defined in the <<man-prefs,user preferences file>>.
+  tokens directory defined in the user's preferences file. See <<man-pref,
+  *PREFERENCES FILE*>> section for more details.
 
 The command accepts the following options:
 
 *--uri*=_URI_::
   The URI associated to the save token. This parameter is required when using
-  the `save` subcommand, it is ignored otherwise.
+  the *save* subcommand, it is ignored otherwise.
 
 *Examples:*
 
