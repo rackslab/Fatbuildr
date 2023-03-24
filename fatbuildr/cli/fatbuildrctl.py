@@ -1120,5 +1120,11 @@ class Fatbuildrctl(FatbuildrCliRun):
         elif args.operation == 'generate':
             print(self.connection.token_generate())
         elif args.operation == 'save':
+            if not args.uri:
+                logger.error(
+                    "The URI to associate with the token is not defined"
+                )
+                logger.info("Please use --uri option to define the token URI")
+                sys.exit(1)
             token = sys.stdin.readline()
             ClientTokensManager(self.prefs.tokens_dir).save(self.uri, token)
