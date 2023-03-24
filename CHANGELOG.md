@@ -20,8 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     architecture.
   - Add short option `-f` as an alternative to `--format` long option of
     `fatbuildrctl images` command.
-  - Add `fatbuildrctl tokens` command to generate and save JWT tokens for HTTP
-    REST API authentication.
+  - Add `fatbuildrctl tokens` command to list, generate and save JWT tokens for
+    HTTP REST API authentication in user's tokens directory.
   - Add support for JWT token based authentication to Fatbuildrweb REST API.
 - prefs: add optional `tokens` parameter in the `prefs` section for specifying
   the path of user's tokens directory.
