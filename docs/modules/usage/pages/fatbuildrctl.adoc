@@ -551,6 +551,12 @@ The preferences file is formatted as an INI file. It can contains two sections:
 *message*::
   Default build message. When defined, it is used as default value for
   *-m, --msg*=_MSG_ option of *build* command.
+
+*tokens*::
+  The path to the directory where `fatbuildrctl` saves and load JWT tokens for
+  remote authentication to the REST API. The default value is
+  `~/.local/share/fatbuildr` or `$XDG_DATA_HOME/fatbuildr` if the environment
+  variable is defined.
 --
 
 This is a full example of a user preferences file:
