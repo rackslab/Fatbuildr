@@ -8,6 +8,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- web: add JWT token based authentication with RBAC policy for managing access
+  permissions to the REST API and the HTML web endpoints
+  ([#21](https://github.com/rackslab/fatbuildr/issues/21)). Fatbuildr provides a
+  default policy that can be overriden by site administrators.
+- conf:
+  - Add `[tokens]` section with settings to control generation and
+    validation of JWT tokens.
+  - Add `policy` and `vendor_policy` settings in `[web]` section to define path
+    to RBAC policy definition file loaded by Fatbuildrweb.
+- polkit: Add _org.rackslab.Fatbuildr.manage-token_ action
 - cli:
   - Add `shell` and `env-shell` operations to `fatbuildrctl images` command to
     open an interactive shell in a container running the image dedicated to a
@@ -25,12 +35,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add support for JWT token based authentication to Fatbuildrweb REST API.
 - prefs: add optional `tokens` parameter in the `prefs` section for specifying
   the path of user's tokens directory.
-- web: add JWT token based authentication with RBAC policy for managing access
-  permissions to the REST API and the HTML web endpoints
-  ([#21](https://github.com/rackslab/fatbuildr/issues/21)). Fatbuildr provides a
-  default policy that can be overriden by site administrators.
-- conf: add `[tokens]` section with settings to control generation and
-  validation of JWT tokens.
+- pkgs: add dependency on PyJWT python external library for managing JWT tokens.
+- docs:
+  - Document `tokens` command in `fatbuildrctl` manpage.
+  - Document `tokens` parameter in user's preferences file in `fatbuildrctl`
+    manpage.
+  - Add section about API tokens in `fatbuildrctl` manpage.
+  - Add section about authentication in REST API reference page.
+  - Mention permission action required by all Fatbuildrweb REST API and HTML
+    endpoints in references pages.
+  - Document error object returned by REST API for denied permission.
+  - Add section about policy configuration in Fatbuildrweb administration page.
+  - Document system configuration new `[tokens]` section and new parameters in
+    `[web]` section.
+  - Mention RBAC policy and JWT authentication in advanced features description.
 
 ### Fixed
 - cli:
