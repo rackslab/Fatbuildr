@@ -133,28 +133,34 @@ class HttpClient(AbstractClient):
         if source_tarball:
             files['source'] = open(source_tarball, 'rb')
 
-        response = self._auth_request(
-            requests.post,
-            url,
-            data={
-                'format': format,
-                'distribution': distribution,
-                'architectures': ','.join(architectures),
-                'derivative': derivative,
-                'artifact': artifact,
-                'user_name': user_name,
-                'user_email': user_email,
-                'message': message,
-            },
-            files=files,
-        )
-
-        # Delete the tarball (and the source tarball if defined) as it is not
-        # accessed by the http server.
-        tarball.unlink()
-
-        if source_tarball:
-            source_tarball.unlink()
+        # Add cleanup routine in finally clause and reraise the exception for
+        # handling in decorator in case of error with HTTP request.
+        try:
+            response = self._auth_request(
+                requests.post,
+                url,
+                data={
+                    'format': format,
+                    'distribution': distribution,
+                    'architectures': ','.join(architectures),
+                    'derivative': derivative,
+                    'artifact': artifact,
+                    'user_name': user_name,
+                    'user_email': user_email,
+                    'message': message,
+                },
+                files=files,
+            )
+        except Exception:
+            raise
+        finally:
+            # Delete the tarball and the source tarball if defined as they are
+            # not accessed by the http server.
+            logger.debug("Removing tarball %s", tarball)
+            tarball.unlink()
+            if source_tarball:
+                logger.debug("Removing source tarball %s", source_tarball)
+                source_tarball.unlink()
 
         return response.json()['task']
 
