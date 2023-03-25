@@ -17,12 +17,8 @@ valid token by running this command:
 $ fatbuildrctl tokens generate
 ----
 
-TIP: Refer to xref:usage:fatbuildrctl.adoc[`fatbuildrctl` manpage] for more
-details about this command.
-
-CAUTION: This command only works on local Fatbuildr instance through DBus
-interface. For remote authentication, first connect to the remote server (eg.
-with SSH) to obtain this token and copy/paste it on the client host.
+TIP: Refer to xref:usage:fatbuildrctl.adoc#tokens[`fatbuildrctl` manpage
+_tokens_ section] for more details.
 
 The tokens must be transmitted to the server as a _Bearer token_ through the
 `Authorization` HTTP request header, as defined in
