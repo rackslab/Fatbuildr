@@ -23,10 +23,10 @@ Fatbuildr can help organizations to:
 
 Fatbuildr uses xref:architecture.adoc#components[multiple components
 architecture] to provide both a command-line interface (CLI) and a web
-interface. It also provides a xref:usage:api.adoc[REST API] for integration with
-other tools.
+interface. It also provides a secure xref:usage:api.adoc[REST API] for
+integration with other tools.
 
-It integrates the best-in-class tools developped by the free software community
+It integrates the best-in-class tools developed by the free software community
 to manage Linux based build environments (ex: cowbuilder, mock) with help of
 xref:architecture.adoc#containers[Linux containers].
 

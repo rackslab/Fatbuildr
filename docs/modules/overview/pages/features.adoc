@@ -4,7 +4,7 @@
 
 Fatbuildr uses a xref:architecture.adoc#components[software architecture] with
 multiple components following the client/server model. Also, `fatbuildrweb`
-component provides a xref:usage:api.adoc[REST API] to offer `fatbuildrd`
+component provides a secure xref:usage:api.adoc[REST API] to offer `fatbuildrd`
 services over HTTP protocol and TCP/IP networks.
 
 This enables the possibility to deploy distributed setup with `fatbuildrd` and
@@ -105,19 +105,24 @@ feature can be used to distribute versions of software that is not yet released
 
 == Web Interface & REST API
 
-The optional Fatbuildrweb component provides both a xref:usage:api.adoc[REST
-API] and xref:usage:web.adoc[web interface] to Fatbuildr instances. This web
-interface can be used to explore content of artifact registries in graphical and
-intuitive manner.
+The optional Fatbuildrweb component provides both a secure
+xref:usage:api.adoc[REST API] and xref:usage:web.adoc[web interface] to
+Fatbuildr instances. This web interface can be used to explore content of
+artifact registries in graphical and intuitive manner.
 
 == Advanced Security Model
 
 Fatbuildr implements by default many security hardening features under the hood,
 without additional complexity for end users and administrators:
 
-* Checksums of externally downloaded software are systematically verified
-* Integrated GPG signing keyring are generated and protected with randomly generated passphrase
-* D-Bus services API permissions are controled using Polkit and configurable policy
+* Checksums of externally downloaded software are systematically verified.
+* Integrated GPG signing keyring are generated and protected with randomly
+  generated passphrase.
+* D-Bus services API permissions are controled using Polkit and configurable
+  policy.
+* Permissions to access REST API and web interface are managed with fine-grained
+  xref:admin:web.adoc#policy[RBAC policy] and xref:usage:api.adoc#auth[JWT
+  tokens based authentication].
 
 == Resilient Service
 
