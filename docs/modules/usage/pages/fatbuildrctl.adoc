@@ -479,7 +479,8 @@ The command accepts the following options:
 
 *tokens*::
 
-  Manage tokens for authentication to HTTP REST API.
+  Manage tokens for authentication to HTTP REST API. See <<tokens,*API TOKENS*> >
+  section for more details.
 +
 --
 This command accepts the following subcommands:
@@ -612,6 +613,64 @@ uri = http://build.host/dev
 basedir = /home/john/path/to/basedir
 message = Artifact maintenance build
 ----
+
+[#tokens]
+== API Tokens
+
+Authentication to Fatbuildr xref:api.adoc[REST API] is realized with JSON WEB
+Tokens (JWT). Depending on the xref:admin:web.adoc#policy[policy], users must
+have a valid token prior to calling some API endpoints. To obtain a valid token,
+users can run this command:
+
+[source,console]
+----
+$ fatbuildrctl tokens generate
+<secret personal token>
+----
+
+This command requests fatbuildrd daemon to generate and sign a valid token for
+the current user. The token provided by the server is printed on standard
+output.
+
+The *tokens generate* command only works with local Fatbuildr instance through
+DBus interface. For remote authentication, users are expected to connect to the
+remote host (eg. with SSH) to generate the token and provide it to the
+*tokens save* command to save it on the client host. For example:
+
+[source,console]
+----
+$ ssh john@build.server fatbuildrctl --uri dbus://system/default tokens generate | \
+  fatbuildrctl tokens save --uri https://build.server/default
+token saved in file /home/john/.local/share/fatbuildr/aHR0cHM6Ly9idWlsZC5zZXJ2ZXIvZGVmYXVsdA==.token
+----
+
+This command generates a token on _default_ instance of _build.server_ remote
+host for user _john_ and saves this token in a file associated to the URI of
+this remote instance, in local _john_ tokens directory.
+
+The path to this tokens directory is defined in user's preference file. See
+<<man-pref, *PREFERENCES FILE*>> section for more details. The filename of the
+token is the URI of the associated remote instance encoded in base64 and the
+_.token_ extension. This naming convention notably guarantees uniqueness of
+token files for each remote instance.
+
+All tokens available locally can be listed with this command:
+
+[source,console]
+----
+$ fatbuildrctl tokens
+token:
+  path: /home/john/.local/share/fatbuildr/aHR0cHM6Ly9idWlsZC5zZXJ2ZXIvZGVmYXVsdA==.token
+  uri: https://build.server/default
+  user: john
+  issued at: 1970-01-01T00:00:00
+  expiration: 2099-12-31T23:59:59
+  audience: fatbuildr
+----
+
+When a token associated to a remote instance is available locally, it is
+automatically loaded and sent by *fatbuildrctl* for authentication to this
+instance.
 
 == Exit status
 
