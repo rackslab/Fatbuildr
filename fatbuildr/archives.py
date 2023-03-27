@@ -64,6 +64,7 @@ class ArchivedTask(RunnableTask):
         self.TASK_NAME = kwargs['name']
         super().__init__(
             task_id,
+            kwargs['user'],
             place,
             instance,
             state='finished',

@@ -33,8 +33,8 @@ class ImageCreationTask(RunnableTask):
         ExportableTaskField('force', bool),
     }
 
-    def __init__(self, task_id, place, instance, format, force):
-        super().__init__(task_id, place, instance)
+    def __init__(self, task_id, user, place, instance, format, force):
+        super().__init__(task_id, user, place, instance)
         self.format = format
         self.force = force
 
@@ -55,8 +55,8 @@ class ImageUpdateTask(RunnableTask):
         ExportableTaskField('format'),
     }
 
-    def __init__(self, task_id, place, instance, format):
-        super().__init__(task_id, place, instance)
+    def __init__(self, task_id, user, place, instance, format):
+        super().__init__(task_id, user, place, instance)
         self.format = format
 
     def run(self):
@@ -76,8 +76,8 @@ class ImageShellTask(RunnableTask):
         ExportableTaskField('term'),
     }
 
-    def __init__(self, task_id, place, instance, format, term):
-        super().__init__(task_id, place, instance, interactive=True)
+    def __init__(self, task_id, user, place, instance, format, term):
+        super().__init__(task_id, user, place, instance, interactive=True)
         self.format = format
         self.term = term
 
@@ -100,9 +100,9 @@ class ImageEnvironmentCreationTask(RunnableTask):
     }
 
     def __init__(
-        self, task_id, place, instance, format, environment, architecture
+        self, task_id, user, place, instance, format, environment, architecture
     ):
-        super().__init__(task_id, place, instance)
+        super().__init__(task_id, user, place, instance)
         self.format = format
         self.environment = environment
         self.architecture = architecture
@@ -128,9 +128,9 @@ class ImageEnvironmentUpdateTask(RunnableTask):
     }
 
     def __init__(
-        self, task_id, place, instance, format, environment, architecture
+        self, task_id, user, place, instance, format, environment, architecture
     ):
-        super().__init__(task_id, place, instance)
+        super().__init__(task_id, user, place, instance)
         self.format = format
         self.environment = environment
         self.architecture = architecture
@@ -157,9 +157,17 @@ class ImageEnvironmentShellTask(RunnableTask):
     }
 
     def __init__(
-        self, task_id, place, instance, format, environment, architecture, term
+        self,
+        task_id,
+        user,
+        place,
+        instance,
+        format,
+        environment,
+        architecture,
+        term,
     ):
-        super().__init__(task_id, place, instance, interactive=True)
+        super().__init__(task_id, user, place, instance, interactive=True)
         self.format = format
         self.environment = environment
         self.architecture = architecture

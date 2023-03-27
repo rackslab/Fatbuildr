@@ -79,6 +79,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
     def __init__(
         self,
         task_id,
+        user,
         place,
         instance,
         format,
@@ -86,8 +87,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         architectures,
         derivative,
         artifact,
-        user_name,
-        user_email,
+        author,
+        email,
         message,
         tarball,
         src_tarball,
@@ -95,6 +96,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
     ):
         super().__init__(
             task_id,
+            user,
             place,
             instance,
             format,
@@ -102,8 +104,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             architectures,
             derivative,
             artifact,
-            user_name,
-            user_email,
+            author,
+            email,
             message,
             tarball,
             src_tarball,
@@ -221,7 +223,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         new_changelog = [
             ChangelogEntry(
                 self.version.full,
-                f"{self.user} <{self.email}>",
+                f"{self.author} <{self.email}>",
                 datetime.now().timestamp(),
                 [self.message],
             )

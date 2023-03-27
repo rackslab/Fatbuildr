@@ -40,6 +40,7 @@ class RegistryArtifactDeletionTask(RunnableTask):
     def __init__(
         self,
         task_id,
+        user,
         place,
         instance,
         format,
@@ -47,7 +48,7 @@ class RegistryArtifactDeletionTask(RunnableTask):
         derivative,
         artifact,
     ):
-        super().__init__(task_id, place, instance)
+        super().__init__(task_id, user, place, instance)
         self.format = format
         self.distribution = distribution
         self.derivative = derivative

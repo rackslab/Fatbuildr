@@ -95,13 +95,13 @@ class ServerTasksManager:
         """Interrupt thread blocked in self.pick()->self.queue.get(timeout)."""
         self.queue.interrupt_get()
 
-    def submit(self, name, *args):
+    def submit(self, name, user, *args):
 
         task_id = str(uuid.uuid4())  # generate task ID
         place = self.conf.dirs.queue.joinpath(task_id)
         try:
             task = self.registry.task_loader(name)(
-                task_id, place, self.instance, *args
+                task_id, user, place, self.instance, *args
             )
         except RuntimeError as err:
             logger.error(

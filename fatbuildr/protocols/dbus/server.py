@@ -310,6 +310,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             self.implementation.artifacts(fmt, distribution, derivative)
         )
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.edit-registry")
     def ArtifactDelete(
         self,
@@ -317,10 +318,13 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         distribution: Str,
         derivative: Str,
         artifact: Structure,
+        *,
+        call_info,
     ) -> Str:
         """Submit artifact deletion task."""
         return self.implementation.submit(
             'artifact deletion',
+            dbus_user(call_info['sender'])[1],
             fmt,
             distribution,
             derivative,
@@ -377,6 +381,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             )
         )
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.build")
     def Build(
         self,
@@ -385,38 +390,47 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         architectures: List[Str],
         derivative: Str,
         artifact: Str,
-        user_name: Str,
-        user_email: Str,
+        author: Str,
+        email: Str,
         message: Str,
         tarball: Str,
         src_tarball: Str,
         interactive: Bool,
+        *,
+        call_info,
     ) -> Str:
         """Submit a new build."""
         return self.implementation.submit(
             'artifact build',
+            dbus_user(call_info['sender'])[1],
             format,
             distribution,
             architectures,
             derivative,
             artifact,
-            user_name,
-            user_email,
+            author,
+            email,
             message,
             tarball,
             valueornone(src_tarball),
             interactive,
         )
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.edit-keyring")
-    def KeyringCreate(self) -> Str:
+    def KeyringCreate(self, *, call_info) -> Str:
         """Create instance keyring."""
-        return self.implementation.submit('keyring creation')
+        return self.implementation.submit(
+            'keyring creation', dbus_user(call_info['sender'])[1]
+        )
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.edit-keyring")
-    def KeyringRenew(self, duration: Str) -> Str:
+    def KeyringRenew(self, duration: Str, *, call_info) -> Str:
         """Extend instance keyring expiry with new duration."""
-        return self.implementation.submit('keyring renewal', duration)
+        return self.implementation.submit(
+            'keyring renewal', dbus_user(call_info['sender'])[1], duration
+        )
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-keyring")
@@ -432,52 +446,73 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         """Returns armored public key of instance keyring."""
         return self.implementation.keyring_export()
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
-    def ImageCreate(self, format: Str, force: Bool) -> Str:
+    def ImageCreate(self, format: Str, force: Bool, *, call_info) -> Str:
         """Submit an image creation task and returns the task id."""
-        return self.implementation.submit('image creation', format, force)
+        return self.implementation.submit(
+            'image creation', dbus_user(call_info['sender'])[1], format, force
+        )
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
-    def ImageUpdate(self, format: Str) -> Str:
+    def ImageUpdate(self, format: Str, *, call_info) -> Str:
         """Submit an image update task and returns the task id."""
-        return self.implementation.submit('image update', format)
+        return self.implementation.submit(
+            'image update', dbus_user(call_info['sender'])[1], format
+        )
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
-    def ImageShell(self, format: Str, term: Str) -> Str:
+    def ImageShell(self, format: Str, term: Str, *, call_info) -> Str:
         """Submit an image shell task and returns the task id."""
-        return self.implementation.submit('image shell', format, term)
+        return self.implementation.submit(
+            'image shell', dbus_user(call_info['sender'])[1], format, term
+        )
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
     def ImageEnvironmentCreate(
-        self, format: Str, environment: Str, architecture: Str
+        self, format: Str, environment: Str, architecture: Str, *, call_info
     ) -> Str:
         """Submit an image build environment creation task and returns the task id."""
         return self.implementation.submit(
             'image build environment creation',
+            dbus_user(call_info['sender'])[1],
             format,
             environment,
             architecture,
         )
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
     def ImageEnvironmentUpdate(
-        self, format: Str, environment: Str, architecture: Str
+        self, format: Str, environment: Str, architecture: Str, *, call_info
     ) -> Str:
         """Submit an image build environment update task and returns the task id."""
         return self.implementation.submit(
             'image build environment update',
+            dbus_user(call_info['sender'])[1],
             format,
             environment,
             architecture,
         )
 
+    @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
     def ImageEnvironmentShell(
-        self, format: Str, environment: Str, architecture: Str, term: Str
+        self,
+        format: Str,
+        environment: Str,
+        architecture: Str,
+        term: Str,
+        *,
+        call_info,
     ) -> Str:
         """Submit an image build environment shell task and returns the task id."""
         return self.implementation.submit(
             'image build environment shell',
+            dbus_user(call_info['sender'])[1],
             format,
             environment,
             architecture,
@@ -595,9 +630,9 @@ class FatbuildrDBusInstance(Publishable):
             fmt, distribution, derivative, architecture, artifact
         )
 
-    def submit(self, task: Str, *args):
+    def submit(self, task: Str, user: Str, *args):
         """Submit a new task and returns its ID."""
-        return self._instance.tasks_mgr.submit(task, *args)
+        return self._instance.tasks_mgr.submit(task, user, *args)
 
     def keyring(self):
         """Returns masterkey information."""

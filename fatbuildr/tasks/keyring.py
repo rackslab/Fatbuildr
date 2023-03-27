@@ -29,8 +29,8 @@ class KeyringCreationTask(RunnableTask):
     TASK_NAME = 'keyring creation'
     EXFIELDS = set()
 
-    def __init__(self, task_id, place, instance):
-        super().__init__(task_id, place, instance)
+    def __init__(self, task_id, user, place, instance):
+        super().__init__(task_id, user, place, instance)
 
     def run(self):
         logger.info(
@@ -47,8 +47,8 @@ class KeyringRenewalTask(RunnableTask):
         ExportableTaskField('duration'),
     }
 
-    def __init__(self, task_id, place, instance, duration):
-        super().__init__(task_id, place, instance, duration)
+    def __init__(self, task_id, user, place, instance, duration):
+        super().__init__(task_id, user, place, instance, duration)
         self.duration = duration
 
     def run(self):

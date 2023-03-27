@@ -35,6 +35,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
     def __init__(
         self,
         task_id,
+        user,
         place,
         instance,
         format,
@@ -42,8 +43,8 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         architectures,
         derivative,
         artifact,
-        user_name,
-        user_email,
+        author,
+        email,
         message,
         tarball,
         src_tarball,
@@ -51,6 +52,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
     ):
         super().__init__(
             task_id,
+            user,
             place,
             instance,
             format,
@@ -58,8 +60,8 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             architectures,
             derivative,
             artifact,
-            user_name,
-            user_email,
+            author,
+            email,
             message,
             tarball,
             src_tarball,
@@ -205,7 +207,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         if not existing_version:
             cmd.insert(1, '--create')
 
-        _envs = ['DEBEMAIL=' + self.email, 'DEBFULLNAME=' + self.user]
+        _envs = ['DEBEMAIL=' + self.email, 'DEBFULLNAME=' + self.author]
         self.cruncmd(cmd, chdir=tarball_subdir, envs=_envs)
 
         # Create orig symlink to tarball

@@ -35,6 +35,7 @@ class WireInstance(WireData):
 class WireRunnableTask(WireData):
     def report(self):
         print(f"- id: {self.id}")
+        print(f"  user: {self.user}")
         print(f"  name: {self.name}")
         print(f"  state: {self.state}")
         print(f"  place: {self.place}")
@@ -47,7 +48,7 @@ class WireRunnableTask(WireData):
         print(f"    console: {self.io.console}")
         print(f"    journal: {self.io.journal.path}")
         if self.name == "artifact build":
-            print(f"  user: {self.user}")
+            print(f"  author: {self.author}")
             print(f"  email: {self.email}")
             print(f"  distribution: {self.distribution}")
             print(f"  architectures: {' '.join(self.architectures)}")
