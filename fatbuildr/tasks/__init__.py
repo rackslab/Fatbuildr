@@ -265,6 +265,7 @@ class RunnableTask:
 
     BASEFIELDS = {
         ExportableTaskField('id', archived=False),
+        ExportableTaskField('user'),
         ExportableTaskField('name'),
         ExportableTaskField('submission', datetime),
         ExportableTaskField('place', Path, archived=False),
@@ -275,6 +276,7 @@ class RunnableTask:
     def __init__(
         self,
         task_id,
+        user,
         place,
         instance,
         state='pending',
@@ -283,6 +285,7 @@ class RunnableTask:
     ):
         self.name = self.TASK_NAME
         self.id = task_id
+        self.user = user
         self.place = place
         self.instance = instance
         self.state = state

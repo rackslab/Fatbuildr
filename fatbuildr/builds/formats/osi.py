@@ -31,6 +31,7 @@ class ArtifactBuildOsi(ArtifactBuild):
     def __init__(
         self,
         task_id,
+        user,
         place,
         instance,
         format,
@@ -38,8 +39,8 @@ class ArtifactBuildOsi(ArtifactBuild):
         architectures,
         derivative,
         artifact,
-        user_name,
-        user_email,
+        author,
+        email,
         message,
         tarball,
         src_tarball,
@@ -47,6 +48,7 @@ class ArtifactBuildOsi(ArtifactBuild):
     ):
         super().__init__(
             task_id,
+            user,
             place,
             instance,
             format,
@@ -54,8 +56,8 @@ class ArtifactBuildOsi(ArtifactBuild):
             architectures,
             derivative,
             artifact,
-            user_name,
-            user_email,
+            author,
+            email,
             message,
             tarball,
             src_tarball,
