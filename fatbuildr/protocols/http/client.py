@@ -21,7 +21,7 @@ import requests
 
 from . import JsonInstance, JsonRunnableTask
 from ..client import AbstractClient
-from ...errors import FatbuildrServerPermissionError
+from ...errors import FatbuildrServerError, FatbuildrServerPermissionError
 from ...log import logr
 from ...console.client import console_http_client
 
