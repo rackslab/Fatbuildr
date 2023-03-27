@@ -38,6 +38,7 @@ from flask import (
 from werkzeug.utils import secure_filename
 
 from ....errors import FatbuildrTokenError
+from ....utils import current_user
 from ....version import __version__
 from ... import ClientFactory
 from .. import (
@@ -65,6 +66,27 @@ def error_forbidden(e):
         return jsonify(error=e.description), 403
 
 
+def get_token_user(instance, request):
+    """Returns the user name as decoded in the token found in request
+    autorization headers. Raises a HTTP/403 forbidden error if the token cannot
+    be decoded properly. Returns None if the authorization header is not found,
+    which is assimilated to anonymous user."""
+
+    auth = request.headers.get('Authorization')
+    if auth is None:
+        return None
+
+    if not auth.startswith('Bearer '):
+        logger.warning("Malformed authorization header found in request")
+        abort(403, "No valid token provided")
+    token = auth.split(' ', 1)[1]
+    try:
+        user = current_app.token_manager(instance).decode(token)
+    except FatbuildrTokenError as err:
+        abort(403, str(err))
+    return user
+
+
 def check_instance_token_permission(action):
     """Decorator for Flask views functions check for valid authentification JWT
     token and permission in policy."""
@@ -72,30 +94,9 @@ def check_instance_token_permission(action):
     def inner_decorator(view):
         @wraps(view)
         def wrapped(instance, *args, **kwargs):
-            if 'Authorization' in request.headers:
-                auth = request.headers['Authorization']
-                if not auth.startswith('Bearer '):
-                    logger.warning(
-                        "Malformed authorization header found in request"
-                    )
-                    abort(403, "No valid token provided")
-                token = auth.split(' ', 1)[1]
-                try:
-                    user = current_app.token_manager(instance).decode(token)
-                except FatbuildrTokenError as err:
-                    abort(403, str(err))
-                if not current_app.policy.validate_user_action(user, action):
-                    logger.warning(
-                        "Unauthorized access from user %s to action %s",
-                        user,
-                        action,
-                    )
-                    abort(
-                        403,
-                        f"user {user} is not allowed to perform action "
-                        f"{action}",
-                    )
-            elif (
+            user = get_token_user(instance, request)
+            # verify unauthorized anonymous access
+            if user is None and (
                 not current_app.policy.allow_anonymous
                 or not current_app.policy.validate_anonymous_action(action)
             ):
@@ -105,6 +106,21 @@ def check_instance_token_permission(action):
                 abort(
                     403,
                     f"anonymous role is not allowed to perform action {action}",
+                )
+            # verify real user access
+            elif (
+                user is not None
+                and not current_app.policy.validate_user_action(user, action)
+            ):
+                logger.warning(
+                    "Unauthorized access from user %s to action %s",
+                    user,
+                    action,
+                )
+                abort(
+                    403,
+                    f"user {user} is not allowed to perform action "
+                    f"{action}",
                 )
             return view(instance, *args, **kwargs)
 
@@ -407,19 +423,41 @@ def build(instance):
         src_tarball.save(src_tarball_path)
 
     connection = get_connection(instance)
-    task_id = connection.build(
-        request.form['format'],
-        request.form['distribution'],
-        request.form['architectures'].split(','),
-        request.form['derivative'],
-        request.form['artifact'],
-        request.form['user_name'],
-        request.form['user_email'],
-        request.form['message'],
-        tarball_path,
-        src_tarball_path,
-        False,
-    )
+    request_user = get_token_user(instance, request) or 'anonymous'
+
+    # If fatbuildrweb runs with the same identity as the user submitting the
+    # build request, forward the request to fatbuildrd with a simple build()
+    # that is less restricted in polkit. Otherwise, forward the request with
+    # build_as() and the identity of the original user.
+    if request_user == current_user()[1]:
+        task_id = connection.build(
+            request.form['format'],
+            request.form['distribution'],
+            request.form['architectures'].split(','),
+            request.form['derivative'],
+            request.form['artifact'],
+            request.form['user_name'],
+            request.form['user_email'],
+            request.form['message'],
+            tarball_path,
+            src_tarball_path,
+            False,
+        )
+    else:
+        task_id = connection.build_as(
+            request_user,
+            request.form['format'],
+            request.form['distribution'],
+            request.form['architectures'].split(','),
+            request.form['derivative'],
+            request.form['artifact'],
+            request.form['user_name'],
+            request.form['user_email'],
+            request.form['message'],
+            tarball_path,
+            src_tarball_path,
+            False,
+        )
     return jsonify({'task': task_id})
 
 

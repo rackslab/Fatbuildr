@@ -200,6 +200,37 @@ class DBusClient(AbstractClient):
         )
 
     @check_dbus_errors
+    def build_as(
+        self,
+        user,
+        format,
+        distribution,
+        architectures,
+        derivative,
+        artifact,
+        user_name,
+        user_email,
+        message,
+        tarball,
+        src_tarball,
+        interactive,
+    ):
+        return self.proxy.BuildAs(
+            user,
+            format,
+            distribution,
+            architectures,
+            derivative,
+            artifact,
+            user_name,
+            user_email,
+            message,
+            str(tarball),
+            str(valueornull(src_tarball)),
+            interactive,
+        )
+
+    @check_dbus_errors
     def queue(self):
         return DBusRunnableTask.from_structure_list(self.proxy.Queue)
 
