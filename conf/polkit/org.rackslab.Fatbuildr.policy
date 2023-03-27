@@ -29,6 +29,17 @@
                 <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
         </action>
 
+        <action id="org.rackslab.Fatbuildr.build-as">
+                <description>Submit build task to Fatbuildr with another user identity</description>
+                <message>Authentication is required to submit build task with another identity to Fatbuildr</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+
         <action id="org.rackslab.Fatbuildr.view-pipeline">
                 <description>View Fatbuildr pipeline definition</description>
                 <message>Authentication is required to view Fatbuildr pipeline definition</message>

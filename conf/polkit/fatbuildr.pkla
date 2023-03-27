@@ -12,6 +12,13 @@ ResultAny=yes
 ResultInactive=yes
 ResultActive=yes
 
+[Allow fatbuildr user to submit build task in Fatbuildr]
+Identity=unix-user:fatbuildr
+Action=org.rackslab.Fatbuildr.build-as;
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+
 [Allow members of fatbuildr group to view Fatbuildr pipeline definition]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.view-pipeline;

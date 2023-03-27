@@ -14,3 +14,10 @@ polkit.addRule(function(action, subject) {
             return polkit.Result.YES;
         }
 });
+
+polkit.addRule(function(action, subject) {
+    if (action.id == "org.rackslab.Fatbuildr.build-as" &&
+        subject.user == "fatbuildr") {
+            return polkit.Result.YES;
+        }
+});
