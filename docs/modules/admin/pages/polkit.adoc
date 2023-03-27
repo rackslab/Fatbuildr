@@ -15,6 +15,9 @@ queue (pending and running tasks) and tasks archives.
 
 org.rackslab.Fatbuildr.build:: Submit artifact build tasks.
 
+org.rackslab.Fatbuildr.build-as:: Submit artifact build tasks with another user
+identity.
+
 org.rackslab.Fatbuildr.view-pipeline:: View definition of instances build
 pipelines.
 
@@ -35,14 +38,22 @@ interactive shell in container images and build environment.
 org.rackslab.Fatbuildr.manage-tokens:: Manage JWT tokens used for authentication
 to HTTP REST API.
 
+NOTE: All `org.rackslab.Fatbuildr.*-as` actions are specifically designed for
+services (such as Fatbuildrweb) that receive requests from several users and
+have to submit tasks to `fatbuildrd` with these original users identity. Thus,
+the permissions to these actions should be restricted to system users running
+these services. Ordinary users do not need to have these permissions.
+
 == Default Policy
 
-By default in Fatbuildr, _root_ super user and members of group `fatbuildr` are
-granted to perform all actions.
+By default in Fatbuildr, `*-as` special actions are restricted to _root_ super
+user and `fatbuildr` system user. All other actions are granted to _root_ super
+user and all members of `fatbuildr` system group (including `fatbuildr` system
+user).
 
-Users can be added to `fatbuildr` group to get access to Fatbuildr D-Bus
-service. For example, run this command as root to add user `john` in group
-`fatbuildr`:
+Users just have to be added to `fatbuildr` group to get access to essential
+Fatbuildr D-Bus services. For example, run this command as root to add user
+`john` in `fatbuildr` group:
 
 [source,shell]
 ----

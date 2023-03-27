@@ -416,6 +416,39 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             interactive,
         )
 
+    @require_polkit_authorization("org.rackslab.Fatbuildr.build-as")
+    def BuildAs(
+        self,
+        user: Str,
+        format: Str,
+        distribution: Str,
+        architectures: List[Str],
+        derivative: Str,
+        artifact: Str,
+        author: Str,
+        email: Str,
+        message: Str,
+        tarball: Str,
+        src_tarball: Str,
+        interactive: Bool,
+    ) -> Str:
+        """Submit a new build."""
+        return self.implementation.submit(
+            'artifact build',
+            user,
+            format,
+            distribution,
+            architectures,
+            derivative,
+            artifact,
+            author,
+            email,
+            message,
+            tarball,
+            valueornone(src_tarball),
+            interactive,
+        )
+
     @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.edit-keyring")
     def KeyringCreate(self, *, call_info) -> Str:
