@@ -20,6 +20,7 @@
 import inspect
 import io
 from functools import wraps
+import os
 
 from flask import (
     request,
@@ -393,7 +394,15 @@ def build(instance):
     if 'source' in request.files:
         src_tarball = request.files['source']
         src_tarball_path = current_app.config['UPLOAD_FOLDER'].joinpath(
-            secure_filename(src_tarball.filename)
+            # The source tarball filename is not secured with werkzeug utility
+            # secure_filename() as the artifact main version is extracted from
+            # source tarball filename and it removes ~ (tilde) which is totally
+            # legit version numbers. As stated in Flask documentation,
+            # secure_filename is notably to protect from filenames with relative
+            # paths in the parents directories. These kinds of filenames are
+            # cleaned up by extracting the basename (without further
+            # modification).
+            os.path.basename(src_tarball.filename)
         )
         src_tarball.save(src_tarball_path)
 

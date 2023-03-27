@@ -58,6 +58,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - daemon: avoid global hazardous catch of all RuntimeErrors and restrict
   handling to supported FatbuildrRuntimeError, as a basis for better error
   management.
+- Avoid removal of tilde from version extracted in source tarball filename
+  when submitted during build through HTTP REST API (#81).
 - Remove useless imports
 
 ### Changed
