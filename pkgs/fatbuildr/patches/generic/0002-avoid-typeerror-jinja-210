@@ -1,15 +1,15 @@
 Description: convert jinja2.FileSystemLoad() Path argument to string to
  avoid TypeError with Jinja2 < 2.11.0.
-Last-Update: 2022-07-29
+Last-Update: 2023-03-27
 Distributions: el8
 Author: Rémi Palancher <remi@rackslab.io>
 
 
 diff --git a/fatbuildr/templates.py b/fatbuildr/templates.py
-index a8a0214..a30149e 100644
+index 26fe406..9196aa7 100644
 --- a/fatbuildr/templates.py
 +++ b/fatbuildr/templates.py
-@@ -45,7 +45,8 @@ class Templeter:
+@@ -53,7 +53,8 @@ class Templeter:
  
      def frender(self, path, **kwargs):
          """Render a file template."""
@@ -20,7 +20,7 @@ index a8a0214..a30149e 100644
              return self.env.get_template(path.name).render(kwargs)
          except jinja2.exceptions.TemplateSyntaxError as err:
 diff --git a/setup.py b/setup.py
-index a0a2a06..748973c 100644
+index 32e758a..8fd4514 100644
 --- a/setup.py
 +++ b/setup.py
 @@ -30,7 +30,7 @@ setup(name='Fatbuildr',
@@ -31,4 +31,4 @@ index a0a2a06..748973c 100644
 +      install_requires=['Jinja2',
                          'gpg',
                          'requests',
-                         'PyYAML',
+                         'PyJWT',
