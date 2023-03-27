@@ -267,7 +267,7 @@ class BuildEnv(object):
         cmd = Templeter().srender(
             getattr(self.conf, self.image.format).shell_cmd,
             environment=self.environment,
-            architecture=self.architecture,
+            architecture=self.native_architecture,
             name=self.name,
             path=self.path,
         )
