@@ -11,12 +11,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - web: add JWT token based authentication with RBAC policy for managing access
   permissions to the REST API and the HTML web endpoints (#21). Fatbuildr
   provides a default policy that can be overriden by site administrators.
+- Associate tasks to originating users (#79)
 - conf:
   - Add `[tokens]` section with settings to control generation and
     validation of JWT tokens.
   - Add `policy` and `vendor_policy` settings in `[web]` section to define path
     to RBAC policy definition file loaded by Fatbuildrweb.
-- polkit: Add _org.rackslab.Fatbuildr.manage-token_ action
+- polkit:
+  - Add _org.rackslab.Fatbuildr.manage-token_ action.
+  - Add _org.rackslab.Fatbuildr.build-as_ action.
+- dbus:
+  - Add `BuildAs` method to `org.rackslab.Fatbuildr.Instance` object to submit
+    build task with another user identity.
 - cli:
   - Add `shell` and `env-shell` operations to `fatbuildrctl images` command to
     open an interactive shell in a container running the image dedicated to a
@@ -40,6 +46,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     manpage.
   - Add section about API tokens in `fatbuildrctl` manpage.
   - Add section about authentication in REST API reference page.
+  - Mention new polkit actions _org.rackslab.Fatbuildr.manage-token_ and
+    _org.rackslab.Fatbuildr.build-as_ with a special note for _*-as_ actions.
   - Mention permission action required by all Fatbuildrweb REST API and HTML
     endpoints in references pages.
   - Document error object returned by REST API for denied permission.
@@ -70,6 +78,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - artifacts: rename YAML artifact definition file from `meta.yml` to
   `artifact.yml`. The old name is still supported but the user is warned with a
   deprecation notice (#73).
+- web: Build tasks are submitted to fatbuildrd with original requesting user's
+  identity when fatbuildrd runs with another user (typically `fatbuildr` system
+  user) so the tasks are properly associated to the original user.
 - docs: convert APT sources file in quickstart guide from one-line format to
   Deb822-style format (#72)
 - Rename `fatbuildr.web` module to `fatbuildr.procotols.http.server` for more
