@@ -9,9 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - web: add JWT token based authentication with RBAC policy for managing access
-  permissions to the REST API and the HTML web endpoints
-  ([#21](https://github.com/rackslab/fatbuildr/issues/21)). Fatbuildr provides a
-  default policy that can be overriden by site administrators.
+  permissions to the REST API and the HTML web endpoints (#21). Fatbuildr
+  provides a default policy that can be overriden by site administrators.
 - conf:
   - Add `[tokens]` section with settings to control generation and
     validation of JWT tokens.
@@ -21,8 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - cli:
   - Add `shell` and `env-shell` operations to `fatbuildrctl images` command to
     open an interactive shell in a container running the image dedicated to a
-    given format or in a build environment associated to a distribution
-    ([#18](https://github.com/rackslab/fatbuildr/issues/18)).
+    given format or in a build environment associated to a distribution (#18).
   - Add `-d, --distribution` option to `fatbuildrctl images` command to filter
     the container images or the build environments targeted by the operation.
   - Add `-a, --architecture` option to `fatbuildrctl images` command to limit
@@ -54,10 +52,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - cli:
   - Avoid hazardous handling of unsupported errors, as a basis for better
     error management.
-  - Handle unknown distribution error in server pipeline
-    ([#71](https://github.com/rackslab/fatbuildr/issues/71))
-  - Handle connection error to HTTP URI with readable error message
-    ([#10](https://github.com/rackslab/fatbuildr/issues/10))
+  - Handle unknown distribution error in server pipeline (#71)
+  - Handle connection error to HTTP URI with readable error message (#10)
   - Print clear error if YAML artifact definition is not found
 - daemon: avoid global hazardous catch of all RuntimeErrors and restrict
   handling to supported FatbuildrRuntimeError, as a basis for better error
@@ -71,9 +67,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `env-update`.
 - artifacts: rename YAML artifact definition file from `meta.yml` to
   `artifact.yml`. The old name is still supported but the user is warned with a
-  deprecation notice ([#73](https://github.com/rackslab/fatbuildr/issues/73)).
+  deprecation notice (#73).
 - docs: convert APT sources file in quickstart guide from one-line format to
-  Deb822-style format ([#72](https://github.com/rackslab/fatbuildr/issues/72))
+  Deb822-style format (#72)
 - Rename `fatbuildr.web` module to `fatbuildr.procotols.http.server` for more
   proximity with `fatbuildr.procotols.http.client` code.
 
@@ -85,8 +81,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add large Fatbuildr logos intended for docs.rackslab.io landing page
   - Add Release notes page based on `CHANGELOG.md`
   - Use tabs for distributions in quickstart guide
-  - Mention support of Fedora 37 in quickstart guide
-    ([#68](https://github.com/rackslab/fatbuildr/issues/68))
+  - Mention support of Fedora 37 in quickstart guide (#68)
 - conf: add `env_as_root` boolean parameter in `format:{deb,rpm}` section to
   control if commands to create and update build environments are executed as
   root super-user or the user running `fatbuildrd` daemon.
@@ -107,8 +102,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - web:
   - Add missing return to fix the index redirect view (from `/` to
     `/registry`) when Fatbuildrweb is executed in mono-instance mode.
-  - Fix support of Flask >= 2.0
-    ([#69](https://github.com/rackslab/fatbuildr/issues/69))
+  - Fix support of Flask >= 2.0 (#69)
 
 ### Changed
 - pkgs:
