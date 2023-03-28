@@ -69,8 +69,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Avoid removal of tilde from version extracted in source tarball filename
   when submitted during build through HTTP REST API (#81).
 - Remove useless imports
-- images: fix fatbuildr user and group with host UID/GID in deb format container
-  image due to possible conflicts with other installed Debian sid packages (#83)
+- images:
+  - Fix fatbuildr user and group with host UID/GID in deb format container image
+    due to possible conflicts with other installed Debian sid packages (#83)
+  - Add missing shebang in derivatives pbuilder hook
 
 ### Changed
 - cli: transform `images` command options `--create`, `--update`,
