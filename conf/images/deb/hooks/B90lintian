@@ -1,0 +1,13 @@
+#!/bin/bash
+
+set -e
+
+BUILDDIR="${BUILDDIR:-/tmp/buildd}"
+
+apt-get install -y "${APTGETOPT[@]}" lintian
+
+echo "▿▿▿▿▿▿▿ 〚 lintian static analysis 〛 ▿▿▿▿▿▿▿"
+
+su -c "lintian --color always -I --show-overrides "$BUILDDIR"/*.changes; :" - pbuilder
+
+echo "▵▵▵▵▵▵▵ 〚 end of lintian analysis 〛 ▵▵▵▵▵▵▵"
