@@ -8,6 +8,6 @@ Format=directory
 [Content]
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
-Packages=mock,qemu-user-static,man-db
+Packages=mock,qemu-user-static,man-db,rpmlint
 PostInstallationScript=/usr/share/fatbuildr/images/scripts/rpm-postinstall.sh
 FinalizeScript=/usr/share/fatbuildr/images/scripts/install-mock-plugin.sh

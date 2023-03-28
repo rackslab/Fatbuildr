@@ -147,6 +147,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         self._build_src()
         for architecture in self.architectures:
             self._build_bin(architecture)
+        self._static_check()
 
     def _build_src(self):
         """Build source SRPM"""
@@ -365,6 +366,17 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             self.runcmd(
                 cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)}
             )
+
+    def _static_check(self):
+        """Run with rpmlint for static analysis on all built RPM packages,
+        including the source package."""
+        packages = list(self.place.glob('*.rpm'))
+        logger.info(
+            "Running static analysis on generated RPM packages: %s",
+            ' '.join(package.name for package in packages),
+        )
+        cmd = ['rpmlint', '--info', '--permissive'] + packages
+        self.cruncmd(cmd)
 
     def _mock_overlay_cmd(self, _cmd):
         """Run mock overlayfs snapshot related command on host native build
