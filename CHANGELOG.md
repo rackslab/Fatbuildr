@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   permissions to the REST API and the HTML web endpoints (#21). Fatbuildr
   provides a default policy that can be overriden by site administrators.
 - Associate tasks to originating users (#79)
+- Automatic static analysis of RPM and Deb packages based on rpmlint and lintian
+  after successful build (#16)
 - conf:
   - Add `[tokens]` section with settings to control generation and
     validation of JWT tokens.
@@ -54,7 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add section about policy configuration in Fatbuildrweb administration page.
   - Document system configuration new `[tokens]` section and new parameters in
     `[web]` section.
-  - Mention RBAC policy and JWT authentication in advanced features description.
+  - Mention static analysis, RBAC policy and JWT authentication in advanced
+    features description.
 
 ### Fixed
 - cli:
