@@ -113,6 +113,9 @@ class Image(object):
                 path=str(self.path),
                 skeleton=str(self.skel_path),
                 user=user,
+                group=group,
+                uid=uid,
+                gid=gid,
             )
             .split(' ')
         )
