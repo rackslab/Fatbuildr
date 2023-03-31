@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Associate tasks to originating users (#79)
 - Automatic static analysis of RPM and Deb packages based on rpmlint and lintian
   after successful build (#16)
+- Add support of interactive build for RPM packages format (#61)
 - conf:
   - Add `[tokens]` section with settings to control generation and
     validation of JWT tokens.
