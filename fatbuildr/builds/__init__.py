@@ -37,7 +37,11 @@ except ImportError:
     # dropped in Fatbuildr.
     from cached_property import cached_property
 
-from ..protocols.exports import ExportableTaskField
+from ..protocols.exports import (
+    ExportableType,
+    ExportableField,
+    ExportableTaskField,
+)
 
 from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
@@ -48,14 +52,55 @@ from ..templates import Templeter
 from ..utils import (
     dl_file,
     verify_checksum,
+    is_zip,
+    zip_subdir,
     tar_subdir,
-    tar_safe_extractall,
+    tar_has_single_toplevel,
+    extract_zipfile,
+    extract_tarball,
     current_user,
     host_architecture,
 )
 from ..log import logr
 
 logger = logr(__name__)
+
+
+class ArtifactSourceArchive(ExportableType):
+    """Class to represent an artifact source archive."""
+
+    EXFIELDS = {
+        ExportableField('id'),
+        ExportableField('path', Path),
+    }
+
+    def __init__(self, id, path):
+        self.id = id
+        self.path = path
+
+    def is_main(self, artifact):
+        """Returns True if this archive is the main archive of the given
+        artifact."""
+        return self.id == artifact
+
+    @property
+    def is_zip(self):
+        """True if the archive is a zip file, False otherwise."""
+        return is_zip(self.path)
+
+    @property
+    def subdir(self):
+        """The top-level directory of the archive."""
+        if self.is_zip:
+            return zip_subdir(self.path)
+        else:
+            return tar_subdir(self.path)
+
+    @property
+    def has_single_toplevel(self):
+        """True if the archive has a single element at its top-level, False
+        otherwise."""
+        return tar_has_single_toplevel(self.path)
 
 
 class ArtifactBuild(RunnableTask):
@@ -66,6 +111,7 @@ class ArtifactBuild(RunnableTask):
         ExportableTaskField('format'),
         ExportableTaskField('distribution'),
         ExportableTaskField('architectures', List[str]),
+        ExportableTaskField('archives', List[ArtifactSourceArchive]),
         ExportableTaskField('derivative'),
         ExportableTaskField('artifact'),
         ExportableTaskField('author'),
@@ -88,7 +134,7 @@ class ArtifactBuild(RunnableTask):
         email,
         message,
         tarball,
-        src_tarball,
+        sources,
         interactive,
     ):
         super().__init__(
@@ -103,7 +149,7 @@ class ArtifactBuild(RunnableTask):
         self.email = email
         self.message = message
         self.input_tarball = Path(tarball)
-        self.src_tarball = Path(src_tarball) if src_tarball else None
+        self.sources = sources
         self.cache = self.instance.cache.artifact(self)
         self.registry = self.instance.registry_mgr.factory(self.format)
         # Get the recursive list of derivatives extended by the given
@@ -114,9 +160,9 @@ class ArtifactBuild(RunnableTask):
         self.image = self.instance.images_mgr.image(self.format)
         self.defs = None  # loaded in prepare()
         self.version = None  # initialized in prepare(), after defs are loaded
-        # Path the upstream tarball, initialized in prepare(), after optional
+        # The source upstream archives, initialized in prepare(), after optional
         # pre-script is processed.
-        self.tarball = None
+        self.archives = list()
         # Initialized in prepare(), as it requires the version to be known.
         self.patches_dir = None
 
@@ -129,33 +175,30 @@ class ArtifactBuild(RunnableTask):
                 f"{self.__class__.__name__} does not have {name} attribute"
             )
 
-    @property
-    def tarball_url(self):
-        return self.defs.tarball_url(self.version.main)
+    def archive(self, searched_id):
+        """Returns the ArtifactSourceArchive with the given archive ID or None
+        if not found."""
+        for archive in self.archives:
+            if archive.id == searched_id:
+                return archive
+        return None
 
     @property
-    def tarball_filename(self):
-        return self.defs.tarball_filename(self.version.main)
+    def main_archive(self):
+        """Returns the main ArtifactSourceArchive for this artifact or None if
+        not found."""
+        return self.archive(self.artifact)
 
-    @property
-    def checksum_format(self):
-        return self.defs.checksum_format(self.derivative)
-
-    @property
-    def checksum_value(self):
-        return self.defs.checksum_value(self.derivative)
-
-    @property
-    def tarball_in_build_place(self):
-        """Returns True if the artifact tarball is located in build place (ie.
-        the tarball was provided by the user within the build request), or False
-        otherwise.
-        This code does not call self.tarball.is_relative_to(self.place) method
+    def archive_in_build_place(self, archive):
+        """Returns True if the artifact source archive is located in build place
+        (ie. the archive was provided by the user within the build request), or
+        False otherwise.
+        This code does not call archive.is_relative_to(self.place) method
         because Fatbuildr supports Python 3.6+ and this method is only available
         starting from Python 3.9.
         """
         try:
-            self.tarball.relative_to(self.place)
+            archive.path.relative_to(self.place)
             return True
         except ValueError:
             return False
@@ -210,7 +253,7 @@ class ArtifactBuild(RunnableTask):
 
     def prepare(self):
         """Extract input tarball and, if not present in cache, download the
-        package upstream tarball and verify its checksum."""
+        package upstream source archives and verify their checksums."""
 
         # Extract artifact tarball in build place
         logger.info(
@@ -218,8 +261,7 @@ class ArtifactBuild(RunnableTask):
             self.input_tarball,
             self.place,
         )
-        with tarfile.open(self.input_tarball, 'r:xz') as tar:
-            tar_safe_extractall(tar, self.place)
+        extract_tarball(self.input_tarball, self.place)
 
         # Remove the input tarball
         self.input_tarball.unlink()
@@ -232,61 +274,82 @@ class ArtifactBuild(RunnableTask):
             self.place, self.artifact, self.format
         )
 
-        if self.src_tarball:
-            # If source tarball has been provided with the build request, use it.
-            src_tarball_target = self.place.joinpath(self.src_tarball.name)
-            logger.info("Using provided source tarball %s", src_tarball_target)
-            # Move the source tarball in build place. The shutil module is used
-            # here to support file move between different filesystems.
-            # Unfortunately, PurePath.rename() does not support this case.
-            shutil.move(self.src_tarball, src_tarball_target)
-
-            # The main version of the artifact is extracted from the the source
-            # tarball name, it is prefixed by artifact name followed by
-            # underscore, it is suffixed by the extension'.tar.xz'.
-            main_version_str = self.src_tarball.name[
-                len(self.artifact) + 1 : -7
-            ]
-            logger.debug(
-                "Artifact main version extracted from source tarball name: %s",
-                main_version_str,
-            )
+        if not len(self.sources) and not self.defs.main_source.has_source:
+            # This artifact is not defined with an upstream source archive URL
+            # and the user did not provide source archive within the build
+            # request. This case happens for OSI format for example. The only
+            # thing to do here is defining the targeted version.
             self.version = ArtifactVersion(
-                f"{main_version_str}-{self.defs.release}"
-            )
-            self.tarball = src_tarball_target
-        elif not self.defs.has_tarball:
-            # This artifact is not defined with an upstream tarball URL and the
-            # user did not provide source tarball within the build request. This
-            # case happens for OSI format for example. The only thing to do here
-            # is defining the targeted version.
-            self.version = ArtifactVersion(
-                f"{self.defs.version(self.derivative)}-{self.defs.release}"
+                self.defs.fullversion(self.derivative)
             )
             return
-        else:
-            # If the source tarball has not been provided and the artifact is
-            # defined with a source tarball URL, it is downloaded in cache (if
-            # not already present) using this URL.
 
-            # The targeted version is fully defined based on definition
+        # If source archives have been provided with the build request, use
+        # them.
+        for source in self.sources:
+            source_archive_target = self.place.joinpath(source.path.name)
+            logger.info(
+                "Using provided source archive %s", source_archive_target
+            )
+            # Move the source archive in build place. The shutil module is
+            # used here to support file move between different filesystems.
+            # Unfortunately, PurePath.rename() does not support this case.
+            shutil.move(source.path, source_archive_target)
+            if source.is_main(self.artifact):
+                # The main version of the artifact is extracted from the
+                # main source archive name, it is prefixed by artifact name
+                # followed by underscore, it is suffixed by the extension
+                # '.tar.xz'.
+                main_version_str = source.path.name[len(self.artifact) + 1 : -7]
+                logger.debug(
+                    "Artifact main version extracted from source tarball name: %s",
+                    main_version_str,
+                )
+                self.version = ArtifactVersion(
+                    f"{main_version_str}-{self.defs.release}"
+                )
+            self.archives.append(
+                ArtifactSourceArchive(source.id, source_archive_target)
+            )
+
+        # If the artifact version has not been defined base on source archive
+        # provided in the build request, define the version based on artifact
+        # definition
+        if self.version is None:
             self.version = ArtifactVersion(
-                f"{self.defs.version(self.derivative)}-{self.defs.release}"
+                self.defs.fullversion(self.derivative)
             )
-            if not self.cache.has_tarball:
-                dl_file(self.tarball_url, self.cache.tarball)
 
-            verify_checksum(
-                self.cache.tarball,
-                self.checksum_format,
-                self.checksum_value,
-            )
+        # If the source archive has not been provided and the artifact is
+        # defined with sources archives URLs, they are downloaded in cache
+        # (if not already present) using these URLs.
+        for source in self.defs.sources:
+            # Skip archives whose source have already been provided in build
+            # request.
+            if self.archive(source.id) is not None:
+                continue
+
+            if not self.cache.has_archive(source.id):
+                dl_file(
+                    self.defs.source(source.id).url(self.derivative),
+                    self.cache.archive(source.id),
+                )
+
+            # verify all declared checksums for source
+            for checksum in source.checksums(self.derivative):
+                verify_checksum(
+                    self.cache.archive(source.id),
+                    checksum[0],
+                    checksum[1],
+                )
 
             logger.info(
-                "Using artifact source tarball from cache %s",
-                self.cache.tarball,
+                "Using artifact source archive from cache %s",
+                self.cache.archive(source.id),
             )
-            self.tarball = self.cache.tarball
+            self.archives.append(
+                ArtifactSourceArchive(source.id, self.cache.archive(source.id))
+            )
 
         # Define patches_dir attribute now that version is well known
         self.patches_dir = PatchesDir(self.place, self.version.main)
@@ -367,6 +430,8 @@ class ArtifactEnvBuild(ArtifactBuild):
         super().__init__(*args, **kwargs)
         # Get the build environment name corresponding to the distribution
         self.env_name = self.instance.pipelines.dist_env(self.distribution)
+        # Initialized in prescript_supp_tarball()
+        self.prescript_tarballs = list()
         logger.debug(
             "Build environment selected for distribution %s: %s",
             self.distribution,
@@ -437,7 +502,7 @@ class ArtifactEnvBuild(ArtifactBuild):
         return list(set(self.image.prescript_deps + in_file))
 
     @cached_property
-    def prescript_tarballs(self):
+    def defined_prescript_tarballs(self):
         """Returns the list of subfolders generated in prescripts to include in
         supplementary tarballs."""
         return self.prescript_token('TARBALLS')
@@ -463,7 +528,8 @@ class ArtifactEnvBuild(ArtifactBuild):
         # Check the prescript is present or leave
         if not self.prescript_path.exists():
             logger.debug(
-                "Prescript no found, continuing with unmodified tarball"
+                "Prescript not found, continuing with unmodified artifact "
+                "sources"
             )
             return
 
@@ -473,37 +539,51 @@ class ArtifactEnvBuild(ArtifactBuild):
         upstream_dir = self.place.joinpath('upstream')
         upstream_dir.mkdir()
 
-        # Extract original upstream tarball (and get the subdir)
-        with tarfile.open(self.tarball) as tar:
-            tar_safe_extractall(tar, upstream_dir)
-            tarball_subdir = upstream_dir.joinpath(tar_subdir(tar))
+        # Extract main upstream source archive (and get the subdir)
+        if self.main_archive.is_zip:
+            archive_subdir = extract_zipfile(
+                self.main_archive.path, upstream_dir
+            )
+        else:
+            archive_subdir = extract_tarball(
+                self.main_archive.path, upstream_dir
+            )
+
+        # Extract all other possible sources archives
+        for archive in self.archives:
+            if archive.is_main(self.artifact):
+                continue  # skip main source archive that is already extracted
+            if archive.is_zip:
+                extract_zipfile(archive.path, archive_subdir)
+            else:
+                extract_tarball(archive.path, archive_subdir)
 
         # Remove .gitignore file if present, to avoid modification realized
         # by pre script being ignored when generating the resulting patch.
-        gitignore_path = tarball_subdir.joinpath('.gitignore')
+        gitignore_path = archive_subdir.joinpath('.gitignore')
         if gitignore_path.exists():
             logger.info("Removing .gitignore from upstream archive")
             gitignore_path.unlink()
 
         # init the git repository with its initial commit
-        git = GitRepository(tarball_subdir, self.author, self.email)
+        git = GitRepository(archive_subdir, self.author, self.email)
 
         # import existing patches in queue
         if not self.patches_dir.empty:
             git.import_patches(self.patches_dir)
 
         # Now run the prescript!
-        self.prescript_in_env(tarball_subdir)
+        self.prescript_in_env(archive_subdir)
 
-        if len(self.prescript_tarballs):
+        if len(self.defined_prescript_tarballs):
             # Rename and symlink prescript tarballs subdirectories with unique
             # timestamped names, so the resulting supplementary tarball name is
             # also unique and cannot conflict in targeted package repository
             # with another existing supplementary tarball with different
             # content.
-            for subdir in self.prescript_tarballs:
-                subdir_path = tarball_subdir.joinpath(subdir)
-                target = tarball_subdir.joinpath(
+            for subdir in self.defined_prescript_tarballs:
+                subdir_path = archive_subdir.joinpath(subdir)
+                target = archive_subdir.joinpath(
                     self.prescript_supp_subdir_renamed(subdir)
                 )
                 logger.debug(
@@ -516,7 +596,7 @@ class ArtifactEnvBuild(ArtifactBuild):
                 # subdirectory, using the target name to get a relative path.
                 subdir_path.symlink_to(target.name)
             # Generate supplementary tarballs
-            self.prescript_supp_tarball(tarball_subdir)
+            self.prescript_supp_tarball(archive_subdir)
             # Export patch with symlinks in patch queue
             git.commit_export(
                 self.patches_dir.version_subdir,
@@ -526,7 +606,7 @@ class ArtifactEnvBuild(ArtifactBuild):
                 self.email,
                 "Patch generated by fatbuildr to symlink prescript "
                 "supplementary tarballs subdirectories",
-                files=self.prescript_tarballs,
+                files=self.defined_prescript_tarballs,
             )
         else:
             # Export git repo diff in patch queue

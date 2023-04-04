@@ -25,7 +25,7 @@ import tarfile
 import shutil
 
 from .git import GitRepository, PatchesDir
-from .utils import dl_file, verify_checksum, tar_subdir, tar_safe_extractall
+from .utils import dl_file, verify_checksum, extract_tarball
 from .cleanup import CleanupRegistry
 from .log import logr
 
@@ -81,9 +81,7 @@ class PatchQueue:
         logger.debug(f"Created temporary directory %s", tmpdir)
 
         # extract tarball in the tmp directory
-        with tarfile.open(tarball_path, 'r') as tar:
-            tar_safe_extractall(tar, tmpdir)
-            repo_path = tmpdir.joinpath(tar_subdir(tar))
+        repo_path = extract_tarball(tarball_path, tmpdir)
 
         # init the git repository with its initial commit
         self.git = GitRepository(repo_path, self.user, self.email)

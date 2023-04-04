@@ -28,6 +28,115 @@ from .log import logr
 logger = logr(__name__)
 
 
+class ArtifactSourceDefs:
+    """Class to represent an artifact source."""
+
+    def __init__(self, id, defs):
+        self.id = id
+        self.defs = defs
+
+    @property
+    def has_source(self):
+        return 'source' in self.defs or (
+            'sources' in self.defs and self.id in self.defs['sources']
+        )
+
+    @property
+    def has_multisources(self):
+        """True if multiple sources are defined in the same artifact definition
+        file, False otherwise."""
+        return 'sources' in self.defs
+
+    @property
+    def has_derivatives(self):
+        """True if derivatives are defined in the artifact definition file,
+        False otherwise."""
+        return 'derivatives' in self.defs
+
+    def version(self, derivative):
+        """Returns the version of the artifact source for the given
+        derivative."""
+        if self.has_derivatives:
+            if self.has_multisources:
+                try:
+                    return str(
+                        self.defs['derivatives'][derivative][self.id]['version']
+                    )
+                except KeyError:
+                    raise FatbuildrArtifactError(
+                        f"Unable to find version for source archive {self.id} "
+                        f"for derivative {derivative} in YAML artifact "
+                        "definition file"
+                    )
+            else:
+                try:
+                    return str(self.defs['derivatives'][derivative]['version'])
+                except KeyError:
+                    raise FatbuildrArtifactError(
+                        f"Unable to find version for derivative {derivative} "
+                        "in YAML artifact definition file"
+                    )
+        else:
+            if self.has_multisources:
+                try:
+                    return str(self.defs['versions'][self.id])
+                except KeyError:
+                    raise FatbuildrArtifactError(
+                        f"Unable to find version for source archive {self.id} "
+                        "in YAML artifact definition file"
+                    )
+            else:
+                try:
+                    return str(self.defs['version'])
+                except KeyError:
+                    raise FatbuildrArtifactError(
+                        f"Unable to find version in YAML artifact definition "
+                        "file"
+                    )
+
+    def checksums(self, derivative):
+        """Returns a set of (algorithm, value) 2-tuples for all checksums
+        defined for artifact source."""
+        if self.has_multisources:
+            checksums_dict = self.defs['checksums'][self.id][
+                self.version(derivative)
+            ]
+        else:
+            checksums_dict = self.defs['checksums'][self.version(derivative)]
+        results = set()
+        version = self.version(derivative)
+        for algo, value in checksums_dict.items():
+            results.add((algo, value))
+        return results
+
+    @property
+    def _raw_source(self):
+        if self.has_multisources:
+            return self.defs['sources'][self.id]
+        else:
+            return self.defs['source']
+
+    def url(self, derivative):
+        """Returns the URL to download the artifact source for the given
+        derivative."""
+        url = Templeter().srender(
+            self._raw_source, version=self.version(derivative)
+        )
+        if '!' in url:
+            return url.split('!')[0]
+        return url
+
+    def filename(self, derivative):
+        """Returns the filename of the artifact source for the given
+        derivative."""
+        url = Templeter().srender(
+            self._raw_source, version=self.version(derivative)
+        )
+        if '!' in url:
+            return url.split('!')[1]
+        return os.path.basename(url)
+
+
 class ArtifactDefs:
     """Generic class to manipulate a YAML artifact definition file."""
 
@@ -37,8 +146,9 @@ class ArtifactDefs:
         ('meta.yml', True),  # deprecated
     )
 
-    def __init__(self, place):
+    def __init__(self, place, artifact):
         self.place = place
+        self.artifact = artifact
 
         for filename in self.SUPPORTED_FILENAMES:
             defs_yml_f = place.joinpath(filename[0])
@@ -61,64 +171,46 @@ class ArtifactDefs:
             )
 
         logger.debug("Loading artifact definitions from %s", defs_yml_f)
+        self.sources = list()
         with open(defs_yml_f) as fh:
             self.defs = yaml.safe_load(fh)
+            if 'sources' in self.defs:
+                for source_id, source_defs in self.defs['sources'].items():
+                    self.sources.append(
+                        ArtifactSourceDefs(source_id, self.defs)
+                    )
+            else:
+                self.sources.append(
+                    ArtifactSourceDefs(self.artifact, self.defs)
+                )
+
+    def source(self, id):
+        for source in self.sources:
+            if source.id == id:
+                return source
 
     @property
-    def has_tarball(self):
-        return 'tarball' in self.defs
+    def main_source(self):
+        return self.source(self.artifact)
 
     @property
-    def supported_formats(self):
-        return [
-            key
-            for key in self.defs.keys()
-            if key not in ['version', 'versions', 'tarball', 'checksums']
-        ]
+    def defined_sources(self):
+        """The list of source IDs defined in YAML artifact definition file."""
+        return [source.id for source in self.sources]
 
     @property
     def derivatives(self):
         results = []
-        if 'versions' in self.defs:
-            results.extend(self.defs['versions'].keys())
+        if 'derivatives' in self.defs:
+            results.extend(self.defs['derivatives'].keys())
         else:
             results.append('main')
         logger.debug("Supported derivatives: %s", results)
         return results
 
-    def version(self, derivative):
-        if derivative == 'main' and 'version' in self.defs:
-            return str(self.defs['version'])
-        else:
-            return str(self.defs['versions'][derivative])
-
-    def checksum_format(self, derivative):
-        version = self.version(derivative)
-        if version not in self.defs['checksums']:
-            raise RuntimeError(
-                f"Checksum of version {version} not found in artifact "
-                "definition"
-            )
-        return list(self.defs['checksums'][self.version(derivative)].keys())[
-            0
-        ]  # pickup the first format
-
-    def checksum_value(self, derivative):
-        return self.defs['checksums'][self.version(derivative)][
-            self.checksum_format(derivative)
-        ]
-
-    def tarball_url(self, version):
-        tarball = Templeter().srender(self.defs['tarball'], version=version)
-        if '!' in tarball:
-            return tarball.split('!')[0]
-        return tarball
-
-    def tarball_filename(self, version):
-        tarball = Templeter().srender(self.defs['tarball'], version=version)
-        if '!' in tarball:
-            return tarball.split('!')[1]
-        return os.path.basename(tarball)
+    @property
+    def supported_formats(self):
+        return [key for key in self.defs.keys() if key in ['rpm', 'deb', 'osi']]
 
     @property
     def architecture_dependent(self):
@@ -127,8 +219,7 @@ class ArtifactDefs:
 
 class ArtifactFormatDefs(ArtifactDefs):
     def __init__(self, place, artifact, format):
-        super().__init__(place)
-        self.artifact = artifact
+        super().__init__(place, artifact)
         self.format = format
 
     @property
@@ -136,7 +227,9 @@ class ArtifactFormatDefs(ArtifactDefs):
         return str(self.defs[self.format]['release'])
 
     def fullversion(self, derivative):
-        return self.version(derivative) + '-' + self.release
+        return (
+            self.source(self.artifact).version(derivative) + '-' + self.release
+        )
 
 
 class ArtifactDebDefs(ArtifactFormatDefs):

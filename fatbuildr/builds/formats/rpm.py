@@ -21,26 +21,26 @@ from datetime import datetime
 from pathlib import Path
 import tarfile
 
-from .. import ArtifactEnvBuild
+from .. import ArtifactEnvBuild, ArtifactSourceArchive
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
-from ...utils import current_user, current_group, tar_subdir
+from ...utils import current_user, current_group
 from ...log import logr
 
 logger = logr(__name__)
 
 # String template for changelog in RPM spec file
 SOURCES_DECL_TPL = """
-Source: {{ main_tarball }}
-{% for tarball in supplementary_tarballs %}
-Source{{ loop.index }}: {{ tarball }}
+{% for source in sources %}
+Source{{ loop.index0 }}: {{ source.path.name }}
 {% endfor %}
 """
 
 SOURCES_PREP_TPL = """
 %setup -q -n {{ main_tarball_subdir }}
-{% for tarball in supplementary_tarballs %}
+{% for source in other_sources %}
 %setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index }}
+mv {{ source.subdir }} {{ source.id }}
 {% endfor %}
 """
 
@@ -91,7 +91,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         email,
         message,
         tarball,
-        src_tarball,
+        sources,
         interactive,
     ):
         super().__init__(
@@ -108,7 +108,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             email,
             message,
             tarball,
-            src_tarball,
+            sources,
             interactive,
         )
 
@@ -136,7 +136,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         return path
 
     def supp_tarball_path(self, subdir):
-        """Returns the patch to the supplementary tarball for the given
+        """Returns the path to the supplementary tarball for the given
         subdir."""
         return self.source_path.joinpath(
             f"{self.artifact}_{self.version.main}-"
@@ -172,17 +172,18 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
 
         sources_decl = templater.srender(
             SOURCES_DECL_TPL,
-            main_tarball=self.tarball.name,
-            supplementary_tarballs=[
-                self.supp_tarball_path(subdir).name
-                for subdir in self.prescript_tarballs
-            ],
+            sources=self.archives + self.prescript_tarballs,
         )
 
         sources_prep = templater.srender(
             SOURCES_PREP_TPL,
-            main_tarball_subdir=tar_subdir(self.tarball),
-            supplementary_tarballs=self.prescript_tarballs,
+            main_tarball_subdir=self.main_archive.subdir,
+            other_sources=[
+                archive
+                for archive in self.archives
+                if not archive.is_main(self.artifact)
+            ]
+            + self.prescript_tarballs,
         )
 
         if not self.patches_dir.empty:
@@ -255,7 +256,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                     pkg=self,
                     version=self.version.main,
                     release=self.version.fullrelease,
-                    source=sources_decl,
+                    sources=sources_decl,
                     prep_sources=sources_prep,
                     patches=patches_decl,
                     prep_patches=patches_prep,
@@ -263,18 +264,23 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 )
             )
 
-        # If the source tarball is not in build place (ie. in cache),
-        # create symlink of the source tarball in the sources subdirectory (the
+        # If the source archive is not in build place (ie. in cache),
+        # create symlink of the source archive in the sources subdirectory (the
         # cache directory is then bind-mounted in the mock environment).
-        # Otherwise, move the tarball from the build place to the sources
+        # Otherwise, move the source archive from the build place to the sources
         # subdirectory.
-        source = self.source_path.joinpath(self.tarball.name)
-        if not self.tarball_in_build_place:
-            logger.info("Creating symlink %s → %s", source, self.tarball)
-            source.symlink_to(self.tarball)
-        else:
-            logger.info("Moving tarball from %s to %s", self.tarball, source)
-            self.tarball = self.tarball.rename(source)
+        need_bind_mount_cache = False
+        for archive in self.archives:
+            source = self.source_path.joinpath(archive.path.name)
+            if not self.archive_in_build_place(archive):
+                need_bind_mount_cache = True
+                logger.info("Creating symlink %s → %s", source, archive.path)
+                source.symlink_to(archive.path)
+            else:
+                logger.info(
+                    "Moving source archive from %s to %s", archive.path, source
+                )
+                archive.path = archive.path.rename(source)
 
         # run SRPM build
         cmd = [
@@ -292,14 +298,14 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             self.place,
         ]
 
-        # If the source tarball is not in build place (ie. in cache),
-        # bind-mount the tarball directory in mock environment so rpmbuild can
-        # access to the target of the tarball symlink in build place.
-        if not self.tarball_in_build_place:
+        # Bind-mount the artifact cache directory in mock environment so
+        # rpmbuild can access to the target of the archives symlinks in build
+        # place if needed.
+        if need_bind_mount_cache:
             cmd[3:3] = [
                 '--plugin-option',
                 "bind_mount:dirs="
-                f"[(\"{self.tarball.parent}\",\"{self.tarball.parent}\")]",
+                f"[(\"{self.cache.dir}\",\"{self.cache.dir}\")]",
             ]
 
         self.cruncmd(cmd)
@@ -399,7 +405,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         cmd.extend(_cmd)
         self.cruncmd(cmd)
 
-    def prescript_in_env(self, tarball_subdir):
+    def prescript_in_env(self, archive_subdir):
         """Execute prescript in RPM build environment using mock and
         snapshots."""
         logger.info(
@@ -464,7 +470,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 f"(\"{self.image.common_libdir}\",\"{self.image.common_libdir}\")]",
                 '--shell',
                 '--',
-                f"FATBUILDR_SOURCE_DIR={tarball_subdir}",
+                f"FATBUILDR_SOURCE_DIR={archive_subdir}",
                 '/bin/bash',
                 self.image.common_libdir.joinpath('pre-stage1-rpm.sh'),
                 self.prewrapper_path,
@@ -494,7 +500,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             raise RuntimeError("prescript error")
 
     def prescript_supp_tarball(self, tarball_subdir):
-        for subdir in self.prescript_tarballs:
+        for subdir in self.defined_prescript_tarballs:
             logger.info(
                 "Generating supplementary tarball %s",
                 self.supp_tarball_path(subdir),
@@ -508,3 +514,6 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                     arcname=renamed.name,
                     recursive=True,
                 )
+            self.prescript_tarballs.append(
+                ArtifactSourceArchive(subdir, renamed)
+            )

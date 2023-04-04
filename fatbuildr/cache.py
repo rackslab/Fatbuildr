@@ -29,13 +29,13 @@ class CacheArtifact(object):
         self.dir = dir.joinpath(build.artifact)
         self.build = build
 
-    @property
-    def tarball(self):
-        return self.dir.joinpath(self.build.tarball_filename)
+    def archive(self, source_id):
+        return self.dir.joinpath(
+            self.build.defs.source(source_id).filename(self.build.derivative)
+        )
 
-    @property
-    def has_tarball(self):
-        return self.tarball.exists()
+    def has_archive(self, source_id):
+        return self.archive(source_id).exists()
 
     def ensure(self):
         if not self.dir.exists():

@@ -43,7 +43,7 @@ class ArtifactBuildOsi(ArtifactBuild):
         email,
         message,
         tarball,
-        src_tarball,
+        sources,
         interactive,
     ):
         super().__init__(
@@ -60,7 +60,7 @@ class ArtifactBuildOsi(ArtifactBuild):
             email,
             message,
             tarball,
-            src_tarball,
+            sources,
             interactive,
         )
 

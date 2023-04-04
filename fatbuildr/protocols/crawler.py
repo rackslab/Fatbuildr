@@ -20,7 +20,7 @@
 from ..protocols.exports import ProtocolRegistry
 
 # tasks
-from ..builds import ArtifactBuild
+from ..builds import ArtifactSourceArchive, ArtifactBuild
 from ..builds.factory import BuildFactory
 from ..tasks.registry import RegistryArtifactDeletionTask
 from ..tasks.keyring import KeyringCreationTask, KeyringRenewalTask
@@ -58,6 +58,7 @@ def register_protocols():
         registry.register_task(*task)
     for _type in [
         RunningInstance,
+        ArtifactSourceArchive,
         RegistryArtifact,
         ChangelogEntry,
         KeyringMasterKey,

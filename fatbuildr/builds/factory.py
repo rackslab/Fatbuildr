@@ -45,7 +45,7 @@ class BuildFactory(object):
         user_email,
         message,
         tarball,
-        src_tarball,
+        sources,
         interactive,
     ):
         """Generate a BuildArtifact from a new request."""
@@ -65,6 +65,6 @@ class BuildFactory(object):
             user_email,
             message,
             tarball,
-            src_tarball,
+            sources,
             interactive,
         )
