@@ -34,7 +34,16 @@ class WireInstance(WireData):
 
 class WireSourceArchive(WireData):
     def __init__(self, *args):
-        pass
+        """This init method must support variable arguments as it can be
+        instanciated without arguments when convert from DBus structure and with
+        arguments when instanciated by clients (fatbuildrctl, fatbuildrweb) to
+        send source archives in build requests."""
+        if len(args):
+            self.id = args[0]
+            self.path = args[1]
+        else:
+            self.id = None
+            self.path = None
 
 
 class WireRunnableTask(WireData):
@@ -53,6 +62,13 @@ class WireRunnableTask(WireData):
         print(f"    console: {self.io.console}")
         print(f"    journal: {self.io.journal.path}")
         if self.name == "artifact build":
+            if len(self.archives):
+                print(f"  archives:")
+                for archive in self.archives:
+                    print(f"  - id: {archive.id}")
+                    print(f"    path: {archive.path}")
+            else:
+                print(f"  archives: ∅")
             print(f"  author: {self.author}")
             print(f"  email: {self.email}")
             print(f"  distribution: {self.distribution}")

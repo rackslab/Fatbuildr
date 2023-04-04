@@ -32,6 +32,7 @@ from ..prefs import UserPreferences
 from ..log import logr
 from ..protocols import ClientFactory
 from ..protocols.crawler import register_protocols
+from ..protocols.wire import WireSourceArchive
 from ..artifact import ArtifactDefs, ArtifactDefsFactory
 from ..patches import PatchQueue
 from ..tokens import ClientTokensManager
@@ -271,16 +272,13 @@ class Fatbuildrctl(FatbuildrCliRun):
             '-s', '--subdir', help='Artifact subdirectory'
         )
         parser_build.add_argument(
-            '--source-dir',
+            '--sources',
             help=(
-                'Generate artifact source tarball using the source code in '
-                'this directory'
+                'Generate artifact source archives using the source code in '
+                'this directory.'
             ),
-            type=Path,
-        )
-        parser_build.add_argument(
-            '--source-version',
-            help='Alternate version for generated artifact source tarball',
+            nargs='*',
+            default=[],
         )
         parser_build.add_argument('-n', '--name', help='Maintainer name')
         parser_build.add_argument('-e', '--email', help='Maintainer email')
@@ -928,13 +926,43 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         logger.debug("Selected architectures: %s", selected_architectures)
 
-        src_tarball = None
-        if args.source_dir:
-            src_tarball = prepare_source_tarball(
-                args.artifact,
-                args.source_dir,
-                args.source_version or defs.version(args.derivative),
-                self.connection.scheme == 'dbus',
+        sources = []
+        for source in args.sources:
+            if '#' in source:
+                (source_id, version_path) = source.split('#', 1)
+            else:
+                source_id = args.artifact
+                version_path = source
+            if '@' in version_path:
+                (source_version, source_dir) = version_path.split('@', 1)
+            else:
+                source_version = defs.version(args.derivative)
+                source_dir = version_path
+            # Check the source ID is defined and available in artifact
+            # definition file.
+            if source_id not in defs.defined_sources:
+                raise FatbuildrRuntimeError(
+                    f"Source ID {source_id} not found in artifact definition "
+                    "file"
+                )
+            # Check the source ID has not already been loaded with a previous
+            # source option.
+            for source in sources:
+                if source_id == source.id:
+                    raise FatbuildrRuntimeError(
+                        "Conflict between multiple sources sharing the same "
+                        f"ID {source_id}"
+                    )
+            sources.append(
+                WireSourceArchive(
+                    source_id,
+                    prepare_source_tarball(
+                        source_id,
+                        Path(source_dir),
+                        source_version,
+                        self.connection.scheme == 'dbus',
+                    ),
+                )
             )
 
         try:
@@ -954,7 +982,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 user_email,
                 build_msg,
                 tarball,
-                src_tarball,
+                sources,
                 args.interactive,
                 interactive=args.interactive,
             )
