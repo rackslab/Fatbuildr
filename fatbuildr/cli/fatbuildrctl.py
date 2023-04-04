@@ -116,8 +116,8 @@ def prepare_source_tarball(artifact, path, version, rundir: bool):
             artifact,
         )
         sys.exit(1)
-    subdir = f"{artifact}_{version}"
-    tarball = base.joinpath(f"{artifact}_{version}.tar.xz")
+    subdir = f"{artifact}-{version}"
+    tarball = base.joinpath(f"{artifact}-{version}.tar.xz")
 
     if tarball.exists():
         logger.warning(
