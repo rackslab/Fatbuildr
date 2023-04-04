@@ -180,6 +180,18 @@ class FatbuildrDBusData:
                 native_value = dbus_type(
                     field.wire_type.__name__
                 ).from_structure(wire_value)
+            # If the field wire type is a List[ExportableType], build a list of
+            # native objects corresponding to the FatbuildrDBusData class of the
+            # contained type.
+            elif isinstance(
+                field.wire_type, type(List[ExportableType])
+            ) and issubclass(field.wire_type.__args__[0], ExportableType):
+                native_value = [
+                    dbus_type(
+                        field.wire_type.__args__[0].__name__
+                    ).from_structure(value)
+                    for value in wire_value
+                ]
             else:
                 native_value = field.native(value=wire_value)
             setattr(data, field.name, native_value)
@@ -203,6 +215,7 @@ class FatbuildrDBusData:
                     wire_value = -1
                 else:
                     wire_value = '∅'
+                wire_type = field.wire_type
             elif inspect.isclass(field.wire_type) and issubclass(
                 field.wire_type, ExportableType
             ):
@@ -211,15 +224,21 @@ class FatbuildrDBusData:
                 wire_value = dbus_type(field.wire_type.__name__).to_structure(
                     native_value
                 )
+                wire_type = Structure
+            # If the field wire type is a List[ExportableType], build a list of
+            # structure with the FatbuildrDBusData class of the contained type.
+            elif isinstance(
+                field.wire_type, type(List[ExportableType])
+            ) and issubclass(field.wire_type.__args__[0], ExportableType):
+                wire_value = [
+                    dbus_type(
+                        field.wire_type.__args__[0].__name__
+                    ).to_structure(value)
+                    for value in native_value
+                ]
+                wire_type = List[Structure]
             else:
                 wire_value = field.export(task)
-
-            # If the type is exported, declare it as Structure type
-            if inspect.isclass(field.wire_type) and issubclass(
-                field.wire_type, ExportableType
-            ):
-                wire_type = Structure
-            else:
                 wire_type = field.wire_type
 
             structure[field.name] = get_variant(wire_type, wire_value)

@@ -21,6 +21,7 @@ import types
 import inspect
 from datetime import datetime
 from pathlib import Path
+from typing import List
 
 from ..utils import Singleton
 
@@ -55,6 +56,12 @@ class ExportableField:
             self.native_type, ExportableType
         ):
             return value.export()
+        # If the native type is a List[ExportableType], return a comprehensive
+        # list of contained items recursive exports.
+        elif isinstance(
+            self.native_type, type(List[ExportableType])
+        ) and issubclass(self.native_type.__args__[0], ExportableType):
+            return [_value.export() for _value in value]
         return value
 
     def native(self, obj=None, value=None):
@@ -73,6 +80,12 @@ class ExportableField:
             self.native_type, ExportableType
         ):
             return self.native_type(**value)
+        # If the native type is a List[ExportableType], return a comprehensive
+        # list of native objects of the contained type.
+        elif isinstance(
+            self.native_type, type(List[ExportableType])
+        ) and issubclass(self.native_type.__args__[0], ExportableType):
+            return [self.native_type.__args__[0](**_value) for _value in value]
         return value
 
 
