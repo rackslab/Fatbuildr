@@ -32,6 +32,11 @@ class WireInstance(WireData):
     pass
 
 
+class WireSourceArchive(WireData):
+    def __init__(self, *args):
+        pass
+
+
 class WireRunnableTask(WireData):
     def report(self):
         print(f"- id: {self.id}")

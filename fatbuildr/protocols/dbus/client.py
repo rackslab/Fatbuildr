@@ -22,6 +22,7 @@ from dasbus.error import DBusError
 from . import (
     FATBUILDR_SERVICE,
     DBusInstance,
+    DBusSourceArchive,
     DBusRunnableTask,
     DBusArtifact,
     DBusChangelogEntry,
@@ -182,7 +183,7 @@ class DBusClient(AbstractClient):
         user_email,
         message,
         tarball,
-        src_tarball,
+        sources,
         interactive,
     ):
         return self.proxy.Build(
@@ -195,7 +196,7 @@ class DBusClient(AbstractClient):
             user_email,
             message,
             str(tarball),
-            str(valueornull(src_tarball)),
+            DBusSourceArchive.to_structure_list(sources),
             interactive,
         )
 
@@ -212,7 +213,7 @@ class DBusClient(AbstractClient):
         user_email,
         message,
         tarball,
-        src_tarball,
+        sources,
         interactive,
     ):
         return self.proxy.BuildAs(
@@ -226,7 +227,7 @@ class DBusClient(AbstractClient):
             user_email,
             message,
             str(tarball),
-            str(valueornull(src_tarball)),
+            DBusSourceArchive.to_structure_list(sources),
             interactive,
         )
 

@@ -32,6 +32,7 @@ from dasbus.typing import unwrap_variant, get_variant, Structure, Str, Int, List
 
 from ..wire import (
     WireInstance,
+    WireSourceArchive,
     WireRunnableTask,
     WireArtifact,
     WireChangelogEntry,
@@ -301,6 +302,10 @@ class DBusInstance(FatbuildrNativeDBusData, WireInstance):
     pass
 
 
+class DBusSourceArchive(FatbuildrNativeDBusData, WireSourceArchive):
+    pass
+
+
 class DBusArtifact(FatbuildrNativeDBusData, WireArtifact):
     pass
 
@@ -329,6 +334,7 @@ class DBusTaskJournal(FatbuildrNativeDBusData, WireTaskJournal):
 
 TYPES_MAP = {
     ('RunningInstance', DBusInstance),
+    ('ArtifactSourceArchive', DBusSourceArchive),
     ('RegistryArtifact', DBusArtifact),
     ('ChangelogEntry', DBusChangelogEntry),
     ('KeyringMasterKey', DBusKeyring),

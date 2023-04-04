@@ -36,6 +36,7 @@ from . import (
     INSTANCES_NAMESPACE,
     BUS,
     DBusInstance,
+    DBusSourceArchive,
     DBusRunnableTask,
     DBusArtifact,
     DBusChangelogEntry,
@@ -394,7 +395,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         email: Str,
         message: Str,
         tarball: Str,
-        src_tarball: Str,
+        sources: List[Structure],
         interactive: Bool,
         *,
         call_info,
@@ -412,7 +413,10 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             email,
             message,
             tarball,
-            valueornone(src_tarball),
+            [
+                source.to_native()
+                for source in DBusSourceArchive.from_structure_list(sources)
+            ],
             interactive,
         )
 
@@ -429,7 +433,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         email: Str,
         message: Str,
         tarball: Str,
-        src_tarball: Str,
+        sources: List[Structure],
         interactive: Bool,
     ) -> Str:
         """Submit a new build."""
@@ -445,7 +449,10 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             email,
             message,
             tarball,
-            valueornone(src_tarball),
+            [
+                source.to_native()
+                for source in DBusSourceArchive.from_structure_list(sources)
+            ],
             interactive,
         )
 
