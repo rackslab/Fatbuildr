@@ -19,6 +19,7 @@
 
 from datetime import datetime
 
+from ..archive import SourceArchive
 from ..log import logr
 
 logger = logr(__name__)
@@ -32,18 +33,16 @@ class WireInstance(WireData):
     pass
 
 
-class WireSourceArchive(WireData):
+class WireSourceArchive(WireData, SourceArchive):
     def __init__(self, *args):
         """This init method must support variable arguments as it can be
         instanciated without arguments when convert from DBus structure and with
         arguments when instanciated by clients (fatbuildrctl, fatbuildrweb) to
         send source archives in build requests."""
         if len(args):
-            self.id = args[0]
-            self.path = args[1]
+            super().__init__(args[0], args[1])
         else:
-            self.id = None
-            self.path = None
+            super().__init__(None, None)
 
 
 class WireRunnableTask(WireData):

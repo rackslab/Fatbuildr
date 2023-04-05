@@ -53,6 +53,9 @@ class ArtifactSourceDefs:
         False otherwise."""
         return 'derivatives' in self.defs
 
+    def is_main(self, artifact):
+        return self.id == artifact
+
     def version(self, derivative):
         """Returns the version of the artifact source for the given
         derivative."""

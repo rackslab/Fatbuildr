@@ -25,7 +25,8 @@ import tarfile
 import shutil
 
 from .git import GitRepository, PatchesDir
-from .utils import dl_file, verify_checksum, extract_tarball
+from .utils import dl_file, verify_checksum, extract_artifact_sources_archives
+from .protocols.wire import WireSourceArchive
 from .cleanup import CleanupRegistry
 from .log import logr
 
@@ -52,8 +53,7 @@ class PatchQueue:
         defs,
         user,
         email,
-        version,
-        src_tarball=None,
+        sources=[],
     ):
         self.apath = apath
         self.derivative = derivative
@@ -61,27 +61,58 @@ class PatchQueue:
         self.defs = defs
         self.user = user
         self.email = email
-        self.version = version
-        self.src_tarball = src_tarball
         self.git = None
+        self.version = None
+        self.sources = sources
+        self.main_source = None
+        self.other_sources = []
+
+    def _already_loaded_source(self, source):
+        """Return True if the given source is already loaded in self.main_source
+        or in self.other_sources list, False otherwise."""
+        if self.main_source is not None and self.main_source.id == source.id:
+            return True
+        for _source in self.other_sources:
+            if _source.id == source.id:
+                return True
+        return False
 
     def run(self, launch_subshell: bool = True):
         logger.debug("Running patch queue for artifact %s", self.artifact)
 
-        # If the tarball has been generated, use it directely. Otherwise,
-        # download the tarball.
-        if self.src_tarball:
-            tarball_path = self.src_tarball
-        else:
-            tarball_path = self._dl_tarball()
+        # If sources archives has been generated, use them directly.
+        for source in self.sources:
+            if source.is_main(self.artifact):
+                self.main_source = source
+                # extract version from tarball name (with .tar.xz extension)
+                self.version = source.path.name[len(self.artifact) + 1 : -7]
+            else:
+                self.other_sources.append(source)
+        # Download other sources archives defined in artifact definition
+        for source in self.defs.sources:
+            # skip already loaded source
+            if self._already_loaded_source(source):
+                continue
+            if source.id == self.artifact:
+                self.main_source = WireSourceArchive(
+                    source.id, self._dl_tarball(source)
+                )
+                # extract version from artifact definition
+                self.version = source.version(self.derivative)
+            else:
+                self.other_sources.append(
+                    WireSourceArchive(source.id, self._dl_tarball(source))
+                )
 
         # create tmp directory for the git repository
         tmpdir = Path(tempfile.mkdtemp(prefix=f"fatbuildr-pq-{self.artifact}"))
         CleanupRegistry.add_tmpdir(tmpdir)
         logger.debug(f"Created temporary directory %s", tmpdir)
 
-        # extract tarball in the tmp directory
-        repo_path = extract_tarball(tarball_path, tmpdir)
+        # Extract artifact source tree with all source archives
+        repo_path = extract_artifact_sources_archives(
+            tmpdir, self.artifact, self.main_source, self.other_sources
+        )
 
         # init the git repository with its initial commit
         self.git = GitRepository(repo_path, self.user, self.email)
@@ -102,12 +133,10 @@ class PatchQueue:
         shutil.rmtree(tmpdir)
         CleanupRegistry.del_tmpdir(tmpdir)
 
-    def _dl_tarball(self):
+    def _dl_tarball(self, source):
         """Download artifact tarball using the URL found in artifact definition
         metadata file, unless already present in cache, and verify its checksum.
         Return the path to the tarball in cache."""
-        tarball_url = self.defs.tarball_url(self.version)
-
         cache_dir = default_user_cache().expanduser()
 
         # create user local cache directory if not present
@@ -116,20 +145,19 @@ class PatchQueue:
             cache_dir.mkdir()
 
         # define tarball path in user local cache
-        tarball_path = cache_dir.joinpath(
-            self.defs.tarball_filename(self.version)
-        )
+        tarball_path = cache_dir.joinpath(source.filename(self.derivative))
 
         # download and save tarball in user cache
         if not tarball_path.exists():
-            dl_file(tarball_url, tarball_path)
+            dl_file(source.url(self.derivative), tarball_path)
 
-        # verify checksum of tarball
-        verify_checksum(
-            tarball_path,
-            self.defs.checksum_format(self.derivative),
-            self.defs.checksum_value(self.derivative),
-        )
+        # verify all declared checksums for source
+        for checksum in source.checksums(self.derivative):
+            verify_checksum(
+                tarball_path,
+                checksum[0],
+                checksum[1],
+            )
 
         return tarball_path
 

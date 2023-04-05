@@ -324,16 +324,13 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_patches.add_argument('-n', '--name', help='Maintainer name')
         parser_patches.add_argument('-e', '--email', help='Maintainer email')
         parser_patches.add_argument(
-            '--source-dir',
+            '--sources',
             help=(
-                'Generate artifact source tarball using the source code in '
-                'this directory'
+                'Generate artifact source archives using the source code in '
+                'this directory.'
             ),
-            type=Path,
-        )
-        parser_patches.add_argument(
-            '--source-version',
-            help='Alternate version for generated artifact source tarball',
+            nargs='*',
+            default=[],
         )
         parser_patches.set_defaults(func=self._run_patches)
 
@@ -1017,19 +1014,44 @@ class Fatbuildrctl(FatbuildrCliRun):
         user_name = self._get_user_name(args)
         user_email = self._get_user_email(args)
 
-        # If the user specified a source directory in argument, generate the
-        # source tarball using it.
-        if args.source_dir:
-            src_tarball = prepare_source_tarball(
-                args.artifact,
-                args.source_dir,
-                args.source_version or defs.version(args.derivative),
-                False,
+        sources = []
+        for source in args.sources:
+            if '#' in source:
+                (source_id, version_path) = source.split('#', 1)
+            else:
+                source_id = args.artifact
+                version_path = source
+            if '@' in version_path:
+                (source_version, source_dir) = version_path.split('@', 1)
+            else:
+                source_version = defs.version(args.derivative)
+                source_dir = version_path
+            # Check the source ID is defined and available in artifact
+            # definition file.
+            if source_id not in defs.defined_sources:
+                raise FatbuildrRuntimeError(
+                    f"Source ID {source_id} not found in artifact definition "
+                    "file"
+                )
+            # Check the source ID has not already been loaded with a previous
+            # source option.
+            for source in sources:
+                if source_id == source.id:
+                    raise FatbuildrRuntimeError(
+                        "Conflict between multiple sources sharing the same "
+                        f"ID {source_id}"
+                    )
+            sources.append(
+                WireSourceArchive(
+                    source_id,
+                    prepare_source_tarball(
+                        source_id,
+                        Path(source_dir),
+                        source_version,
+                        self.connection.scheme == 'dbus',
+                    ),
+                )
             )
-            version = args.source_version
-        else:
-            src_tarball = None
-            version = defs.version(args.derivative)
 
         patch_queue = PatchQueue(
             apath,
@@ -1038,15 +1060,14 @@ class Fatbuildrctl(FatbuildrCliRun):
             defs,
             user_name,
             user_email,
-            version,
-            src_tarball,
+            sources,
         )
         patch_queue.run()
 
-        # If the source tarball has been generated, remove it before leaving.
-        if src_tarball:
-            logger.debug("Removing generated source tarball %s", src_tarball)
-            src_tarball.unlink()
+        # If source tarballs have been generated, remove them before leaving.
+        for source in sources:
+            logger.debug("Removing generated source tarball %s", source.path)
+            source.path.unlink()
 
     def _submit_watch(self, caller, task_name, watch, *args, interactive=False):
         task_id = caller(*args)
