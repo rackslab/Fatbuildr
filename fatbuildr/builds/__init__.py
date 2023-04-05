@@ -47,17 +47,13 @@ from ..tasks import RunnableTask
 from ..cleanup import CleanupRegistry
 from ..artifact import ArtifactDefsFactory
 from ..registry.formats import ArtifactVersion
+from ..archive import ArchiveFile, SourceArchive
 from ..git import GitRepository, PatchesDir
 from ..templates import Templeter
 from ..utils import (
     dl_file,
     verify_checksum,
-    is_zip,
-    zip_subdir,
-    tar_subdir,
-    tar_has_single_toplevel,
-    extract_zipfile,
-    extract_tarball,
+    extract_artifact_sources_archives,
     current_user,
     host_architecture,
 )
@@ -66,41 +62,13 @@ from ..log import logr
 logger = logr(__name__)
 
 
-class ArtifactSourceArchive(ExportableType):
+class ArtifactSourceArchive(ExportableType, SourceArchive):
     """Class to represent an artifact source archive."""
 
     EXFIELDS = {
         ExportableField('id'),
         ExportableField('path', Path),
     }
-
-    def __init__(self, id, path):
-        self.id = id
-        self.path = path
-
-    def is_main(self, artifact):
-        """Returns True if this archive is the main archive of the given
-        artifact."""
-        return self.id == artifact
-
-    @property
-    def is_zip(self):
-        """True if the archive is a zip file, False otherwise."""
-        return is_zip(self.path)
-
-    @property
-    def subdir(self):
-        """The top-level directory of the archive."""
-        if self.is_zip:
-            return zip_subdir(self.path)
-        else:
-            return tar_subdir(self.path)
-
-    @property
-    def has_single_toplevel(self):
-        """True if the archive has a single element at its top-level, False
-        otherwise."""
-        return tar_has_single_toplevel(self.path)
 
 
 class ArtifactBuild(RunnableTask):
@@ -148,7 +116,7 @@ class ArtifactBuild(RunnableTask):
         self.author = author
         self.email = email
         self.message = message
-        self.input_tarball = Path(tarball)
+        self.input_tarball = ArchiveFile(Path(tarball))
         self.sources = sources
         self.cache = self.instance.cache.artifact(self)
         self.registry = self.instance.registry_mgr.factory(self.format)
@@ -188,6 +156,16 @@ class ArtifactBuild(RunnableTask):
         """Returns the main ArtifactSourceArchive for this artifact or None if
         not found."""
         return self.archive(self.artifact)
+
+    @property
+    def other_archives(self):
+        """Returns the list of all artifact source archives except the main
+        archive."""
+        return [
+            archive
+            for archive in self.archives
+            if not archive.is_main(self.artifact)
+        ]
 
     def archive_in_build_place(self, archive):
         """Returns True if the artifact source archive is located in build place
@@ -258,13 +236,13 @@ class ArtifactBuild(RunnableTask):
         # Extract artifact tarball in build place
         logger.info(
             "Extracting tarball %s in destination %s",
-            self.input_tarball,
+            self.input_tarball.path,
             self.place,
         )
-        extract_tarball(self.input_tarball, self.place)
+        self.input_tarball.extract(self.place)
 
         # Remove the input tarball
-        self.input_tarball.unlink()
+        self.input_tarball.path.unlink()
 
         # ensure artifact cache directory exists
         self.cache.ensure()
@@ -539,24 +517,9 @@ class ArtifactEnvBuild(ArtifactBuild):
         upstream_dir = self.place.joinpath('upstream')
         upstream_dir.mkdir()
 
-        # Extract main upstream source archive (and get the subdir)
-        if self.main_archive.is_zip:
-            archive_subdir = extract_zipfile(
-                self.main_archive.path, upstream_dir
-            )
-        else:
-            archive_subdir = extract_tarball(
-                self.main_archive.path, upstream_dir
-            )
-
-        # Extract all other possible sources archives
-        for archive in self.archives:
-            if archive.is_main(self.artifact):
-                continue  # skip main source archive that is already extracted
-            if archive.is_zip:
-                extract_zipfile(archive.path, archive_subdir)
-            else:
-                extract_tarball(archive.path, archive_subdir)
+        archive_subdir = extract_artifact_sources_archives(
+            upstream_dir, self.artifact, self.main_archive, self.other_archives
+        )
 
         # Remove .gitignore file if present, to avoid modification realized
         # by pre script being ignored when generating the resulting patch.
