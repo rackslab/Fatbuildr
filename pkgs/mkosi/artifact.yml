@@ -1,6 +1,6 @@
 ---
 version: 14
-tarball: https://github.com/systemd/mkosi/archive/v{{ version }}/mkosi-{{ version }}.tar.gz
+source: https://github.com/systemd/mkosi/archive/v{{ version }}/mkosi-{{ version }}.tar.gz
 checksums:
   "14":
     sha256: 42f3447206e68a3ec07542fa4a71d2d67a4e498c3301c6cf804a42b209d6e1ae

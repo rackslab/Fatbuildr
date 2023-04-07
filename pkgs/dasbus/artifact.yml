@@ -1,6 +1,6 @@
 ---
 version: 1.6
-tarball: https://pypi.debian.net/dasbus/dasbus-{{ version }}.tar.gz
+source: https://pypi.debian.net/dasbus/dasbus-{{ version }}.tar.gz
 checksums:
   '1.6':
     sha256: 149ad8fc8c3d298321ab50159b547ab2834899a89e47e21c6d42f2c92e56e94d
