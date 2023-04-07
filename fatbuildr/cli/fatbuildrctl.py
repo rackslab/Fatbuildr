@@ -862,6 +862,46 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         return (format, distribution)
 
+    def _build_local_sources(self, defs, artifact, derivative, sources):
+        results = []
+        for source in sources:
+            if '#' in source:
+                (source_id, version_path) = source.split('#', 1)
+            else:
+                source_id = artifact
+                version_path = source
+            if '@' in version_path:
+                (source_version, source_dir) = version_path.split('@', 1)
+            else:
+                source_version = defs.version(derivative)
+                source_dir = version_path
+            # Check the source ID is defined and available in artifact
+            # definition file.
+            if source_id not in defs.defined_sources:
+                raise FatbuildrRuntimeError(
+                    f"Source ID {source_id} not found in artifact definition "
+                    "file"
+                )
+            # Check the source ID has not already been loaded with a previous
+            # source option.
+            if source_id in [_source.id for _source in results]:
+                raise FatbuildrRuntimeError(
+                    "Conflict between multiple sources sharing the same ID "
+                    f"{source_id}"
+                )
+            results.append(
+                WireSourceArchive(
+                    source_id,
+                    prepare_source_tarball(
+                        source_id,
+                        Path(source_dir),
+                        source_version,
+                        self.connection.scheme == 'dbus',
+                    ),
+                )
+            )
+        return results
+
     def _run_build(self, args):
         logger.debug(
             "running build for artifact: %s uri: %s", args.artifact, self.uri
@@ -923,44 +963,9 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         logger.debug("Selected architectures: %s", selected_architectures)
 
-        sources = []
-        for source in args.sources:
-            if '#' in source:
-                (source_id, version_path) = source.split('#', 1)
-            else:
-                source_id = args.artifact
-                version_path = source
-            if '@' in version_path:
-                (source_version, source_dir) = version_path.split('@', 1)
-            else:
-                source_version = defs.version(args.derivative)
-                source_dir = version_path
-            # Check the source ID is defined and available in artifact
-            # definition file.
-            if source_id not in defs.defined_sources:
-                raise FatbuildrRuntimeError(
-                    f"Source ID {source_id} not found in artifact definition "
-                    "file"
-                )
-            # Check the source ID has not already been loaded with a previous
-            # source option.
-            for source in sources:
-                if source_id == source.id:
-                    raise FatbuildrRuntimeError(
-                        "Conflict between multiple sources sharing the same "
-                        f"ID {source_id}"
-                    )
-            sources.append(
-                WireSourceArchive(
-                    source_id,
-                    prepare_source_tarball(
-                        source_id,
-                        Path(source_dir),
-                        source_version,
-                        self.connection.scheme == 'dbus',
-                    ),
-                )
-            )
+        sources = self._build_local_sources(
+            defs, args.artifact, args.derivative, args.sources
+        )
 
         try:
             # Prepare artifact definition tarball, in fatbuildrd runtime
@@ -1013,45 +1018,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         defs = ArtifactDefs(apath, args.artifact)
         user_name = self._get_user_name(args)
         user_email = self._get_user_email(args)
-
-        sources = []
-        for source in args.sources:
-            if '#' in source:
-                (source_id, version_path) = source.split('#', 1)
-            else:
-                source_id = args.artifact
-                version_path = source
-            if '@' in version_path:
-                (source_version, source_dir) = version_path.split('@', 1)
-            else:
-                source_version = defs.version(args.derivative)
-                source_dir = version_path
-            # Check the source ID is defined and available in artifact
-            # definition file.
-            if source_id not in defs.defined_sources:
-                raise FatbuildrRuntimeError(
-                    f"Source ID {source_id} not found in artifact definition "
-                    "file"
-                )
-            # Check the source ID has not already been loaded with a previous
-            # source option.
-            for source in sources:
-                if source_id == source.id:
-                    raise FatbuildrRuntimeError(
-                        "Conflict between multiple sources sharing the same "
-                        f"ID {source_id}"
-                    )
-            sources.append(
-                WireSourceArchive(
-                    source_id,
-                    prepare_source_tarball(
-                        source_id,
-                        Path(source_dir),
-                        source_version,
-                        self.connection.scheme == 'dbus',
-                    ),
-                )
-            )
+        sources = self._build_local_sources(
+            defs, args.artifact, args.derivative, args.sources
+        )
 
         patch_queue = PatchQueue(
             apath,
