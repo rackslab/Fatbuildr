@@ -41,6 +41,7 @@ from ....errors import FatbuildrTokenError
 from ....utils import current_user
 from ....version import __version__
 from ... import ClientFactory
+from ....protocols.wire import WireSourceArchive
 from .. import (
     JsonInstance,
     JsonRunnableTask,
@@ -406,21 +407,24 @@ def build(instance):
     )
     tarball.save(tarball_path)
 
-    src_tarball_path = None
-    if 'source' in request.files:
-        src_tarball = request.files['source']
-        src_tarball_path = current_app.config['UPLOAD_FOLDER'].joinpath(
-            # The source tarball filename is not secured with werkzeug utility
-            # secure_filename() as the artifact main version is extracted from
-            # source tarball filename and it removes ~ (tilde) which is totally
-            # legit version numbers. As stated in Flask documentation,
-            # secure_filename is notably to protect from filenames with relative
-            # paths in the parents directories. These kinds of filenames are
-            # cleaned up by extracting the basename (without further
-            # modification).
-            os.path.basename(src_tarball.filename)
-        )
-        src_tarball.save(src_tarball_path)
+    sources = []
+    for file_name in request.files.keys():
+        if file_name.startswith('source/'):
+            source_id = file_name[7:]
+            source_archive = request.files[file_name]
+            source_archive_path = current_app.config['UPLOAD_FOLDER'].joinpath(
+                # The source archive filename is not secured with werkzeug
+                # utility secure_filename() as the artifact main version is
+                # extracted from source archive filename and it removes ~
+                # (tilde) which is totally legit version numbers. As stated in
+                # Flask documentation, secure_filename is notably to protect
+                # from filenames with relative paths in the parents directories.
+                # These kinds of filenames are cleaned up by extracting the
+                # basename (without further modification).
+                os.path.basename(source_archive.filename)
+            )
+            source_archive.save(source_archive_path)
+            sources.append(WireSourceArchive(source_id, source_archive_path))
 
     connection = get_connection(instance)
     request_user = get_token_user(instance, request) or 'anonymous'
@@ -440,7 +444,7 @@ def build(instance):
             request.form['user_email'],
             request.form['message'],
             tarball_path,
-            src_tarball_path,
+            sources,
             False,
         )
     else:
@@ -455,7 +459,7 @@ def build(instance):
             request.form['user_email'],
             request.form['message'],
             tarball_path,
-            src_tarball_path,
+            sources,
             False,
         )
     return jsonify({'task': task_id})

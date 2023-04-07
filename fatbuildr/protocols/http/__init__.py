@@ -18,10 +18,12 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import inspect
+from typing import List
 
 from ..wire import (
     WireData,
     WireInstance,
+    WireSourceArchive,
     WireRunnableTask,
     WireArtifact,
     WireChangelogEntry,
@@ -91,6 +93,16 @@ class JsonData:
                 value = dbus_json_type(type(wire_value).__name__).export(
                     wire_value
                 )
+            # If the field wire type is a List[ExportableType], build a list of
+            # native JSON objects corresponding to the FatbuildrDBusData class
+            # of the value in the list.
+            elif isinstance(
+                field.wire_type, type(List[ExportableType])
+            ) and issubclass(field.wire_type.__args__[0], ExportableType):
+                value = [
+                    dbus_json_type(type(value).__name__).export(value)
+                    for value in wire_value
+                ]
             else:
                 value = field.export(obj)
             result[field.name] = value
@@ -125,6 +137,10 @@ class JsonInstance(JsonNativeData, WireInstance):
     pass
 
 
+class JsonSourceArchive(JsonNativeData, WireSourceArchive):
+    pass
+
+
 class JsonArtifact(JsonNativeData, WireArtifact):
     pass
 
@@ -145,6 +161,7 @@ class JsonTaskJournal(JsonNativeData, WireTaskJournal):
 
 TYPES_MAP = {
     ('RunningInstance', 'DBusInstance', JsonInstance),
+    ('ArtifactSourceArchive', 'DBusSourceArchive', JsonSourceArchive),
     ('RegistryArtifact', 'DBusArtifact', JsonArtifact),
     ('ChangelogEntry', 'DBusChangelogEntry', JsonChangelogEntry),
     ('TaskIO', 'DBusTaskIO', JsonTaskIO),

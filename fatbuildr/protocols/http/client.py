@@ -123,15 +123,15 @@ class HttpClient(AbstractClient):
         user_email,
         message,
         tarball,
-        source_tarball,
+        sources,
         interactive,
     ):
         url = f"{self.uri}/build"
         logger.debug("Submitting build request to %s", url)
 
         files = {'tarball': open(tarball, 'rb')}
-        if source_tarball:
-            files['source'] = open(source_tarball, 'rb')
+        for source in sources:
+            files[f"source/{source.id}"] = open(source.path, 'rb')
 
         # Add cleanup routine in finally clause and reraise the exception for
         # handling in decorator in case of error with HTTP request.
@@ -158,9 +158,9 @@ class HttpClient(AbstractClient):
             # not accessed by the http server.
             logger.debug("Removing tarball %s", tarball)
             tarball.unlink()
-            if source_tarball:
-                logger.debug("Removing source tarball %s", source_tarball)
-                source_tarball.unlink()
+            for source in sources:
+                logger.debug("Removing source tarball %s", source.path)
+                source.path.unlink()
 
         return response.json()['task']
 
