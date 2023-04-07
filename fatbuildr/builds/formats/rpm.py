@@ -46,6 +46,9 @@ mv {{ source.subdir }} {{ source.sanitized_stem }}
 %setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index }} -c
 {% endif %}
 {% endfor %}
+{% for source in prescript_sources %}
+%setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index + other_sources|length }}
+{% endfor %}
 """
 
 CHANGELOG_TPL = """
@@ -186,8 +189,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 archive
                 for archive in self.archives
                 if not archive.is_main(self.artifact)
-            ]
-            + self.prescript_tarballs,
+            ],
+            prescript_sources=self.prescript_tarballs,
         )
 
         if not self.patches_dir.empty:
