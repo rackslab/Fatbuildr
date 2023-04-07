@@ -38,7 +38,7 @@ Source{{ loop.index0 }}: {{ source.path.name }}
 
 SOURCES_PREP_TPL = """
 %setup -q -n {{ main_tarball_subdir }}
-{% for source in other_sources %}
+{% for source in supplementary_sources %}
 {% if source.has_single_toplevel %}
 %setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index }}
 mv {{ source.subdir }} {{ source.sanitized_stem }}
@@ -47,7 +47,7 @@ mv {{ source.subdir }} {{ source.sanitized_stem }}
 {% endif %}
 {% endfor %}
 {% for source in prescript_sources %}
-%setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index + other_sources|length }}
+%setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index + supplementary_sources|length }}
 {% endfor %}
 """
 
@@ -185,11 +185,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         sources_prep = templater.srender(
             SOURCES_PREP_TPL,
             main_tarball_subdir=self.main_archive.subdir,
-            other_sources=[
-                archive
-                for archive in self.archives
-                if not archive.is_main(self.artifact)
-            ],
+            supplementary_sources=self.supplementary_archives,
             prescript_sources=self.prescript_tarballs,
         )
 

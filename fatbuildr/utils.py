@@ -84,7 +84,7 @@ def extract_artifact_sources_archives(
     output_dir,
     artifact,
     main_archive,
-    other_archives,
+    supplementary_archives,
     prescript_archives=[],
     with_symlinks=False,
 ):
@@ -97,12 +97,12 @@ def extract_artifact_sources_archives(
     )
     main_subdir = main_archive.extract(output_dir, strip=0)
 
-    # Extract other sources archives in main archive subdir
-    for archive in other_archives:
+    # Extract supplementary sources archives in main archive subdir
+    for archive in supplementary_archives:
         assert not archive.is_main(artifact)
         target = main_subdir.joinpath(archive.sanitized_stem)
         logger.debug(
-            "Extracting other source archive %s in %s",
+            "Extracting supplementary source archive %s in %s",
             archive.path,
             target,
         )

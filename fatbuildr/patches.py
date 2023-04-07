@@ -65,14 +65,14 @@ class PatchQueue:
         self.version = None
         self.sources = sources
         self.main_source = None
-        self.other_sources = []
+        self.supplementary_sources = []
 
     def _already_loaded_source(self, source):
         """Return True if the given source is already loaded in self.main_source
-        or in self.other_sources list, False otherwise."""
+        or in self.supplementary_sources list, False otherwise."""
         if self.main_source is not None and self.main_source.id == source.id:
             return True
-        for _source in self.other_sources:
+        for _source in self.supplementary_sources:
             if _source.id == source.id:
                 return True
         return False
@@ -87,7 +87,7 @@ class PatchQueue:
                 # extract version from tarball name (with .tar.xz extension)
                 self.version = source.path.name[len(self.artifact) + 1 : -7]
             else:
-                self.other_sources.append(source)
+                self.supplementary_sources.append(source)
         # Download other sources archives defined in artifact definition
         for source in self.defs.sources:
             # skip already loaded source
@@ -100,7 +100,7 @@ class PatchQueue:
                 # extract version from artifact definition
                 self.version = source.version(self.derivative)
             else:
-                self.other_sources.append(
+                self.supplementary_sources.append(
                     WireSourceArchive(source.id, self._dl_tarball(source))
                 )
 
@@ -114,7 +114,7 @@ class PatchQueue:
             tmpdir,
             self.artifact,
             self.main_source,
-            self.other_sources,
+            self.supplementary_sources,
             with_symlinks=True,
         )
 

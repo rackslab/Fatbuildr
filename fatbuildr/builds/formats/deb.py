@@ -115,7 +115,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             self.place,
             self.artifact,
             self.main_archive,
-            self.other_archives,
+            self.supplementary_archives,
             prescript_archives=self.prescript_tarballs,
         )
 
