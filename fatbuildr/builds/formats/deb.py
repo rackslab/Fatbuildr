@@ -109,11 +109,6 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
                 tarball_path = self.place.joinpath(
                     archive.path.stem + '.tar.xz'
                 )
-                logger.info(
-                    "Converting zip archive %s to tarball archive %s",
-                    archive.path,
-                    tarball_path,
-                )
                 archive.convert_tar(tarball_path)
 
         main_tarball_subdir = extract_artifact_sources_archives(
