@@ -41,7 +41,7 @@ SOURCES_PREP_TPL = """
 {% for source in other_sources %}
 {% if source.has_single_toplevel %}
 %setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index }}
-mv {{ source.subdir }} {{ source.stem }}
+mv {{ source.subdir }} {{ source.sanitized_stem }}
 {% else %}
 %setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index }} -c
 {% endif %}

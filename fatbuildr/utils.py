@@ -95,7 +95,7 @@ def extract_artifact_sources_archives(
     # Extract other sources archives in main archive subdir
     for archive in other_archives:
         assert not archive.is_main(artifact)
-        target = main_subdir.joinpath(archive.stem)
+        target = main_subdir.joinpath(archive.sanitized_stem)
         logger.debug(
             "Extracting other source archive %s in %s",
             archive.path,
@@ -103,7 +103,7 @@ def extract_artifact_sources_archives(
         )
         target.mkdir()
         if with_symlinks:
-            main_subdir.joinpath(archive.id).symlink_to(archive.stem)
+            main_subdir.joinpath(archive.id).symlink_to(archive.sanitized_stem)
         # Mimic dpkg-source behaviour by stripping the top-level directory
         # when the archive has a single top-level item. If the archive
         # contains several top-level files or directories, they are

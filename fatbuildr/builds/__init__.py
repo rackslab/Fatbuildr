@@ -419,7 +419,9 @@ class ArtifactBuild(RunnableTask):
                 archive.id,
                 archive.stem,
             )
-            archive_subdir.joinpath(archive.id).symlink_to(archive.stem)
+            archive_subdir.joinpath(archive.id).symlink_to(
+                archive.sanitized_stem
+            )
         # Export patch with symlinks in patch queue
         git.commit_export(
             self.patches_dir.version_subdir,
