@@ -564,9 +564,25 @@ class ArtifactEnvBuild(ArtifactBuild):
         raise NotImplementedError
 
     def prescript_supp_tarball(self, tarball_subdir):
-        """Method to generate the prescript supplementary tarballs. This method
-        must be implemented at format specialized classes level."""
-        raise NotImplementedError
+        """Generate the prescript supplementary tarballs and fills
+        self.prescript_tarballs list attribute."""
+        for subdir in self.defined_prescript_tarballs:
+            logger.info(
+                "Generating supplementary tarball %s",
+                self.supp_tarball_path(subdir),
+            )
+            with tarfile.open(self.supp_tarball_path(subdir), 'x:xz') as tar:
+                renamed = tarball_subdir.joinpath(
+                    self.prescript_supp_subdir_renamed(subdir)
+                )
+                tar.add(
+                    renamed,
+                    arcname=renamed.name,
+                    recursive=True,
+                )
+            self.prescript_tarballs.append(
+                ArtifactSourceArchive(subdir, self.supp_tarball_path(subdir))
+            )
 
     def prescript_supp_subdir_renamed(self, subdir):
         """Returns the name (string format) to uniquely timestamped renamed

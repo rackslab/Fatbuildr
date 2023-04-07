@@ -502,22 +502,3 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         # prescript had errors.
         if prescript_failed:
             raise RuntimeError("prescript error")
-
-    def prescript_supp_tarball(self, tarball_subdir):
-        for subdir in self.defined_prescript_tarballs:
-            logger.info(
-                "Generating supplementary tarball %s",
-                self.supp_tarball_path(subdir),
-            )
-            with tarfile.open(self.supp_tarball_path(subdir), 'x:xz') as tar:
-                renamed = tarball_subdir.joinpath(
-                    self.prescript_supp_subdir_renamed(subdir)
-                )
-                tar.add(
-                    renamed,
-                    arcname=renamed.name,
-                    recursive=True,
-                )
-            self.prescript_tarballs.append(
-                ArtifactSourceArchive(subdir, renamed)
-            )
