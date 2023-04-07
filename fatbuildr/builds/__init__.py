@@ -396,15 +396,11 @@ class ArtifactBuild(RunnableTask):
         upstream_dir.mkdir()
 
         archive_subdir = extract_artifact_sources_archives(
-            upstream_dir, self.artifact, self.main_archive, self.supplementary_archives
+            upstream_dir,
+            self.artifact,
+            self.main_archive,
+            self.supplementary_archives,
         )
-
-        # Remove .gitignore file if present, to avoid modification realized
-        # by pre script being ignored when generating the resulting patch.
-        gitignore_path = archive_subdir.joinpath('.gitignore')
-        if gitignore_path.exists():
-            logger.info("Removing .gitignore from upstream archive")
-            gitignore_path.unlink()
 
         # init the git repository with its initial commit
         git = GitRepository(archive_subdir, self.author, self.email)
@@ -607,15 +603,11 @@ class ArtifactEnvBuild(ArtifactBuild):
         upstream_dir.mkdir()
 
         archive_subdir = extract_artifact_sources_archives(
-            upstream_dir, self.artifact, self.main_archive, self.supplementary_archives
+            upstream_dir,
+            self.artifact,
+            self.main_archive,
+            self.supplementary_archives,
         )
-
-        # Remove .gitignore file if present, to avoid modification realized
-        # by pre script being ignored when generating the resulting patch.
-        gitignore_path = archive_subdir.joinpath('.gitignore')
-        if gitignore_path.exists():
-            logger.info("Removing .gitignore from upstream archive")
-            gitignore_path.unlink()
 
         # init the git repository with its initial commit
         git = GitRepository(archive_subdir, self.author, self.email)

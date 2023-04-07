@@ -178,6 +178,17 @@ class PatchFile(PATH_TYPE):
 class GitRepository:
     def __init__(self, path, author, email):
         self.path = path
+
+        # Remove .gitignore file if present, to avoid modification realized
+        # by consumers being ignored when generating the resulting patch.
+        gitignore_path = path.joinpath('.gitignore')
+        if gitignore_path.exists():
+            logger.info(
+                "Removing .gitignore before initializing git repository %s",
+                path,
+            )
+            gitignore_path.unlink()
+
         self._repo = pygit2.init_repository(path, bare=False)
         self._initial_commit(author, email)
 
