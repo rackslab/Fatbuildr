@@ -81,7 +81,12 @@ def verify_checksum(path, format, value):
 
 
 def extract_artifact_sources_archives(
-    output_dir, artifact, main_archive, other_archives, with_symlinks=False
+    output_dir,
+    artifact,
+    main_archive,
+    other_archives,
+    prescript_archives=[],
+    with_symlinks=False,
 ):
 
     # Extract main source archive in build place
@@ -108,6 +113,21 @@ def extract_artifact_sources_archives(
         # when the archive has a single top-level item. If the archive
         # contains several top-level files or directories, they are
         # extracted without stripping.
+        if archive.has_single_toplevel:
+            strip = 1
+        else:
+            strip = 0
+        archive.extract(target, strip=strip)
+
+    # Extract prescript archives in main archive subdir
+    for archive in prescript_archives:
+        target = main_subdir.joinpath(archive.subdir)
+        logger.debug(
+            "Extracting prescript archive %s in %s",
+            archive.path,
+            target,
+        )
+        target.mkdir()
         if archive.has_single_toplevel:
             strip = 1
         else:
