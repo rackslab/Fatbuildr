@@ -9,8 +9,8 @@ conf/dbus/*.service usr/share/dbus-1/system-services
 conf/polkit/*.pkla var/lib/polkit-1/localauthority/10-vendor.d
 conf/polkit/*.policy usr/share/polkit-1/actions
 conf/polkit/*.rules usr/share/polkit-1/rules.d
-vendor/*.js usr/share/fatbuildr/web/static/js
-vendor/*.css usr/share/fatbuildr/web/static/css
+bootstrap/js/*.js usr/share/fatbuildr/web/static/js
+bootstrap/css/*.css usr/share/fatbuildr/web/static/css
 assets/* usr/share/fatbuildr/web/static
 lib/wsgi usr/share/fatbuildr
 usr/bin/fatbuildrctl

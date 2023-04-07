@@ -7,7 +7,7 @@ Release:        {{ release }}
 License:        GPLv3+
 Group:          System Environment/Base
 URL:            https://github.com/rackslab/fatbuildr
-{{ source }}
+{{ sources }}
 {{ patches }}
 Summary:        Software solution to build artifacts and publish them in registries
 Requires:       %{name}-common
@@ -93,8 +93,8 @@ install -p -D -m 0644 conf/polkit/*.rules -t %{buildroot}%{_datadir}/polkit-1/ru
 
 install -d %{buildroot}%{_datadir}/fatbuildr/web/static/js
 install -d %{buildroot}%{_datadir}/fatbuildr/web/static/css
-install -p -m 0644 vendor/*.js -t %{buildroot}%{_datadir}/fatbuildr/web/static/js
-install -p -m 0644 vendor/*.css -t %{buildroot}%{_datadir}/fatbuildr/web/static/css
+install -p -m 0644 bootstrap/js/*.js -t %{buildroot}%{_datadir}/fatbuildr/web/static/js
+install -p -m 0644 bootstrap/css/*.css -t %{buildroot}%{_datadir}/fatbuildr/web/static/css
 install -p -d assets/* %{buildroot}%{_datadir}/fatbuildr/web/static
 install -d %{buildroot}%{_datadir}/fatbuildr/wsgi
 install -d %{buildroot}%{_datadir}/fatbuildr/wsgi/uwsgi
