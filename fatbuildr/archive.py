@@ -45,6 +45,10 @@ class ArchiveFileZip(BaseArchiveFile):
         super().__init__(path)
         self.is_zip = True
 
+    @property
+    def stem(self):
+        return self.path.stem
+
     def subdir(self, fh=None):
         """Returns the name of the subdirectory at the root of the zip file, or
         raise RuntimeError if not found. The fh argument can either be an opened
@@ -131,6 +135,10 @@ class ArchiveFileTar(BaseArchiveFile):
     def __init__(self, path):
         super().__init__(path)
         self.is_zip = False
+
+    @property
+    def stem(self):
+        return self.path.name.rsplit('.', 2)[0]
 
     def subdir(self, fh=None):
         """Returns the name of the subdirectory at the root of the tarball, or
@@ -251,6 +259,10 @@ class ArchiveFile:
     @property
     def is_zip(self):
         return self._archive.is_zip
+
+    @property
+    def stem(self):
+        return self._archive.stem
 
     @property
     def subdir(self):

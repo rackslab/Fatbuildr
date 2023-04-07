@@ -111,7 +111,11 @@ class PatchQueue:
 
         # Extract artifact source tree with all source archives
         repo_path = extract_artifact_sources_archives(
-            tmpdir, self.artifact, self.main_source, self.other_sources
+            tmpdir,
+            self.artifact,
+            self.main_source,
+            self.other_sources,
+            with_symlinks=True,
         )
 
         # init the git repository with its initial commit

@@ -215,7 +215,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
                 )
             else:
                 orig_tarball_path = self.place.joinpath(
-                    f"{self.artifact}_{self.version.main}.orig-{archive.id}.tar"
+                    f"{self.artifact}_{self.version.main}.orig-{archive.stem}.tar"
                     f".{self.tarball_ext(archive.path)}",
                 )
             # If the artifact source tarball is in the build place, create a

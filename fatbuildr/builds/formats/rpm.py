@@ -39,8 +39,12 @@ Source{{ loop.index0 }}: {{ source.path.name }}
 SOURCES_PREP_TPL = """
 %setup -q -n {{ main_tarball_subdir }}
 {% for source in other_sources %}
+{% if source.has_single_toplevel %}
 %setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index }}
-mv {{ source.subdir }} {{ source.id }}
+mv {{ source.subdir }} {{ source.stem }}
+{% else %}
+%setup -T -D -n {{ main_tarball_subdir }} -a {{ loop.index }} -c
+{% endif %}
 {% endfor %}
 """
 

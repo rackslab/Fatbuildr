@@ -81,7 +81,7 @@ def verify_checksum(path, format, value):
 
 
 def extract_artifact_sources_archives(
-    output_dir, artifact, main_archive, other_archives
+    output_dir, artifact, main_archive, other_archives, with_symlinks=False
 ):
 
     # Extract main source archive in build place
@@ -95,13 +95,15 @@ def extract_artifact_sources_archives(
     # Extract other sources archives in main archive subdir
     for archive in other_archives:
         assert not archive.is_main(artifact)
-        target = main_subdir.joinpath(archive.id)
+        target = main_subdir.joinpath(archive.stem)
         logger.debug(
             "Extracting other source archive %s in %s",
             archive.path,
             target,
         )
         target.mkdir()
+        if with_symlinks:
+            main_subdir.joinpath(archive.id).symlink_to(archive.stem)
         # Mimic dpkg-source behaviour by stripping the top-level directory
         # when the archive has a single top-level item. If the archive
         # contains several top-level files or directories, they are
