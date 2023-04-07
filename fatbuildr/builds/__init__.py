@@ -387,10 +387,8 @@ class ArtifactBuild(RunnableTask):
                 # Preserve template file mode on rendered file
                 dest_path.chmod(tpl_path.stat().st_mode)
 
-    def supplementary_archives_symlinks_patch(self):
-        """Create patch to add symlink from generic supplementary artifact
-        source name to the subdirectory named after the source archive
-        filename."""
+    def _prepare_git_build_tree(self):
+
         # Create temporary upstream directory
         upstream_dir = self.place.joinpath('upstream')
         upstream_dir.mkdir()
@@ -408,6 +406,36 @@ class ArtifactBuild(RunnableTask):
         # import existing patches in queue
         if not self.patches_dir.empty:
             git.import_patches(self.patches_dir)
+
+        return upstream_dir, archive_subdir, git
+
+    def _cleanup_git_build_tree(self, upstream_dir):
+        # Make sure user can remove all files by ensuring it has write
+        # permission on all directories recursively. This is notably required
+        # with go modules that are installed without write permissions to avoid
+        # unwanted modifications.
+        def rchmod(path):
+            for child in path.iterdir():
+                if child.is_dir():
+                    child.chmod(child.stat().st_mode | stat.S_IWUSR)
+                    rchmod(child)
+
+        logger.debug(
+            "Ensuring write permissions in upstream directory recursively "
+            "prior to removal"
+        )
+        rchmod(upstream_dir)
+
+        logger.debug("Removing temporary upstream directory")
+        # Remove temporary upstream directory
+        shutil.rmtree(upstream_dir)
+
+    def supplementary_archives_symlinks_patch(self):
+        """Create patch to add symlink from generic supplementary artifact
+        source name to the subdirectory named after the source archive
+        filename."""
+
+        (upstream_dir, archive_subdir, git) = self._prepare_git_build_tree()
 
         for archive in self.supplementary_archives:
             logger.debug(
@@ -430,28 +458,7 @@ class ArtifactBuild(RunnableTask):
             files=[archive.id for archive in self.supplementary_archives],
         )
 
-        # Make sure user can remove all files by ensuring it has write
-        # permission on all directories recursively. This is notably required
-        # with go modules that are installed without write permissions to avoid
-        # unwanted modifications.
-        def rchmod(path):
-            for child in path.iterdir():
-                if child.is_dir():
-                    child.chmod(child.stat().st_mode | stat.S_IWUSR)
-                    rchmod(child)
-
-        logger.debug(
-            "Ensuring write permissions in upstream directory recursively "
-            "prior to removal"
-        )
-        rchmod(upstream_dir)
-
-        logger.debug(
-            "Removing temporary upstream directory used for generating "
-            "symlinks to other sources"
-        )
-        # Remove temporary upstream directory
-        shutil.rmtree(upstream_dir)
+        self._cleanup_git_build_tree(upstream_dir)
 
     def prescript(self):
         """Run the prescript"""
@@ -598,23 +605,7 @@ class ArtifactEnvBuild(ArtifactBuild):
 
         logger.info("Running the prescript")
 
-        # Create temporary upstream directory
-        upstream_dir = self.place.joinpath('upstream')
-        upstream_dir.mkdir()
-
-        archive_subdir = extract_artifact_sources_archives(
-            upstream_dir,
-            self.artifact,
-            self.main_archive,
-            self.supplementary_archives,
-        )
-
-        # init the git repository with its initial commit
-        git = GitRepository(archive_subdir, self.author, self.email)
-
-        # import existing patches in queue
-        if not self.patches_dir.empty:
-            git.import_patches(self.patches_dir)
+        (upstream_dir, archive_subdir, git) = self._prepare_git_build_tree()
 
         # Now run the prescript!
         self.prescript_in_env(archive_subdir)
@@ -664,22 +655,4 @@ class ArtifactEnvBuild(ArtifactBuild):
                 files=None,
             )
 
-        # Make sure user can remove all files by ensuring it has write
-        # permission on all directories recursively. This is notably required
-        # with go modules that are installed without write permissions to avoid
-        # unwanted modifications.
-        def rchmod(path):
-            for child in path.iterdir():
-                if child.is_dir():
-                    child.chmod(child.stat().st_mode | stat.S_IWUSR)
-                    rchmod(child)
-
-        logger.debug(
-            "Ensuring write permissions in upstream directory recursively prior "
-            "to removal"
-        )
-        rchmod(upstream_dir)
-
-        logger.debug("Removing temporary upstream directory used for prescript")
-        # Remove temporary upstream directory
-        shutil.rmtree(upstream_dir)
+        self._cleanup_git_build_tree(upstream_dir)
