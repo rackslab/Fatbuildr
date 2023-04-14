@@ -37,6 +37,7 @@ is not enforced. You can adopt the layout of your choice, you may just have to
 provide xref:fatbuildrctl.adoc[] base directory and subdirectory options more
 often.
 
+[#def]
 == Artifact Definition
 
 An artifact definition directory are expected to contain multiple files and
@@ -53,10 +54,49 @@ reason and it is *deprecated*.
 
 This file can contain the following parameters:
 
+`source`:: Remote URL of the software source archive. This URL is used to
+download the software source. The value can use `{{ version }}` placeholder.
+This is dynamically replaced by Fatbuildr with the target source version number
+(_ex:_ `1.2.3`). This parameter is required as soon as `version`, `versions` or
+`derivatives` is defined.
+
+_Example_:::
+
+[source,yaml]
+----
+source: https://download.software.org/foo-{{ version }}.tar.xz
+----
+
+NOTE: Fatbuildr natively supports all compressed tarballs (_ex:_
+`{asterisk}.tar.gz`, `{asterisk}.tar.xz`) and zip files.
+
+`sources`:: This is an alternative to `source` parameter for artifacts with
+multiple sources. The value must be a hash with sources identifiers as keys and
+remote URL of the software source tarball as values. The first source identifier
+is considered as the main source of the artifact and must match the artifact
+name.
+
+_Example_:::
+
+[source,yaml]
+----
+sources:
+  foo: https://download.software.org/foo-{{ version }}.tar.xz
+  bar: https://download.software.org/bar-{{ version }}.tar.xz
+----
+
+NOTE: Fatbuildr downloads the source archives targeted by these URL and fills a
+cache. As long as the archive is available in the cache (typically starting from
+the 2^nd^ build), Fatbuildr does not try to access the URL anymore. This notably
+makes Fatbuildr resilient to resources removed on remote servers and saves
+network bandwidth.
+
 `version`:: A source version number (ex: `1.2.3`). This is the source version
-  used when building the artifact, as released by upstream developers. The
-  parameter can be used in place of more complex `versions` parameter when the
-  artifact is only intended to be built for default _main_ derivative.
+used when building the artifact, as released by upstream developers. This
+straightforward parameter can be used for mono-source artifacts when the
+artifact is only intended to be built for default _main_ derivative. For
+multi-sources artifacts, please refer to `versions` parameter. For artifacts
+targeting other derivatives, please refer to `derivatives` parameter.
 
 _Example_:::
 
@@ -65,60 +105,97 @@ _Example_:::
 version: 1.2.3
 ----
 
-`versions`:: This is an alternative to `version` parameter. The difference is
-  that it allows defining distinct versions for multiples derivatives. The
-  value must be a hash with derivatives names as keys and target source
-  version numbers as values.
+`versions`:: This is an alternative to `version` parameter for artifacts with
+multiple sources for default _main_ derivative. For artifacts targeting other
+derivatives, please refer to `derivatives` key. The value must be a hash with
+sources identifiers as keys and target source version numbers as values.
 
 _Example_:::
 
 [source,yaml]
 ----
 versions:
-  foo1: 1.2.3
-  foo2: 2.0.1
+  foo: 1.2.3
+  bar: 4.5.6
 ----
 
-NOTE: Either `version` or `versions` parameters must be defined in most cases,
-unless users want to always specify the version at build time using the
-dedicated option of xref:fatbuildrctl.adoc[] `build` command (_ex:_
-for sofware never released by upstream developers).
+`derivatives`:: This is an alternative to `version` and `versions` parameters
+for artifacts with multiple derivatives. The value must be a hash whose keys
+are the targeted derivatives names. The format of values depends on the number
+of artifact sources. For mono-source artifacts, the values are the version
+numbers targeted for the derivative. For artifacts with multiple sources, the
+values are hashes with source identifier as keys and the version number for this
+source in the associated derivative as values.
 
-`tarball`:: Remote URL of the software source tarball. This URL is used to
-download the software source. The value can use `{{ version }}` placeholder.
-This is dynamically replaced by Fatbuildr with the target source version
-number (_ex:_ `1.2.3`). This parameter is required as soon as `version` or
-`versions` is defined.
-
-_Example_:::
-
+_Example for mono-source artifact_:::
++
+--
 [source,yaml]
 ----
-tarball: https://download.software.org/foo-{{ version }}.tar.xz
+derivatives:
+  foo2: 2.1.0
+  foo1: 1.3.5
 ----
+--
 
-NOTE: Fatbuildr downloads the source tarball targeted by these URL and fills a
-cache. As long as the tarball is available in the cache (typically starting from
-the 2^nd^ build), Fatbuildr does not try to access the URL anymore. This notably
-makes Fatbuildr resilient to resources removed on remote servers and saves
-network bandwidth.
+_Example for artifact with multiple sources_:::
++
+--
+[source,yaml]
+----
+derivatives:
+  foo2:
+    foo: 2.1.0
+    bar: 4.5.6
+  foo1:
+    foo: 1.3.5
+    bar: 4.2.1
+----
+--
 
-`checksums`:: The checksums of software source tarball. The value is a hash with
-versions as keys (_ex:_ `1.2.3`), and a sub-hash as values. The sub-hash must
-contain the hash function as keys (_ex:_ `sha256` and the tarball resulting hash
-as values. The provided checksums are used by Fatbuildr to check integrity of
-downloaded tarballs.
+NOTE: Either `version`, `versions` or `derivatives` parameters must be defined
+in most cases, unless users want to always specify the version at build time
+using the dedicated option of xref:fatbuildrctl.adoc[] `build` command (_ex:_
+for sofware never released by upstream developers).
 
-_Example_:::
+`checksums`:: The checksums of software source archives. The value is a hash
+whose keys format of values depends on the number of artifact sources. For
+mono-source artifacts, the keys are the version numbers (_ex:_ `1.2.3`) and the
+values are hashes with hash function as keys (_ex:_ `sha256`) and the expected
+hash function result as values. For artifacts with multiple sources, there is an
+additional top-level key for the source identifiers.
 
+_Example for mono-source artifact_:::
++
+--
 [source,yaml]
 ----
 checksums:
   1.2.3:
-    sha256: 4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865
+    sha256: 45b593694ffbea195d7d6830f5ea6e6e647d9a109f237e84cbaf40d028caddd4
   2.0.1:
-    sha256: 53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3
+    sha256: 7dce312cb278a3ec4288371f09ebb4717f1facf52793ed55147f14306273d9f4
 ----
+--
+
+_Example for artifact with multiple sources_:::
++
+--
+[source,yaml]
+----
+checksums:
+  foo:
+    1.3.5:
+      sha256: 0b9f6f215ef228f1c5548c0299d35aece348d0f17d0f6819857c9e6b7ebf1549
+    2.1.0:
+      sha256: 085bbca73f5452f6e782369596d86ff46c836a89dd8512b2e5d1a782cbe2aff3
+  bar:
+    4.2.1:
+      sha256: d2d00481c19b8413a8267a07c098224e608a12bd7198c1c8b8fac148c2705880
+    4.5.6:
+      sha256: 56a36126dfa93df6617077da842b869d60834aa09c84335be989295db607a086
+----
+--
 
 Then, one parameter must be declared per format supported for this artifact. If
 one format is not declared in this file, Fatbuildr refuses to build the artifact
@@ -157,14 +234,15 @@ deb:
 osi: {}
 ----
 
-For reference, here are some examples of full Artifact `artifact.yml`:
+For reference, here are some examples of full artifact definition files
+`artifact.yml`:
 
-* With one version for _main_ derivative in RPM format only:
+* Artifact (for _main_ derivative only) in RPM format:
 +
 [source,yaml]
 ----
+source: https://download.software.org/foo-{{ version }}.tar.xz
 version: 1.2.3
-tarball: https://download.software.org/foo-{{ version }}.tar.xz
 checksums:
   1.2.3:
     sha256: 4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865
@@ -172,22 +250,77 @@ rpm:
   release: 1
 ----
 
-* With two versions for _foo1_ and _foo2_ derivatives in all supported formats:
+* Artifact with multiple sources _foo_ and _bar_ (for _main_ derivative only)
+in deb format:
 +
 [source,yaml]
 ----
+sources:
+  foo: https://download.software.org/foo-{{ version }}.tar.xz
+  bar: https://download.software.org/bar-{{ version }}.tar.xz
 versions:
+  foo: 1.2.3
+  bar: 4.5.6
+checksums:
+  foo:
+    1.2.3:
+      sha256: 45b593694ffbea195d7d6830f5ea6e6e647d9a109f237e84cbaf40d028caddd4
+  bar:
+    4.5.6:
+      sha256: 56a36126dfa93df6617077da842b869d60834aa09c84335be989295db607a086
+deb:
+  release: 1
+----
+
+* Artifact with two versions for _foo1_ and _foo2_ derivatives in all supported
+formats:
++
+[source,yaml]
+----
+source: https://download.software.org/foo-{{ version }}.tar.xz
+derivatives:
   foo1: 1.2.3
   foo2: 2.0.1
-tarball: https://download.software.org/foo-{{ version }}.tar.xz
 checksums:
   1.2.3:
-    sha256: 4355a46b19d348dc2f57c046f8ef63d4538ebb936000f3c9ee954a27460dd865
+    sha256: 45b593694ffbea195d7d6830f5ea6e6e647d9a109f237e84cbaf40d028caddd4
   2.0.1:
-    sha256: 53c234e5e8472b6ac51c1ae1cab3fe06fad053beb8ebfd8977b010655bfdd3c3
+    sha256: 7dce312cb278a3ec4288371f09ebb4717f1facf52793ed55147f14306273d9f4
 rpm:
   release: 1
-  buildargs: --with mysql
+deb:
+  release: 1
+osi: {}
+----
+
+* Artifact with multiple sources _foo_ and _bar_ targeting two derivatives
+_foo1_ and _foo2_ in all supported formats:
++
+[source,yaml]
+----
+sources:
+  foo: https://download.software.org/foo-{{ version }}.tar.xz
+  bar: https://download.software.org/bar-{{ version }}.tar.xz
+derivatives:
+  foo2:
+    foo: 2.1.0
+    bar: 4.5.6
+  foo1:
+    foo: 1.3.5
+    bar: 4.2.1
+checksums:
+  foo:
+    1.3.5:
+      sha256: 0b9f6f215ef228f1c5548c0299d35aece348d0f17d0f6819857c9e6b7ebf1549
+    2.1.0:
+      sha256: 085bbca73f5452f6e782369596d86ff46c836a89dd8512b2e5d1a782cbe2aff3
+  bar:
+    4.2.1:
+      sha256: d2d00481c19b8413a8267a07c098224e608a12bd7198c1c8b8fac148c2705880
+    4.5.6:
+      sha256: 56a36126dfa93df6617077da842b869d60834aa09c84335be989295db607a086
+rpm:
+  release: 1
 deb:
   release: 1
 osi: {}
@@ -255,7 +388,7 @@ number `1.2-3.el8`, `release` is `3.el8`.
 +
 TIP: This is a short alias for `pkg.version.fullrelease`.
 
-`source`:: The `Source*` tags to declare the sources input for the RPM packages
+`sources`:: The `Source*` tags to declare the sources input for the RPM packages
 (ex: `Source0: foo-1.2.tar.gz`).
 
 `prep_sources`:: The `%setup` macros to declare in the `%prep` section of the
