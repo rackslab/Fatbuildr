@@ -4,4 +4,5 @@
 * xref:remote.adoc[]
 * xref:api.adoc[]
 * xref:web.adoc[]
+* xref:srctree.adoc[Packages Sources Tree]
 * xref:utils.adoc[]

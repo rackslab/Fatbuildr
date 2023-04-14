@@ -1,0 +1,107 @@
+# Packages source tree
+
+Packages artifacts in deb and RPM formats are built starting from source
+archives. Fatbuildr follows strict principles to extract the source archives
+into a deterministic and predictable source tree. These principles are designed
+to help development of packaging code by making it consistent accross version
+and formats and reduce maintenance cost over time eventually.
+
+The principle applied by Fatbuildr to extract source archives are detailed in
+this page to help package maintainers write optimal and resilient packaging
+code for all types of sources archives.
+
+[#mono]
+## Common mono-source package
+
+Most packages are based from a unique source archive, _ie._ the tarball that
+contains the source tree as released by the software editor. A common good
+practice followed by most software editors is to include a top-level directory
+in the source archives. Unfortunately, this good practice is not strictly
+applied in all released source archives. For this reason, Fatbuildr manages both
+cases and always extract the source tree in a subfolder named
+`<artifact>-<version>`, whatever the presence and the exact name of the
+top-level folder in the editor source archive.
+
+This principle is illustrated for an example artifact _foo_ in
+xref:img-mono[xrefstyle=short] and xref:img-mono_wotl[xrefstyle=short] which
+represent with and without top-level directory cases respectively.
+
+image::source_tree_mono-source.svg[id=img-mono,width=400,title=Artifact *foo* with top-level directory in source archive]
+
+image::source_tree_mono-source_wo_toplevel.svg[id=img-mono_wotl,width=400,title=Artifact *foo* _without top-level directory_ in source archive]
+
+[#multi]
+## Multi-sources packages
+
+Fatbuildr natively supports building packages in deb and RPM formats using
+multiple sources archives. Sources are declared in xref:repo.adoc#def[artifact
+definition file] with a source identifier. The first source is considered as the
+*_main_ source* and its identifier must match the artifact name. All other
+sources are considered as *supplementary sources*.
+
+For the _main_ source, Fatbuildr follows the same principle as for the
+xref:mono[mono-source packages].
+
+All the supplementary sources are extracted in a subfolder named after the
+source archive filename in which all characters except alphanumericals and
+hyphens (`-`) are removed. This table provides some examples:
+
+[cols="1m,1m",width=50%]
+|===
+|Archive filename|Source subfolder
+
+|bar-4.5.6.tar.gz
+|bar-456
+
+|bar-baz_4.5.6.zip
+|bar-baz456
+
+|bar-4.5.6~rc1_beta.tar.xz
+|bar-456rc1beta
+|===
+
+NOTE: This subfolder renaming operation may seem weird and irrational at first
+glance. It has been choosen for compatibility reason with Debian source packages
+supplementary tarballs specifications which only supports alphanumeric and
+hyphen characters for components names. Please refer to
+https://git.dpkg.org/cgit/dpkg/dpkg.git/tree/scripts/Dpkg/Source/Package.pm#n406[`dpkg-source`
+source code] for more details.
+
+A symbolic link is created from the supplementary source identifier to the
+versioned renamed subfolder (ex: `bar` → `bar-456/`). This makes possible to
+write packaging code with generic paths agnostic to version number changes.
+
+NOTE: The symbolic links created for supplementary archives are integrated in
+source packages in the form of a patch that is dynamically generated and
+automatically integrated by Fatbuildr into the source package.
+
+For similar reason to the main source archive, Fatbuildr is agnostic to the
+presence of a top-level directory in the supplementary source archives. If it is
+present, it is removed from the resulting source tree.
+
+These principles are illustrated for an example artifact _foo_ with a _bar_
+supplementary source in xref:img-multi[xrefstyle=short] and
+xref:img-multi_wotl[xrefstyle=short] which represent with and without top-level
+directory cases respectively.
+
+image::source_tree_multi-sources.svg[id=img-multi,width=500,title=Artifact *foo* with *supplementary bar* source with top-level directories in all source archives]
+
+image::source_tree_multi-sources_wo_toplevel.svg[id=img-multi_wotl,width=500,title=Artifact *foo* with *supplementary bar* source _without top-level directory_ in bar source archive]
+
+[TIP]
+====
+To quickly figure out the source tree defined by Fatbuildr for a given
+artifact with all principles mentioned above, it is possible to run
+`fatbuildrctl patches` command with the artifact in argument:
+
+[source,console]
+----
+$ fatbuildrctl patches --artifact foo
+----
+
+This command downloads the artifact source archives and extract them in a
+temporary local directory (with a subshell and an initialized Git repository).
+
+Please refer to xref:fatbuildrctl.adoc[`fatbuildrctl` manpage] for more details
+about this command.
+====
