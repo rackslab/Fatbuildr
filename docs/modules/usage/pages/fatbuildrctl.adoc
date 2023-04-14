@@ -89,19 +89,10 @@ This command accepts the following options:
   artifact definition under the path composed by _BASEDIR_ concatenated with
   _SUBDIR_. By default, _SUBDIR_ is the artifact name.
 
-*--source-dir*=_SOURCE_DIR_::
-  Generate artifact source tarball using the source code in directory
-  _SOURCE_DIR_, instead of using the source tarball from the URL defined in
-  `artifact.yml` file in artifact definition directory. This option must be used
-  in combination with *--source-version* option.
-
-*--source-version*=_VERSION_::
-  The version number used to tag the artifact source tarball generated with
-  sources located in _SOURCE_DIR_. Alternate version for generated artifact
-  source tarball. The generated source tarball is named
-  _ARTEFACT_VERSION_.tar.xz, with a directory named _ARTEFACT-VERSION_ at
-  its root containing artifact source code. This option must be used in
-  combination with *--source-dir* option.
+*--sources*=_[SOURCE_ID#][SOURCE_VERSION@]SOURCE_DIR_::
+  Generate artifact source using the source code in a local _SOURCE_DIR_
+  directory instead of using the source tarball from the URL declared in
+  artifact definition. See <<man-src,*LOCAL SOURCES*>> section for more details.
 
 *-n, --name*=_NAME_::
   User name for artifact build changelog entry. This option is required, unless
@@ -172,7 +163,7 @@ for _osi_ format artifacts as this format does not contain changelogs.
   build task to start and print its output until it is over. Launch an
   interactive shell in the build environment in case of build failure.
 
-`$ fatbuildrctl build --artifact foo --distribution bar --source-dir ~/path/to/sources --source-version 1.2.3`::
+`$ fatbuildrctl build --artifact foo --distribution bar --sources 1.2.3@~/path/to/sources`::
   Generate source tarball of artifact _foo_ with files located in directory
   `~/path/to/sources` tagged with version _1.2.3_, then submit task to build
   this artifact for distribution _bar_.
@@ -384,18 +375,10 @@ This command accepts the following options:
   artifact definition under the path composed by _BASEDIR_ concatenated with
   _SUBDIR_. By default, _SUBDIR_ is the artifact name.
 
-*--source-dir*=_SOURCE_DIR_::
-  Generate artifact source tarball using the source code in directory
-  _SOURCE_DIR_, instead of using the source tarball from the URL defined in
-  `artifact.yml` file in artifact definition directory. This option must be used
-  in combination with *--source-version* option.
-
-*--source-version*=_VERSION_::
-  The version number used to tag the artifact source tarball generated with
-  sources located in _SOURCE_DIR_. The generated source tarball is named
-  _ARTEFACT_VERSION_.tar.xz, with a directory named _ARTEFACT-VERSION_ at
-  its root containing artifact source code. This option must be used in
-  combination with *--source-dir* option.
+*--sources*=_[SOURCE_ID#][SOURCE_VERSION@]SOURCE_DIR_::
+  Generate artifact source using the source code in a local _SOURCE_DIR_
+  directory instead of using the source tarball from the URL declared in
+  artifact definition. See <<man-src,*LOCAL SOURCES*>> section for more details.
 
 *-n, --name*=_NAME_::
   User name for temporary Git repository initial commit author and commiter.
@@ -428,7 +411,7 @@ This command accepts the following options:
   repository will created using `John Doe <john@doe.org>` identity as author and
   commiter.
 
-`$ fatbuildrctl patches --artifact foo --source-dir ~/path/to/sources --source-version 1.2.3`::
+`$ fatbuildrctl patches --artifact foo --sources 1.2.3@~/path/to/sources`::
   Edit patch queue of artifact _foo_ based on a generated source tarball with
   files located in directory `~/path/to/sources` tagged with version _1.2.3_.
 --
@@ -545,6 +528,60 @@ This command accepts the following argument:
 `$ fatbuildrctl watch a97737c0-5ecd-41d7-ba3a-ed46e03a2eb0`::
   Get output of task a97737c0-5ecd-41d7-ba3a-ed46e03a2eb0.
 --
+
+[[man-src]]
+== Local Sources
+
+Some `fatbuildrctl` commands (`build`, `patches`) provide the possibility to
+generate an artifact source tarball with the content of a local source tree
+using *--sources* option.
+
+The value of this option has the following format:
+*[SOURCE_ID#][SOURCE_VERSION@]SOURCE_DIR [[SOURCE_ID#][SOURCE_VERSION@]SOURCE_DIR]*
+
+The local directory which contains the source tree is specified with
+_SOURCE_DIR_.
+
+By default, the ID associated to the source is the artifact name. It is
+considered by Fatbuildr as the main source for the artifact. For artifact with
+multiple sources, it is possible to generate a tarball for a supplementary
+source by specifying _SOURCE_ID_ followed by _#_. Specifying a _SOURCE_ID_ not
+declared as a supplementary source in xref:repo.adoc#def[artifact definition
+file] results in an error.
+
+By default, the version number declared for this source in artifact definition
+file is used in generated tarball filename. It is possible to prefix the source
+directory with an alternate version _SOURCE_VERSION_ followed by _@_.
+
+The **--sources** option accepts multiple values for artifact defined with
+multiple sources. An error is reported when a source ID is specified more than
+once.
+
+*Examples:*
+
+`fatbuildrctl […] --sources ~/path/to/code`::
+  Generate archive for artifact main source with the content of directory
+  `~/path/to/code` (using the version number defined in artifact definition
+  file).
+
+`fatbuildrctl […] --sources 1.2.3@~/path/to/code`::
+  Generate archive for artifact main source with the content of directory
+  `~/path/to/code` and version `1.2.3`.
+
+`fatbuildrctl […] --sources other#~/path/to/other-code`::
+  Generate archive for artifact _other_ source with the content of directory
+  `~/path/to/other-code` (using the version number defined for other source in
+  artifact definition file).
+
+`fatbuildrctl […] --sources other#4.5.6@~/path/to/other-code`::
+  Generate archive for artifact _other_ source with the content of directory
+  `~/path/to/other-code` and version `4.5.6`.
+
+`fatbuildrctl […] --sources 1.2.3@~/path/to/code other#4.5.6@~/path/to/other-code`::
+  Generate archive for artifact main source with the content of directory
+  `~/path/to/code` and version `1.2.3`, and generate archive for artifact
+  _other_ source with the content of directory `~/path/to/other-code` and
+  version `4.5.6`.
 
 [[man-pref]]
 == Preferences file
