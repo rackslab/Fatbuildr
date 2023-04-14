@@ -26,6 +26,23 @@ multiple purposes, such as distributing:
 * Alternative versions of artifact (eg. with specific configuration flags) for
   particular hosts or hardware.
 
+== Multiple Sources support
+
+Packages artifacts can be defined with multiple source archives, with one main
+artifact source and several supplementary sources. This is notably a convenient
+feature to do _vendoring_ of build or runtime dependencies. Other sources or
+prebuilt artifacts (eg. minimized javascript libraries) can be directly
+integrated into the source tree and the binary packages. This saves the
+requirement to maintain many individual artifacts for software dependencies.
+
+Fatbuildr follows strict principles to extract the source archives into a
+xref:usage:srctree.adoc[deterministic and predictable source tree], designed to
+help development of packaging code by making it consistent accross version and
+formats and reduce maintenance cost over time eventually.
+
+Most archives formats such as zip files and all compressed tarball formats are
+natively supported.
+
 == Multi-Architectures
 
 Fatbuildr supports building artifacts for basically any hardware CPU
