@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatic static analysis of RPM and Deb packages based on rpmlint and lintian
   after successful build (#16)
 - Add support of interactive build for RPM packages format (#61)
+- Add support of multiple sources for packages artifacts (#66)
 - conf:
   - Add `[tokens]` section with settings to control generation and
     validation of JWT tokens.
@@ -42,12 +43,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add support for JWT token based authentication to Fatbuildrweb REST API.
 - prefs: add optional `tokens` parameter in the `prefs` section for specifying
   the path of user's tokens directory.
+- utils: Add support of multiple sources archives in `import-srcrpm`
 - pkgs: add dependency on PyJWT python external library for managing JWT tokens.
 - docs:
   - Document `tokens` command in `fatbuildrctl` manpage.
   - Document `tokens` parameter in user's preferences file in `fatbuildrctl`
     manpage.
   - Add section about API tokens in `fatbuildrctl` manpage.
+  - Add section about Local sources and `--sources` option value format in
+    `fatbuildrctl` manpage.
   - Add section about authentication in REST API reference page.
   - Mention new polkit actions _org.rackslab.Fatbuildr.manage-token_ and
     _org.rackslab.Fatbuildr.build-as_ with a special note for _*-as_ actions.
@@ -57,8 +61,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add section about policy configuration in Fatbuildrweb administration page.
   - Document system configuration new `[tokens]` section and new parameters in
     `[web]` section.
-  - Mention static analysis, RBAC policy and JWT authentication in advanced
-    features description.
+  - Mention multiple sources support, static analysis, RBAC policy and JWT
+    authentication in advanced features description.
+  - Add page about packages source tree with all principles followed for various
+    types of sources illustrated by new diagrams.
 
 ### Fixed
 - cli:
@@ -80,20 +86,49 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - docs: Fix prescript token names in artifact definition reference.
 
 ### Changed
-- cli: transform `images` command options `--create`, `--update`,
-  `--create-envs` and `--update-envs` into an operation positional argument with
-  the corresponding possible values `create`, `update`, `env-create`,
-  `env-update`.
-- artifacts: rename YAML artifact definition file from `meta.yml` to
-  `artifact.yml`. The old name is still supported but the user is warned with a
-  deprecation notice (#73).
+- cli:
+  - Transform `images` command options `--create`, `--update`, `--create-envs`
+    and `--update-envs` into an operation positional argument with the
+    corresponding possible values `create`, `update`, `env-create`,
+    `env-update`.
+  - Replace `fatbuildrctl {patches,build}` command options `--source-dir` and
+    `--source-version` by generic option `--sources`.
+- artifacts:
+  - Rename YAML artifact definition file from `meta.yml` to `artifact.yml`. The
+    old name is still supported but the user is warned with a deprecation notice
+    (#73).
+  - Replace `tarball` option by `source` or `sources`, depending on the number
+    of archive sources.
+  - Modify format of `versions`, `derivatives` and `checksums` keys to support
+    optional multiple sources for packages artifacts.
+  - The RPM spec file token `{{ source }}` is replaced by `{{ sources }}` to
+    declare possibly multiple sources.
 - web: Build tasks are submitted to fatbuildrd with original requesting user's
   identity when fatbuildrd runs with another user (typically `fatbuildr` system
   user) so the tasks are properly associated to the original user.
-- docs: convert APT sources file in quickstart guide from one-line format to
-  Deb822-style format (#72)
+- api:
+  - Introduce new array of `SourceArchive` objects in the properties of `Task`
+    objects for build tasks.
+  - Modify optional source archives filename multipart build requests to support
+    sending of multiples sources.
+- docs:
+  - Convert APT sources file in quickstart guide from one-line format to
+    Deb822-style format (#72)
+  - Modify artifact definition reference documentation with changes introduced
+    to support packages artifacts with multiple sources and many examples to
+    cover most cases.
+  - Modify REST API reference with changes introduced to support packages
+    artifacts with multiple sources.
+  - Replace options `--source-dir` and `--source-version` by `--sources` in
+    `fatbuildrctl` manpage.
 - Rename `fatbuildr.web` module to `fatbuildr.procotols.http.server` for more
   proximity with `fatbuildr.procotols.http.client` code.
+- pkgs:
+  - Adapt artifact definitions and packaging code for fatbuildr and its
+    dependencies to new format defined for multiple sources support.
+  - Replace fatbuildr prescript with a supplementary source for bootstrap.
+- examples: Change hello package artifact definition to new format defined for
+  multiple sources support.
 
 ## [1.1.0] - 2023-03-13
 
