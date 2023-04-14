@@ -77,6 +77,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fix fatbuildr user and group with host UID/GID in deb format container image
     due to possible conflicts with other installed Debian sid packages (#83)
   - Add missing shebang in derivatives pbuilder hook
+- docs: Fix prescript token names in artifact definition reference.
 
 ### Changed
 - cli: transform `images` command options `--create`, `--update`,

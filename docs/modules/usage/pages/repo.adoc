@@ -404,27 +404,28 @@ DL https://host/bootstrap.min.css assets/bootstrap.min.css
 
 Prescript rules can be declared in comments:
 
-`#PREDEPS`:: A space separated list of packages to install temporarily in the
-build environment before running the prescript. This list of packages is
+`#PRESCRIPT_DEPS`:: A space separated list of packages to install temporarily in
+the build environment before running the prescript. This list of packages is
 concatenated with the basic set of prescript dependencies declared in main
 Fatbuildr configuration file.
 
-`#PRETARBALLS`:: A space separated list of subdirectories used to generate
-supplementary tarballs for the artifact.
+`#PRESCRIPT_TARBALLS`:: A space separated list of subdirectories used to
+generate supplementary tarballs for the artifact.
 
-When `#PRETARBALLS` rule is not defined, Fatbuildr generates a patch with all
-modifications performed by the prescript after its execution. This patch is
+When `#PRESCRIPT_TARBALLS` rule is not defined, Fatbuildr generates a patch with
+all modifications performed by the prescript after its execution. This patch is
 automatically integrated in the source package, after the potential assembled
 serie of xref:#patches[artifact patches].
 
-When `#PRETARBALLS` rule is defined, Fatbuildr generates supplementary tarballs
-with the content of the provided subdirectories, after prescript execution. One
-supplementary tarball is generated per subdirectory. These supplementary
-tarballs are then used in combination with the main upstream source tarball to
-compose the initial source tree of the package.
+When `#PRESCRIPT_TARBALLS` rule is defined, Fatbuildr generates supplementary
+tarballs with the content of the provided subdirectories, after prescript
+execution. One supplementary tarball is generated per subdirectory. These
+supplementary tarballs are then used in combination with the main upstream
+source tarball to compose the initial source tree of the package.
 
 Generally, supplementary tarballs should be preferred over the patch approach
-when the prescript modifications are quite large (over 1k lines of modification).
+when the prescript modifications are quite large (over 1k lines of
+modification).
 
 Supplementary tarballs are the only solution to apply binary blob modification
 on upstream source tarball, as it is not supported in standard patches format.
@@ -462,8 +463,8 @@ Example 2::
 ----
 #!/bin/bash
 
-#PREDEPS golang
-#PRETARBALLS vendor
+#PRESCRIPT_DEPS golang
+#PRESCRIPT_TARBALLS vendor
 
 mkdir vendor
 go mod vendor
