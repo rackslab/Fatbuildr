@@ -870,11 +870,6 @@ class Fatbuildrctl(FatbuildrCliRun):
             else:
                 source_id = artifact
                 version_path = source
-            if '@' in version_path:
-                (source_version, source_dir) = version_path.split('@', 1)
-            else:
-                source_version = defs.version(derivative)
-                source_dir = version_path
             # Check the source ID is defined and available in artifact
             # definition file.
             if source_id not in defs.defined_sources:
@@ -889,6 +884,11 @@ class Fatbuildrctl(FatbuildrCliRun):
                     "Conflict between multiple sources sharing the same ID "
                     f"{source_id}"
                 )
+            if '@' in version_path:
+                (source_version, source_dir) = version_path.split('@', 1)
+            else:
+                source_version = defs.source(source_id).version(derivative)
+                source_dir = version_path
             results.append(
                 WireSourceArchive(
                     source_id,
