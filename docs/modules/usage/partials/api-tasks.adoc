@@ -137,6 +137,16 @@ Response:
   "architectures": [
     "x86_64"
   ],
+  "archives": [
+    {
+      "id": "fatbuildr",
+      "path": "/var/cache/fatbuildr/default/fatbuildr/v1.1.0.tar.gz"
+    },
+    {
+      "id": "bootstrap",
+      "path": "/var/cache/fatbuildr/default/fatbuildr/bootstrap-5.2.3-dist.zip"
+    }
+  ],
   "artifact": "fatbuildr",
   "derivative": "main",
   "distribution": "bullseye",
@@ -216,6 +226,7 @@ Response:
     "architectures": [
       "x86_64"
     ],
+    "archives": [],
     "artifact": "fatbuildr",
     "derivative": "main",
     "distribution": "bullseye",
@@ -240,6 +251,7 @@ Response:
     "architectures": [
       "x86_64"
     ],
+    "archives": [],
     "artifact": "fatbuildr",
     "derivative": "main",
     "distribution": "bookworm",
@@ -323,6 +335,16 @@ Response:
 {
   "architectures": [
     "x86_64"
+  ],
+  "archives": [
+    {
+      "id": "fatbuildr",
+      "path": "/var/cache/fatbuildr/default/fatbuildr/v1.1.0.tar.gz"
+    },
+    {
+      "id": "bootstrap",
+      "path": "/var/cache/fatbuildr/default/fatbuildr/bootstrap-5.2.3-dist.zip"
+    }
   ],
   "artifact": "fatbuildr",
   "derivative": "main",
