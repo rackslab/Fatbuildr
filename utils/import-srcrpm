@@ -71,6 +71,35 @@ class SectionToReplace:
     over: bool = False
 
 
+@dataclass
+class RPMSource:
+    def __init__(self, value: str):
+        self.value = value
+        url = urllib.parse.urlparse(self.value)
+        self.scheme = url.scheme
+        self.path = Path(url.path)
+        self.url = url.geturl()
+        filename = self.path.stem
+        # handle the case of compressed tarballs with 2 suffixes
+        if filename.endswith('.tar'):
+            filename = self.path.name.rsplit('.', 2)[0]
+        filename_components = filename.rsplit('-', 1)
+        self.id = filename_components[0]
+        if len(filename_components) > 1:
+            self.version = filename_components[1]
+        else:
+            self.version = str(-1)
+
+    def __repr__(self):
+        return f"{{id: {self.id}, version: {self.version}, url: {self.url}}}"
+
+
+def sha256_checksum(path):
+    # calculate tarball checksum
+    with open(path, 'rb') as fh:
+        return hashlib.sha256(fh.read()).hexdigest()
+
+
 def import_src_rpm(
     src_rpm_path: Path, author: str, email: str, dest: Path, tarballs_dest: Path
 ) -> None:
@@ -117,23 +146,30 @@ def import_src_rpm(
     for spec_line in spec_content.split('\n'):
         m = re.match(r"Source(\d+)?:\s+(.+)$", spec_line)
         if m:
-            sources.append(m.group(2))
+            first_source = False
+            if m.group(1) is None or m.group(1) == '0':
+                first_source = True
+            source = RPMSource(m.group(2))
+            if first_source:
+                source.id = software
+                source.version = version
+            sources.append(source)
         m = re.match(r"Patch(\d+)?:\s+(.+)$", spec_line)
         if m:
             patches.append(m.group(2))
 
     logger.info("sources: %s patches: %s", sources, patches)
 
-    main_source = urllib.parse.urlparse(sources[0])
-    if main_source.scheme == '':
-        logger.warning("Source is not a valid URL: %s", main_source.geturl())
+    for source in sources:
+        if source.scheme == '':
+            logger.warning("Source is not a valid URL: %s", source.url)
 
     # Generate the spec with Fatbuildr templating tokens
 
     generated_spec = (
         'Version: {{ version }}\n'
         'Release: {{ release }}\n'
-        '{{ source }}\n'
+        '{{ sources }}\n'
         '{{ patches }}\n'
     )
 
@@ -214,25 +250,45 @@ def import_src_rpm(
     with open(generated_spec_path, 'w+') as fh:
         fh.write(generated_spec)
 
-    # calculate tarball checksum
-    with open(software_dir / os.path.basename(main_source.path), 'rb') as fh:
-        checksum = hashlib.sha256(fh.read()).hexdigest()
-
     # define content of YAML artifact definition file artifact.yml
-    defs_content = {
-        'version': version,
-        'tarball': main_source.geturl().replace(version, '{{ version }}'),
-        'checksums': {
-            version: {
-                'sha256': checksum,
+    if len(sources) < 2:
+        defs_content = {
+            'version': version,
+            'source': sources[0].url.replace(version, '{{ version }}'),
+            'checksums': {
+                version: {
+                    'sha256': sha256_checksum(
+                        software_dir / os.path.basename(sources[0].path)
+                    ),
+                },
             },
-        },
-        'rpm': {
-            'release': release,
-        },
-    }
+            'rpm': {
+                'release': release,
+            },
+        }
+    else:
+        defs_content = {
+            'versions': {source.id: source.version for source in sources},
+            'sources': {
+                source.id: source.url.replace(source.version, '{{ version }}')
+                for source in sources
+            },
+            'checksums': {
+                source.id: {
+                    source.version: {
+                        'sha256': sha256_checksum(
+                            software_dir / os.path.basename(source.path)
+                        )
+                    }
+                }
+                for source in sources
+            },
+            'rpm': {
+                'release': release,
+            },
+        }
     with open(software_dir / 'artifact.yml', 'w+') as fh:
-        fh.write(yaml.dump(defs_content, sort_keys=False))
+        fh.write(yaml.dump(defs_content, sort_keys=False, width=float('inf')))
 
     # move patches in version subdirectory
     patches_dir = software_dir / 'patches' / version
@@ -247,7 +303,7 @@ def import_src_rpm(
 
     # move sources tarballs in in tarballs destination directory
     for source in sources:
-        source_filename = os.path.basename(urllib.parse.urlparse(source).path)
+        source_filename = os.path.basename(source.path)
         logger.info(
             "Moving source %s to %s",
             (software_dir / source_filename),
@@ -263,10 +319,9 @@ def import_src_rpm(
             software_dir,
             'main',
             software,
-            ArtifactDefs(software_dir),
+            ArtifactDefs(software_dir, software),
             author,
             email,
-            version,
         )
         pq.run(launch_subshell=False)
 
