@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - docs: Fix prescript token names in artifact definition reference.
 
 ### Changed
+- Merge queue and archives directories into a common workspaces directory (#88)
 - cli:
   - Transform `images` command options `--create`, `--update`, `--create-envs`
     and `--update-envs` into an operation positional argument with the
@@ -105,6 +106,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     optional multiple sources for packages artifacts.
   - The RPM spec file token `{{ source }}` is replaced by `{{ sources }}` to
     declare possibly multiple sources.
+- conf: replaced `queue` and `archives` parameters in `dirs` section of system
+  configuration by `workspaces` parameters.
 - web: Build tasks are submitted to fatbuildrd with original requesting user's
   identity when fatbuildrd runs with another user (typically `fatbuildr` system
   user) so the tasks are properly associated to the original user.
@@ -123,6 +126,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     artifacts with multiple sources.
   - Replace options `--source-dir` and `--source-version` by `--sources` in
     `fatbuildrctl` manpage.
+  - Mention system configuration changes in `dirs` section for queue and
+    archives directories merged into common workspaces directory.
+  - Update example outputs with new common workspaces directory to match new
+    default paths.
 - Rename `fatbuildr.web` module to `fatbuildr.procotols.http.server` for more
   proximity with `fatbuildr.procotols.http.client` code.
 - pkgs:
