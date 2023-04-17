@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   after successful build (#16)
 - Add support of interactive build for RPM packages format (#61)
 - Add support of multiple sources for packages artifacts (#66)
+- Report Deb and RPM packages content after successful builds, with additional
+  pbuilder hook and mock plugin respectively (#74)
 - conf:
   - Add `[tokens]` section with settings to control generation and
     validation of JWT tokens.
@@ -61,8 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add section about policy configuration in Fatbuildrweb administration page.
   - Document system configuration new `[tokens]` section and new parameters in
     `[web]` section.
-  - Mention multiple sources support, static analysis, RBAC policy and JWT
-    authentication in advanced features description.
+  - Mention multiple sources support, static analysis, packages content listing,
+    RBAC policy and JWT authentication in advanced features description.
   - Add page about packages source tree with all principles followed for various
     types of sources illustrated by new diagrams.
 
