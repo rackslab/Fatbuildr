@@ -87,7 +87,9 @@ class Fatbuildrd(FatbuildrCliRun):
         self.sm = ServiceManager()
         self.timer = ServerTimer()
 
-        self.clear_orphaned_builds()
+        for instance in self.instances:
+            instance.tasks_mgr.clear()
+
         # load all tasks and exportable types structures in protocol
         register_protocols()
 
@@ -203,9 +205,3 @@ class Fatbuildrd(FatbuildrCliRun):
                 )
                 instance.tasks_mgr.interrupt()
         logger.info("Leaving timer thread")
-
-    def clear_orphaned_builds(self):
-        """Remove all build directories in queue directory."""
-        for build_path in self.conf.dirs.queue.iterdir():
-            logger.warning("Removing orphaned build %s", build_path.name)
-            shutil.rmtree(build_path)

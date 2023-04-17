@@ -32,8 +32,7 @@ class RuntimeSubConfDirs(object):
     def __init__(self):
 
         self.instances = None
-        self.queue = None
-        self.archives = None
+        self.workspaces = None
         self.registry = None
         self.cache = None
         self.tmp = None
@@ -41,8 +40,7 @@ class RuntimeSubConfDirs(object):
     def load(self, config):
         section = 'dirs'
         self.instances = Path(config.get(section, 'instances'))
-        self.queue = Path(config.get(section, 'queue'))
-        self.archives = Path(config.get(section, 'archives'))
+        self.workspaces = Path(config.get(section, 'workspaces'))
         self.registry = Path(config.get(section, 'registry'))
         self.cache = Path(config.get(section, 'cache'))
         self.tmp = Path(config.get(section, 'tmp'))
@@ -50,8 +48,7 @@ class RuntimeSubConfDirs(object):
     def dump(self):
         logger.debug("[dirs]")
         logger.debug("  instances: %s", self.instances)
-        logger.debug("  queue: %s", self.queue)
-        logger.debug("  archives: %s", self.archives)
+        logger.debug("  workspaces: %s", self.workspaces)
         logger.debug("  registry: %s", self.registry)
         logger.debug("  cache: %s", self.cache)
         logger.debug("  tmp: %s", self.tmp)

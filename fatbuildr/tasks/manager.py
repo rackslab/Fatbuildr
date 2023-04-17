@@ -19,6 +19,8 @@
 
 import uuid
 import threading
+import pickle
+import shutil
 from datetime import datetime
 from time import monotonic as _time
 from collections import deque
@@ -83,13 +85,42 @@ class ServerTasksManager:
     def __init__(self, conf, instance):
         self.conf = conf
         self.instance = instance
+        self.workspaces = self.conf.dirs.workspaces.joinpath(instance.id)
+        if not self.workspaces.exists():
+            logger.debug(
+                "Creating instance %s workspaces directory %s",
+                instance.id,
+                self.workspaces,
+            )
+            self.workspaces.mkdir()
+            self.workspaces.chmod(0o755)  # be umask agnostic
         self.queue = QueueManager()
+        self.queue_state_path = self.workspaces.joinpath('tasks.queue')
         self.running = None
         self.registry = ProtocolRegistry()
 
     @property
     def empty(self):
-        return self.queue.empty()
+        self.queue.empty()
+
+    def save(self):
+        tasks = self.queue.dump()
+        if not len(tasks):
+            if self.queue_state_path.exists():
+                self.queue_state_path.unlink()
+            return
+        logger.info("Saving queue state on disk")
+        with open(self.queue_state_path, 'wb+') as fh:
+            pickle.dump([task.id for task in tasks], fh)
+
+    def restore(self):
+        if not self.queue_state_path.exists():
+            return []
+        with open(self.queue_state_path, 'rb') as fh:
+            try:
+                return pickle.load(fh)
+            except EOFError:
+                return []
 
     def interrupt(self):
         """Interrupt thread blocked in self.pick()->self.queue.get(timeout)."""
@@ -98,7 +129,7 @@ class ServerTasksManager:
     def submit(self, name, user, *args):
 
         task_id = str(uuid.uuid4())  # generate task ID
-        place = self.conf.dirs.queue.joinpath(task_id)
+        place = self.workspaces.joinpath(task_id)
         try:
             task = self.registry.task_loader(name)(
                 task_id, user, place, self.instance, *args
@@ -109,6 +140,7 @@ class ServerTasksManager:
             )
             return None
         self.queue.put(task)
+        self.save()
         logger.info("%s task %s submitted in queue", name.capitalize(), task.id)
         return task_id
 
@@ -137,5 +169,25 @@ class ServerTasksManager:
         else:
             logger.info("Task succeeded")
         task.postrun()
-        self.running = None
         task.terminate()
+        self.running = None
+        self.save()
+
+    def clear(self):
+        """Remove the workspaces directories of all tasks found in queue state
+        file. This method is called by fatbuildrd after a fresh start, before
+        launching network servers, to cleanup optional orphaned tasks
+        directories let by previous failed runs."""
+        for task_id in self.restore():
+            workspace = self.workspaces.joinpath(task_id)
+            logger.warning(
+                "Clearing orphaned task workspace directory %s", workspace
+            )
+            try:
+                shutil.rmtree(workspace)
+            except FileNotFoundError:
+                logger.info(
+                    "Orphaned workspace directory %s, ignoring", workspace
+                )
+                pass
+        self.save()

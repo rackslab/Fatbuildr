@@ -78,22 +78,9 @@ class ArchivedTask(RunnableTask):
 class ArchivesManager:
     def __init__(self, conf, instance):
         self.instance = instance
-        self.path = conf.dirs.archives.joinpath(instance.id)
+        self.path = conf.dirs.workspaces.joinpath(instance.id)
 
     def save_task(self, task):
-        if not self.path.exists:
-            logger.debug("Creating instance archives directory %s", self.path)
-            self.path.mkdir()
-            self.path.chmod(0o755)  # be umask agnostic
-
-        dest = self.path.joinpath(task.id)
-        logger.info(
-            "Moving task directory %s to archives directory %s",
-            task.place,
-            dest,
-        )
-        shutil.move(task.place, dest)
-
         fields = {
             field.name: field.export(task)
             for field in ProtocolRegistry().task_fields(task.name)
@@ -101,7 +88,7 @@ class ArchivesManager:
         }
 
         form = TaskForm(**fields)
-        form.save(dest)
+        form.save(task.place)
 
     def dump(self, limit):
         """Returns up to limit last tasks found in archives directory."""
