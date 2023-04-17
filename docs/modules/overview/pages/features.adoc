@@ -57,7 +57,8 @@ available out-of-the-box in Fatbuildr without any additional setup required.
 After successful builds of RPM and Deb packages, Fatbuildr automatically runs
 reference static analysis tools and reports defects in artifacts to help users
 quickly spot common bugs and get relevant advices to produce high quality
-packages.
+packages. It also reports packages content, with all files and permissions, to
+provide a quick glance on build results.
 
 == Automatic Changelogs
 
