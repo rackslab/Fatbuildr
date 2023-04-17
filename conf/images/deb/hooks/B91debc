@@ -1,0 +1,8 @@
+#!/bin/bash
+
+BUILDDIR="${BUILDDIR:-/tmp/buildd}"
+
+apt-get install -y "${APTGETOPT[@]}" devscripts
+cd "$BUILDDIR"/*/debian/..
+
+debc
