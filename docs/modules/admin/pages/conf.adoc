@@ -28,9 +28,7 @@ the following parameters:
 
 `instances`:: Absolute path to directory with instances definitions files.
 
-`queue`:: Absolute path to directory for queued and running tasks working directories.
-
-`archives`:: Absolute path to directory for archived tasks working directories.
+`workspaces`:: Absolute path to directory for tasks working directories.
 
 `registry`:: Absolute path to directory for managed artifact registries.
 

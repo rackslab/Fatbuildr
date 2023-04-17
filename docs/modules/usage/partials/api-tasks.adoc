@@ -154,15 +154,15 @@ Response:
   "format": "deb",
   "id": "c8c9935e-44c9-48de-a318-b6060c08b8c8",
   "io": {
-    "console": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8/console.sock",
+    "console": "/var/lib/fatbuildr/workspaces/default/c8c9935e-44c9-48de-a318-b6060c08b8c8/console.sock",
     "interactive": null,
     "journal": {
-      "path": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8/task.journal"
+      "path": "/var/lib/fatbuildr/workspaces/default/c8c9935e-44c9-48de-a318-b6060c08b8c8/task.journal"
     }
   },
   "message": "Test of new feature",
   "name": "artifact build",
-  "place": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8",
+  "place": "/var/lib/fatbuildr/workspaces/default/c8c9935e-44c9-48de-a318-b6060c08b8c8",
   "state": "running",
   "submission": 1656074753,
   "user": "John Doe"
@@ -234,15 +234,15 @@ Response:
     "format": "deb",
     "id": "604a1348-dd3a-4082-b78d-78563c728bef",
     "io": {
-      "console": "/var/lib/fatbuildr/queue/604a1348-dd3a-4082-b78d-78563c728bef/console.sock",
+      "console": "/var/lib/fatbuildr/workspaces/default/604a1348-dd3a-4082-b78d-78563c728bef/console.sock",
       "interactive": null,
       "journal": {
-        "path": "/var/lib/fatbuildr/queue/604a1348-dd3a-4082-b78d-78563c728bef/task.journal"
+        "path": "/var/lib/fatbuildr/workspaces/default/604a1348-dd3a-4082-b78d-78563c728bef/task.journal"
       }
     },
     "message": "Test of new feature on Debian bullseye",
     "name": "artifact build",
-    "place": "/var/lib/fatbuildr/queue/604a1348-dd3a-4082-b78d-78563c728bef",
+    "place": "/var/lib/fatbuildr/workspaces/default/604a1348-dd3a-4082-b78d-78563c728bef",
     "state": "pending",
     "submission": 1656075042,
     "user": "John Doe"
@@ -259,15 +259,15 @@ Response:
     "format": "deb",
     "id": "ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6",
     "io": {
-      "console": "/var/lib/fatbuildr/queue/ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6/console.sock",
+      "console": "/var/lib/fatbuildr/workspaces/default/ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6/console.sock",
       "interactive": null,
       "journal": {
-        "path": "/var/lib/fatbuildr/queue/ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6/task.journal"
+        "path": "/var/lib/fatbuildr/workspaces/default/ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6/task.journal"
       }
     },
     "message": "Test of new feature on Debian bookworm",
     "name": "artifact build",
-    "place": "/var/lib/fatbuildr/queue/ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6",
+    "place": "/var/lib/fatbuildr/workspaces/default/ace984e3-4d5b-4aa1-a2ba-5997ea6ae7e6",
     "state": "pending",
     "submission": 1656075042,
     "user": "John Doe"
@@ -353,15 +353,15 @@ Response:
   "format": "deb",
   "id": "c8c9935e-44c9-48de-a318-b6060c08b8c8",
   "io": {
-    "console": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8/console.sock",
+    "console": "/var/lib/fatbuildr/workspaces/default/c8c9935e-44c9-48de-a318-b6060c08b8c8/console.sock",
     "interactive": null,
     "journal": {
-      "path": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8/task.journal"
+      "path": "/var/lib/fatbuildr/workspaces/default/c8c9935e-44c9-48de-a318-b6060c08b8c8/task.journal"
     }
   },
   "message": "Test of new feature",
   "name": "artifact build",
-  "place": "/var/lib/fatbuildr/queue/c8c9935e-44c9-48de-a318-b6060c08b8c8",
+  "place": "/var/lib/fatbuildr/workspaces/default/c8c9935e-44c9-48de-a318-b6060c08b8c8",
   "state": "finished",
   "submission": 1656074753,
   "user": "John Doe"

@@ -86,7 +86,7 @@ This error message can be encountered during Deb package builds:
 debchange: fatal error at line 651:
 Cannot find debian directory!
 Are you in the correct directory?
- ⚬ ERROR: error while running task <id>: Command /usr/libexec/fatbuildr/u-nspawn --directory /var/lib/fatbuildr/images/default/deb.img --bind /usr/share/fatbuildr/images/deb --bind /usr/share/fatbuildr/images/common --quiet --register=no --keep-unit --user fatbuildr --bind /var/lib/fatbuildr/queue/<id> --bind /var/cache/fatbuildr/default/<artifact> --chdir /var/lib/fatbuildr/queue/<id>/<artifact>-<version> --setenv DEBEMAIL=<email> --setenv 'DEBFULLNAME=<name>' debchange --create --package <artifact> --newversion <version> --distribution bullseye --force-distribution '<message>' failed with exit code 13
+ ⚬ ERROR: error while running task <id>: Command /usr/libexec/fatbuildr/u-nspawn --directory /var/lib/fatbuildr/images/default/deb.img --bind /usr/share/fatbuildr/images/deb --bind /usr/share/fatbuildr/images/common --quiet --register=no --keep-unit --user fatbuildr --bind /var/lib/fatbuildr/workspaces/default/<id> --bind /var/cache/fatbuildr/default/<artifact> --chdir /var/lib/fatbuildr/workspaces/default/<id>/<artifact>-<version> --setenv DEBEMAIL=<email> --setenv 'DEBFULLNAME=<name>' debchange --create --package <artifact> --newversion <version> --distribution bullseye --force-distribution '<message>' failed with exit code 13
  ⚬ INFO: Task failed
 ----
 
@@ -131,7 +131,7 @@ Mock Version: 3.0
 INFO: Mock Version: 3.0
 ERROR: Command failed: 
  # /usr/sbin/usermod -u 998 mockbuild
- ⚬ ERROR: Error while running prescript: Command /usr/libexec/fatbuildr/u-nspawn --directory /var/lib/fatbuildr/images/default/rpm.img --bind /usr/share/fatbuildr/images/rpm --bind /usr/share/fatbuildr/images/common --quiet --register=no --keep-unit --user fatbuildr --bind /var/lib/fatbuildr/queue/a10e8176-677d-4afd-bfdc-ff99e47708fd --bind /var/cache/fatbuildr/default/fatbuildr --bind /var/lib/fatbuildr/registry/default/rpm mock --root rocky-8-x86_64 --enable-plugin fatbuildr_derivatives --plugin-option fatbuildr_derivatives:repo=/var/lib/fatbuildr/registry/default/rpm --plugin-option fatbuildr_derivatives:distribution=el8 --plugin-option fatbuildr_derivatives:derivatives=main --plugin-option fatbuildr_derivatives:keyring=/var/lib/fatbuildr/queue/a10e8176-677d-4afd-bfdc-ff99e47708fd/keyring.asc --dnf-cmd install wget failed with exit code 8
+ ⚬ ERROR: Error while running prescript: Command /usr/libexec/fatbuildr/u-nspawn --directory /var/lib/fatbuildr/images/default/rpm.img --bind /usr/share/fatbuildr/images/rpm --bind /usr/share/fatbuildr/images/common --quiet --register=no --keep-unit --user fatbuildr --bind /var/lib/fatbuildr/workspaces/default/a10e8176-677d-4afd-bfdc-ff99e47708fd --bind /var/cache/fatbuildr/default/fatbuildr --bind /var/lib/fatbuildr/registry/default/rpm mock --root rocky-8-x86_64 --enable-plugin fatbuildr_derivatives --plugin-option fatbuildr_derivatives:repo=/var/lib/fatbuildr/registry/default/rpm --plugin-option fatbuildr_derivatives:distribution=el8 --plugin-option fatbuildr_derivatives:derivatives=main --plugin-option fatbuildr_derivatives:keyring=/var/lib/fatbuildr/workspaces/default/a10e8176-677d-4afd-bfdc-ff99e47708fd/keyring.asc --dnf-cmd install wget failed with exit code 8
 ----
 
 One solution to clear this error is to clean and scrub the build environment
