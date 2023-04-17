@@ -345,6 +345,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             'fatbuildr_interactive',
             '--plugin-option',
             f"fatbuildr_interactive:enabled={'yes' if self.io.interactive else 'no'}",
+            '--enable-plugin',
+            'fatbuildr_list',
             '--resultdir',
             self.place,
             '--rebuild',
