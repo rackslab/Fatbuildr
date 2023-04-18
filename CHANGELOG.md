@@ -43,6 +43,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add `fatbuildrctl tokens` command to list, generate and save JWT tokens for
     HTTP REST API authentication in user's tokens directory.
   - Add support for JWT token based authentication to Fatbuildrweb REST API.
+  - Add support of HTTP/404 REST API response codes.
 - prefs: add optional `tokens` parameter in the `prefs` section for specifying
   the path of user's tokens directory.
 - utils: Add support of multiple sources archives in `import-srcrpm`
@@ -67,6 +68,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     RBAC policy and JWT authentication in advanced features description.
   - Add page about packages source tree with all principles followed for various
     types of sources illustrated by new diagrams.
+  - Mention HTTP/404 reponse codes in REST API when instance or task is unknown
+    by fatbuildrd and when format, distribution, derivative, architecture or
+    artifact is not found in registries.
 
 ### Fixed
 - cli:
@@ -108,12 +112,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     declare possibly multiple sources.
 - conf: replaced `queue` and `archives` parameters in `dirs` section of system
   configuration by `workspaces` parameters.
-- web: Build tasks are submitted to fatbuildrd with original requesting user's
-  identity when fatbuildrd runs with another user (typically `fatbuildr` system
-  user) so the tasks are properly associated to the original user.
-- api:
+- web:
+  - Build tasks are submitted to fatbuildrd with original requesting user's
+    identity when fatbuildrd runs with another user (typically `fatbuildr`
+    system user) so the tasks are properly associated to the original user.
+  - Return HTTP/404 with clear error message when instance or task is unknown by
+    fatbuildrd and when format, distribution, derivative, architecture or
+    artifact is not found in registries (#64).
   - Introduce new array of `SourceArchive` objects in the properties of `Task`
-    objects for build tasks.
+    JSON objects for build tasks.
   - Modify optional source archives filename multipart build requests to support
     sending of multiples sources.
 - docs:
