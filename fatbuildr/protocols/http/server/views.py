@@ -148,7 +148,7 @@ def check_instance_token_permission(action):
 def get_connection(instance='default'):
     try:
         return ClientFactory.get('dbus://system/' + instance)
-    except FatbuildrServerInstanceError as err:
+    except FatbuildrServerInstanceError:
         abort(404, f"instance {instance} not found")
 
 

@@ -79,7 +79,7 @@ class RegistryManager:
 
     def factory(self, fmt):
         """Instanciate the appropriate Registry for the given format."""
-        if not fmt in RegistryManager._formats:
+        if fmt not in RegistryManager._formats:
             raise FatbuildrRegistryError(
                 f"Format {fmt} not supported by registries"
             )

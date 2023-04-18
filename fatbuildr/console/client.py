@@ -30,7 +30,6 @@ import socket
 import logging
 
 from . import ConsoleMessage
-from ..tasks import TaskJournal
 from ..log import logr
 from ..log.formatters import LOG_LEVEL_ANSI_STYLES, TASK_LOG
 
@@ -107,7 +106,7 @@ def tty_client_console(io):
     # Connect to task console socket
     connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     connection.connect(str(io.console))
-    logger.debug(f"Connected to console socket %s", io.console)
+    logger.debug("Connected to console socket %s", io.console)
 
     # Unix socket connection reader for ConsoleMessage.read()
     def reader(size):
@@ -126,7 +125,7 @@ def tty_client_console(io):
     flags = flags | os.O_NONBLOCK
     fcntl.fcntl(pipe_w, fcntl.F_SETFL, flags)
     signal.set_wakeup_fd(pipe_w)
-    logger.debug(f"Signal pipe FD: {str(pipe_r)}")
+    logger.debug("Signal pipe FD: %s", str(pipe_r))
 
     # Initialize epoll to multiplex attached terminal and remote task IO
     epoll = select.epoll()
@@ -157,7 +156,7 @@ def tty_client_console(io):
                             ).raw
                         )
                     else:
-                        logger.warning(f"Received unknown signal: {str(data)}")
+                        logger.warning("Received unknown signal: %s", str(data))
                 elif fd == sys.stdin.fileno():
                     # Input has been provided by user on attached terminal, send
                     # bytes to remote task terminal with ConsoleMessage protocol
@@ -193,7 +192,7 @@ def tty_client_console(io):
                         entry = msg.data.decode()
                         tty_console_renderer_log(entry)
                         if _is_task_end_log_entry(entry):
-                            logger.debug(f"Remote task is over, leaving")
+                            logger.debug("Remote task is over, leaving")
                             # Raise an exception as there is no way to break the
                             # while loop from here.
                             raise TerminatedTask
@@ -210,7 +209,7 @@ def tty_client_console(io):
             # terminal in canonical mode with user attribute, warn user and
             # break the processing loop.
             unset_raw()
-            logger.warning(f"{type(err)} detected: {err}")
+            logger.warning("%s detected: %s", str(type(err)), str(err))
             break
 
     # Close all open fd and epoll
@@ -231,7 +230,7 @@ def console_unix_client(io, binary):
     # Connect to task console socket
     connection = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
     connection.connect(str(io.console))
-    logger.debug(f"Connected to console socket %s", io.console)
+    logger.debug("Connected to console socket %s", io.console)
 
     def reader(size):
         data = connection.recv(size)

@@ -1,0 +1,13 @@
+select = ["E", "F"]
+line-length = 80
+
+[per-file-ignores]
+# Ruff believes __version__ variable is not defined by it is actually imported
+# with exec('fatbuildr/version.py'). Unfortunately, no obvious way to import
+# this variable without importing the installed module has been found to satisfy
+# roff.
+"setup.py" = ["F821"]
+# This module contains a multilines string with jinja2 templating rules and a
+# long line which cannot be easily splitted into multiple smaller lines without
+# breaking the template result.
+"fatbuildr/builds/formats/rpm.py" = ["E501"]

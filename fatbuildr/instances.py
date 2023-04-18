@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from pathlib import Path
-
 import yaml
 
 from .tasks.manager import ServerTasksManager

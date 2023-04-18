@@ -162,7 +162,7 @@ class RuntimeSubConfKeyring(object):
         except ValueError:
             _expires = config.get(section, 'expires')
             self._parse_duration(_expires)
-        if self.expires == True:
+        if self.expires is True:
             raise ValueError(
                 "keyring expires must be set with a duration to be enabled"
             )
@@ -322,8 +322,8 @@ class RuntimeSubConfd(RuntimeConfApp):
 
     def load(self, config):
         section = 'daemon'
-        self.debug = config.getboolean('daemon', 'debug')
-        self.fulldebug = config.getboolean('daemon', 'fulldebug')
+        self.debug = config.getboolean(section, 'debug')
+        self.fulldebug = config.getboolean(section, 'fulldebug')
 
     def dump(self):
         logger.debug("[daemon]")

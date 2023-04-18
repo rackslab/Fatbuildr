@@ -24,7 +24,6 @@ import time
 from pathlib import Path
 import tempfile
 import tarfile
-from datetime import datetime
 
 from . import FatbuildrCliRun
 from ..version import __version__
@@ -112,7 +111,8 @@ def prepare_source_tarball(artifact, path, version, rundir: bool):
     )
     if not path.exists():
         logger.error(
-            "Given source directory %s for artifact %s does not exists, leaving",
+            "Given source directory %s for artifact %s does not exists, "
+            "leaving",
             path,
             artifact,
         )
@@ -1128,7 +1128,8 @@ class Fatbuildrctl(FatbuildrCliRun):
                     artifact,
                 )
                 print(
-                    f"Submitted artifact {artifact.name} deletion task {task_id}"
+                    f"Submitted artifact {artifact.name} deletion task "
+                    f"{task_id}"
                 )
 
     def _run_tokens(self, args):

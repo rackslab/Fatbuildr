@@ -129,7 +129,8 @@ def tty_runcmd(cmd, io, **kwargs):
                         size = struct.pack('HHHH', rows, cols, 0, 0)
                         fcntl.ioctl(master, termios.TIOCSWINSZ, size)
                         logger.debug(
-                            "Sent ioctl() TIOCGWINSZ %d rows x %d cols to PTY master",
+                            "Sent ioctl() TIOCGWINSZ %d rows x %d cols to PTY "
+                            "master",
                             rows,
                             cols,
                         )

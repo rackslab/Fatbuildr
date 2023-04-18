@@ -21,8 +21,7 @@ import tarfile
 from io import BytesIO
 
 from .templates import Templeter
-from .utils import current_user_group, current_user
-from .exec import runcmd
+from .utils import current_user_group
 from .specifics import ArchMap
 from .log import logr
 

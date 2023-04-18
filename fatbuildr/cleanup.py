@@ -48,6 +48,7 @@ class CleanupRegistry(object):
                 shutil.rmtree(_dir)
             else:
                 logger.warning(
-                    "Temporary directory %s registered for removal does not exist",
+                    "Temporary directory %s registered for removal does not "
+                    "exist",
                     _dir,
                 )

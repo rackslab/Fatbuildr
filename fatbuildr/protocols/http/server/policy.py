@@ -32,6 +32,7 @@ except ImportError:
     # dropped in Fatbuildr.
     from cached_property import cached_property
 
+from ....errors import FatbuildrRuntimeError
 from ....log import logr
 
 logger = logr(__name__)

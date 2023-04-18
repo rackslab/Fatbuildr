@@ -93,7 +93,7 @@ class ArtifactSourceDefs:
                     return str(self.defs['version'])
                 except KeyError:
                     raise FatbuildrArtifactError(
-                        f"Unable to find version in YAML artifact definition "
+                        "Unable to find version in YAML artifact definition "
                         "file"
                     )
 
@@ -107,7 +107,6 @@ class ArtifactSourceDefs:
         else:
             checksums_dict = self.defs['checksums'][self.version(derivative)]
         results = set()
-        version = self.version(derivative)
         for algo, value in checksums_dict.items():
             results.add((algo, value))
         return results
@@ -310,7 +309,7 @@ class ArtifactDefsFactory:
     @staticmethod
     def get(place, artifact, format):
         """Generate specialized ArtifactFormatDefs for the given format."""
-        if not format in ArtifactDefsFactory._formats:
+        if format not in ArtifactDefsFactory._formats:
             raise RuntimeError(
                 f"artifact definition format {format} is not supported"
             )

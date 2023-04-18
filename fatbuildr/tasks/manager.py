@@ -21,8 +21,6 @@ import uuid
 import threading
 import pickle
 import shutil
-from datetime import datetime
-from time import monotonic as _time
 from collections import deque
 
 from ..log import logr
@@ -39,7 +37,6 @@ class InterruptableSemaphore(threading.Semaphore):
         rc = False
         with self._cond:
             if self._value == 0:
-                endtime = _time() + timeout
                 self._cond.wait(timeout)
             else:
                 self._value -= 1

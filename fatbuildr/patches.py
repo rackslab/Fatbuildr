@@ -21,7 +21,6 @@ import tempfile
 import subprocess
 import os
 from pathlib import Path
-import tarfile
 import shutil
 
 from .git import GitRepository, PatchesDir
@@ -107,7 +106,7 @@ class PatchQueue:
         # create tmp directory for the git repository
         tmpdir = Path(tempfile.mkdtemp(prefix=f"fatbuildr-pq-{self.artifact}"))
         CleanupRegistry.add_tmpdir(tmpdir)
-        logger.debug(f"Created temporary directory %s", tmpdir)
+        logger.debug("Created temporary directory %s", tmpdir)
 
         # Extract artifact source tree with all source archives
         repo_path = extract_artifact_sources_archives(
@@ -133,7 +132,7 @@ class PatchQueue:
         self.git.export_queue(patches_dir)
 
         # remove temporary directory
-        logger.debug(f"Removing temporary directory %s", tmpdir)
+        logger.debug("Removing temporary directory %s", tmpdir)
         shutil.rmtree(tmpdir)
         CleanupRegistry.del_tmpdir(tmpdir)
 
@@ -172,10 +171,14 @@ class PatchQueue:
         logger.info(
             "\n\nWelcome to Fatbuildr patch queue shell!\n"
             "\n"
-            f"  Artifact: {self.artifact}\n"
-            f"  Derivative: {self.derivative}\n"
-            f"  Version: {self.version}\n"
+            "  Artifact: %s\n"
+            "  Derivative: %s\n"
+            "  Version: %s\n"
             "\n"
-            "Perform all the modifications in Git repository and exit the shell when you are done.\n"
+            "Perform all the modifications in Git repository and exit the "
+            "shell when you are done.\n",
+            self.artifact,
+            self.derivative,
+            self.version,
         )
         subprocess.run(['/bin/bash'], cwd=self.git.path)

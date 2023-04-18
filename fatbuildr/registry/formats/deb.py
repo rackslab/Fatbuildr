@@ -416,7 +416,8 @@ class RegistryDeb(Registry):
         return self._extract_archive_changelog(arch_path)
 
     def _src_changelog(self, distribution, derivative, src_artifact):
-        """Returns the list of ChangelogEntry of the given deb source package."""
+        """Returns the list of ChangelogEntry of the given deb source
+        package."""
         return DebChangelog(
             self.source_changelog(distribution, derivative, src_artifact)
         ).entries()
@@ -470,9 +471,7 @@ class RegistryDeb(Registry):
             distribution,
             artifact.name,
         ]
-        proc = runcmd(
-            cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)}
-        )
+        runcmd(cmd, env={'GNUPGHOME': str(self.instance.keyring.homedir)})
 
 
 class DebChangelog(changelog.Changelog):
@@ -491,7 +490,7 @@ class DebChangelog(changelog.Changelog):
                 date = int(
                     email.utils.parsedate_to_datetime(entry.date).timestamp()
                 )
-            except ValueError as err:
+            except ValueError:
                 logger.warning(
                     "Unable to parse debian changelog entry date %s",
                     entry.date,

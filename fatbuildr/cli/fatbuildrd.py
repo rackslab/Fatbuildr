@@ -19,7 +19,6 @@
 
 import argparse
 import threading
-import shutil
 import time
 
 from . import FatbuildrCliRun
@@ -122,7 +121,6 @@ class Fatbuildrd(FatbuildrCliRun):
 
         logger.info("Starting worker thread for instance %s", instance.id)
 
-        timer_inc = False
         while True:
             try:
                 # Try picking the first request in queue for 60 seconds. The

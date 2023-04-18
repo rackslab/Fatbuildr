@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from datetime import datetime
-
 from ..archive import SourceArchive
 from ..log import logr
 
@@ -62,12 +60,12 @@ class WireRunnableTask(WireData):
         print(f"    journal: {self.io.journal.path}")
         if self.name == "artifact build":
             if len(self.archives):
-                print(f"  archives:")
+                print("  archives:")
                 for archive in self.archives:
                     print(f"  - id: {archive.id}")
                     print(f"    path: {archive.path}")
             else:
-                print(f"  archives: ∅")
+                print("  archives: ∅")
             print(f"  author: {self.author}")
             print(f"  email: {self.email}")
             print(f"  distribution: {self.distribution}")

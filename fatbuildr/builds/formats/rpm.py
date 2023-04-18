@@ -18,10 +18,8 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 from datetime import datetime
-from pathlib import Path
-import tarfile
 
-from .. import ArtifactEnvBuild, ArtifactSourceArchive
+from .. import ArtifactEnvBuild
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
 from ...utils import current_user, current_group
@@ -344,7 +342,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             '--enable-plugin',
             'fatbuildr_interactive',
             '--plugin-option',
-            f"fatbuildr_interactive:enabled={'yes' if self.io.interactive else 'no'}",
+            'fatbuildr_interactive:enabled='
+            f"{'yes' if self.io.interactive else 'no'}",
             '--enable-plugin',
             'fatbuildr_list',
             '--resultdir',
@@ -456,7 +455,8 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             self.cruncmd(cmd)
 
             logger.debug(
-                "Running the prescript using stage1 script in build environment %s",
+                "Running the prescript using stage1 script in build "
+                "environment %s",
                 self.native_env.name,
             )
 

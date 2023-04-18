@@ -185,7 +185,7 @@ class WebApp(Flask):
 
     def add_instance_url_rule(self, path, **kwargs):
         if not self.allinstances:
-            if not 'defaults' in kwargs:
+            if 'defaults' not in kwargs:
                 kwargs['defaults'] = {}
             kwargs['defaults']['instance'] = self.instance
             self.add_url_rule(path, **kwargs)

@@ -22,11 +22,9 @@ import pwd
 from dasbus.loop import EventLoop
 from dasbus.server.interface import dbus_interface, accepts_additional_arguments
 from dasbus.server.handler import ServerObjectHandler
-from dasbus.server.property import emits_properties_changed
 from dasbus.server.template import InterfaceTemplate
 from dasbus.server.publishable import Publishable
 from dasbus.namespace import get_dbus_path
-from dasbus.signal import Signal
 from dasbus.typing import Structure, List, Str, Int, Bool, Variant, ObjPath
 from dasbus.xml import XMLGenerator
 
@@ -47,7 +45,6 @@ from . import (
     FatbuildrDBusErrorNoKeyring,
     FatbuildrDBusErrorRegistry,
     FatbuildrDBusErrorPipeline,
-    valueornone,
 )
 from ...errors import FatbuildrPipelineError, FatbuildrRegistryError
 from ...log import logr
@@ -209,23 +206,27 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesFormats(self) -> List[Str]:
-        """Returns the list of formats defined in pipelines of the given instance."""
+        """Returns the list of formats defined in pipelines of the given
+        instance."""
         return self.implementation.pipelines_formats()
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesArchitectures(self) -> List[Str]:
-        """Returns the list of architectures defined in pipelines of the given instance."""
+        """Returns the list of architectures defined in pipelines of the given
+        instance."""
         return self.implementation.pipelines_architectures()
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesFormatDistributions(self, format: Str) -> List[Str]:
-        """Returns the distributions of the given format in the pipelines of the instance."""
+        """Returns the distributions of the given format in the pipelines of the
+        instance."""
         return self.implementation.pipelines_format_distributions(format)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesDistributionFormat(self, distribution: Str) -> Str:
-        """Returns the format of the given distribution in the pipelines of the instance."""
+        """Returns the format of the given distribution in the pipelines of the
+        instance."""
         try:
             return self.implementation.pipelines_distribution_format(
                 distribution
@@ -235,7 +236,8 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesDistributionEnvironment(self, distribution: Str) -> Str:
-        """Returns the environment of the given distribution in the pipelines of the instance."""
+        """Returns the environment of the given distribution in the pipelines of
+        the instance."""
         try:
             return self.implementation.pipelines_distribution_environment(
                 distribution
@@ -245,7 +247,8 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesDistributionDerivatives(self, distribution: Str) -> List[Str]:
-        """Returns the derivatives of the given distribution in the pipelines of the instance."""
+        """Returns the derivatives of the given distribution in the pipelines of
+        the instance."""
         try:
             return self.implementation.pipelines_distribution_derivatives(
                 distribution
@@ -255,7 +258,8 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-pipeline")
     def PipelinesDerivativeFormats(self, derivative: Str) -> List[Str]:
-        """Returns the formats of the given derivative in the pipelines of the instance."""
+        """Returns the formats of the given derivative in the pipelines of the
+        instance."""
         return self.implementation.pipelines_derivative_formats(derivative)
 
     @property
@@ -531,7 +535,8 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
     def ImageEnvironmentCreate(
         self, format: Str, environment: Str, architecture: Str, *, call_info
     ) -> Str:
-        """Submit an image build environment creation task and returns the task id."""
+        """Submit an image build environment creation task and returns the task
+        id."""
         return self.implementation.submit(
             'image build environment creation',
             dbus_user(call_info['sender'])[1],
@@ -545,7 +550,8 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
     def ImageEnvironmentUpdate(
         self, format: Str, environment: Str, architecture: Str, *, call_info
     ) -> Str:
-        """Submit an image build environment update task and returns the task id."""
+        """Submit an image build environment update task and returns the task
+        id."""
         return self.implementation.submit(
             'image build environment update',
             dbus_user(call_info['sender'])[1],
@@ -565,7 +571,8 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         *,
         call_info,
     ) -> Str:
-        """Submit an image build environment shell task and returns the task id."""
+        """Submit an image build environment shell task and returns the task
+        id."""
         return self.implementation.submit(
             'image build environment shell',
             dbus_user(call_info['sender'])[1],
@@ -641,7 +648,8 @@ class FatbuildrDBusInstance(Publishable):
         return self._instance.registry_mgr.derivatives(fmt, distribution)
 
     def artifacts(self, fmt: Str, distribution: Str, derivative: Str):
-        """Get all artifacts in this derivative of this distribution registry."""
+        """Get all artifacts in this derivative of this distribution
+        registry."""
         return self._instance.registry_mgr.artifacts(
             fmt, distribution, derivative
         )

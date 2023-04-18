@@ -31,7 +31,7 @@ class FatbuildrCliRun(object):
     def run(cls):
         """Instanciate and execute the CliRun."""
         atexit.register(CleanupRegistry.clean)
-        run = cls()
+        cls()
 
     def load_conf(self):
 

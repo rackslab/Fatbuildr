@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import tempfile
 import shutil
 import tarfile
 import stat
@@ -44,7 +43,6 @@ from ..protocols.exports import (
 )
 
 from ..tasks import RunnableTask
-from ..cleanup import CleanupRegistry
 from ..artifact import ArtifactDefsFactory
 from ..registry.formats import ArtifactVersion
 from ..archive import ArchiveFile, SourceArchive
@@ -54,7 +52,6 @@ from ..utils import (
     dl_file,
     verify_checksum,
     extract_artifact_sources_archives,
-    current_user,
     host_architecture,
 )
 from ..log import logr
@@ -280,7 +277,8 @@ class ArtifactBuild(RunnableTask):
                 # '.tar.xz'.
                 main_version_str = source.path.name[len(self.artifact) + 1 : -7]
                 logger.debug(
-                    "Artifact main version extracted from source tarball name: %s",
+                    "Artifact main version extracted from source tarball name: "
+                    " %s",
                     main_version_str,
                 )
                 self.version = ArtifactVersion(

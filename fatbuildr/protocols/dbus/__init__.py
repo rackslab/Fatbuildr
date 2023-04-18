@@ -22,13 +22,7 @@ import inspect
 from dasbus.connection import SystemMessageBus
 from dasbus.error import DBusError, ErrorMapper, get_error_decorator
 from dasbus.identifier import DBusServiceIdentifier, DBusInterfaceIdentifier
-from dasbus.structure import (
-    DBusData,
-    DBusFieldFactory,
-    DBUS_FIELDS_ATTRIBUTE,
-    DBusStructureError,
-)
-from dasbus.typing import unwrap_variant, get_variant, Structure, Str, Int, List
+from dasbus.typing import unwrap_variant, get_variant, Structure, List
 
 from ..wire import (
     WireInstance,

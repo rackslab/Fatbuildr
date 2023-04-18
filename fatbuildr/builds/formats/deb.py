@@ -18,11 +18,10 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import mimetypes
-import tarfile
 import shutil
 import os
 
-from .. import ArtifactEnvBuild, ArtifactSourceArchive
+from .. import ArtifactEnvBuild
 from ...utils import current_user, extract_artifact_sources_archives
 from ...log import logr
 
@@ -296,7 +295,8 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
                 f"FATBUILDR_KEYRING={self.build_keyring}",
                 f"FATBUILDR_SOURCE={self.instance.name}",
                 f"FATBUILDR_DERIVATIVES={' '.join(self.derivatives[::-1])}",
-                f"FATBUILDR_INTERACTIVE={'yes' if self.io.interactive else 'no'}",
+                'FATBUILDR_INTERACTIVE='
+                f"{'yes' if self.io.interactive else 'no'}",
                 f"BUILDRESULTUID={os.getuid()}",
                 f"BUILDRESULTGID={os.getgid()}",
             ],

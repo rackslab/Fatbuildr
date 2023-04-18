@@ -17,8 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from dasbus.error import DBusError
-
 from . import (
     FATBUILDR_SERVICE,
     DBusInstance,
@@ -33,7 +31,6 @@ from . import (
     FatbuildrDBusErrorNoRunningTask,
     FatbuildrDBusErrorNoKeyring,
     FatbuildrDBusErrorRegistry,
-    valueornull,
 )
 from ..client import AbstractClient
 from ...console.client import (

@@ -70,7 +70,7 @@ class RegistryOsi(Registry):
         logger.debug("Found files: %s", ' '.join(built_files.name))
 
         for src in built_files:
-            dst = derivative_path.joinpath(fpath)
+            dst = derivative_path.joinpath(src.name)
             logger.debug("Copying file %s to %s", src, dst)
             shutil.copyfile(src, dst)
 

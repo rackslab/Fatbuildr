@@ -55,7 +55,9 @@ def native_json_type(_native_type):
     for native_type, _, json_type in TYPES_MAP:
         if native_type == _native_type:
             return json_type
-    raise RuntimeError(f"Unable to find json type for dbus type {_dbus_type}")
+    raise RuntimeError(
+        f"Unable to find json type for native type {_native_type}"
+    )
 
 
 class JsonData:
@@ -157,7 +159,8 @@ class JsonTaskJournal(JsonNativeData, WireTaskJournal):
     pass
 
 
-# Map fatbuildr native exportable types and dbus types with corresponding json types
+# Map Fatbuildr native exportable types and DBus types with corresponding JSON
+# types.
 
 TYPES_MAP = {
     ('RunningInstance', 'DBusInstance', JsonInstance),

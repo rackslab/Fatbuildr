@@ -178,8 +178,8 @@ class RegistryRpm(Registry):
                     "Unable to load RPM repository metadata in directory %s",
                     arch_dir,
                 )
-                # If packages Metadata is not found, createrepo_c raises an OSError.
-                # In this case, the repository is necessarily empty.
+                # If packages Metadata is not found, createrepo_c raises an
+                # OSError. In this case, the repository is necessarily empty.
                 return []
             for key in md.keys():
                 pkg = md.get(key)

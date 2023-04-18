@@ -73,6 +73,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     artifact is not found in registries.
 
 ### Fixed
+- Static analysis errors reported by ruff tool with a simple initial
+  configuration (#75).
 - cli:
   - Avoid hazardous handling of unsupported errors, as a basis for better
     error management.

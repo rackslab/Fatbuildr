@@ -27,7 +27,6 @@ import grp
 import requests
 
 from .log import logr
-from .errors import FatbuildrRuntimeError
 
 logger = logr(__name__)
 

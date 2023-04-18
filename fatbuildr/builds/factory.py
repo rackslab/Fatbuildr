@@ -49,7 +49,7 @@ class BuildFactory(object):
         interactive,
     ):
         """Generate a BuildArtifact from a new request."""
-        if not format in BuildFactory._formats:
+        if format not in BuildFactory._formats:
             raise RuntimeError(f"format {format} unsupported by builders")
         return BuildFactory._formats[format](
             task_id,

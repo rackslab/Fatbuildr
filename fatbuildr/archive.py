@@ -198,7 +198,7 @@ class ArchiveFileTar(BaseArchiveFile):
                 logger.warning(
                     "skipping extraction of unsafe file %s from archive %s",
                     tarinfo.name,
-                    tar.name,
+                    fh.name,
                 )
                 continue
             if strip:

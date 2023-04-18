@@ -183,7 +183,8 @@ class TaskIO(ExportableType):
                         self.connections[fd].close()
                         del self.connections[fd]
                     elif fd == self.log_r:
-                        # Broadcast logs to all connected client and save in journal
+                        # Broadcast logs to all connected client and save in
+                        # journal.
                         data = os.read(fd, 2048)
                         self._broadcast(data)
                         self.journal.write(data)
@@ -216,7 +217,8 @@ class TaskIO(ExportableType):
                             del data  # drop incoming data when not interactive
             except RuntimeError as err:
                 logger.error("Error detected: %s", err)
-                # Stop while loop and IO processing if an error is detected on fd
+                # Stop while loop and IO processing if an error is detected on
+                # fd.
                 break
 
         epoll.close()
