@@ -37,7 +37,11 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 
-from ....errors import FatbuildrTokenError, FatbuildrServerRegistryError
+from ....errors import (
+    FatbuildrTokenError,
+    FatbuildrServerInstanceError,
+    FatbuildrServerRegistryError,
+)
 from ....utils import current_user
 from ....version import __version__
 from ... import ClientFactory
@@ -141,7 +145,10 @@ def check_instance_token_permission(action):
 
 
 def get_connection(instance='default'):
-    return ClientFactory.get('dbus://system/' + instance)
+    try:
+        return ClientFactory.get('dbus://system/' + instance)
+    except FatbuildrServerInstanceError as err:
+        abort(404, f"instance {instance} not found")
 
 
 def stream_template(template_name, **context):
