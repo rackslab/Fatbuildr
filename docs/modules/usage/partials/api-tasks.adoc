@@ -50,6 +50,11 @@ Submit artifact build task in queue.
 |Forbidden
 |`application/json`
 |_xref:#object-error[] object_
+
+|404
+|Instance not found
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -115,6 +120,11 @@ Returns information about the running task.
 
 |403
 |Forbidden
+|`application/json`
+|_xref:#object-error[] object_
+
+|404
+|Instance not found
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -203,6 +213,11 @@ Returns list of pending tasks.
 
 |403
 |Forbidden
+|`application/json`
+|_xref:#object-error[] object_
+
+|404
+|Instance not found
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -316,6 +331,11 @@ Returns information about an archived task.
 |Forbidden
 |`application/json`
 |_xref:#object-error[] object_
+
+|404
+|Instance or task not found
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -414,6 +434,11 @@ over. In this case, the duration of the response might be significant.
 
 |403
 |Forbidden
+|`application/json`
+|_xref:#object-error[] object_
+
+|404
+|Instance or task not found
 |`application/json`
 |_xref:#object-error[] object_
 |===

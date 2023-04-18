@@ -35,6 +35,11 @@ Returns the list of CPU architectures supported in the instance pipelines.
 |Forbidden
 |`application/json`
 |_xref:#object-error[] object_
+
+|404
+|Instance not found
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
@@ -123,6 +128,11 @@ build environment.
 
 |403
 |Forbidden
+|`application/json`
+|_xref:#object-error[] object_
+
+|404
+|Instance not found
 |`application/json`
 |_xref:#object-error[] object_
 |===

@@ -35,6 +35,11 @@ Download instance keyring public key in armored format.
 |Forbidden
 |`application/json`
 |_xref:#object-error[] object_
+
+|404
+|Instance not found
+|`application/json`
+|_xref:#object-error[] object_
 |===
 
 .Examples
