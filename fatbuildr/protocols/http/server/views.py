@@ -37,7 +37,7 @@ from flask import (
 )
 from werkzeug.utils import secure_filename
 
-from ....errors import FatbuildrTokenError
+from ....errors import FatbuildrTokenError, FatbuildrServerRegistryError
 from ....utils import current_user
 from ....version import __version__
 from ... import ClientFactory
@@ -55,6 +55,16 @@ logger = logr(__name__)
 
 def error_bad_request(e):
     return render_template('error.html.j2', error="bad request (400)"), 400
+
+
+def error_not_found(e):
+    if 'output' in request.view_args and request.view_args['output'] == 'html':
+        return (
+            render_template('error.html.j2', error=f"{e.description} (404)"),
+            404,
+        )
+    else:
+        return jsonify(error=e.description), 404
 
 
 def error_forbidden(e):
@@ -242,7 +252,10 @@ def registry(instance, output='html'):
 @check_instance_token_permission('view-registry')
 def format(instance, fmt, output='html'):
     connection = get_connection(instance)
-    distributions = connection.distributions(fmt)
+    try:
+        distributions = connection.distributions(fmt)
+    except FatbuildrServerRegistryError as err:
+        abort(404, str(err))
     if output == 'json':
         return jsonify(distributions)
     else:
@@ -257,7 +270,10 @@ def format(instance, fmt, output='html'):
 @check_instance_token_permission('view-registry')
 def distribution(instance, fmt, distribution, output='html'):
     connection = get_connection(instance)
-    derivatives = connection.derivatives(fmt, distribution)
+    try:
+        derivatives = connection.derivatives(fmt, distribution)
+    except FatbuildrServerRegistryError as err:
+        abort(404, str(err))
     if output == 'json':
         return jsonify(derivatives)
     else:
@@ -273,7 +289,10 @@ def distribution(instance, fmt, distribution, output='html'):
 @check_instance_token_permission('view-registry')
 def derivative(instance, fmt, distribution, derivative, output='html'):
     connection = get_connection(instance)
-    artifacts = connection.artifacts(fmt, distribution, derivative)
+    try:
+        artifacts = connection.artifacts(fmt, distribution, derivative)
+    except FatbuildrServerRegistryError as err:
+        abort(404, str(err))
     if output == 'json':
         return jsonify([vars(artifact) for artifact in artifacts])
     else:
@@ -298,22 +317,24 @@ def artifact(
     output='html',
 ):
     connection = get_connection(instance)
-    if architecture == 'src':
-        source = None
-        binaries = connection.artifact_bins(
-            fmt, distribution, derivative, artifact
+    try:
+        changelog = connection.changelog(
+            fmt, distribution, derivative, architecture, artifact
         )
-        template = 'src.html.j2'
-    else:
-        source = connection.artifact_src(
-            fmt, distribution, derivative, artifact
-        )
-        binaries = []
-        template = 'bin.html.j2'
-    changelog = connection.changelog(
-        fmt, distribution, derivative, architecture, artifact
-    )
-
+        if architecture == 'src':
+            source = None
+            binaries = connection.artifact_bins(
+                fmt, distribution, derivative, artifact
+            )
+            template = 'src.html.j2'
+        else:
+            source = connection.artifact_src(
+                fmt, distribution, derivative, artifact
+            )
+            binaries = []
+            template = 'bin.html.j2'
+    except FatbuildrServerRegistryError as err:
+        abort(404, str(err))
     if output == 'json':
         if architecture != 'src':
             return jsonify(

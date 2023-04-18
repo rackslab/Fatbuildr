@@ -166,6 +166,7 @@ class WebApp(Flask):
 
         self.register_error_handler(400, views.error_bad_request)
         self.register_error_handler(403, views.error_forbidden)
+        self.register_error_handler(404, views.error_not_found)
 
         self.jinja_env.filters['timestamp_iso'] = timestamp_iso
         self.config['UPLOAD_FOLDER'] = Path('/run/fatbuildr')
