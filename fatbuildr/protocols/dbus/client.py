@@ -261,7 +261,7 @@ class DBusClient(AbstractClient):
         for _task in self.archives(limit=0):
             if _task.id == task_id:
                 return _task
-        raise FatbuildrRuntimeError(f"Unable to find task {task_id} on server")
+        raise FatbuildrServerError(f"Unable to find task {task_id} on server")
 
     def watch(self, task, binary=False):
         """Returns a generator of the given task ConsoleMessages output."""
