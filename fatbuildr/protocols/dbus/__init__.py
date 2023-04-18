@@ -95,8 +95,8 @@ class FatbuildrDBusErrorNoKeyring(FatbuildrDBusError):
     pass
 
 
-@dbus_error("ErrorArtifactNotFound", namespace=FATBUILDR_NAMESPACE)
-class FatbuildrDBusErrorArtifactNotFound(FatbuildrDBusError):
+@dbus_error("ErrorRegistry", namespace=FATBUILDR_NAMESPACE)
+class FatbuildrDBusErrorRegistry(FatbuildrDBusError):
     pass
 
 

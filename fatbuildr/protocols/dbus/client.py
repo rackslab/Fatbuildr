@@ -32,7 +32,7 @@ from . import (
     FatbuildrDBusErrorUnknownInstance,
     FatbuildrDBusErrorNoRunningTask,
     FatbuildrDBusErrorNoKeyring,
-    FatbuildrDBusErrorArtifactNotFound,
+    FatbuildrDBusErrorRegistry,
     valueornull,
 )
 from ..client import AbstractClient
@@ -42,12 +42,17 @@ from ...console.client import (
     console_reader,
 )
 
-from ...errors import FatbuildrServerPermissionError, FatbuildrServerError
+from ...errors import (
+    FatbuildrServerPermissionError,
+    FatbuildrServerRegistryError,
+    FatbuildrServerError,
+)
 
 
 def check_dbus_errors(method):
     """Decorator for DBusClient methods to catch various FatbuildrDBusError that
-    could be sent by DBusServer and transform them in generic Fatbuildr errors.
+    could be sent by DBusServer and translate them into generic Fatbuildr server
+    errors.
     """
 
     def error_handler_wrapper(*args, **kwargs):
@@ -55,6 +60,8 @@ def check_dbus_errors(method):
             return method(*args, **kwargs)
         except FatbuildrDBusErrorNotAuthorized as err:
             raise FatbuildrServerPermissionError(err)
+        except FatbuildrDBusErrorRegistry as err:
+            raise FatbuildrServerRegistryError(err)
         except FatbuildrDBusError as err:
             raise FatbuildrServerError(err)
 
@@ -150,14 +157,9 @@ class DBusClient(AbstractClient):
 
     @check_dbus_errors
     def artifact_src(self, fmt, distribution, derivative, artifact):
-        try:
-            return DBusArtifact.from_structure(
-                self.proxy.ArtifactSource(
-                    fmt, distribution, derivative, artifact
-                )
-            )
-        except FatbuildrDBusErrorArtifactNotFound:
-            return None
+        return DBusArtifact.from_structure(
+            self.proxy.ArtifactSource(fmt, distribution, derivative, artifact)
+        )
 
     @check_dbus_errors
     def changelog(self, fmt, distribution, derivative, architecture, artifact):

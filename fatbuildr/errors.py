@@ -30,6 +30,10 @@ class FatbuildrServerPermissionError(FatbuildrServerError):
     pass
 
 
+class FatbuildrServerRegistryError(FatbuildrServerError):
+    pass
+
+
 class FatbuildrPipelineError(Exception):
     pass
 
