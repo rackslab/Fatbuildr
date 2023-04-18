@@ -31,11 +31,11 @@
 </ul>
 {% endif %}
 <h2>Finished</h2>
-{% if not archives %}
+{% if not history %}
 ∅
 {% else %}
 <ul>
-  {% for task in archives %}
+  {% for task in history %}
     <li><a href="{{ url_for('watch', instance=instance, task_id=task.id, output='html') }}">{{ task.id }}</a> [{{ task.name }}] {{ task.submission }}</li>
   {% endfor %}
 </ul>
