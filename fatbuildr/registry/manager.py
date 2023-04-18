@@ -20,6 +20,7 @@
 from .formats.deb import RegistryDeb
 from .formats.rpm import RegistryRpm
 from .formats.osi import RegistryOsi
+from ..errors import FatbuildrRegistryError
 
 
 class RegistryManager:
@@ -79,5 +80,7 @@ class RegistryManager:
     def factory(self, fmt):
         """Instanciate the appropriate Registry for the given format."""
         if not fmt in RegistryManager._formats:
-            raise RuntimeError(f"format {fmt} unsupported by registries")
+            raise FatbuildrRegistryError(
+                f"Format {fmt} not supported by registries"
+            )
         return RegistryManager._formats[fmt](self.conf, self.instance)

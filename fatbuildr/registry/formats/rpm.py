@@ -25,6 +25,7 @@ from . import Registry, ArtifactVersion, RegistryArtifact, ChangelogEntry
 from ...log import logr
 from ...utils import host_architecture
 from ...exec import runcmd
+from ...errors import FatbuildrRegistryError
 
 logger = logr(__name__)
 
@@ -40,6 +41,7 @@ class RegistryRpm(Registry):
         return [item.name for item in self.path.iterdir()]
 
     def derivatives(self, distribution):
+        self._check_distribution(distribution)
         return [item.name for item in self.dist_path(distribution).iterdir()]
 
     def dist_path(self, distribution):
@@ -165,6 +167,7 @@ class RegistryRpm(Registry):
 
     def artifacts(self, distribution, derivative):
         """Returns the list of artifacts in rpm repository."""
+        self._check_derivative(distribution, derivative)
         artifacts = []
         for arch_dir in self.available_arch_dirs(distribution, derivative):
             md = cr.Metadata()
@@ -263,10 +266,17 @@ class RegistryRpm(Registry):
 
     def changelog(self, distribution, derivative, architecture, artifact):
         """Returns the changelog of a RPM source package."""
+        self._check_derivative(distribution, derivative)
+        repo_path = self.repo_path(distribution, derivative, architecture)
+        if not repo_path.exists():
+            raise FatbuildrRegistryError(
+                "Unable to find repository path for architecture "
+                f"{architecture} in distribution {distribution} and "
+                f"derivative {derivative}"
+            )
         md = cr.Metadata()
-        md.locate_and_load_xml(
-            str(self.repo_path(distribution, derivative, architecture))
-        )
+
+        md.locate_and_load_xml(str(repo_path))
         for key in md.keys():
             pkg = md.get(key)
             if pkg.name != artifact:
@@ -274,6 +284,11 @@ class RegistryRpm(Registry):
             if pkg.arch != architecture:
                 continue
             return RpmChangelog(pkg.changelogs).entries()
+        raise FatbuildrRegistryError(
+            f"Unable to find RPM package {artifact} with architecture "
+            f"{architecture} in distribution {distribution} and derivative "
+            f"{derivative}"
+        )
 
     def delete_artifact(self, distribution, derivative, artifact):
 

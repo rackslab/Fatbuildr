@@ -26,6 +26,7 @@ from debian import deb822, changelog, debfile
 from . import Registry, ArtifactVersion, RegistryArtifact, ChangelogEntry
 from ...templates import Templeter
 from ...exec import runcmd
+from ...errors import FatbuildrRegistryError
 from ...log import logr
 
 logger = logr(__name__)
@@ -56,6 +57,7 @@ class RegistryDeb(Registry):
         return self.path.joinpath('conf', 'distributions')
 
     def derivatives(self, distribution):
+        self._check_distribution(distribution)
         return self.components
 
     def _remove_ddebs(self, changes_path):
@@ -161,6 +163,7 @@ class RegistryDeb(Registry):
     def artifacts(self, distribution, derivative):
         """Returns the list of artifacts in deb repository."""
 
+        self._check_derivative(distribution, derivative)
         # Check if repository distributions configuration file exists. If this
         # file does not exist, the repository is necessarily empty.
         if not self.dists_conf.exists():
@@ -181,7 +184,7 @@ class RegistryDeb(Registry):
         repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
-            if not line:
+            if not line:  # skip empty lines
                 continue
             (name, arch, locarch, version) = line.split('|')
             if locarch == 'source':
@@ -218,6 +221,8 @@ class RegistryDeb(Registry):
         repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
+            if not line:  # skip empty lines
+                continue
             (name, arch, locarch, source, version) = line.split('|')
             if locarch == 'source':  # skip non-binary package
                 continue
@@ -252,11 +257,19 @@ class RegistryDeb(Registry):
         ]
         repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
+        logger.debug("artifact src lines: %s", lines)
         for line in lines:
+            if not line:  # skip empty lines
+                continue
             (locarch, source, version) = line.split('|')
             if locarch == 'source':  # skip source package
                 continue
             return RegistryArtifact(source, 'src', version)
+        raise FatbuildrRegistryError(
+            "Unable to find source package associated to deb binary package "
+            f"{bin_artifact} in distribution {distribution} and derivative "
+            f"{derivative}"
+        )
 
     def source_version(self, distribution, derivative, artifact):
         """Returns the version of the given source package name, or None if not
@@ -291,7 +304,7 @@ class RegistryDeb(Registry):
         repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
-            if not line:
+            if not line:  # skip empty lines
                 continue
             (locarch, version) = line.split('|')
             if locarch != 'source':  # skip binary package
@@ -315,13 +328,17 @@ class RegistryDeb(Registry):
         ]
         repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
+        logger.debug("packages dsc path lines: %s", lines)
         for line in lines:
+            if not line:  # skip empty lines
+                continue
             (locarch, pkg_path) = line.split('|')
             if locarch != 'source':  # skip binary package
                 continue
             return Path(pkg_path)
-        raise RuntimeError(
-            f"Unable to find dsc path for deb source package {src_artifact}"
+        raise FatbuildrRegistryError(
+            f"Unable to find dsc path of deb source package {src_artifact} in "
+            f"distribution {distribution} and derivative {derivative}"
         )
 
     def _package_deb_path(
@@ -343,13 +360,17 @@ class RegistryDeb(Registry):
         repo_list_proc = runcmd(cmd)
         lines = repo_list_proc.stdout.decode().strip().split('\n')
         for line in lines:
+            if not line:  # skip empty lines
+                continue
             (arch, pkg_path) = line.split('|')
             # check architecture matches
             if arch != self.archmap.native(architecture):
                 continue
             return Path(pkg_path)
-        raise RuntimeError(
-            f"Unable to find deb path for deb binary package {bin_artifact}"
+        raise FatbuildrRegistryError(
+            f"Unable to find path of deb binary package {bin_artifact} with "
+            f"architecture {architecture} in distribution {distribution} and "
+            f"derivative {derivative}"
         )
 
     def _debian_archive_path(self, dsc_path):
@@ -362,7 +383,7 @@ class RegistryDeb(Registry):
             if '.orig.' in arch['name'] or '.orig-' in arch['name']:
                 continue
             return dsc_path.parent.joinpath(arch['name'])
-        raise RuntimeError(
+        raise FatbuildrRegistryError(
             "Unable to define debian archive path in deb dsc "
             f"file {dsc_path}"
         )
@@ -374,12 +395,14 @@ class RegistryDeb(Registry):
         try:
             archive = tarfile.open(arch_path)
         except tarfile.TarError as err:
-            raise RuntimeError(f"Unable to read archive {arch_path}: {err}")
+            raise FatbuildrRegistryError(
+                f"Unable to read archive {arch_path}: {err}"
+            )
         logger.debug("Files in archives: %s", archive.getnames())
         if 'debian/changelog' in archive.getnames():
             fobj = archive.extractfile('debian/changelog')
             return fobj.read()
-        raise RuntimeError(
+        raise FatbuildrRegistryError(
             f"Unable to find debian changelog file in archive {arch_path}"
         )
 
@@ -408,6 +431,7 @@ class RegistryDeb(Registry):
         return DebChangelog(debfile.DebFile(deb_path).changelog()).entries()
 
     def changelog(self, distribution, derivative, architecture, artifact):
+        self._check_derivative(distribution, derivative)
         if architecture == 'src':
             return self._src_changelog(distribution, derivative, artifact)
         else:

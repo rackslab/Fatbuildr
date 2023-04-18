@@ -34,6 +34,10 @@ class FatbuildrPipelineError(Exception):
     pass
 
 
+class FatbuildrRegistryError(Exception):
+    pass
+
+
 class FatbuildrTokenError(Exception):
     pass
 

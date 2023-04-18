@@ -22,6 +22,7 @@ import re
 
 from ...specifics import ArchMap
 from ...protocols.exports import ExportableType, ExportableField
+from ...errors import FatbuildrRegistryError
 
 
 class Registry:
@@ -51,6 +52,22 @@ class Registry:
 
     def artifact(self, distributions):
         raise NotImplementedError
+
+    def _check_distribution(self, distribution):
+        if distribution not in self.distributions:
+            raise FatbuildrRegistryError(
+                f"Distribution {distribution} not found in {self.format} "
+                "registry"
+            )
+
+    def _check_derivative(self, distribution, derivative):
+        # derivatives property already checks for the distribution, no need to
+        # perform the check here.
+        if derivative not in self.derivatives(distribution):
+            raise FatbuildrRegistryError(
+                f"Derivative {derivative} not found in {self.format} registry "
+                f"for distribution {distribution}"
+            )
 
 
 class ArtifactVersion:

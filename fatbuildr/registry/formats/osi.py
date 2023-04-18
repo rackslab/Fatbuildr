@@ -39,6 +39,7 @@ class RegistryOsi(Registry):
         return [item.name for item in self.path.iterdir()]
 
     def derivatives(self, distribution):
+        self._check_distribution(distribution)
         return [
             item.name for item in self.path.joinpath(distribution).iterdir()
         ]
