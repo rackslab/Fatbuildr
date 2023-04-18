@@ -66,6 +66,8 @@ class HttpClient(AbstractClient):
             raise FatbuildrServerPermissionError(
                 f"{response.json()['error']} (403)"
             )
+        if response.status_code == 404:
+            raise FatbuildrServerError(f"{response.json()['error']} (404)")
         return response
 
     @check_http_errors
