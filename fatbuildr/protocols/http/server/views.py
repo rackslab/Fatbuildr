@@ -39,6 +39,7 @@ from werkzeug.utils import secure_filename
 
 from ....errors import (
     FatbuildrTokenError,
+    FatbuildrServerError,
     FatbuildrServerInstanceError,
     FatbuildrServerRegistryError,
 )
@@ -512,7 +513,10 @@ def queue(instance):
 @check_instance_token_permission('view-task')
 def task(instance, task_id):
     connection = get_connection(instance)
-    task = connection.get(task_id)
+    try:
+        task = connection.get(task_id)
+    except FatbuildrServerError as err:
+        abort(404, str(err))
     return jsonify(JsonRunnableTask.export(task))
 
 
@@ -520,7 +524,10 @@ def task(instance, task_id):
 def watch(instance, task_id, output='html'):
     """Stream lines obtained by DBusClient.watch() generator."""
     connection = get_connection(instance)
-    task = connection.get(task_id)
+    try:
+        task = connection.get(task_id)
+    except FatbuildrServerError as err:
+        abort(404, str(err))
     if output == 'html':
         return current_app.response_class(
             stream_with_context(
