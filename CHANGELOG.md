@@ -102,6 +102,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `env-update`.
   - Replace `fatbuildrctl {patches,build}` command options `--source-dir` and
     `--source-version` by generic option `--sources`.
+  - Replace `fatbuildrctl archives` by `fatbuildrctl history` command to avoid
+    confusion with the notion of source archives (#87)
 - artifacts:
   - Rename YAML artifact definition file from `meta.yml` to `artifact.yml`. The
     old name is still supported but the user is warned with a deprecation notice
@@ -114,6 +116,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     declare possibly multiple sources.
 - conf: replaced `queue` and `archives` parameters in `dirs` section of system
   configuration by `workspaces` parameters.
+- dbus: Replace `Archives()` by `History()` method in
+  `org.rackslab.Fatbuildr.Instance` object to avoid confusion with the notion of
+  source archives.
 - web:
   - Build tasks are submitted to fatbuildrd with original requesting user's
     identity when fatbuildrd runs with another user (typically `fatbuildr`
@@ -139,6 +144,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     archives directories merged into common workspaces directory.
   - Update example outputs with new common workspaces directory to match new
     default paths.
+  - Replace notion of _archives_ by _history_ to designate the list of
+    terminated tasks.
 - Rename `fatbuildr.web` module to `fatbuildr.procotols.http.server` for more
   proximity with `fatbuildr.procotols.http.client` code.
 - pkgs:
