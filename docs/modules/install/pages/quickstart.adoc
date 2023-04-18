@@ -309,7 +309,7 @@ $ /usr/libexec/fatbuildrweb
 With a web browser, connect to this URL: http://localhost:5000
 
 In the web page, you should see the defined _default_ instance. If you click on
-this instance, you can explore archives tasks outputs and all artifacts
+this instance, you can explore history of tasks outputs and all artifacts
 published in this instance registry.
 
 Fatbuildrweb can also be used to deploy the packages. For example:

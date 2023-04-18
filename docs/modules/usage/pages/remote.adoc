@@ -13,7 +13,7 @@ this table:
 |✅
 |✅
 
-|List task archives
+|List task history
 |✅
 |❌
 

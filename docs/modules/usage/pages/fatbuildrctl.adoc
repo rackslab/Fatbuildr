@@ -47,10 +47,6 @@ All commands accept *-h, --help* option to get details about available option
 for this particular command (_ex:_ `fatbuildrctl images --help`). Commands are
 listed in lexicographical order.
 
-*archives*::
-
-  List 10 last terminated archived tasks with their parameters.
-
 *build*::
 
   Submit artifact build tasks.
@@ -168,6 +164,10 @@ for _osi_ format artifacts as this format does not contain changelogs.
   `~/path/to/sources` tagged with version _1.2.3_, then submit task to build
   this artifact for distribution _bar_.
 --
+
+*history*::
+
+  List history 10 last terminated tasks with their parameters.
 
 *images*::
 
