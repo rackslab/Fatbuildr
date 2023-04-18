@@ -246,14 +246,14 @@ def registry(instance, output='html'):
         # add informations about tasks in HTML page
         pending = connection.queue()
         running = connection.running()
-        archives = connection.archives(10)
+        history = connection.history(10)
         return render_template(
             'registry.html.j2',
             instance=instance,
             formats=formats,
             pending=pending,
             running=running,
-            archives=archives,
+            history=history,
         )
 
 

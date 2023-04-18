@@ -343,11 +343,11 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_watch.set_defaults(func=self._run_watch)
 
-        # Parser for the archives command
-        parser_archives = subparsers.add_parser(
-            'archives', help='List archives'
+        # Parser for the history command
+        parser_history = subparsers.add_parser(
+            'history', help='List history of tasks'
         )
-        parser_archives.set_defaults(func=self._run_archives)
+        parser_history.set_defaults(func=self._run_history)
 
         # Parser for the registry command
         parser_registry = subparsers.add_parser(
@@ -1085,14 +1085,14 @@ class Fatbuildrctl(FatbuildrCliRun):
             task_id = args.task
         self._watch_task(task_id, interactive=False)
 
-    def _run_archives(self, args):
-        archives = self.connection.archives(10)
-        if not archives:
-            print("No archive found")
+    def _run_history(self, args):
+        history = self.connection.history(10)
+        if not history:
+            print("No task found in history")
             return
-        print("Build archives:")
-        for archive in archives:
-            archive.report()
+        print("Tasks history:")
+        for task in history:
+            task.report()
 
     def _run_registry(self, args):
         _fmt = self.connection.pipelines_distribution_format(args.distribution)

@@ -21,7 +21,7 @@ import yaml
 
 from .tasks.manager import ServerTasksManager
 from .registry.manager import RegistryManager
-from .archives import ArchivesManager
+from .history import HistoryManager
 from .keyring import InstanceKeyring
 from .tokens import TokensManager
 from .images import ImagesManager
@@ -176,7 +176,7 @@ class RunningInstance(ExportableType):
         self.pipelines = pipelines
         self.tasks_mgr = ServerTasksManager(self.conf, self)
         self.registry_mgr = RegistryManager(self.conf, self)
-        self.archives_mgr = ArchivesManager(self.conf, self)
+        self.history_mgr = HistoryManager(self.conf, self)
         self.images_mgr = ImagesManager(self.conf, self)
         self.keyring = InstanceKeyring(self.conf, self)
         self.tokens_mgr = TokensManager(self.conf, self.id)

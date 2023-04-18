@@ -245,8 +245,8 @@ class DBusClient(AbstractClient):
             return None
 
     @check_dbus_errors
-    def archives(self, limit):
-        return DBusRunnableTask.from_structure_list(self.proxy.Archives(limit))
+    def history(self, limit):
+        return DBusRunnableTask.from_structure_list(self.proxy.History(limit))
 
     def get(self, task_id):
         for _task in self.queue():
@@ -255,7 +255,7 @@ class DBusClient(AbstractClient):
         _running = self.running()
         if _running and _running.id == task_id:
             return _running
-        for _task in self.archives(limit=0):
+        for _task in self.history(limit=0):
             if _task.id == task_id:
                 return _task
         raise FatbuildrServerError(f"Unable to find task {task_id} on server")

@@ -329,7 +329,7 @@ class RunnableTask:
         self.io.close()
 
     def terminate(self):
-        self.instance.archives_mgr.save_task(self)
+        self.instance.history_mgr.save_task(self)
 
     def runcmd(self, cmd, **kwargs):
         """Run command locally and log output in build log file."""

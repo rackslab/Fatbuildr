@@ -73,7 +73,7 @@ class ArchivedTask(RunnableTask):
                 setattr(self, field, value)
 
 
-class ArchivesManager:
+class HistoryManager:
     def __init__(self, conf, instance):
         self.instance = instance
         self.path = conf.dirs.workspaces.joinpath(instance.id)
@@ -90,11 +90,11 @@ class ArchivesManager:
 
     def dump(self, limit):
         """Returns up to limit last tasks found in archives directory."""
-        _archives = []
+        tasks = []
 
         # Return empty list if directory does not exist
         if not self.path.exists():
-            return _archives
+            return tasks
 
         for task_dir in self.path.iterdir():
             try:
@@ -110,7 +110,7 @@ class ArchivesManager:
                     task_dir.stem, task_dir, self.instance, **fields
                 )
 
-                _archives.append(task)
+                tasks.append(task)
 
             except FileNotFoundError as err:
                 logger.error(
@@ -124,9 +124,9 @@ class ArchivesManager:
                     task_dir,
                     err,
                 )
-        # sort archives by submission date, from the most recent to the oldest
-        _archives.sort(key=lambda x: x.submission, reverse=True)
+        # sort tasks by submission date, from the most recent to the oldest
+        tasks.sort(key=lambda x: x.submission, reverse=True)
         if limit:
-            return _archives[:limit]
+            return tasks[:limit]
         else:
-            return _archives
+            return tasks

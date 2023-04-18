@@ -279,10 +279,10 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         return DBusRunnableTask.to_structure(running)
 
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
-    def Archives(self, limit: Int) -> List[Structure]:
-        """The list of last limit tasks in archives."""
+    def History(self, limit: Int) -> List[Structure]:
+        """The list of last limit tasks in history."""
         return DBusRunnableTask.to_structure_list(
-            self.implementation.archives(limit)
+            self.implementation.history(limit)
         )
 
     @property
@@ -634,9 +634,9 @@ class FatbuildrDBusInstance(Publishable):
         """The currently running task."""
         return self._instance.tasks_mgr.running
 
-    def archives(self, limit):
-        """The list of archived builds."""
-        return self._instance.archives_mgr.dump(limit)
+    def history(self, limit):
+        """The list of historical tasks."""
+        return self._instance.history_mgr.dump(limit)
 
     def formats(self):
         return self._instance.registry_mgr.formats()
