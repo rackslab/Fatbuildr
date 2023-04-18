@@ -45,6 +45,7 @@ from ...console.client import (
 from ...errors import (
     FatbuildrServerPermissionError,
     FatbuildrServerRegistryError,
+    FatbuildrServerInstanceError,
     FatbuildrServerError,
 )
 
@@ -76,7 +77,9 @@ class DBusClient(AbstractClient):
         try:
             obj_path = self.service_proxy.GetInstance(instance)
         except FatbuildrDBusErrorUnknownInstance:
-            raise FatbuildrServerError(f"Unknown instance {instance} at {uri}")
+            raise FatbuildrServerInstanceError(
+                f"Unknown instance {instance} at {uri}"
+            )
         self.proxy = FATBUILDR_SERVICE.get_proxy(obj_path)
 
     # instances and pipelines

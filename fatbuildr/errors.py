@@ -30,6 +30,10 @@ class FatbuildrServerPermissionError(FatbuildrServerError):
     pass
 
 
+class FatbuildrServerInstanceError(FatbuildrServerError):
+    pass
+
+
 class FatbuildrServerRegistryError(FatbuildrServerError):
     pass
 
