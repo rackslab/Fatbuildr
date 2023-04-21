@@ -89,9 +89,10 @@ class ExportableField:
 
 
 class ExportableTaskField(ExportableField):
-    def __init__(self, name, native_type=str, archived=True):
+    def __init__(self, name, native_type=str, archived=True, histid=False):
         super().__init__(name, native_type)
         self.archived = archived
+        self.histid = histid
 
 
 class ProtocolRegistry(metaclass=Singleton):

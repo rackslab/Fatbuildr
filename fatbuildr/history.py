@@ -71,6 +71,14 @@ class ArchivedTask(RunnableTask):
         for field, value in kwargs.items():
             if not hasattr(self, field):
                 setattr(self, field, value)
+        self.histid = '-'.join(
+            [self.TASK_NAME] +
+            [
+                getattr(self, field.name)
+                for field in ProtocolRegistry().task_fields(self.TASK_NAME)
+                if field.histid
+            ]
+        )
 
 
 class HistoryManager:

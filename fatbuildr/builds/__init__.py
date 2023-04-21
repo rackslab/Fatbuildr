@@ -73,12 +73,12 @@ class ArtifactBuild(RunnableTask):
 
     TASK_NAME = 'artifact build'
     EXFIELDS = {
-        ExportableTaskField('format'),
-        ExportableTaskField('distribution'),
+        ExportableTaskField('format', histid=True),
+        ExportableTaskField('distribution', histid=True),
         ExportableTaskField('architectures', List[str]),
         ExportableTaskField('archives', List[ArtifactSourceArchive]),
-        ExportableTaskField('derivative'),
-        ExportableTaskField('artifact'),
+        ExportableTaskField('derivative', histid=True),
+        ExportableTaskField('artifact', histid=True),
         ExportableTaskField('author'),
         ExportableTaskField('email'),
         ExportableTaskField('message'),
