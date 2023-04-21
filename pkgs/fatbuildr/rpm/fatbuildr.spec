@@ -116,6 +116,11 @@ install -p -D -m 0644 conf/system/sysuser/%{name}.conf -t %{buildroot}%{_sysuser
 install -d %{buildroot}/%{_mandir}/man1
 install -p -m 0644 docs/man/fatbuildrctl.1 %{buildroot}/%{_mandir}/man1/
 
+# examples
+install -d %{buildroot}/%{_docdir}/fatbuildr/examples
+cp -vdr --no-preserve=ownership examples/* %{buildroot}/%{_docdir}/fatbuildr/examples
+cp -vdr --no-preserve=ownership conf/examples/* %{buildroot}/%{_docdir}/fatbuildr/examples
+
 %clean
 rm -rf %{buildroot}
 
@@ -123,7 +128,7 @@ rm -rf %{buildroot}
 %license LICENSE
 %doc README.md
 %doc CHANGELOG.md
-%doc examples
+%doc %{_docdir}/fatbuildr
 %{python3_sitelib}/fatbuildr/
 %{python3_sitelib}/Fatbuildr-*.egg-info/
 %config(noreplace) %{_sysconfdir}/fatbuildr/*
