@@ -76,7 +76,7 @@ class ArchivedTask(RunnableTask):
 class HistoryManager:
     def __init__(self, conf, instance):
         self.instance = instance
-        self.path = conf.dirs.workspaces.joinpath(instance.id)
+        self.path = conf.tasks.workspaces.joinpath(instance.id)
 
     def save_task(self, task):
         fields = {

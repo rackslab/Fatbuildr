@@ -21,6 +21,7 @@ import configparser
 import re
 from pathlib import Path
 
+from .errors import FatbuildrSystemConfigurationError
 from .log import logr
 
 logger = logr(__name__)
@@ -32,7 +33,6 @@ class RuntimeSubConfDirs(object):
     def __init__(self):
 
         self.instances = None
-        self.workspaces = None
         self.registry = None
         self.cache = None
         self.tmp = None
@@ -40,7 +40,6 @@ class RuntimeSubConfDirs(object):
     def load(self, config):
         section = 'dirs'
         self.instances = Path(config.get(section, 'instances'))
-        self.workspaces = Path(config.get(section, 'workspaces'))
         self.registry = Path(config.get(section, 'registry'))
         self.cache = Path(config.get(section, 'cache'))
         self.tmp = Path(config.get(section, 'tmp'))
@@ -48,7 +47,6 @@ class RuntimeSubConfDirs(object):
     def dump(self):
         logger.debug("[dirs]")
         logger.debug("  instances: %s", self.instances)
-        logger.debug("  workspaces: %s", self.workspaces)
         logger.debug("  registry: %s", self.registry)
         logger.debug("  cache: %s", self.cache)
         logger.debug("  tmp: %s", self.tmp)
@@ -92,6 +90,37 @@ class RuntimeSubConfRegistry(object):
     def dump(self):
         logger.debug("[registry]")
         logger.debug("  conf: %s", self.conf)
+
+
+class RuntimeSubConfTasks(object):
+    """Runtime sub-configuration class to hold registry settings."""
+
+    def __init__(self):
+
+        self.conf = None
+        self.workspaces = None
+        self.purge_policy = None
+        self.purge_value = None
+
+    def load(self, config):
+        section = 'tasks'
+        self.workspaces = Path(config.get(section, 'workspaces'))
+        purge_components = config.get(section, 'purge').split(':')
+        self.purge_policy = purge_components[0]
+        try:
+            self.purge_value = purge_components[1]
+        except IndexError:
+            FatbuildrSystemConfigurationError(
+                f"unsupport value '{config.get(section, 'purge')}' for [tasks] "
+                "purge configuration parameter"
+            )
+
+    def dump(self):
+        logger.debug("[tasks]")
+        logger.debug("  workspaces: %s", self.workspaces)
+        logger.debug("  purge:")
+        logger.debug("    policy: %s", self.purge_policy)
+        logger.debug("    value: %s", self.purge_value)
 
 
 class RuntimeSubConfContainers(object):
@@ -378,6 +407,7 @@ class RuntimeConf(object):
         self.dirs = RuntimeSubConfDirs()
         self.images = RuntimeSubConfImages()
         self.registry = RuntimeSubConfRegistry()
+        self.tasks = RuntimeSubConfTasks()
         self.containers = RuntimeSubConfContainers()
         self.keyring = RuntimeSubConfKeyring()
         self.tokens = RuntimeSubConfTokens()
@@ -405,6 +435,7 @@ class RuntimeConf(object):
         self.dirs.load(self.config)
         self.images.load(self.config)
         self.registry.load(self.config)
+        self.tasks.load(self.config)
         self.containers.load(self.config)
         self.keyring.load(self.config)
         self.tokens.load(self.config)
@@ -420,6 +451,7 @@ class RuntimeConf(object):
         self.dirs.dump()
         self.images.dump()
         self.registry.dump()
+        self.tasks.dump()
         self.containers.dump()
         self.keyring.dump()
         self.tokens.dump()

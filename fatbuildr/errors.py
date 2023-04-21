@@ -52,3 +52,7 @@ class FatbuildrTokenError(Exception):
 
 class FatbuildrArtifactError(Exception):
     pass
+
+
+class FatbuildrSystemConfigurationError(Exception):
+    pass

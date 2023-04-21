@@ -82,7 +82,7 @@ class ServerTasksManager:
     def __init__(self, conf, instance):
         self.conf = conf
         self.instance = instance
-        self.workspaces = self.conf.dirs.workspaces.joinpath(instance.id)
+        self.workspaces = self.conf.tasks.workspaces.joinpath(instance.id)
         if not self.workspaces.exists():
             logger.debug(
                 "Creating instance %s workspaces directory %s",
