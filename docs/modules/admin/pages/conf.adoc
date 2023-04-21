@@ -28,8 +28,6 @@ the following parameters:
 
 `instances`:: Absolute path to directory with instances definitions files.
 
-`workspaces`:: Absolute path to directory for tasks working directories.
-
 `registry`:: Absolute path to directory for managed artifact registries.
 
 `cache`:: Absolute path to directory for cached artifacts.
@@ -119,6 +117,14 @@ commands.
 
 `seccomp`:: Boolean to control whether Linux seccomp feature is used to filter
 the syscalls available to containers.
+
+=== `tasks`
+
+`workspaces`:: Absolute path to directory for tasks working directories.
+
+`purge`:: Purge policy of tasks workspaces with its limit. This is a string with
+the name of the selected policy and the limit value separated by a colon (`:`)
+(_ex:_ `older:7d`).
 
 === `registry`
 
