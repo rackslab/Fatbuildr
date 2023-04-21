@@ -24,6 +24,7 @@ from ..builds import ArtifactSourceArchive, ArtifactBuild
 from ..builds.factory import BuildFactory
 from ..tasks.registry import RegistryArtifactDeletionTask
 from ..tasks.keyring import KeyringCreationTask, KeyringRenewalTask
+from ..tasks.history import HistoryPurgeTask
 from ..tasks.images import (
     ImageCreationTask,
     ImageUpdateTask,
@@ -48,6 +49,7 @@ def register_protocols():
         (RegistryArtifactDeletionTask,),
         (KeyringCreationTask,),
         (KeyringRenewalTask,),
+        (HistoryPurgeTask,),
         (ImageCreationTask,),
         (ImageUpdateTask,),
         (ImageShellTask,),
