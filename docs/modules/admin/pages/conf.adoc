@@ -139,7 +139,7 @@ the following parameters:
 `size`:: Integer size of keys in bits
 
 `expires`:: Duration of keys validity. Special value 0 means the keys never
-expires. The value can be suffixed with units `w` (weeks), 'm' (months) or `y`
+expires. The value can be suffixed with units `w` (weeks), `m` (months) or `y`
 (years). The default unit is days.
 
 `seeder`:: Path to utility used to seed the internal cache of a running
