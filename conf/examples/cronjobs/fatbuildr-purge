@@ -1,0 +1,4 @@
+# Example cronjob to purge Fatbuildr tasks history in default instance every
+# nights at 2am.
+
+0 2 * * * fatbuildr /usr/bin/fatbuildrctl history purge
