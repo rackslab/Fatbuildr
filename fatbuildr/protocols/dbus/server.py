@@ -285,6 +285,14 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             self.implementation.history(limit)
         )
 
+    @accepts_additional_arguments
+    @require_polkit_authorization("org.rackslab.Fatbuildr.purge-history")
+    def HistoryPurge(self, *, call_info) -> Str:
+        """Purge tasks history."""
+        return self.implementation.submit(
+            'history purge', dbus_user(call_info['sender'])[1]
+        )
+
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
     def Formats(self) -> List[Str]:

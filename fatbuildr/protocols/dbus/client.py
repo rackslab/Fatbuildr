@@ -248,6 +248,10 @@ class DBusClient(AbstractClient):
     def history(self, limit):
         return DBusRunnableTask.from_structure_list(self.proxy.History(limit))
 
+    @check_dbus_errors
+    def history_purge(self):
+        return self.proxy.HistoryPurge()
+
     def get(self, task_id):
         for _task in self.queue():
             if _task.id == task_id:
