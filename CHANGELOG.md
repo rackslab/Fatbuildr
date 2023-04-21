@@ -18,14 +18,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add support of multiple sources for packages artifacts (#66)
 - Report Deb and RPM packages content after successful builds, with additional
   pbuilder hook and mock plugin respectively (#74)
+- Add possibility to purge tasks history and their workspaces directories with
+  multiple configurable policies (#34)
 - conf:
   - Add `[tokens]` section with settings to control generation and
     validation of JWT tokens.
   - Add `policy` and `vendor_policy` settings in `[web]` section to define path
     to RBAC policy definition file loaded by Fatbuildrweb.
+  - Add `[tasks]` section with parameters to specify tasks workspaces location
+    and tasks history purge policy.
 - polkit:
   - Add _org.rackslab.Fatbuildr.manage-token_ action.
   - Add _org.rackslab.Fatbuildr.build-as_ action.
+  - Add _org.rackslab.Fatbuildr.purge-history_ action.
 - dbus:
   - Add `BuildAs` method to `org.rackslab.Fatbuildr.Instance` object to submit
     build task with another user identity.
@@ -52,18 +57,21 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Document `tokens` command in `fatbuildrctl` manpage.
   - Document `tokens` parameter in user's preferences file in `fatbuildrctl`
     manpage.
+  - Document new `history purge` subcommand in in `fatbuildrctl` manpage
   - Add section about API tokens in `fatbuildrctl` manpage.
   - Add section about Local sources and `--sources` option value format in
     `fatbuildrctl` manpage.
   - Add section about authentication in REST API reference page.
-  - Mention new polkit actions _org.rackslab.Fatbuildr.manage-token_ and
-    _org.rackslab.Fatbuildr.build-as_ with a special note for _*-as_ actions.
+  - Mention new polkit actions _org.rackslab.Fatbuildr.manage-token_,
+    _org.rackslab.Fatbuildr.purge-history_ and _org.rackslab.Fatbuildr.build-as_
+    with a special note for _*-as_ actions.
   - Mention permission action required by all Fatbuildrweb REST API and HTML
     endpoints in references pages.
   - Document error object returned by REST API for denied permission.
   - Add section about policy configuration in Fatbuildrweb administration page.
   - Document system configuration new `[tokens]` section and new parameters in
     `[web]` section.
+  - Document new `purge` parameter in `[tasks]` section.
   - Mention multiple sources support, static analysis, packages content listing,
     RBAC policy and JWT authentication in advanced features description.
   - Add page about packages source tree with all principles followed for various
@@ -71,6 +79,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mention HTTP/404 reponse codes in REST API when instance or task is unknown
     by fatbuildrd and when format, distribution, derivative, architecture or
     artifact is not found in registries.
+  - Add page about tasks history purge capabilities with the various policies,
+    the expected format of the limit value in configuration parameter and a
+    quick howto setup regular automatic purge with a cronjob.
+  - Add example cronjob for automatic regular tasks history purge
 
 ### Fixed
 - Static analysis errors reported by ruff tool with a simple initial
@@ -114,8 +126,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     optional multiple sources for packages artifacts.
   - The RPM spec file token `{{ source }}` is replaced by `{{ sources }}` to
     declare possibly multiple sources.
-- conf: replaced `queue` and `archives` parameters in `dirs` section of system
-  configuration by `workspaces` parameters.
+- conf: replaced `queue` and `archives` parameters in `[dirs]` section of system
+  configuration by `workspaces` parameter in `[tasks]` section.
 - dbus: Replace `Archives()` by `History()` method in
   `org.rackslab.Fatbuildr.Instance` object to avoid confusion with the notion of
   source archives.
@@ -140,8 +152,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     artifacts with multiple sources.
   - Replace options `--source-dir` and `--source-version` by `--sources` in
     `fatbuildrctl` manpage.
-  - Mention system configuration changes in `dirs` section for queue and
-    archives directories merged into common workspaces directory.
+  - Modify system configuration reference to mention replacement of `queue` and
+    `archives` in `[dirs]` section by common `workspaces` parameter in `[tasks]`
+    section.
   - Update example outputs with new common workspaces directory to match new
     default paths.
   - Replace notion of _archives_ by _history_ to designate the list of
