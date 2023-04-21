@@ -347,6 +347,20 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_history = subparsers.add_parser(
             'history', help='List history of tasks'
         )
+        parser_history.add_argument(
+            'operation',
+            help='Operation on history (default: %(default)s)',
+            nargs='?',
+            choices=['purge', 'list'],
+            default='list',
+        )
+        parser_history.add_argument(
+            '-w',
+            '--watch',
+            action='store_true',
+            help='Watch task log and wait until its end',
+        )
+
         parser_history.set_defaults(func=self._run_history)
 
         # Parser for the registry command
@@ -1086,13 +1100,22 @@ class Fatbuildrctl(FatbuildrCliRun):
         self._watch_task(task_id, interactive=False)
 
     def _run_history(self, args):
-        history = self.connection.history(10)
-        if not history:
-            print("No task found in history")
-            return
-        print("Tasks history:")
-        for task in history:
-            task.report()
+        if args.operation == 'list':
+            history = self.connection.history(10)
+            if not history:
+                print("No task found in history")
+                return
+            print("Tasks history:")
+            for task in history:
+                task.report()
+        elif args.operation == 'purge':
+            self._submit_watch(
+                self.connection.history_purge, 'tasks history purge', args.watch
+            )
+        else:
+            NotImplementedError(
+                f"Unsupported history operation {args.operation}"
+            )
 
     def _run_registry(self, args):
         _fmt = self.connection.pipelines_distribution_format(args.distribution)
