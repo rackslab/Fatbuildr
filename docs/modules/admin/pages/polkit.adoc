@@ -27,6 +27,8 @@ registries.
 org.rackslab.Fatbuildr.edit-registry:: Submit tasks to edit content of managed
 artifact registries (ex: delete artifact).
 
+org.rackslab.Fatbuildr.purge-history:: Purge tasks workspaces history.
+
 org.rackslab.Fatbuildr.view-keyring:: View keyring detailed information.
 
 org.rackslab.Fatbuildr.edit-keyring:: Submit tasks to edit keyring (ex: change
@@ -139,6 +141,13 @@ ResultActive=yes
 [Disallow members of fatbuildr group to edit Fatbuildr registry content]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.edit-registry;
+ResultAny=no
+ResultInactive=no
+ResultActive=no
+
+[Disallow members of fatbuildr group to purge Fatbuildr tasks history]
+Identity=unix-group:fatbuildr
+Action=org.rackslab.Fatbuildr.purge-history;
 ResultAny=no
 ResultInactive=no
 ResultActive=no
