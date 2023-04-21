@@ -92,12 +92,35 @@ class HistoryPurgePolicy:
     def __init__(self, tasks, value):
         self.tasks = tasks
         self.value = value
+        self.removed_tasks = 0
+        self.retrieved_size = 0
 
     def run(self):
         raise NotImplementedError()
 
+    @staticmethod
+    def directory_size(path):
+        total = 0
+        with os.scandir(path) as it:
+            for entry in it:
+                if entry.is_file():
+                    total += entry.stat().st_size
+                elif entry.is_dir():
+                    total += HistoryPurgePolicy.directory_size(entry.path)
+        return total
+
     def remove(self, task):
+        self.removed_tasks += 1
+        self.retrieved_size += HistoryPurgePolicy.directory_size(task.place)
         shutil.rmtree(task.place)
+
+    def report(self):
+        logger.info(
+            "Purge policy has removed %d task(s) workspace(s) and retrieved "
+            "%.3fMB",
+            self.removed_tasks,
+            self.retrieved_size / 1024 ** 2,
+        )
 
 
 class HistoryPurgeOlder(HistoryPurgePolicy):
@@ -251,22 +274,11 @@ class HistoryPurgeSize(HistoryPurgePolicy):
             )
         self.value = int(quantity * multiplier)
 
-    @staticmethod
-    def directory_size(path):
-        total = 0
-        with os.scandir(path) as it:
-            for entry in it:
-                if entry.is_file():
-                    total += entry.stat().st_size
-                elif entry.is_dir():
-                    total += HistoryPurgeSize.directory_size(entry.path)
-        return total
-
     def run(self):
         measured_size = 0
         for task in self.tasks:
             if measured_size < self.value:
-                measured_size += HistoryPurgeSize.directory_size(task.place)
+                measured_size += HistoryPurgePolicy.directory_size(task.place)
             if measured_size >= self.value:
                 logger.info(
                     "removing task %s workspace above size limit %d bytes",
@@ -379,3 +391,4 @@ class HistoryManager:
             self.conf.tasks.purge_value,
         )
         policy.run()
+        policy.report()
