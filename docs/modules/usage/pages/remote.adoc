@@ -65,6 +65,10 @@ this table:
 |✅
 |❌
 
+|Purge tasks workspaces history
+|✅
+|❌
+
 |Create keyring
 |✅
 |❌
