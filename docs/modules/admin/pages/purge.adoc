@@ -1,0 +1,77 @@
+# Tasks History Purge
+
+With tasks being gradually submitted to Fatbuildr, it creates workspaces
+directories with files used during their processing and metadata files. With
+usage going on, these workspaces directories can become abundant and require a
+significant storage space. To perform regular cleanup of tasks history,
+Fatbuildr offers the possibility to setup a purge policy to remove old tasks
+according to multiple criterias.
+
+## Policies
+
+The policy is defined on server side in xref:conf.adoc[system configuration
+file], in the `[tasks]` section with the `purge` parameter. This setting is
+shared by all instances defined on the host. The value of the parameter must
+include the name of the selected policy and its associated limit value,
+separated by colon (`:`).
+
+The purge policies available in Fatbuildr are the following:
+
+* `older`: This purge policy removes all tasks workspaces whose *submission time
+  is older* than the duration specified in the limit value. The format of the
+  duration must be an integer followed by a unit among `h` (hours), `d` (days),
+  `m` (months) or `y` (years).
++
+_Examples:_ `older:4h`, `older:7d`, `older:3m`.
+* `last`: This purge policy removes all tasks *except the last _n_ tasks* where
+  _n_ is the specified limit value. This limit value must be an integer.
++
+_Examples:_ `last:10`, `last:500`.
+* `size`: This purge policy removes the oldest tasks whose *cumulative size
+  exceeds* the specified limit value. The format of the size limit is an integer
+  followed by a unit among `Mb` (megabits), `MB` (megabytes), `Gb` (gigabits),
+  `GB` (gigabytes), `Tb` (terabits) or `TB` (terabytes).
++
+_Examples:_ `size:50MB`, `size:100Gb`.
+* `each`: This purge policy removes the all tasks *except the last _n_ tasks of
+  each distinctive type*. For example, it can keep the last 3 build tasks of an
+  artifact with a given format, distribution, derivative combination. The limit
+  value must be an integer.
++
+_Examples:_ `each:3`, `each:10`.
+
+When the purge policy is defined in system configuration, it can be triggered by
+submitting an history purge task with this command:
+
+[source,console]
+----
+$ fatbuildrctl history purge [-w,--watch]
+----
+
+## Automatic purge
+
+For automatic purge of tasks history, a cronjob can be setup to submit an
+history purge task on a regular basis. An example of such cronjob is provided
+with Fatbuildr, it can be installed with the following command:
+
+[source,console]
+----
+# cp /usr/share/doc/fatbuildr/examples/cronjobs/fatbuildr-purge /etc/cron.d/fatbuildr-purge
+----
+
+This example cronjob purges the tasks history of default instance every nights
+at 2am. It can be easily modified to purge tasks history of other instances,
+for example:
+
+[source,patch]
+----
+--- a/etc/cron.d/fatbuildr-purge
++++ b/etc/cron.d/fatbuildr-purge
+@@ -1,4 +1,5 @@
+ # Example cronjob to purge Fatbuildr tasks history in default instance every
+ # nights at 2am.
+ 
+-0 2 * * * fatbuildr /usr/bin/fatbuildrctl history purge
++0 2 * * * fatbuildr /usr/bin/fatbuildrctl --uri dbus://system/staging history purge
++0 3 * * * fatbuildr /usr/bin/fatbuildrctl --uri dbus://system/prod history purge
+----
