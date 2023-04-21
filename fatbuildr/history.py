@@ -92,11 +92,19 @@ class HistoryManager:
         """Returns up to limit last tasks found in archives directory."""
         tasks = []
 
+        queued_tasks = [task.id for task in self.instance.tasks_mgr.fullqueue]
+
         # Return empty list if directory does not exist
         if not self.path.exists():
             return tasks
 
         for task_dir in self.path.iterdir():
+            if not task_dir.is_dir():
+                logger.debug("skipping non directory %s", task_dir)
+                continue
+            if task_dir.name in queued_tasks:
+                logger.debug("skipping queued task workspace %s", task_dir)
+                continue
             try:
                 form = TaskForm.fromArchive(task_dir)
 

@@ -100,6 +100,21 @@ class ServerTasksManager:
     def empty(self):
         self.queue.empty()
 
+    @property
+    def fullqueue(self):
+        """Returns the list of running and pending tasks."""
+        queue = self.queue.dump()
+        running = self.running
+        # The task could have been selected for running right after the queue is
+        # dumped. To avoid duplication of tasks in the resulting list, the
+        # presence of the running task is checked in queue dump before
+        # insertion.
+        if running is not None and running.id not in [
+            task.id for task in queue
+        ]:
+            queue.insert(0, running)
+        return queue
+
     def save(self):
         tasks = self.queue.dump()
         if not len(tasks):
