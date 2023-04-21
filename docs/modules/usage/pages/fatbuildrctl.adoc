@@ -167,8 +167,37 @@ for _osi_ format artifacts as this format does not contain changelogs.
 
 *history*::
 
-  List history 10 last terminated tasks with their parameters.
+  Manage tasks history.
++
+--
+This command accepts the following subcommands:
 
+*list*::
+  List last 10 terminated tasks in history with all their parameters. This is
+  the default subcommand.
+
+*purge*::
+  Submit task to purge tasks history with their workspaces according to the
+  policy defined on server side.
+
+The command accepts the following options:
+
+*-w, --watch*::
+  Wait for purge task to run and print its output until it is over.
+
+*Examples:*
+
+`$ fatbuildrctl history`::
+`$ fatbuildrctl history list`::
+  List last 10 terminated tasks in history with all their parameters.
+
+`$ fatbuildrctl history purge`::
+  Submit task to purge tasks history with their workspaces according to the
+  policy defined on server side in background.
+
+`$ fatbuildrctl history purge --watch`::
+  Submit task to purge tasks history and watch its output until its completion.
+--
 *images*::
 
   Manage container images and build environments. One operation among the
