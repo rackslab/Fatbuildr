@@ -17,12 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import re
+import os
+import shutil
+from datetime import datetime
 from pathlib import Path
 
 import yaml
 
 from .tasks import RunnableTask
 from .protocols.exports import ProtocolRegistry
+from .errors import FatbuildrSystemConfigurationError
 from .log import logr
 
 logger = logr(__name__)
@@ -72,8 +77,8 @@ class ArchivedTask(RunnableTask):
             if not hasattr(self, field):
                 setattr(self, field, value)
         self.histid = '-'.join(
-            [self.TASK_NAME] +
-            [
+            [self.TASK_NAME]
+            + [
                 getattr(self, field.name)
                 for field in ProtocolRegistry().task_fields(self.TASK_NAME)
                 if field.histid
@@ -81,8 +86,226 @@ class ArchivedTask(RunnableTask):
         )
 
 
+class HistoryPurgePolicy:
+    """Abstract history purge policy class."""
+
+    def __init__(self, tasks, value):
+        self.tasks = tasks
+        self.value = value
+
+    def run(self):
+        raise NotImplementedError()
+
+    def remove(self, task):
+        shutil.rmtree(task.place)
+
+
+class HistoryPurgeOlder(HistoryPurgePolicy):
+    """History purge policy to remove all tasks workspaces older than a
+    duration."""
+
+    def __init__(self, tasks, value):
+        super().__init__(tasks, value)
+        m = re.search(r'(\d+)([a-z])', value)
+        if m is None:
+            raise FatbuildrSystemConfigurationError(
+                f"history purge older policy value '{value}' is not supported"
+            )
+
+        quantity = int(m.group(1))
+        unit = m.group(2)
+        if unit == 'h':
+            multiplier = 3600
+        elif unit == 'd':
+            multiplier = 86400
+        elif unit == 'm':
+            multiplier = 86400 * 30
+        elif unit == 'y':
+            multiplier = 86400 * 365
+        else:
+            raise FatbuildrSystemConfigurationError(
+                f"history purge older policy unit '{unit}' is not supported"
+            )
+        self.value = datetime.fromtimestamp(
+            datetime.now().timestamp() - quantity * multiplier
+        )
+
+    def run(self):
+        for task in self.tasks:
+            if task.submission < self.value:
+                logger.info(
+                    "removing task %s workspace with submission %s before %s",
+                    task.id,
+                    task.submission.isoformat(),
+                    self.value.isoformat(),
+                )
+                self.remove(task)
+            else:
+                logger.info(
+                    "keeping task %s workspace with submission %s after %s",
+                    task.id,
+                    task.submission.isoformat(),
+                    self.value.isoformat(),
+                )
+
+
+class HistoryPurgeLast(HistoryPurgePolicy):
+    """History purge policy to remove all tasks workspaces except the last n."""
+
+    def __init__(self, tasks, value):
+        super().__init__(tasks, value)
+        try:
+            self.value = int(value)
+        except ValueError:
+            raise FatbuildrSystemConfigurationError(
+                f"history purge last policy value '{value}' is not supported"
+            )
+
+    def run(self):
+        kept = 0
+        for task in self.tasks:
+            if kept < self.value:
+                logger.info(
+                    "keeping task %s number %d among last %d tasks",
+                    task.id,
+                    kept + 1,
+                    self.value,
+                )
+                kept += 1
+                continue
+            logger.info(
+                "removing task %s workspace out of last %d tasks",
+                task.id,
+                self.value,
+            )
+            self.remove(task)
+
+
+class HistoryPurgeEach(HistoryPurgePolicy):
+    """History purge policy to keep only the last n workspaces of each tasks."""
+
+    def __init__(self, tasks, value):
+        super().__init__(tasks, value)
+        try:
+            self.value = int(value)
+        except ValueError:
+            raise FatbuildrSystemConfigurationError(
+                f"history purge each policy value '{value}' is not supported"
+            )
+
+    def run(self):
+        tasks = dict()
+        for task in self.tasks:
+            if task.histid not in tasks:
+                tasks[task.histid] = 1
+            else:
+                tasks[task.histid] += 1
+            if tasks[task.histid] > self.value:
+                logger.info(
+                    "removing task %s (%s) workspace above each limit %d",
+                    task.id,
+                    task.histid,
+                    self.value,
+                )
+                self.remove(task)
+            else:
+                logger.info(
+                    "keeping task %s (%s) workspace number %d below each limit "
+                    "%d",
+                    task.id,
+                    task.histid,
+                    tasks[task.histid],
+                    self.value,
+                )
+
+
+class HistoryPurgeSize(HistoryPurgePolicy):
+    """History purge policy to remove older tasks until the whole history is a
+    size limit."""
+
+    def __init__(self, tasks, value):
+        super().__init__(tasks, value)
+        m = re.search(r"(\d+(.\d+)?)(TB|Tb|GB|Gb|MB|Mb)", value)
+        if m is None:
+            raise FatbuildrSystemConfigurationError(
+                f"history purge size policy value '{value}' is not supported"
+            )
+
+        quantity = float(m.group(1))
+        unit = m.group(3)
+        if unit == 'Mb':
+            multiplier = (10 ** 6) / 8
+        elif unit == 'MB':
+            multiplier = 1024 ** 2
+        elif unit == 'Gb':
+            multiplier = (10 ** 9) / 8
+        elif unit == 'GB':
+            multiplier = 1024 ** 3
+        elif unit == 'Tb':
+            multiplier = (10 ** 12) / 8
+        elif unit == 'TB':
+            multiplier = 1024 ** 4
+        else:
+            raise FatbuildrSystemConfigurationError(
+                f"history purge size policy unit '{unit}' is not supported"
+            )
+        self.value = int(quantity * multiplier)
+
+    @staticmethod
+    def directory_size(path):
+        total = 0
+        with os.scandir(path) as it:
+            for entry in it:
+                if entry.is_file():
+                    total += entry.stat().st_size
+                elif entry.is_dir():
+                    total += HistoryPurgeSize.directory_size(entry.path)
+        return total
+
+    def run(self):
+        measured_size = 0
+        for task in self.tasks:
+            if measured_size < self.value:
+                measured_size += HistoryPurgeSize.directory_size(task.place)
+            if measured_size >= self.value:
+                logger.info(
+                    "removing task %s workspace above size limit %d bytes",
+                    task.id,
+                    self.value,
+                )
+                self.remove(task)
+            else:
+                logger.info(
+                    "keeping task %s workspace with measured size %s bytes "
+                    "below size limit %d bytes",
+                    task.id,
+                    measured_size,
+                    self.value,
+                )
+
+
+class HistoryPurgeFactory:
+
+    _policies = {
+        'older': HistoryPurgeOlder,
+        'last': HistoryPurgeLast,
+        'each': HistoryPurgeEach,
+        'size': HistoryPurgeSize,
+    }
+
+    @staticmethod
+    def get(mgr, policy, value):
+        """Returns the HistoryPurge corresponding to the given policy."""
+        if policy not in HistoryPurgeFactory._policies:
+            raise FatbuildrSystemConfigurationError(
+                f"policy {policy} is not supported"
+            )
+        return HistoryPurgeFactory._policies[policy](mgr, value)
+
+
 class HistoryManager:
     def __init__(self, conf, instance):
+        self.conf = conf
         self.instance = instance
         self.path = conf.tasks.workspaces.joinpath(instance.id)
 
@@ -146,3 +369,13 @@ class HistoryManager:
             return tasks[:limit]
         else:
             return tasks
+
+    def purge(self):
+        """Purge tasks history with the policy and its limit value defined in
+        configuration."""
+        policy = HistoryPurgeFactory.get(
+            self.dump(limit=0),
+            self.conf.tasks.purge_policy,
+            self.conf.tasks.purge_value,
+        )
+        policy.run()
