@@ -40,6 +40,13 @@ ResultAny=yes
 ResultInactive=yes
 ResultActive=yes
 
+[Allow members of fatbuildr group to purge Fatbuildr tasks history]
+Identity=unix-group:fatbuildr
+Action=org.rackslab.Fatbuildr.purge-history;
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+
 [Allow members of fatbuildr group to view Fatbuildr keyring]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.view-keyring;

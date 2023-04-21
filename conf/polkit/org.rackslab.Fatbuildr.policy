@@ -95,6 +95,17 @@
                 <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
         </action>
 
+        <action id="org.rackslab.Fatbuildr.purge-history">
+                <description>Purge Fatbuildr tasks history</description>
+                <message>Authentication is required to purge Fatbuildr tasks history</message>
+                <defaults>
+                        <allow_any>auth_admin</allow_any>
+                        <allow_inactive>auth_admin</allow_inactive>
+                        <allow_active>auth_admin_keep</allow_active>
+                </defaults>
+                <annotate key="org.freedesktop.policykit.owner">unix-user:fatbuildr</annotate>
+        </action>
+
         <action id="org.rackslab.Fatbuildr.manage-image">
                 <description>Manage Fatbuildr images and build environments</description>
                 <message>Authentication is required to manage Fatbuildr images and build environments</message>

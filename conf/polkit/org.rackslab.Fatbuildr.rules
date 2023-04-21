@@ -6,6 +6,7 @@ polkit.addRule(function(action, subject) {
          action.id == "org.rackslab.Fatbuildr.view-pipeline" ||
          action.id == "org.rackslab.Fatbuildr.view-registry" ||
          action.id == "org.rackslab.Fatbuildr.edit-registry" ||
+         action.id == "org.rackslab.Fatbuildr.purge-history" ||
          action.id == "org.rackslab.Fatbuildr.view-keyring" ||
          action.id == "org.rackslab.Fatbuildr.edit-keyring" ||
          action.id == "org.rackslab.Fatbuildr.manage-image" ||
