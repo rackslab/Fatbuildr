@@ -331,7 +331,7 @@ class HistoryManager:
         form = TaskForm(**fields)
         form.save(task.place)
 
-    def dump(self, limit):
+    def dump(self, limit, remove_malformed=False):
         """Returns up to limit last tasks found in archives directory."""
         tasks = []
 
@@ -365,10 +365,15 @@ class HistoryManager:
 
             except FileNotFoundError as err:
                 logger.error(
-                    "Unable to load malformed build archive %s: %s",
+                    "Unable to load malformed task directory %s: %s",
                     task_dir,
                     err,
                 )
+                if remove_malformed:
+                    logger.info(
+                        "Removing malformed task directory %s", task_dir
+                    )
+                    shutil.rmtree(task_dir)
             except (AttributeError, KeyError) as err:
                 logger.error(
                     "Unable to load unsupported task %s: %s",
@@ -386,7 +391,7 @@ class HistoryManager:
         """Purge tasks history with the policy and its limit value defined in
         configuration."""
         policy = HistoryPurgeFactory.get(
-            self.dump(limit=0),
+            self.dump(limit=0, remove_malformed=True),
             self.conf.tasks.purge_policy,
             self.conf.tasks.purge_value,
         )
