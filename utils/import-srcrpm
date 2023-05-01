@@ -30,6 +30,7 @@ import logging
 from dataclasses import dataclass
 import urllib
 import difflib
+import mimetypes
 
 import yaml
 
@@ -71,14 +72,23 @@ class SectionToReplace:
     over: bool = False
 
 
+def is_archive(path: Path):
+    mimetype = mimetypes.guess_type(str(path))[0]
+    logger.debug("File %s mimetype: %s", path, mimetype)
+    return mimetype in ['application/zip', 'application/x-tar']
+
+
 @dataclass
 class RPMSource:
-    def __init__(self, value: str):
+    def __init__(self, value: str, software_dir: Path):
         self.value = value
         url = urllib.parse.urlparse(self.value)
         self.scheme = url.scheme
-        self.path = Path(url.path)
         self.url = url.geturl()
+        if url.fragment != '':
+            self.path = Path(url.fragment)
+        else:
+            self.path = Path(url.path)
         filename = self.path.stem
         # handle the case of compressed tarballs with 2 suffixes
         if filename.endswith('.tar'):
@@ -89,6 +99,7 @@ class RPMSource:
             self.version = filename_components[1]
         else:
             self.version = str(-1)
+        self.is_archive = is_archive(software_dir / self.path.name)
 
     def __repr__(self):
         return f"{{id: {self.id}, version: {self.version}, url: {self.url}}}"
@@ -140,8 +151,9 @@ def import_src_rpm(
 
     spec_content = proc.stdout.decode()
 
-    # search for sources in spec content
-    sources = []
+    # Search for patches, archive and plain sources in spec content
+    archive_sources = []
+    plain_sources = []
     patches = []
     for spec_line in spec_content.split('\n'):
         m = re.match(r"Source(\d+)?:\s+(.+)$", spec_line)
@@ -149,20 +161,28 @@ def import_src_rpm(
             first_source = False
             if m.group(1) is None or m.group(1) == '0':
                 first_source = True
-            source = RPMSource(m.group(2))
+            source = RPMSource(m.group(2), software_dir)
             if first_source:
                 source.id = software
                 source.version = version
-            sources.append(source)
+            if source.is_archive:
+                archive_sources.append(source)
+            else:
+                plain_sources.append(source)
         m = re.match(r"Patch(\d+)?:\s+(.+)$", spec_line)
         if m:
             patches.append(m.group(2))
 
-    logger.info("sources: %s patches: %s", sources, patches)
+    logger.info(
+        "archive sources: %s plain sources: %s patches: %s",
+        archive_sources,
+        plain_sources,
+        patches,
+    )
 
-    for source in sources:
+    for source in archive_sources:
         if source.scheme == '':
-            logger.warning("Source is not a valid URL: %s", source.url)
+            logger.warning("Archive source is not a valid URL: %s", source.url)
 
     # Generate the spec with Fatbuildr templating tokens
 
@@ -251,14 +271,14 @@ def import_src_rpm(
         fh.write(generated_spec)
 
     # define content of YAML artifact definition file artifact.yml
-    if len(sources) < 2:
+    if len(archive_sources) < 2:
         defs_content = {
             'version': version,
-            'source': sources[0].url.replace(version, '{{ version }}'),
+            'source': archive_sources[0].url.replace(version, '{{ version }}'),
             'checksums': {
                 version: {
                     'sha256': sha256_checksum(
-                        software_dir / os.path.basename(sources[0].path)
+                        software_dir / os.path.basename(archive_sources[0].path)
                     ),
                 },
             },
@@ -268,10 +288,12 @@ def import_src_rpm(
         }
     else:
         defs_content = {
-            'versions': {source.id: source.version for source in sources},
+            'versions': {
+                source.id: source.version for source in archive_sources
+            },
             'sources': {
                 source.id: source.url.replace(source.version, '{{ version }}')
-                for source in sources
+                for source in archive_sources
             },
             'checksums': {
                 source.id: {
@@ -281,7 +303,7 @@ def import_src_rpm(
                         )
                     }
                 }
-                for source in sources
+                for source in archive_sources
             },
             'rpm': {
                 'release': release,
@@ -301,16 +323,25 @@ def import_src_rpm(
             patches_dir / (f"{number+1:04}- " + patch)
         )
 
-    # move sources tarballs in in tarballs destination directory
-    for source in sources:
-        source_filename = os.path.basename(source.path)
+    # move sources tarballs in tarballs destination directory
+    for source in archive_sources:
         logger.info(
-            "Moving source %s to %s",
-            (software_dir / source_filename),
+            "Moving archive source %s to %s",
+            (software_dir / source.path.name),
             tarballs_dest,
         )
-        (software_dir / source_filename).replace(
-            tarballs_dest / source_filename
+        (software_dir / source.path.name).replace(
+            tarballs_dest / source.path.name
+        )
+    # move plain sources in rpm subdirectory
+    for source in plain_sources:
+        logger.info(
+            "Moving plain source %s to %s",
+            (software_dir / source.path.name),
+            (software_dir / 'rpm'),
+        )
+        (software_dir / source.path.name).replace(
+            software_dir / 'rpm' / source.path.name
         )
 
     # import patches in git
