@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   pbuilder hook and mock plugin respectively (#74)
 - Add possibility to purge tasks history and their workspaces directories with
   multiple configurable policies (#34)
+- Add support of plain files as additional sources in RPM packages (#86)
 - conf:
   - Add `[tokens]` section with settings to control generation and
     validation of JWT tokens.
@@ -51,7 +52,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add support of HTTP/404 REST API response codes.
 - prefs: add optional `tokens` parameter in the `prefs` section for specifying
   the path of user's tokens directory.
-- utils: Add support of multiple sources archives in `import-srcrpm`
+- utils:
+  - Add support of multiple sources archives in `import-srcrpm`.
+  - Add support of plain files as RPM packages sources in `import-srcrpm`.
 - pkgs: add dependency on PyJWT python external library for managing JWT tokens.
 - docs:
   - Document `tokens` command in `fatbuildrctl` manpage.
@@ -82,7 +85,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add page about tasks history purge capabilities with the various policies,
     the expected format of the limit value in configuration parameter and a
     quick howto setup regular automatic purge with a cronjob.
-  - Add example cronjob for automatic regular tasks history purge
+  - Add example cronjob for automatic regular tasks history purge.
+  - Mention possibility to have additional plain files in the `rpm` subdirectory
+    of artifacts definitions repository.
 
 ### Fixed
 - Static analysis errors reported by ruff tool with a simple initial
