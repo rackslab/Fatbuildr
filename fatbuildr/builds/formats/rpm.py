@@ -32,6 +32,9 @@ SOURCES_DECL_TPL = """
 {% for source in sources %}
 Source{{ loop.index0 }}: {{ source.path.name }}
 {% endfor %}
+{% for plain_file in plain_files %}
+Source{{ loop.index0 + sources|length }}: {{ plain_file.name }}
+{% endfor %}
 """
 
 SOURCES_PREP_TPL = """
@@ -175,9 +178,21 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         patches_decl = ""
         patches_prep = ""
 
+        plain_files = [
+            path
+            for path in self.place.joinpath('rpm').glob('*')
+            if path.is_file() and path.name != self.spec_basename
+        ]
+        if len(plain_files):
+            logger.debug(
+                "Found additional plain files as sources for source RPM: %s",
+                plain_files,
+            )
+
         sources_decl = templater.srender(
             SOURCES_DECL_TPL,
             sources=self.archives + self.prescript_tarballs,
+            plain_files=plain_files,
         )
 
         sources_prep = templater.srender(
@@ -282,6 +297,13 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                     "Moving source archive from %s to %s", archive.path, source
                 )
                 archive.path = archive.path.rename(source)
+
+        for plain_file in plain_files:
+            source = self.source_path.joinpath(plain_file.name)
+            logger.info(
+                "Moving source archive from %s to %s", plain_file, source
+            )
+            plain_file = plain_file.rename(source)
 
         # run SRPM build
         cmd = [
