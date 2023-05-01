@@ -418,6 +418,18 @@ Fatbuildr at build time by concatenating the changelog of the same artifact
 currently available in managed repository for the targeted distribution, or none
 if absent, and the changelog entry generated with current build metadata.
 
+The `rpm/` subdirectory can also contain plain files. These plain files are
+automatically declared as additional sources (eg. `Source1`, `Source2`, etc) in
+the spec file for the source RPM by the `sources` variable.
+
+TIP: The additional plain files can be manipulated in the `%install` and
+`%files` sections with pass:q[`%{_sourcedir}`] macro. For example, use
+pass:q[`%{_sourcedir}/foo`] for the plain file `foo` in the `rpm/` subdirectory.
+Usage of the traditional pass:q[`%{SOURCE1}`], … pass:q[`%{SOURCEn}`] macros are
+not recommended as other sources can be added dynamically at build time by
+Fatbuildr (_ex:_ xref:srctree.adoc#multi[multi-sources packages],
+xref:#prescript[prescript tarballs], etc) and the source offset can be shifted.
+
 === OSI images
 
 For mkosi OS images, an `osi/` subdirectory must be present in artifact
