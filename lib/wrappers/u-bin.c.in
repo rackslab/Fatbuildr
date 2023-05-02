@@ -35,8 +35,10 @@ int main(int argc, char **argv) {
 
     if (fork() == 0) {
         /* Become root before executing the command */
-        setuid(0);
-        setgid(0);
+        if(setuid(0))
+            perror("setuid");
+        if(setgid(0))
+            perror("setgid");
         if(execv(nargv[0], nargv))
             perror("execv");
         /* Exit code 255 if execve() fails */

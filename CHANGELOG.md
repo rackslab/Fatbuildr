@@ -93,7 +93,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Static analysis errors reported by ruff tool with a simple initial
   configuration (#75).
 - Properly remove deprecated source RPM packages from repository after a
-  successful build (#58)
+  successful build (#58).
+- Compiler `-Wunused-result` warnings with binary wrappers (#70).
 - cli:
   - Avoid hazardous handling of unsupported errors, as a basis for better
     error management.
