@@ -172,6 +172,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Adapt artifact definitions and packaging code for fatbuildr and its
     dependencies to new format defined for multiple sources support.
   - Replace fatbuildr prescript with a supplementary source for bootstrap.
+  - Bump dasbus dependency to latest version 1.7 (#67).
 - examples: Change hello package artifact definition to new format defined for
   multiple sources support.
 
