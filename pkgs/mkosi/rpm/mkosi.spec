@@ -5,7 +5,7 @@ Summary:        Create bespoke OS images
 
 License:        LGPLv2+
 URL:            https://github.com/systemd/mkosi
-{{ source }}
+{{ sources }}
 {{ patches }}
 
 BuildArch:      noarch
@@ -52,8 +52,7 @@ are used by default, though MBR disk labels are supported, and only
 systemd based images may be generated.
 
 %prep
-#%autosetup -p1
-{{ prep_sources }}
+{{ prep_sources }}
 {{ prep_patches }}
 
 %build

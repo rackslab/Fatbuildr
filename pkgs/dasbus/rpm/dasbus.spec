@@ -10,7 +10,7 @@ Summary:        DBus library in Python 3
 
 License:        LGPLv2+
 URL:            https://pypi.python.org/pypi/dasbus
-{{ source }}
+{{ sources }}
 {{ patches }}
 
 BuildArch:      noarch
@@ -36,7 +36,8 @@ Requires:       python3-gobject-base
 %description -n python3-%{srcname} %{_description}
 
 %prep
-%autosetup -n %{srcname}-%{version}
+{{ prep_sources }}
+{{ prep_patches }}
 
 %build
 %py3_build

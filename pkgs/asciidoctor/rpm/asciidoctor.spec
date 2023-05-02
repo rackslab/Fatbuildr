@@ -10,7 +10,7 @@ Version: {{ version }}
 Release: {{ release }}
 License: MIT
 URL: https://asciidoctor.org
-{{ source }}
+{{ sources }}
 {{ patches }}
 BuildRequires: rubygems-devel
 BuildRequires: ruby(rubygems)
@@ -40,7 +40,8 @@ BuildArch: noarch
 Documentation for %{name}
 
 %prep
-%autosetup -n %{gem_name}-%{version}%{pre} -p1
+{{ prep_sources }}
+{{ prep_patches }}
 
 # Include tests in the gem, they're disabled by default
 sed -i -e 's/#\(s\.test_files\)/\1/' %{gem_name}.gemspec
