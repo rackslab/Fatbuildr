@@ -1,0 +1,30 @@
+Description: Use Fedora generic keyring for all Fedora releases since
+Last-Update: 2023-05-02
+Author: Rémi Palancher <remi@rackslab.io>
+
+
+diff --git a/mkosi/__init__.py b/mkosi/__init__.py
+index eb0397b..76cf5a4 100644
+--- a/mkosi/__init__.py
++++ b/mkosi/__init__.py
+@@ -2118,19 +2118,8 @@ def install_fedora(state: MkosiState) -> None:
+         # In other versions, the "fedora" repo is frozen at release, and "updates" provides any new packages.
+         updates_url = None
+ 
+-    if releasever in FEDORA_KEYS_MAP:
+-        key = FEDORA_KEYS_MAP[releasever]
+-
+-        # The website uses short identifiers for Fedora < 35: https://pagure.io/fedora-web/websites/issue/196
+-        if int(releasever) < 35:
+-            key = FEDORA_KEYS_MAP[releasever][-8:]
+-
+-        gpgid = f"keys/{key}.txt"
+-    else:
+-        gpgid = "fedora.gpg"
+-
+     gpgpath = Path(f"/etc/pki/rpm-gpg/RPM-GPG-KEY-fedora-{releasever}-{state.config.architecture}")
+-    gpgurl = urllib.parse.urljoin("https://getfedora.org/static/", gpgid)
++    gpgurl = "https://getfedora.org/fedora.gpg"
+ 
+     repos = [Repo("fedora", release_url, gpgpath, gpgurl)]
+     if updates_url is not None:
