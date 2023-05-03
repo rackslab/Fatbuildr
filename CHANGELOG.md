@@ -134,8 +134,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     optional multiple sources for packages artifacts.
   - The RPM spec file token `{{ source }}` is replaced by `{{ sources }}` to
     declare possibly multiple sources.
-- conf: replaced `queue` and `archives` parameters in `[dirs]` section of system
-  configuration by `workspaces` parameter in `[tasks]` section.
+- conf:
+  - Replaced `queue` and `archives` parameters in `[dirs]` section of system
+    configuration by `workspaces` parameter in `[tasks]` section.
+  - Bump Fedora release from 37 to 38 in rpm and osi container images (#96).
 - dbus: Replace `Archives()` by `History()` method in
   `org.rackslab.Fatbuildr.Instance` object to avoid confusion with the notion of
   source archives.
