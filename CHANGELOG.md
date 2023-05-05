@@ -169,6 +169,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     default paths.
   - Replace notion of _archives_ by _history_ to designate the list of
     terminated tasks.
+  - Update support fedora release in quickstart guide to 37 and 38. Also update
+    example instance file to mention fedora 38 instead of fedora 36.
 - Rename `fatbuildr.web` module to `fatbuildr.procotols.http.server` for more
   proximity with `fatbuildr.procotols.http.client` code.
 - pkgs:

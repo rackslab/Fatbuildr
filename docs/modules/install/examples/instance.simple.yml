@@ -16,6 +16,6 @@ formats:
   - name: el8
     env: rocky-8
     tag: el8
-  - name: fc36
-    env: fedora-36
-    tag: fc36
+  - name: fc38
+    env: fedora-38
+    tag: fc38
