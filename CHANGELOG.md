@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2023-05-05
+
 ### Added
 - web: add JWT token based authentication with RBAC policy for managing access
   permissions to the REST API and the HTML web endpoints (#21). Fatbuildr
@@ -226,6 +228,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2022-09-05
 
-[unreleased]: https://github.com/rackslab/fatbuildr/compare/v1.0.0...HEAD
+[unreleased]: https://github.com/rackslab/fatbuildr/compare/v2.0.0...HEAD
+[2.0.0]: https://github.com/rackslab/fatbuildr/releases/tag/v2.0.0
 [1.1.0]: https://github.com/rackslab/fatbuildr/releases/tag/v1.1.0
 [1.0.0]: https://github.com/rackslab/fatbuildr/releases/tag/v1.0.0
