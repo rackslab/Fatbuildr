@@ -183,6 +183,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - examples: Change hello package artifact definition to new format defined for
   multiple sources support.
 
+### Removed
+
+- pkgs: removed support of Fedora 36
+- docs: removed mention of Fedora 36 in quickstart guide
+
 ## [1.1.0] - 2023-03-13
 
 ### Added
