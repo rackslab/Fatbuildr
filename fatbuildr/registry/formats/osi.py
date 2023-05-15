@@ -64,9 +64,10 @@ class RegistryOsi(Registry):
         RegistryOsi.ensure_directory(derivative_path)
 
         built_files = [
-            build.place.joinpath(_path) for _path in RegistryOsi.CHECKSUMS_FILES
+            build.subdir.joinpath(_path)
+            for _path in RegistryOsi.CHECKSUMS_FILES
         ]
-        built_files.extend([_path for _path in build.place.glob('*.tar.*')])
+        built_files.extend([_path for _path in build.subdir.glob('*.tar.*')])
         logger.debug("Found files: %s", ' '.join(built_files.name))
 
         for src in built_files:
@@ -86,7 +87,7 @@ class RegistryOsi(Registry):
             )
             if not f_re:
                 logger.warning(
-                    "File %s does not match OSI artifact regular " "expression",
+                    "File %s does not match OSI artifact regular expression",
                     _path.name,
                 )
                 continue

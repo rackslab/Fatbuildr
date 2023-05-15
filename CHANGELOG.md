@@ -21,6 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   caused by unavailability of DBus system session (#103).
 - Fix GPG keys unsupported filetype error when running `apt-get update` on build
   of Debian OSI images due to missing `cmp` command (#104).
+- Search mkosi output image and checksum file in distro~release subdirectory in
+  OSI builds (#105).
 
 ## [2.0.0] - 2023-05-05
 
