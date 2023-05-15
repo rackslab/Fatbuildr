@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+- Fix crash on client side when loading artifact definition for OSI builds
+  (#100).
+
 ## [2.0.0] - 2023-05-05
 
 ### Added
@@ -184,7 +188,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   multiple sources support.
 
 ### Removed
-
 - pkgs: removed support of Fedora 36
 - docs: removed mention of Fedora 36 in quickstart guide
 

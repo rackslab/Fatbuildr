@@ -290,7 +290,7 @@ class ArtifactRpmDefs(ArtifactFormatDefs):
         return self.defs[self.format]['buildargs'].split(' ')
 
 
-class ArtifactOsiDefs(ArtifactDefs):
+class ArtifactOsiDefs(ArtifactFormatDefs):
     @property
     def release(self):
         """The release number is not expected in definition file for osi format,
