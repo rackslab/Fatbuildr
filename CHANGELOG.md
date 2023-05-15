@@ -10,6 +10,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
   (#100).
+- Fix crash due to concatation with incompatible types when defining the full
+  release for OSI build on server side (#101).
 
 ## [2.0.0] - 2023-05-05
 

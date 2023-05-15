@@ -294,8 +294,8 @@ class ArtifactOsiDefs(ArtifactFormatDefs):
     @property
     def release(self):
         """The release number is not expected in definition file for osi format,
-        then return hard-coded default value 0."""
-        return 0
+        then return hard-coded default value 0 as a string."""
+        return '0'
 
 
 class ArtifactDefsFactory:
