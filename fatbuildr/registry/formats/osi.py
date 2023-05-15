@@ -68,7 +68,10 @@ class RegistryOsi(Registry):
             for _path in RegistryOsi.CHECKSUMS_FILES
         ]
         built_files.extend([_path for _path in build.subdir.glob('*.tar.*')])
-        logger.debug("Found files: %s", ' '.join(built_files.name))
+        logger.debug(
+            "Found files: %s",
+            ' '.join([built_file.name for built_file in built_files]),
+        )
 
         for src in built_files:
             dst = derivative_path.joinpath(src.name)
