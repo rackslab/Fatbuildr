@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   release for OSI build on server side (#101).
 - Add `apt` command in container for OSI image to meet Debian and Ubuntu based
   images build requirements (#102).
+- Fix `systemd-nspawn` execution error through `mkosi` in OSI format container
+  caused by unavailability of DBus system session (#103).
 
 ## [2.0.0] - 2023-05-05
 

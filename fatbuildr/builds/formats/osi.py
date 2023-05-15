@@ -73,8 +73,19 @@ class ArtifactBuildOsi(ArtifactBuild):
                 f"Unable to find OS image definition file at {def_path}"
             )
 
+        # mkosi executes systemd-nspawn container to launch commands in the
+        # built image, eg. to remove documentation. By default, systemd-nspawn
+        # connects to DBus system session to register the container on
+        # systemd-machined service and obtain a specific unit dynamically.
+        # Unfortunately, this cannot work inside another container because DBus
+        # system session is not available. This makes systemd-nspawn and mkosi
+        # fail eventually. To avoid this error, mkosi is launched with
+        # --nspawn-keep-unit argument to make it execute underlying
+        # systemd-nspawn with option to avoid registration and communication on
+        # DBus system session.
         cmd = [
             self.image.builder,
+            '--nspawn-keep-unit',
             '--default',
             str(def_path),
             '--output-dir',
