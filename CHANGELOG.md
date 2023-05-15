@@ -7,6 +7,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add `man` command in OSI format container image.
+
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
   (#100).
