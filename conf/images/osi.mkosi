@@ -8,4 +8,4 @@ Format=directory
 [Content]
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
-Packages=rpm,dnf,mkosi,debootstrap,systemd-container
+Packages=mkosi,rpm,dnf,apt,debian-keyring,debootstrap,systemd-container

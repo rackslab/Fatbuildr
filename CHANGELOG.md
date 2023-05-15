@@ -12,6 +12,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   (#100).
 - Fix crash due to concatation with incompatible types when defining the full
   release for OSI build on server side (#101).
+- Add `apt` command in container for OSI image to meet Debian and Ubuntu based
+  images build requirements (#102).
 
 ## [2.0.0] - 2023-05-05
 
