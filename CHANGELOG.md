@@ -23,6 +23,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   of Debian OSI images due to missing `cmp` command (#104).
 - Search mkosi output image and checksum file in distro~release subdirectory in
   OSI builds (#105).
+- Fix permission error on OSI artifacts produced by mkosi by faking sudo
+  environment (#106).
 
 ## [2.0.0] - 2023-05-05
 
