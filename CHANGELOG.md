@@ -26,6 +26,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix permission error on OSI artifacts produced by mkosi by faking sudo
   environment (#106).
 - Fix AttributeError in fatbuildrd when publishing OSI artifacts (#107).
+- Make RegistryOsi ensure instance registry directory exists (#109).
 
 ## [2.0.0] - 2023-05-05
 

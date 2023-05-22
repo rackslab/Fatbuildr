@@ -56,10 +56,12 @@ class RegistryOsi(Registry):
             build.distribution, build.derivative
         )
         dist_path = derivative_path.parent
-        registry_path = dist_path.parent
+        format_registry_path = self.path
+        instance_registry_path = self.path.parent
 
-        # ensure registry (ie. osi) directory exists
-        RegistryOsi.ensure_directory(registry_path)
+        # ensure registry (ie. instance, osi, etc) directories exist
+        RegistryOsi.ensure_directory(instance_registry_path)
+        RegistryOsi.ensure_directory(format_registry_path)
         RegistryOsi.ensure_directory(dist_path)
         RegistryOsi.ensure_directory(derivative_path)
 
