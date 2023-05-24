@@ -9,6 +9,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 - Add `man` command in OSI format container image.
+- Additionally to `*.tar` images, publish OSI registry all other images formats 
+  supported by `mkosi` (#112).
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds

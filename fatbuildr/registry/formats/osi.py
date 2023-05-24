@@ -69,7 +69,12 @@ class RegistryOsi(Registry):
             build.subdir.joinpath(_path)
             for _path in RegistryOsi.CHECKSUMS_FILES
         ]
-        built_files.extend([_path for _path in build.subdir.glob('*.tar.*')])
+        # The possible extensions for mkosi output files are .qcow2, .raw, .tar
+        # and .cpio, possibly suffixed by compression algorithm (eg. .raw.xz).
+        for extension in ['qcow2', 'raw', 'tar', 'cpio']:
+            built_files.extend(
+                [_path for _path in build.subdir.glob(f"*.{extension}*")]
+            )
         logger.debug(
             "Found files: %s",
             ' '.join([built_file.name for built_file in built_files]),
