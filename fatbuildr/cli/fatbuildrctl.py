@@ -86,9 +86,21 @@ def prepare_tarball(apath, rundir: bool):
 
 
 def source_tarball_filter(tarinfo):
-    """Custom tar add filter to filter out .git and debian subdirectory from
-    source tarball."""
-    if '/.git' in tarinfo.name or '/debian' in tarinfo.name:
+    """Custom tar add filter to filter out .git directory, .git* files (eg.
+    .gitignore) and debian subdirectory from source tarball."""
+
+    # Extract filename from tarinfo.name without tarball top-level directory by
+    # removing part before the first OS separator. If the OS separator is not
+    # found in filename, then consider the whole filename.
+    try:
+        filename = tarinfo.name.split(os.sep, 1)[1]
+    except IndexError:
+        filename = tarinfo.name
+    if (
+        filename.startswith('.git')
+        or filename == 'debian'
+        or filename.startswith('debian/')
+    ):
         return None
     logger.debug("File added in archive: %s", tarinfo.name)
     return tarinfo
