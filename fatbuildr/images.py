@@ -51,12 +51,16 @@ class Image(object):
         return self.def_path.exists()
 
     @property
+    def format_conf(self):
+        return getattr(self.conf, self.format)
+
+    @property
     def builder(self):
-        return getattr(self.conf, self.format).builder
+        return self.format_conf.builder
 
     @property
     def prescript_deps(self):
-        return getattr(self.conf, self.format).prescript_deps
+        return self.format_conf.prescript_deps
 
     def create(self, task, force):
         """Create the image."""
@@ -131,9 +135,7 @@ class Image(object):
             )
         cmds = [
             _cmd.strip()
-            for _cmd in getattr(self.conf, self.format).img_update_cmds.split(
-                '&&'
-            )
+            for _cmd in self.format_conf.img_update_cmds.split('&&')
         ]
         for cmd in cmds:
             # Package manager must be run as root
@@ -163,7 +165,7 @@ class BuildEnv(object):
 
     @property
     def path(self):
-        env_path = getattr(self.conf, self.image.format).env_path
+        env_path = self.image.format_conf.env_path
         if env_path:
             return Templeter().srender(env_path, name=self.name)
 
@@ -184,7 +186,7 @@ class BuildEnv(object):
         )
 
         # check init_cmd is defined for this format
-        if getattr(self.conf, self.image.format).init_cmd is None:
+        if self.image.format_conf.init_cmd is None:
             raise RuntimeError(
                 f"Unable to create build environment {self.name} for "
                 f"architecture {self.architecture} in {self.image.format} "
@@ -199,9 +201,7 @@ class BuildEnv(object):
             # not defined in system configuration (it is not available for all
             # formats), fallback to None.
             try:
-                mirror = getattr(
-                    self.conf, self.image.format
-                ).env_default_mirror
+                mirror = self.image.format_conf.env_default_mirror
             except AttributeError:
                 mirror = None
 
@@ -213,17 +213,15 @@ class BuildEnv(object):
             # also not defined in system configuration (it is not available for
             # all formats), fallback to None.
             try:
-                components = getattr(
-                    self.conf, self.image.format
-                ).env_default_components
+                components = self.image.format_conf.env_default_components
             except AttributeError:
                 components = None
         # Define if the environment creation command must be run as root in
         # container.
-        asroot = getattr(self.conf, self.image.format).env_as_root
+        asroot = self.image.format_conf.env_as_root
 
         cmd = Templeter().srender(
-            getattr(self.conf, self.image.format).init_cmd,
+            self.image.format_conf.init_cmd,
             environment=self.environment,
             mirror=mirror,
             components=components,
@@ -242,7 +240,7 @@ class BuildEnv(object):
         )
         # Define if the environment update command must be run as root in
         # container.
-        asroot = getattr(self.conf, self.image.format).env_as_root
+        asroot = self.image.format_conf.env_as_root
         cmds = [
             Templeter().srender(
                 _cmd.strip(),
@@ -251,9 +249,7 @@ class BuildEnv(object):
                 name=self.name,
                 path=self.path,
             )
-            for _cmd in getattr(
-                self.conf, self.image.format
-            ).env_update_cmds.split('&&')
+            for _cmd in self.image.format_conf.env_update_cmds.split('&&')
         ]
         for cmd in cmds:
             task.cruncmd(self.image, cmd, init=True, asroot=asroot)
@@ -267,7 +263,7 @@ class BuildEnv(object):
             self.image.format,
         )
         cmd = Templeter().srender(
-            getattr(self.conf, self.image.format).shell_cmd,
+            self.image.format_conf.shell_cmd,
             environment=self.environment,
             architecture=self.native_architecture,
             name=self.name,
