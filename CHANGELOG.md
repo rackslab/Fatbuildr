@@ -11,6 +11,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add `man` command in OSI format container image.
 - Additionally to `*.tar` images, publish OSI registry all other images formats 
   supported by `mkosi` (#112).
+- Give the possibility to run OSI builds directly on host instead of container
+  to support images formats for which `mkosi` utility require access to loop
+  devices (#111).
+- conf: add `containerized` parameter in `[format:osi]` section.
+- doc: mention `containerized` parameter in `[format:osi]` section of system
+  configuration.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
