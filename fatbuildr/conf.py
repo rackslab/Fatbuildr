@@ -322,16 +322,19 @@ class RuntimeSubConfFormatOsi(object):
 
         self.builder = None
         self.img_update_cmds = None
+        self.containerized = None
 
     def load(self, config):
         section = 'format:osi'
         self.builder = config.get(section, 'builder')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
+        self.containerized = config.getboolean(section, 'containerized')
 
     def dump(self):
         logger.debug("[format:osi]")
         logger.debug("  builder: %s", self.builder)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
+        logger.debug("  containerized: %s", self.containerized)
 
 
 class RuntimeConfApp(object):
