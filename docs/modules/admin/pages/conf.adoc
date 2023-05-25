@@ -236,7 +236,28 @@ environment before prescripts are run.
 
 === `format:osi`
 
-There is no specific parameter for the OSI format.
+`containerized`:: Boolean to control if OSI images are built in container, or
+directly on `fatbuildrd` daemon host instead. Disabling this parameter help to
+support more OSI formats such as _raw_ or _squashfs_ images for which `mkosi`
+utility require access to _loop_ devices.
+
+[NOTE]
+====
+To build OSI images directly on host, in addition to `containerized`
+parameter with a negative value, it is recommended to change `builder` parameter
+value in the same section to run `mkosi` setuid wrapper as well:
+
+[source,ini]
+----
+[format:osi]
+builder = /usr/libexec/fatbuildr/u-mkosi
+containerized = no
+----
+
+For various reasons, `mkosi` utility requires the _root_ user permissions. This
+wrapper gives `fatbuildr` system user the expected permissions for `mkosi`
+executable.
+====
 
 == Default Values
 
