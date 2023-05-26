@@ -14,6 +14,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Give the possibility to run OSI builds directly on host instead of container
   to support images formats for which `mkosi` utility require access to loop
   devices (#111).
+- Support multiples OSI images in the checksum file published in the same
+  registry derivative directory (#114).
 - conf: add `containerized` parameter in `[format:osi]` section.
 - doc: mention `containerized` parameter in `[format:osi]` section of system
   configuration.
