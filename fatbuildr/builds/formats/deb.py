@@ -98,9 +98,6 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             self.artifact,
         )
 
-        # Add distribution release tag to targeted version
-        self.version.dist = self.instance.pipelines.dist_tag(self.distribution)
-
         # Deb source packages do not support source archives in zip format, then
         # first convert all source archives in zip format to tarballs.
         for archive in self.archives:

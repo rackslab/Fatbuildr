@@ -296,6 +296,12 @@ class ArtifactBuild(RunnableTask):
                 self.defs.fullversion(self.derivative)
             )
 
+        # Add distribution release tag to targeted version. This is expected to
+        # raise FatbuildrPipelineError for some format (such as OSI) but this
+        # method is supposed to have already returned because of the absence of
+        # source before this line is reached in this case.
+        self.version.dist = self.instance.pipelines.dist_tag(self.distribution)
+
         # If the source archive has not been provided and the artifact is
         # defined with sources archives URLs, they are downloaded in cache
         # (if not already present) using these URLs.

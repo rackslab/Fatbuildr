@@ -40,6 +40,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add missing chattr command in OSI container image (#110).
 - Fix wrongly filtered out files containing debian or .git words in their path
   when building local archive on build submission (#113).
+- Fix unusable version.dist variable in packaging code templates (#116).
 
 ## [2.0.0] - 2023-05-05
 

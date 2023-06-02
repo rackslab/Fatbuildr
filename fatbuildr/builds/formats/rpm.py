@@ -166,9 +166,6 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             self.native_env,
         )
 
-        # Add distribution release tag to targeted version
-        self.version.dist = self.instance.pipelines.dist_tag(self.distribution)
-
         # Initialize templater
         templater = Templeter()
 
