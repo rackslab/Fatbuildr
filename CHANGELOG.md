@@ -42,6 +42,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when building local archive on build submission (#113).
 - Fix unusable version.dist variable in packaging code templates (#116).
 - Fix crash on build on unsupported derivative in instance pipelines (#117).
+- Fix crash on retrieving derivative version in artifact definition (#118).
 
 ## [2.0.0] - 2023-05-05
 

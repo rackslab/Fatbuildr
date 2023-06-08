@@ -62,9 +62,7 @@ class ArtifactSourceDefs:
         if self.has_derivatives:
             if self.has_multisources:
                 try:
-                    return str(
-                        self.defs['derivatives'][derivative][self.id]['version']
-                    )
+                    return str(self.defs['derivatives'][derivative][self.id])
                 except KeyError:
                     raise FatbuildrArtifactError(
                         f"Unable to find version for source archive {self.id} "
@@ -73,7 +71,7 @@ class ArtifactSourceDefs:
                     )
             else:
                 try:
-                    return str(self.defs['derivatives'][derivative]['version'])
+                    return str(self.defs['derivatives'][derivative])
                 except KeyError:
                     raise FatbuildrArtifactError(
                         f"Unable to find version for derivative {derivative} "
