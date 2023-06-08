@@ -23,6 +23,7 @@ import os
 
 from .. import ArtifactEnvBuild
 from ...utils import current_user, extract_artifact_sources_archives
+from ...errors import FatbuildrTaskExecutionError
 from ...log import logr
 
 logger = logr(__name__)
@@ -97,6 +98,12 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
             "Building source Deb packages for %s",
             self.artifact,
         )
+
+        if self.main_archive is None:
+            raise FatbuildrTaskExecutionError(
+                f"Main archive of deb package artifact {self.artifact} is not "
+                "defined"
+            )
 
         # Deb source packages do not support source archives in zip format, then
         # first convert all source archives in zip format to tarballs.

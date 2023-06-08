@@ -23,6 +23,7 @@ import pickle
 import shutil
 from collections import deque
 
+from ..errors import FatbuildrTaskExecutionError
 from ..log import logr
 from ..protocols.exports import ProtocolRegistry
 
@@ -175,7 +176,7 @@ class ServerTasksManager:
         task.prerun()
         try:
             task.run()
-        except RuntimeError as err:
+        except (FatbuildrTaskExecutionError, RuntimeError) as err:
             logger.error("error while running task %s: %s", task.id, err)
             logger.info("Task failed")
         else:

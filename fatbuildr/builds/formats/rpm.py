@@ -23,6 +23,7 @@ from .. import ArtifactEnvBuild
 from ...registry.formats import ChangelogEntry
 from ...templates import Templeter
 from ...utils import current_user, current_group
+from ...errors import FatbuildrTaskExecutionError
 from ...log import logr
 
 logger = logr(__name__)
@@ -165,6 +166,12 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             self.artifact,
             self.native_env,
         )
+
+        if self.main_archive is None:
+            raise FatbuildrTaskExecutionError(
+                f"Main archive of rpm package artifact {self.artifact} is not "
+                "defined"
+            )
 
         # Initialize templater
         templater = Templeter()

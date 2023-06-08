@@ -22,6 +22,10 @@ class FatbuildrRuntimeError(Exception):
     pass
 
 
+class FatbuildrTaskExecutionError(FatbuildrRuntimeError):
+    pass
+
+
 class FatbuildrServerError(Exception):
     pass
 
