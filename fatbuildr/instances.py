@@ -126,6 +126,10 @@ class InstancePipelines:
         if derivative == 'main':
             _formats = set(self.formats)
         else:
+            if derivative not in self.derivatives:
+                raise FatbuildrPipelineError(
+                    f"Derivative {derivative} is not supported"
+                )
             _formats = set()
             if 'formats' in self.derivatives[derivative]:
                 _formats = set(self.derivatives[derivative]['formats'])

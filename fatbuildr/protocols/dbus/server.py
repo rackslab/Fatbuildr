@@ -260,7 +260,10 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
     def PipelinesDerivativeFormats(self, derivative: Str) -> List[Str]:
         """Returns the formats of the given derivative in the pipelines of the
         instance."""
-        return self.implementation.pipelines_derivative_formats(derivative)
+        try:
+            return self.implementation.pipelines_derivative_formats(derivative)
+        except FatbuildrPipelineError as err:
+            raise FatbuildrDBusErrorPipeline(err)
 
     @property
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-task")
