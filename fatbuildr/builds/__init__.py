@@ -48,6 +48,7 @@ from ..registry.formats import ArtifactVersion
 from ..archive import ArchiveFile, SourceArchive
 from ..git import GitRepository, PatchesDir
 from ..templates import Templeter
+from ..errors import FatbuildrArtifactError, FatbuildrTaskExecutionError
 from ..utils import (
     dl_file,
     verify_checksum,
@@ -316,14 +317,16 @@ class ArtifactBuild(RunnableTask):
                     self.defs.source(source.id).url(self.derivative),
                     self.cache.archive(source.id),
                 )
-
-            # verify all declared checksums for source
-            for checksum in source.checksums(self.derivative):
-                verify_checksum(
-                    self.cache.archive(source.id),
-                    checksum[0],
-                    checksum[1],
-                )
+            try:
+                # verify all declared checksums for source
+                for checksum in source.checksums(self.derivative):
+                    verify_checksum(
+                        self.cache.archive(source.id),
+                        checksum[0],
+                        checksum[1],
+                    )
+            except FatbuildrArtifactError as err:
+                raise FatbuildrTaskExecutionError(err)
 
             logger.info(
                 "Using artifact source archive from cache %s",

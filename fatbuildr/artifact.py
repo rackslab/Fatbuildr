@@ -98,12 +98,20 @@ class ArtifactSourceDefs:
     def checksums(self, derivative):
         """Returns a set of (algorithm, value) 2-tuples for all checksums
         defined for artifact source."""
-        if self.has_multisources:
-            checksums_dict = self.defs['checksums'][self.id][
-                self.version(derivative)
-            ]
-        else:
-            checksums_dict = self.defs['checksums'][self.version(derivative)]
+        try:
+            if self.has_multisources:
+                checksums_dict = self.defs['checksums'][self.id][
+                    self.version(derivative)
+                ]
+            else:
+                checksums_dict = self.defs['checksums'][
+                    self.version(derivative)
+                ]
+        except KeyError:
+            raise FatbuildrArtifactError(
+                f"Unable to find checksum for source archive {self.id} version "
+                f"{self.version(derivative)} in YAML artifact definition file"
+            )
         results = set()
         for algo, value in checksums_dict.items():
             results.add((algo, value))

@@ -45,6 +45,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix crash on retrieving derivative version in artifact definition (#118).
 - Fix crash when main archive source is not defined on build of Deb or RPM
   package (#119).
+- Fix crash on missing checksum for a specific version in artifact definition
+  file (#125).
 
 ## [2.0.0] - 2023-05-05
 
