@@ -180,6 +180,16 @@ def version():
     return Response(f"Fatbuildr v{__version__}", mimetype='text/plain')
 
 
+def common_templates_variables():
+    return {'version': __version__}
+
+
+def fb_render_template(template, **variables):
+    return render_template(
+        template, **common_templates_variables(), **variables
+    )
+
+
 @check_instance_token_permission('view-pipeline')
 def instance(instance):
     connection = get_connection(instance)
@@ -242,7 +252,7 @@ def index(output='html'):
             [JsonInstance.export(instance) for instance in instances]
         )
     else:
-        return render_template('index.html.j2', instances=instances)
+        return fb_render_template('index.html.j2', instances=instances)
 
 
 def index_redirect(instance):
@@ -260,7 +270,7 @@ def registry(instance, output='html'):
         pending = connection.queue()
         running = connection.running()
         history = connection.history(10)
-        return render_template(
+        return fb_render_template(
             'registry.html.j2',
             instance=instance,
             formats=formats,
@@ -280,7 +290,7 @@ def format(instance, fmt, output='html'):
     if output == 'json':
         return jsonify(distributions)
     else:
-        return render_template(
+        return fb_render_template(
             'format.html.j2',
             instance=instance,
             format=fmt,
@@ -298,7 +308,7 @@ def distribution(instance, fmt, distribution, output='html'):
     if output == 'json':
         return jsonify(derivatives)
     else:
-        return render_template(
+        return fb_render_template(
             'distribution.html.j2',
             instance=instance,
             format=fmt,
@@ -317,7 +327,7 @@ def derivative(instance, fmt, distribution, derivative, output='html'):
     if output == 'json':
         return jsonify([vars(artifact) for artifact in artifacts])
     else:
-        return render_template(
+        return fb_render_template(
             'derivative.html.j2',
             instance=instance,
             format=fmt,
@@ -380,7 +390,7 @@ def artifact(
                 }
             )
     else:
-        return render_template(
+        return fb_render_template(
             template,
             instance=instance,
             format=fmt,
@@ -433,7 +443,7 @@ def search(instance, output='html'):
                     ]
         return jsonify(results)
     else:
-        return render_template(
+        return fb_render_template(
             'search.html.j2',
             instance=instance,
             artifact=artifact,
