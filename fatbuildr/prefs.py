@@ -52,6 +52,7 @@ class UserPreferences:
         self.uri = None
         self.basedir = None
         self.message = None
+        self.tokens_dir = default_user_tokens_dir()
 
         if not path.expanduser().exists():
             logger.debug(
