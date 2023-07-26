@@ -63,7 +63,9 @@ def error_bad_request(e):
 
 
 def error_not_found(e):
-    if 'output' in request.view_args and request.view_args['output'] == 'html':
+    if request.view_args is None or (
+        'output' in request.view_args and request.view_args['output'] == 'html'
+    ):
         return (
             render_template('error.html.j2', error=f"{e.description} (404)"),
             404,
@@ -73,7 +75,9 @@ def error_not_found(e):
 
 
 def error_forbidden(e):
-    if 'output' in request.view_args and request.view_args['output'] == 'html':
+    if request.view_args is None or (
+        'output' in request.view_args and request.view_args['output'] == 'html'
+    ):
         return (
             render_template('error.html.j2', error=f"{e.description} (403)"),
             403,
