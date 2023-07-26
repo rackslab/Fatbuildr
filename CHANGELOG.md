@@ -58,7 +58,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   are not defined due to error during view matching (#126).
 - Fix retrieval of instances list in DBus and fatbuildrweb when default instance
   is not defined (#127).
-- Fix fatbuildrctl crash when user preferences file is missing (#130).
+- Fix crash in fatbuildrctl when user preferences file is missing (#130).
+- Fix crash in fatbuildrd when running containers with empty `init_opts` in site
+  configuration file (#131).
 
 ## [2.0.0] - 2023-05-05
 

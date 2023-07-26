@@ -74,7 +74,7 @@ class ContainerRunner(object):
                 _cmd.extend(['--bind', path])
 
         # add init_opts if init is True
-        if init:
+        if init and self.conf.containers.init_opts is not None:
             _cmd.extend(self.conf.containers.init_opts)
         # add opts in args
         if opts is not None:
