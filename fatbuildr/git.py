@@ -137,6 +137,8 @@ class PatchesSubdir(PATH_TYPE):
 class PatchFile(PATH_TYPE):
     """Class to manipulate patch files."""
 
+    TEMPLATE_KEY = 'Template'
+
     @property
     def fullname(self):
         return f"{self.parent.name}/{self.name}"
@@ -155,6 +157,15 @@ class PatchFile(PATH_TYPE):
     @cached_property
     def meta(self):
         return deb822.Deb822(self.content)
+
+    @property
+    def template(self):
+        """Returns True if the patch is a template, ie. if it contains the
+        template key in its metadata fields and False otherwise."""
+        return (
+            self.TEMPLATE_KEY in self.meta
+            and self.meta[self.TEMPLATE_KEY] == 'yes'
+        )
 
     def in_field(self, field, value):
         """Returns True if value in found in space separated list field, or

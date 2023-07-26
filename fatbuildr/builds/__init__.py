@@ -345,6 +345,18 @@ class ArtifactBuild(RunnableTask):
         # run prescript if present
         self.prescript()
 
+        # Render all patches templates found in patches directories
+        for patch in self.patches:
+            if patch.template:
+                patch_tmp = patch.with_suffix('.swp')
+                patch.rename(patch_tmp)
+                logger.info("Rendering patch template %s", patch)
+                with open(patch, 'w+') as fh:
+                    fh.write(
+                        Templeter().frender(patch_tmp, version=self.version)
+                    )
+                patch_tmp.unlink()
+
         # Render rename index template if present
         rename_idx_path = self.place.joinpath('rename')
         rename_idx_tpl_path = rename_idx_path.with_suffix('.j2')
