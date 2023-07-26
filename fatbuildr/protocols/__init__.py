@@ -19,7 +19,7 @@
 
 from urllib.parse import urlparse
 
-from .dbus.client import DBusClient
+from .dbus.client import DBusInstanceClient
 from .http.client import HttpClient
 
 from .dbus.server import DBusServer
@@ -37,7 +37,7 @@ class ClientFactory(object):
                 raise FatbuildrRuntimeError(
                     "Instance must be defined in DBus URI"
                 )
-            return DBusClient(address, uri.scheme, instance)
+            return DBusInstanceClient(address, uri.scheme, instance)
         elif uri.scheme in ['http', 'https']:
             return HttpClient(address, uri.scheme, token)
         else:

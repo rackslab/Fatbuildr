@@ -45,7 +45,7 @@ from ....errors import (
 )
 from ....utils import current_user
 from ....version import __version__
-from ... import ClientFactory
+from ...dbus.client import DBusServiceClient, DBusInstanceClient
 from ....protocols.wire import WireSourceArchive
 from .. import (
     JsonInstance,
@@ -149,11 +149,20 @@ def check_instance_token_permission(action):
     return inner_decorator
 
 
-def get_connection(instance='default'):
-    try:
-        return ClientFactory.get('dbus://system/' + instance)
-    except FatbuildrServerInstanceError:
-        abort(404, f"instance {instance} not found")
+def get_connection(instance=None):
+    """Returns the DBus client to connect to local fatbuildrd. If instance is
+    None, an instance to DBusServiceClient is returned. Typically, it can be
+    used to retrieve the list of defined instances. Otherwise, an instance of
+    DBusInstanceClient is returned to interact with this specific instance."""
+    if instance is None:
+        return DBusServiceClient('dbus://system/', 'dbus')
+    else:
+        try:
+            return DBusInstanceClient(
+                f"dbus://system/{instance}", 'dbus', instance
+            )
+        except FatbuildrServerInstanceError:
+            abort(404, f"instance {instance} not found")
 
 
 def stream_template(template_name, **context):
@@ -526,7 +535,7 @@ def task(instance, task_id):
 
 @check_instance_token_permission('view-task')
 def watch(instance, task_id, output='html'):
-    """Stream lines obtained by DBusClient.watch() generator."""
+    """Stream lines obtained by DBusInstanceClient.watch() generator."""
     connection = get_connection(instance)
     try:
         task = connection.get(task_id)

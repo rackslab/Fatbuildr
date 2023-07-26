@@ -48,7 +48,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix crash on missing checksum for a specific version in artifact definition
   file (#125).
 - Fix crash in fatbuildrweb 404 error handler when HTTP request view arguments
-  are not defined due to error during view matching (#126)
+  are not defined due to error during view matching (#126).
+- Fix retrieval of instances list in DBus and fatbuildrweb when default instance
+  is not defined (#127).
 
 ## [2.0.0] - 2023-05-05
 

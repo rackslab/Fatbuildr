@@ -48,9 +48,9 @@ from ...errors import (
 
 
 def check_dbus_errors(method):
-    """Decorator for DBusClient methods to catch various FatbuildrDBusError that
-    could be sent by DBusServer and translate them into generic Fatbuildr server
-    errors.
+    """Decorator for DBus{Service,Instance}Client methods to catch various
+    FatbuildrDBusError that could be sent by DBusServer and translate them into
+    generic Fatbuildr server errors.
     """
 
     def error_handler_wrapper(*args, **kwargs):
@@ -66,13 +66,24 @@ def check_dbus_errors(method):
     return error_handler_wrapper
 
 
-class DBusClient(AbstractClient):
+class DBusServiceClient(AbstractClient):
+    @check_dbus_errors
+    def __init__(self, uri, scheme):
+        super().__init__(uri, scheme)
+        self.proxy = FATBUILDR_SERVICE.get_proxy()
+
+    @check_dbus_errors
+    def instances(self):
+        return DBusInstance.from_structure_list(self.proxy.Instances)
+
+
+class DBusInstanceClient(AbstractClient):
     @check_dbus_errors
     def __init__(self, uri, scheme, instance):
         super().__init__(uri, scheme)
-        self.service_proxy = FATBUILDR_SERVICE.get_proxy()
+        self.service = DBusServiceClient(uri, scheme)
         try:
-            obj_path = self.service_proxy.GetInstance(instance)
+            obj_path = self.service.proxy.GetInstance(instance)
         except FatbuildrDBusErrorUnknownInstance:
             raise FatbuildrServerInstanceError(
                 f"Unknown instance {instance} at {uri}"
@@ -80,11 +91,6 @@ class DBusClient(AbstractClient):
         self.proxy = FATBUILDR_SERVICE.get_proxy(obj_path)
 
     # instances and pipelines
-
-    @check_dbus_errors
-    def instances(self):
-        return DBusInstance.from_structure_list(self.service_proxy.Instances)
-
     @check_dbus_errors
     def instance(self, id):
         return DBusInstance.from_structure(self.proxy.Instance)
