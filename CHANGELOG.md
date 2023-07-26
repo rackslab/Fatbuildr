@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     configuration.
   - Document patches DEP-3 metadata support with Fatbuildr specific fields and
     their management with fatbuildrctl patches subcommand.
+  - Mention patches deb822 `Template` field and the patches templating feature.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds

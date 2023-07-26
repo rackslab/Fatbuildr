@@ -1,4 +1,5 @@
 = Artifact Definition Reference
+:j2-template: https://jinja.palletsprojects.com/en/latest/templates/
 
 _Artifact definitions_ are required to build artifact with Fatbuildr. Artifact
 definition is basically a set of artifact metadata (_ex:_ versions, checksums,
@@ -343,9 +344,9 @@ in artifact definition directory or if prescript produces a patch, Fatbuildr
 generates the `patches` directory accordingly. If `patches` directory already
 exists in `deb` subdirectory, it is replaced by the generated directory.
 
-All files whose name is suffixed by `.j2` is considered as a Jinja2 template and
-is processed to generate the same file without the suffix. For example,
-`deb/control.j2` generates `deb/control`.
+All files whose name is suffixed by `.j2` is considered as a
+{j2-template}[Jinja2 template] and is processed to generate the same file
+without the suffix. For example, `deb/control.j2` generates `deb/control`.
 
 The following variables are available in templates:
 
@@ -545,6 +546,11 @@ fields:
 * `Formats`: This field can be used to restrict patch application to specific
   artifact format. For example, the value `Formats: deb` makes the patch apply
   during builds of deb packages only.
+* `Template`: When set to `yes`, Fatbuildr considers this patch as a
+  {j2-template}[Jinja2 template] to process. The following variables are
+  available in the template:
+
+include::partial$version-var.adoc[]
 
 The xref:fatbuildrctl.adoc[] `patches` command provides a convenient way to
 maintain artifact patches subdirectory using Git version control system. It
