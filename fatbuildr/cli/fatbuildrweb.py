@@ -31,9 +31,7 @@ logger = logr(__name__)
 
 class FatbuildrWeb(FatbuildrCliRun):
     def __init__(self):
-        parser = argparse.ArgumentParser(
-            description='Fatbuilrdr web interface.'
-        )
+        parser = argparse.ArgumentParser(description='Fatbuildr web interface.')
         parser.add_argument(
             '-v',
             '--version',
