@@ -17,9 +17,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support multiples OSI images in the checksum file published in the same
   registry derivative directory (#114).
 - web: Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
-- conf: add `containerized` parameter in `[format:osi]` section.
-- doc: mention `containerized` parameter in `[format:osi]` section of system
-  configuration.
+- conf: Add `containerized` parameter in `[format:osi]` section.
+- docs:
+  - Mention `containerized` parameter in `[format:osi]` section of system
+    configuration.
+  - Document patches DEP-3 metadata support with Fatbuildr specific fields and
+    their management with fatbuildrctl patches subcommand.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
