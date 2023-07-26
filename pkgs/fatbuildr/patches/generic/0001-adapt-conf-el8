@@ -5,10 +5,10 @@ Author: Rémi Palancher <remi@rackslab.io>
 
 
 diff --git a/conf/vendor/fatbuildr.ini b/conf/vendor/fatbuildr.ini
-index 6cc1c9c..13c8b49 100644
+index 18fc8e7..f765c72 100644
 --- a/conf/vendor/fatbuildr.ini
 +++ b/conf/vendor/fatbuildr.ini
-@@ -49,21 +49,23 @@ exec = /usr/libexec/fatbuildr/u-nspawn
+@@ -54,21 +54,23 @@ exec = /usr/libexec/fatbuildr/u-nspawn
  # The images built with mkosi have a symlink
  # /etc/resolv.conf → /run/systemd/resolve/* as they expect systemd-resolved to
  # run inside the containers (ie. systemd-nspawn -B).
