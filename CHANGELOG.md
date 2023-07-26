@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Possiblity to define patches templates with variables to replace (#128).
 - web: Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
 - conf: Add `containerized` parameter in `[format:osi]` section.
+- pkgs: Add patch to define upstream version at build time.
 - docs:
   - Mention `containerized` parameter in `[format:osi]` section of system
     configuration.

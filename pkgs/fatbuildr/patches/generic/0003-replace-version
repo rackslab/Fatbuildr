@@ -1,0 +1,16 @@
+Description: replace the software hard-coded version number with the
+Last-Update: 2023-07-25
+Template: yes
+Author: Rémi Palancher <remi@rackslab.io>
+
+
+diff --git a/fatbuildr/version.py b/fatbuildr/version.py
+index b5d3800..db13aee 100644
+--- a/fatbuildr/version.py
++++ b/fatbuildr/version.py
+@@ -17,4 +17,4 @@
+ # You should have received a copy of the GNU General Public License
+ # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
+ 
+-__version__ = '2.0.0'
++__version__ = '{{ version.main }}'
