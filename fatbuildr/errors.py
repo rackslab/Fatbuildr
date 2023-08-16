@@ -26,6 +26,10 @@ class FatbuildrTaskExecutionError(FatbuildrRuntimeError):
     pass
 
 
+class FatbuildrKeyringError(FatbuildrRuntimeError):
+    pass
+
+
 class FatbuildrServerError(Exception):
     pass
 

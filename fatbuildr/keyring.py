@@ -25,6 +25,7 @@ import gpg
 
 from .protocols.exports import ExportableType, ExportableField
 from .exec import runcmd
+from .errors import FatbuildrKeyringError
 from .log import logr
 
 logger = logr(__name__)
@@ -166,18 +167,18 @@ class KeyringMasterKey(KeyringKey, ExportableType):
         self._masterkey = next(_keys_iter, None)
 
         if self._masterkey is None:
-            raise RuntimeError("no key found in keyring")
+            raise FatbuildrKeyringError("no key found in keyring")
 
         # The subkeys[0] is the masterkey. We except subkeys to have 2 members.
 
         if len(self._masterkey.subkeys) != 2:
-            raise RuntimeError("multiple subkeys found in masterkey")
+            raise FatbuildrKeyringError("multiple subkeys found in masterkey")
 
         self._key = self._masterkey.subkeys[0]
         self.subkey.load_from_keyring(self._masterkey.subkeys[1])
 
         if next(_keys_iter, None) is not None:
-            raise RuntimeError("multiple keys found in keyring")
+            raise FatbuildrKeyringError("multiple keys found in keyring")
 
 
 class InstanceKeyring:
@@ -213,7 +214,9 @@ class InstanceKeyring:
         # check if key already exist
         with gpg.Context(home_dir=str(self.homedir)) as ctx:
             if any(ctx.keylist()):
-                raise RuntimeError(f"GPG key in {self.homedir} already exists.")
+                raise FatbuildrKeyringError(
+                    f"GPG key in {self.homedir} already exists."
+                )
 
         # generate random passphrase and save it in file
         logger.info("Generating random passphrase in %s", self.homedir)
@@ -243,7 +246,7 @@ class InstanceKeyring:
         with gpg.Context(home_dir=str(self.homedir)) as ctx:
             try:
                 self.masterkey.load_from_keyring(ctx)
-            except RuntimeError as err:
+            except FatbuildrKeyringError as err:
                 logger.error(
                     "Error while loading keyring %s: %s", self.homedir, err
                 )
@@ -255,7 +258,7 @@ class InstanceKeyring:
             try:
                 self.masterkey.load_from_keyring(ctx)
                 return ctx.key_export(self.masterkey.fingerprint).decode()
-            except RuntimeError as err:
+            except FatbuildrKeyringError as err:
                 logger.error(
                     "Error while loading keyring %s: %s", self.homedir, err
                 )
@@ -298,9 +301,11 @@ class InstanceKeyring:
             ctx.set_passphrase_cb(self._passphrase_cb)
             keys = list(ctx.keylist())
             if len(keys) == 0:
-                raise RuntimeError("No GPG key found in keyring")
+                raise FatbuildrKeyringError("No GPG key found in keyring")
             if len(keys) > 1:
-                raise RuntimeError("More than one GPG key found in keyring")
+                raise FatbuildrKeyringError(
+                    "More than one GPG key found in keyring"
+                )
             key = keys[0]
             self._renew_key(ctx, key, duration)
             self._renew_key(ctx, key, duration, subkey=True)
