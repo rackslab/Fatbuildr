@@ -61,6 +61,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix crash in fatbuildrctl when user preferences file is missing (#130).
 - Fix crash in fatbuildrd when running containers with empty `init_opts` in site
   configuration file (#131).
+- Return HTTP/404 with appropriate error message instead of HTTP/500 (internal
+  error) when trying to access exported armored public key on nonexistent
+  keyring with fatbuildrweb (#133).
 
 ## [2.0.0] - 2023-05-05
 

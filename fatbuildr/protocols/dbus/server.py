@@ -46,7 +46,11 @@ from . import (
     FatbuildrDBusErrorRegistry,
     FatbuildrDBusErrorPipeline,
 )
-from ...errors import FatbuildrPipelineError, FatbuildrRegistryError
+from ...errors import (
+    FatbuildrPipelineError,
+    FatbuildrRegistryError,
+    FatbuildrKeyringError,
+)
 from ...log import logr
 
 
@@ -515,7 +519,10 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-keyring")
     def KeyringExport(self) -> Str:
         """Returns armored public key of instance keyring."""
-        return self.implementation.keyring_export()
+        try:
+            return self.implementation.keyring_export()
+        except FatbuildrKeyringError:
+            raise FatbuildrDBusErrorNoKeyring()
 
     @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")

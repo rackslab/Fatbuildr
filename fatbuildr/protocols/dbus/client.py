@@ -303,7 +303,10 @@ class DBusInstanceClient(AbstractClient):
 
     @check_dbus_errors
     def keyring_export(self):
-        return self.proxy.KeyringExport
+        try:
+            return self.proxy.KeyringExport
+        except FatbuildrDBusErrorNoKeyring:
+            return None
 
     # images
 

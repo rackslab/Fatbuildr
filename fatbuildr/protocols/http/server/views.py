@@ -572,8 +572,11 @@ def watch(instance, task_id, output='html'):
 @check_instance_token_permission('view-keyring')
 def keyring(instance):
     connection = get_connection(instance)
+    keyring = connection.keyring_export()
+    if keyring is None:
+        abort(404, 'No keyring available on this instance')
     mem = io.BytesIO()
-    mem.write(connection.keyring_export().encode())
+    mem.write(keyring.encode())
     mem.seek(0)
     filename = 'keyring.asc'
     # Starting with Flask >= 2.0, send_file attachment_filename argument has

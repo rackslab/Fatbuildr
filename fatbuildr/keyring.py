@@ -262,6 +262,7 @@ class InstanceKeyring:
                 logger.error(
                     "Error while loading keyring %s: %s", self.homedir, err
                 )
+                raise  # re-raise error for transmission to consumer
 
     def _passphrase_cb(self, hint, dest, prev_bad, hook=None):
         """Method with signature expected by gpg Context.set_passphrase_db()
