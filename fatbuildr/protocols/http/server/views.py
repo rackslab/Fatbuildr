@@ -553,6 +553,10 @@ def watch(instance, task_id, output='html'):
         task = connection.get(task_id)
     except FatbuildrServerError as err:
         abort(404, str(err))
+
+    # X-Accel-Buffering is disabled in response header to avoid potential
+    # reverse proxies between clients and fatbuildrweb for buffering the tasks
+    # output which would cause boring latencies.
     if output == 'html':
         return current_app.response_class(
             stream_with_context(
@@ -562,12 +566,14 @@ def watch(instance, task_id, output='html'):
                     task=task_id,
                     messages=connection.watch(task),
                 )
-            )
+            ),
+            headers={'X-Accel-Buffering': 'no'},
         )
     else:
         return current_app.response_class(
             connection.watch(task, binary=True),
             mimetype='application/octet-stream',
+            headers={'X-Accel-Buffering': 'no'},
         )
 
 
