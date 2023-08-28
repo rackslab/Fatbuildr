@@ -194,6 +194,31 @@ Finally restart the service to apply changes:
 # systemctl restart fatbuildrweb-uwsgi.service
 ----
 
+==== Reverse Proxies
+
+Reverse proxies usually perform some buffering for performance reasons. While
+this is recommended for most use-cases, this introduces annoying latencies when
+watching tasks outputs on Fatbuildrweb REST API and web pages. For this reason,
+Fatbuildrweb set `X-Accel-Buffering: no` in the impacted reponse header to
+instruct potential intermediate reverse proxy to avoid buffering on these
+reponses. However, this header is usually removed at the first reverse proxy. It
+is not sufficient when multiple reverse proxies are involved between the clients
+and Fatbuildrweb. In this case, it might be necessary to disable buffering in
+HTTP reverse proxy configuration when proxying the requests.
+
+For example, this can be disabled with the following configuration setting on
+Nginx:
+
+[source]
+----
+proxy_buffering off;
+----
+
+:nginx-proxy-doc: http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering
+
+Please refer to {nginx-proxy-doc}[Nginx reference documentation] for more
+details.
+
 [#policy]
 == Access Policy
 

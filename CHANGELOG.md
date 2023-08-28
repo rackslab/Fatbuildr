@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mention patches deb822 `Template` field and the patches templating feature.
   - Mention possibility of missing JWT signing key for REST API HTTP/404 reponse
     code.
+  - Document impact of HTTP reverse proxies buffering on tasks output streams
+    with mention of possible configuration settings.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
