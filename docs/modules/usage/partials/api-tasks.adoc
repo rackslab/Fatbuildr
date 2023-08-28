@@ -52,7 +52,7 @@ Submit artifact build task in queue.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found
+|Instance or JWT signing key not found
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -124,7 +124,7 @@ Returns information about the running task.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found
+|Instance or JWT signing key not found
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -217,7 +217,7 @@ Returns list of pending tasks.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found
+|Instance or JWT signing key not found
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -333,7 +333,7 @@ Returns information about an archived task.
 |_xref:#object-error[] object_
 
 |404
-|Instance or task not found
+|Instance, JWT signing key or task not found
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -438,7 +438,7 @@ over. In this case, the duration of the response might be significant.
 |_xref:#object-error[] object_
 
 |404
-|Instance or task not found
+|Instance, JWT signing key or task not found
 |`application/json`
 |_xref:#object-error[] object_
 |===

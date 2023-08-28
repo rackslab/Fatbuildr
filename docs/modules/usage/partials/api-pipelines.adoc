@@ -37,7 +37,7 @@ Returns the list of CPU architectures supported in the instance pipelines.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found
+|Instance or JWT signing key not found
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -132,7 +132,7 @@ build environment.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found
+|Instance or JWT signing key not found
 |`application/json`
 |_xref:#object-error[] object_
 |===

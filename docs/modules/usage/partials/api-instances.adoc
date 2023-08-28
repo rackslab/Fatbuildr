@@ -95,7 +95,7 @@ Returns instance information.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found
+|Instance or JWT signing key not found
 |`application/json`
 |_xref:#object-error[] object_
 |===

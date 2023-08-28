@@ -37,7 +37,7 @@ Returns the list of artifacts formats available in a registry.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found
+|Instance or JWT signing key not found
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -102,7 +102,7 @@ Returns the list of available distributions in a registry for a given format.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found or format not supported by the instance
+|Instance, JWT signing key not found or format not supported by the instance
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -172,8 +172,8 @@ Returns the list of derivatives available for the distribution.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found, format not supported by the instance or distribution not
-found in registry.
+|Instance, JWT signing key not found, format not supported by the instance or
+distribution not found in registry.
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -251,8 +251,8 @@ Returns the list of artifacts in a distribution derivative.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found, format not supported by the instance, distribution or
-derivative not found in registry.
+|Instance, JWT signing key not found, format not supported by the instance,
+distribution or derivative not found in registry.
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -360,8 +360,8 @@ source artifact used as input to produce binary artifacts. The special value
 |_xref:#object-error[] object_
 
 |404
-|Instance not found, format not supported by the instance, distribution,
-derivative, architecture or artifact not found in registry.
+|Instance, JWT signing key not found, format not supported by the instance,
+distribution, derivative, architecture or artifact not found in registry.
 |`application/json`
 |_xref:#object-error[] object_
 |===
@@ -521,7 +521,7 @@ parameter are selected in results.
 |_xref:#object-error[] object_
 
 |404
-|Instance not found
+|Instance or JWT signing key not found
 |`application/json`
 |_xref:#object-error[] object_
 |===
