@@ -251,7 +251,7 @@ def console_reader(io, binary):
     on the socket. If binary argument is False, ConsoleMessage are generated as
     objects. Otherwise they are generated in bytes.
 
-    This function is supposed to be called for archives tasks only."""
+    This function is supposed to be called for archived tasks only."""
     with open(io.journal.path, 'rb') as fh:
         yield from _console_generator(binary, fd=fh.fileno())
 
@@ -260,8 +260,27 @@ def console_http_client(response):
     """Reads and generates the ConsoleMessage available in the given HTTP
     response object."""
 
+    iterator = response.iter_content(chunk_size=32)
+    buffer = next(iterator)
+
     def reader(size):
-        return next(response.iter_content(chunk_size=size))
+        # The chunk size of the response content generator cannot be changed
+        # while reading streamed data. The data are placed into a buffer.
+        # Depending on the required read size, the data is extracted from the
+        # beginning of the buffer or read from the generator until the expected
+        # size is reached.
+        nonlocal buffer
+        chunk = bytes()
+        while size:
+            if len(buffer) >= size:
+                chunk += buffer[:size]
+                buffer = buffer[size:]
+                size = 0
+            else:
+                chunk += buffer
+                size -= len(buffer)
+                buffer = next(iterator)
+        return chunk
 
     yield from _console_generator(False, reader=reader)
 
