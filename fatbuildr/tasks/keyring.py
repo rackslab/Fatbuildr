@@ -20,6 +20,7 @@
 from . import RunnableTask
 from ..protocols.exports import ExportableTaskField
 from ..log import logr
+from ..errors import FatbuildrTaskExecutionError, FatbuildrKeyringError
 
 logger = logr(__name__)
 
@@ -37,7 +38,10 @@ class KeyringCreationTask(RunnableTask):
             "Running keyring creation task %s",
             self.id,
         )
-        self.instance.keyring.create()
+        try:
+            self.instance.keyring.create()
+        except FatbuildrKeyringError as err:
+            raise FatbuildrTaskExecutionError from err
 
 
 class KeyringRenewalTask(RunnableTask):
@@ -56,4 +60,7 @@ class KeyringRenewalTask(RunnableTask):
             "Running keyring renewal task %s",
             self.id,
         )
-        self.instance.keyring.renew(self.duration)
+        try:
+            self.instance.keyring.renew(self.duration)
+        except FatbuildrKeyringError as err:
+            raise FatbuildrTaskExecutionError from err
