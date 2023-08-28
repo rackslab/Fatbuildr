@@ -183,10 +183,9 @@ class RunningInstance(ExportableType):
         self.history_mgr = HistoryManager(self.conf, self)
         self.images_mgr = ImagesManager(self.conf, self)
         self.keyring = InstanceKeyring(self.conf, self)
-        self.tokens_mgr = TokensManager(self.conf, self.id)
+        self.tokens_mgr = TokensManager(self.conf, self.id, create=True)
         self.crun = ContainerRunner(self.conf)
         self.cache = CacheManager(self.conf, self)
-        self.tokens_mgr.load(create=True)
         self.keyring.load()
 
     @property

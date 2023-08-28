@@ -66,6 +66,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   keyring with fatbuildrweb (#133).
 - Report error properly with fatbuildrctl when remote HTTP instance replies with
   internal error and HTTP/500 (#136).
+- Report meaningful error message instead of generic HTTP/500 internal error
+  when authenticating with JWT token on unexisting remote HTTP instance (#137).
 
 ## [2.0.0] - 2023-05-05
 

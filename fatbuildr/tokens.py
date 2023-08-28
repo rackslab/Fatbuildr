@@ -30,13 +30,14 @@ logger = logr(__name__)
 
 
 class TokensManager:
-    def __init__(self, conf, instance):
+    def __init__(self, conf, instance, create=False):
         self.conf = conf
         self.instance = instance
         self.path = self.conf.tokens.storage.joinpath(instance)
         self.encryption_key = None
+        self._load(create)
 
-    def load(self, create=False):
+    def _load(self, create=False):
         """Load the encryption key for file saved in tokens manager directory.
         If create argument is True, the directory and the encryption key file
         are created if not present. Raises FatbuildrRuntimeError if create

@@ -27,6 +27,7 @@ from jinja2 import FileSystemLoader
 from . import views
 from .policy import PolicyManager
 from ....tokens import TokensManager
+from ....errors import FatbuildrRuntimeError, FatbuildrServerInstanceError
 from ....log import logr
 
 logger = logr(__name__)
@@ -175,8 +176,20 @@ class WebApp(Flask):
 
     def token_manager(self, instance):
         if instance not in self.token_mgrs:
-            self.token_mgrs[instance] = TokensManager(self.conf, instance)
-            self.token_mgrs[instance].load()
+            try:
+                self.token_mgrs[instance] = TokensManager(self.conf, instance)
+            except FatbuildrRuntimeError as err:
+                # TokensManager class raises FatbuildrRuntimeError when the
+                # tokens signing key of the instance does not exist. In most
+                # cases, it indicates the instance does not exist on server, or
+                # at least the signing key has not been created ecause the
+                # instance is new. This exception is translated to instance
+                # error for more semantic when handling the error in views's
+                # tokens decorator.
+                raise FatbuildrServerInstanceError(
+                    f"unable to authenticate with JWT token against {instance} "
+                    "instance"
+                ) from err
         return self.token_mgrs[instance]
 
     @property

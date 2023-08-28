@@ -102,6 +102,8 @@ def get_token_user(instance, request):
     token = auth.split(' ', 1)[1]
     try:
         user = current_app.token_manager(instance).decode(token)
+    except FatbuildrServerInstanceError as err:
+        abort(404, str(err))
     except FatbuildrTokenError as err:
         abort(403, str(err))
     return user
