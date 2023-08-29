@@ -317,6 +317,9 @@ Fatbuildrweb supports the following _permission actions_:
 |view-registry
 |View content of artifact registries
 
+|edit-registry
+|Edit content of artifact registries
+
 |view-task
 |View tasks queue (running and pending), archives and outputs
 
