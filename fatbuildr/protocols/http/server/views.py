@@ -405,6 +405,7 @@ def artifact(
             changelog=changelog,
         )
 
+
 @check_instance_token_permission('edit-registry')
 def artifact_delete(
     instance, fmt, distribution, derivative, architecture, artifact
