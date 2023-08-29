@@ -31,7 +31,7 @@ this table:
 
 |List registries content
 |✅
-|❌
+|✅
 
 |Delete artifact in registries
 |✅
