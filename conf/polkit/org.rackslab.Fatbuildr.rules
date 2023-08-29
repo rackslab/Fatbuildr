@@ -17,7 +17,8 @@ polkit.addRule(function(action, subject) {
 });
 
 polkit.addRule(function(action, subject) {
-    if (action.id == "org.rackslab.Fatbuildr.build-as" &&
+    if ((action.id == "org.rackslab.Fatbuildr.build-as" ||
+         action.id == "org.rackslab.Fatbuildr.edit-registry-as") &&
         subject.user == "fatbuildr") {
             return polkit.Result.YES;
         }

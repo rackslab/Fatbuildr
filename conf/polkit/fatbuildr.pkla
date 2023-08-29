@@ -12,7 +12,7 @@ ResultAny=yes
 ResultInactive=yes
 ResultActive=yes
 
-[Allow fatbuildr user to submit build task in Fatbuildr]
+[Allow fatbuildr user to submit build task in Fatbuildr with another user identity]
 Identity=unix-user:fatbuildr
 Action=org.rackslab.Fatbuildr.build-as;
 ResultAny=yes
@@ -36,6 +36,13 @@ ResultActive=yes
 [Allow members of fatbuildr group to edit Fatbuildr registry content]
 Identity=unix-group:fatbuildr
 Action=org.rackslab.Fatbuildr.edit-registry;
+ResultAny=yes
+ResultInactive=yes
+ResultActive=yes
+
+[Allow fatbuildr user to edit Fatbuildr registry content with another user identity]
+Identity=unix-user:fatbuildr
+Action=org.rackslab.Fatbuildr.edit-registry-as;
 ResultAny=yes
 ResultInactive=yes
 ResultActive=yes
