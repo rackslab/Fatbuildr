@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support multiples OSI images in the checksum file published in the same
   registry derivative directory (#114).
 - Possiblity to define patches templates with variables to replace (#128).
+- cli: Possibility to list artifacts in registries in remote instance with REST
+  API (#141)
 - web: Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
 - conf: Add `containerized` parameter in `[format:osi]` section.
 - pkgs: Add patch to define upstream version at build time.

@@ -19,7 +19,7 @@
 
 import requests
 
-from . import JsonInstance, JsonRunnableTask
+from . import JsonInstance, JsonRunnableTask, JsonArtifact
 from ..client import AbstractClient
 from ...errors import FatbuildrServerError, FatbuildrServerPermissionError
 from ...log import logr
@@ -114,6 +114,13 @@ class HttpClient(AbstractClient):
         response = self._auth_request(requests.get, url)
         formats = response.json()
         return list(formats.keys())
+
+    @check_http_errors
+    def artifacts(self, fmt, distribution, derivative):
+        url = f"{self.uri}/registry/{fmt}/{distribution}/{derivative}.json"
+        response = self._auth_request(requests.get, url)
+        artifacts = response.json()
+        return [JsonArtifact.load_from_json(item) for item in artifacts]
 
     @check_http_errors
     def build(
