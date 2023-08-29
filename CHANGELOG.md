@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - web: Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
 - conf: Add `containerized` parameter in `[format:osi]` section.
 - pkgs: Add patch to define upstream version at build time.
+- dbus: Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
+  object to submit artifact deletion task with another user identity.
 - polkit: Add _org.rackslab.Fatbuildr.edit-registry-as_ action.
 - docs:
   - Mention `containerized` parameter in `[format:osi]` section of system

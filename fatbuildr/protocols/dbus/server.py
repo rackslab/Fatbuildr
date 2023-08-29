@@ -360,6 +360,28 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             DBusArtifact.from_structure(artifact).to_native(),
         )
 
+    @accepts_additional_arguments
+    @require_polkit_authorization("org.rackslab.Fatbuildr.edit-registry-as")
+    def ArtifactDeleteAs(
+        self,
+        user: Str,
+        fmt: Str,
+        distribution: Str,
+        derivative: Str,
+        artifact: Structure,
+        *,
+        call_info,
+    ) -> Str:
+        """Submit artifact deletion task."""
+        return self.implementation.submit(
+            'artifact deletion',
+            user,
+            fmt,
+            distribution,
+            derivative,
+            DBusArtifact.from_structure(artifact).to_native(),
+        )
+
     @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
     def ArtifactBinaries(
         self,
