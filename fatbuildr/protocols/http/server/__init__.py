@@ -132,6 +132,13 @@ class WebApp(Flask):
             defaults={'output': 'json'},
         )
         self.add_instance_url_rule(
+            '/registry/<string:fmt>/'
+            '<string:distribution>/<string:derivative>/<string:architecture>/'
+            '<string:artifact>.json',
+            view_func=views.artifact_delete,
+            methods=['DELETE'],
+        )
+        self.add_instance_url_rule(
             '/search',
             view_func=views.search,
             defaults={'output': 'html'},

@@ -18,6 +18,7 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 from ..archive import SourceArchive
+from ..registry.formats import RegistryArtifact
 from ..log import logr
 
 logger = logr(__name__)
@@ -95,7 +96,17 @@ class WireRunnableTask(WireData):
             print(f"  duration: {self.duration}")
 
 
-class WireArtifact(WireData):
+class WireArtifact(WireData, RegistryArtifact):
+    def __init__(self, *args):
+        """This init method must support variable arguments as it can be
+        instanciated without arguments when convert from DBus structure and with
+        arguments when instanciated by clients (fatbuildrctl, fatbuildrweb) to
+        send artifacts in registries requests."""
+        if len(args):
+            super().__init__(*args)
+        else:
+            super().__init__(None, None, None)
+
     def report(self):
         print(f"- name: {self.name}")
         print(f"  architecture: {self.architecture}")

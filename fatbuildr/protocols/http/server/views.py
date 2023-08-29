@@ -46,7 +46,7 @@ from ....errors import (
 from ....utils import current_user
 from ....version import __version__
 from ...dbus.client import DBusServiceClient, DBusInstanceClient
-from ....protocols.wire import WireSourceArchive
+from ....protocols.wire import WireSourceArchive, WireArtifact
 from .. import (
     JsonInstance,
     JsonRunnableTask,
@@ -404,6 +404,32 @@ def artifact(
             binaries=binaries,
             changelog=changelog,
         )
+
+@check_instance_token_permission('edit-registry')
+def artifact_delete(
+    instance, fmt, distribution, derivative, architecture, artifact
+):
+    connection = get_connection(instance)
+    request_user = get_token_user(instance, request) or 'anonymous'
+    _artifact = WireArtifact(
+        artifact,
+        architecture,
+        request.args.get('version', default='-1', type=str),
+    )
+    # If fatbuildrweb runs with the same identity as the user submitting the
+    # artifact deletion request, forward the request to fatbuildrd with a simple
+    # delete_artifact() that is less restricted in polkit. Otherwise, forward
+    # the request with artifact_delete_as() and the identity of the original
+    # user.
+    if request_user == current_user()[1]:
+        task_id = connection.delete_artifact(
+            fmt, distribution, derivative, _artifact
+        )
+    else:
+        task_id = connection.delete_artifact_as(
+            request_user, fmt, distribution, derivative, _artifact
+        )
+    return jsonify({'task': task_id})
 
 
 @check_instance_token_permission('view-registry')
