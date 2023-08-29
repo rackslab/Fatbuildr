@@ -512,13 +512,6 @@ source artifact used as input to produce binary artifacts. The special value
 |_string_
 |`x86_64`, `src` or `noarch`
 
-|`architecture`
-|Name of CPU architecture of the artifact. The special value `src` refers to
-source artifact used as input to produce binary artifacts. The special value
-`noarch` refers to architecture independant artifacts.
-|_string_
-|`x86_64`, `src` or `noarch`
-
 |`artifact`
 |Name of the artifact
 |_string_
