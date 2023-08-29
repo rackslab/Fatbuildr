@@ -24,6 +24,9 @@ pipelines.
 org.rackslab.Fatbuildr.view-registry:: View content of managed artifact
 registries.
 
+org.rackslab.Fatbuildr.edit-registry-as:: Submit tasks to edit content of
+managed artifact registries as another user identity.
+
 org.rackslab.Fatbuildr.edit-registry:: Submit tasks to edit content of managed
 artifact registries (ex: delete artifact).
 
