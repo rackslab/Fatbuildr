@@ -35,7 +35,7 @@ this table:
 
 |Delete artifact in registries
 |✅
-|❌
+|✅
 
 |Create build container images
 |✅

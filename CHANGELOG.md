@@ -46,6 +46,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mention _edit-registry_ REST API permission action.
   - Mention REST API route to delete artifact.
 
+### Changed
+- docs: Update table of available remote features with new registry content
+  listing and artifact deletion possibilities.
+
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
   (#100).
