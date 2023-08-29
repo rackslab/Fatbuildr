@@ -123,6 +123,16 @@ class HttpClient(AbstractClient):
         return [JsonArtifact.load_from_json(item) for item in artifacts]
 
     @check_http_errors
+    def delete_artifact(self, fmt, distribution, derivative, artifact):
+        url = (
+            f"{self.uri}/registry/{fmt}/{distribution}/{derivative}/"
+            "{artifact.architecture}/{artifact.name}.json?"
+            "version={artifact.version}"
+        )
+        response = self._auth_request(requests.delete, url)
+        return response.json()['task']
+
+    @check_http_errors
     def build(
         self,
         format,
