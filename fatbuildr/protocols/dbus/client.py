@@ -156,6 +156,16 @@ class DBusInstanceClient(AbstractClient):
         )
 
     @check_dbus_errors
+    def delete_artifact_as(self, user, fmt, distribution, derivative, artifact):
+        return self.proxy.ArtifactDeleteAs(
+            user,
+            fmt,
+            distribution,
+            derivative,
+            DBusArtifact.to_structure(artifact),
+        )
+
+    @check_dbus_errors
     def artifact_bins(self, fmt, distribution, derivative, artifact):
         return DBusArtifact.from_structure_list(
             self.proxy.ArtifactBinaries(fmt, distribution, derivative, artifact)
