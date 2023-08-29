@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - cli: Possibility to list artifacts in registries in remote instance with REST
   API (#141)
 - web: Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
+- api: Add _edit-registry_ permission action.
 - conf: Add `containerized` parameter in `[format:osi]` section.
 - pkgs: Add patch to define upstream version at build time.
 - dbus: Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`

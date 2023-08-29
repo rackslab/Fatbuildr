@@ -20,4 +20,4 @@ actions=view-pipeline,view-registry,view-task,view-keyring
 # The users are permitted to perform all anonymous actions plus the build
 # action.
 [users]
-actions=build
+actions=build,edit-registry
