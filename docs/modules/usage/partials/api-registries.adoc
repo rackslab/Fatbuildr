@@ -341,6 +341,11 @@ source artifact used as input to produce binary artifacts. The special value
 `noarch` refers to architecture independant artifacts.
 |_string_
 |`x86_64`, `src` or `noarch`
+
+|`artifact`
+|Name of the artifact
+|_string_
+|`fatbuildr`
 |===
 
 ===== Responses
@@ -461,6 +466,117 @@ Response:
     "name": "fatbuildr",
     "version": "0.1-2.deb11"
   }
+}
+----
+====
+
+
+==== Artifact Deletion
+
+`DELETE /\{instance}/registry/\{format}/\{distribution}/\{derivative}/\{architecture}/\{artifact}.json`
+
+*Permission action:* `edit-registry`
+
+Delete an artifact from registry.
+
+===== Path Parameters
+
+[cols="{tbl-pathparams-cols-specs}"]
+|===
+|Name|Description|Type|Example
+
+|`instance`
+|Name of Fatbuildr instance
+|_string_
+| `prod` or `default`
+
+|`format`
+|Artifact format name
+|_string_
+|`deb` or `rpm`
+
+|`distribution`
+|Dis$tribution name
+|_string_
+|`bullseye` or `el8`
+
+|`derivative`
+|Name of distribution derivative
+|_string_
+|`main`
+
+|`architecture`
+|Name of CPU architecture of the artifact. The special value `src` refers to
+source artifact used as input to produce binary artifacts. The special value
+`noarch` refers to architecture independant artifacts.
+|_string_
+|`x86_64`, `src` or `noarch`
+
+|`architecture`
+|Name of CPU architecture of the artifact. The special value `src` refers to
+source artifact used as input to produce binary artifacts. The special value
+`noarch` refers to architecture independant artifacts.
+|_string_
+|`x86_64`, `src` or `noarch`
+
+|`artifact`
+|Name of the artifact
+|_string_
+|`fatbuildr`
+|===
+
+===== Query Parameters
+
+[cols="{tbl-queryparams-cols-specs}"]
+|===
+|Name|Description|Type|Required|Example
+
+|`version`
+|Version of the artifact.
+|_string_
+|✅
+| `1.2.3-1`
+|===
+
+===== Responses
+
+[cols="{tbl-responses-cols-specs}"]
+|===
+|Code|Description|Content Type|Data Type
+
+|200
+|Operation successful
+|`application/json`
+|_xref:#object-submitted-task[]_
+
+|403
+|Forbidden
+|`application/json`
+|_xref:#object-error[] object_
+
+|404
+|Instance, JWT signing key not found, format not supported by the instance,
+distribution, derivative, architecture or artifact not found in registry.
+|`application/json`
+|_xref:#object-error[] object_
+|===
+
+.Examples
+[%collapsible]
+====
+Request:
+
+[source,shell]
+----
+$ curl -X DELETE http://localhost:5000/default/registry/deb/bullseye/main/src/fatbuildr.json?version=2.0.1
+----
+
+Response:
+
+[source,json]
+----
+{
+  "task": "ef6176ad-9489-449a-804e-77370fee2540"
 }
 ----
 ====

@@ -41,6 +41,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     with mention of possible configuration settings.
   - Mention _org.rackslab.Fatbuildr.edit-registry-as_ Polkit action.
   - Mention _edit-registry_ REST API permission action.
+  - Mention REST API route to delete artifact.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
@@ -85,6 +86,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when authenticating with JWT token on unexisting remote HTTP instance (#137).
 - Fix crash with when watching streamed tasks output with HTTP REST API (#138).
 - Avoid buffering with HTTP response headers on reverse proxies (#139).
+- docs: Add missing path parameter in REST API to retrieve artifact information.
 
 ## [2.0.0] - 2023-05-05
 
