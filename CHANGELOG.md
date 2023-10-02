@@ -93,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   when authenticating with JWT token on unexisting remote HTTP instance (#137).
 - Fix crash with when watching streamed tasks output with HTTP REST API (#138).
 - Avoid buffering with HTTP response headers on reverse proxies (#139).
+- Fix crash of fatbuildrweb on builds with unsupported derivative (#149).
 - docs: Add missing path parameter in REST API to retrieve artifact information.
 
 ## [2.0.0] - 2023-05-05

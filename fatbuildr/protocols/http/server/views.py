@@ -216,7 +216,12 @@ def pipelines_formats(instance):
     filter_derivative = request.args.get('derivative')
 
     if filter_derivative:
-        formats = connection.pipelines_derivative_formats(filter_derivative)
+        # May raise FatbuildrServerError if derivative is not declared in build
+        # pipelines. In this case, forward as a 404.
+        try:
+            formats = connection.pipelines_derivative_formats(filter_derivative)
+        except FatbuildrServerError as err:
+            abort(404, str(err))
     else:
         formats = connection.pipelines_formats()
     for format in formats:
