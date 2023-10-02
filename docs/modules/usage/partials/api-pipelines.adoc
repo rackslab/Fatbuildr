@@ -132,7 +132,7 @@ build environment.
 |_xref:#object-error[] object_
 
 |404
-|Instance or JWT signing key not found
+|Instance, derivative or JWT signing key not found
 |`application/json`
 |_xref:#object-error[] object_
 |===

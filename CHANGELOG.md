@@ -47,8 +47,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mention REST API route to delete artifact.
 
 ### Changed
-- docs: Update table of available remote features with new registry content
-  listing and artifact deletion possibilities.
+- docs:
+  - Update table of available remote features with new registry content
+    listing and artifact deletion possibilities.
+  - Mention possibility of HTTP/404 response code on supported derivative in
+    REST API reference.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
