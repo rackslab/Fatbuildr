@@ -46,6 +46,23 @@ The [full documentation](https://docs.rackslab.io/fatbuildr/overview/start.html)
 of Fatbuildr is available online with internal architectures diagrams, advanced
 installation and configuration details and complete users reference guide.
 
+## Community
+
+Do you want to get in touch with developers and the community? Several channels
+are available:
+
+* **Matrix Chat** [#fatbuildr:talk.rackslab.io](https://matrix.to/#/#fatbuildr:talk.rackslab.io):
+  instant messaging for quick feedback and help.
+
+  > [!NOTE]
+  > A [Matrix account](https://matrix.org/docs/chat_basics/matrix-for-im/#creating-a-matrix-account)
+  > is required to access the chat room. It can be created in few steps on any
+  > Matrix network public provider such as [matrix.org](https://matrix.org) or
+  > [gitter.im](https://gitter.im/#apps).
+
+* [**GitHub Discussions**](https://github.com/rackslab/Fatbuildr/discussions):
+  send questions, ideas and suggestions.
+
 ## Authors
 
 Fatbuildr is developed and maintained by [Rackslab](https://rackslab.io). Please
