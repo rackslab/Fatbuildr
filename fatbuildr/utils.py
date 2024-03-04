@@ -23,6 +23,7 @@ import platform
 import os
 import pwd
 import grp
+import re
 
 import requests
 
@@ -77,6 +78,16 @@ def verify_checksum(path, format, value):
         raise RuntimeError(
             f"{format} checksum do not match: {f_hash.hexdigest()} != {value}"
         )
+
+
+def sanitized_stem(stem):
+    """Debian source packages only support supplementary tarballs with
+    component name that matches [[:alnum:]-]+. Documentation has not been
+    found for this implementation detail but the regexp can be found in dpkg
+    source code, in find_original_tarballs() of Perl module
+    scripts/Dpkg/Source/Package.pm. To match this requirement, this property
+    removes all characters except alphanumeric and dash."""
+    return re.sub("[^A-Za-z0-9\-]+", "", stem)
 
 
 def extract_artifact_sources_archives(

@@ -53,6 +53,7 @@ from ..utils import (
     dl_file,
     verify_checksum,
     extract_artifact_sources_archives,
+    sanitized_stem,
     host_architecture,
 )
 from ..log import logr
@@ -609,7 +610,9 @@ class ArtifactEnvBuild(ArtifactBuild):
     def prescript_supp_subdir_renamed(self, subdir):
         """Returns the name (string format) to uniquely timestamped renamed
         supplementary tarball subdirectory."""
-        return f"{subdir}-{date.today().strftime('%Y%m%d')}-{self.id[:8]}"
+        return (
+            f"{sanitized_stem(subdir)}-{date.today().strftime('%Y%m%d')}-{self.id[:8]}"
+        )
 
     def prescript(self):
         """Run the prescript."""

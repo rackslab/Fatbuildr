@@ -24,8 +24,8 @@ import mimetypes
 import os
 import shutil
 import copy
-import re
 
+from .utils import sanitized_stem
 from .log import logr
 
 logger = logr(__name__)
@@ -267,13 +267,7 @@ class ArchiveFile:
 
     @property
     def sanitized_stem(self):
-        """Debian source packages only support supplementary tarballs with
-        component name that matches [[:alnum:]-]+. Documentation has not been
-        found for this implementation detail but the regexp can be found in dpkg
-        source code, in find_original_tarballs() of Perl module
-        scripts/Dpkg/Source/Package.pm. To match this requirement, this property
-        removes all characters expect alphanumeric and dash."""
-        return re.sub('[^A-Za-z0-9\-]+', '', self._archive.stem)
+        return sanitized_stem(self._archive.stem)
 
     @property
     def subdir(self):
