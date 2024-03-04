@@ -15,6 +15,7 @@ Requires:       %{name}-wrappers
 Requires:       createrepo_c
 Requires:       dnf
 Requires:       mkosi >= 14
+Requires:       patch
 Requires:       reprepro
 Requires:       rpm
 Requires:       rpm-sign

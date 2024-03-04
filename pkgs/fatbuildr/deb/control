@@ -28,6 +28,7 @@ Depends:
  createrepo-c,
  dnf,
  mkosi (>= 14),
+ patch,
  reprepro,
  rpm,
  systemd-container,
