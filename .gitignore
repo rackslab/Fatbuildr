@@ -1,2 +1,3 @@
 doc/man/*.1
 __pycache__
+generated-doc
