@@ -100,6 +100,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Avoid buffering with HTTP response headers on reverse proxies (#139).
 - Fix crash of fatbuildrweb on builds with unsupported derivative (#149).
 - Fix crash of fatbuildrctl on unexpected end of task output (#147)
+- Fix crash of fatbuildrctl on task output connection closed by HTTP reverse
+  proxy (#148).
 - docs: Add missing path parameter in REST API to retrieve artifact information.
 
 ## [2.0.0] - 2023-05-05

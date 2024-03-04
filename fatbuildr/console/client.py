@@ -29,6 +29,8 @@ import atexit
 import socket
 import logging
 
+import requests
+
 from . import ConsoleMessage
 from ..log import logr
 from ..log.formatters import LOG_LEVEL_ANSI_STYLES, TASK_LOG
@@ -287,6 +289,12 @@ def console_http_client(response):
                     )
                     # empty binary result stops ConsoleMessage.read() processing
                     return b""
+                except requests.exceptions.ChunkedEncodingError as err:
+                    logger.warn(
+                        "Unable to read task output from HTTP request due to "
+                        "chunk encoding error"
+                    )
+                    logger.debug("Chunk encoding error details: %s", err)
         return chunk
 
     yield from _console_generator(False, reader=reader)
