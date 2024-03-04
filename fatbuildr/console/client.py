@@ -279,7 +279,14 @@ def console_http_client(response):
             else:
                 chunk += buffer
                 size -= len(buffer)
-                buffer = next(iterator)
+                try:
+                    buffer = next(iterator)
+                except StopIteration:
+                    logger.warn(
+                        "Unexpected end of task output from HTTP server"
+                    )
+                    # empty binary result stops ConsoleMessage.read() processing
+                    return b""
         return chunk
 
     yield from _console_generator(False, reader=reader)
@@ -292,6 +299,9 @@ def _console_generator(binary, **kwargs):
         # Remote server console has sent data, read the command with
         # ConsoleMessage protocol handler.
         msg = ConsoleMessage.read(**kwargs)
+        if msg is None:
+            # Reached EOF, break the processing loop
+            break
         if binary:
             yield msg.raw
         else:
