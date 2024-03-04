@@ -214,6 +214,33 @@ Nginx:
 proxy_buffering off;
 ----
 
+To allow submission of large artifacts builds, it could be necessary to increase
+the maximum request body size allowed to clients, for example on Nginx:
+
+[source]
+----
+client_max_body_size 100M;
+----
+
+Some processing can be long in `fatbuildrd`, thus interval between messages in
+task output can be long as well. thus time between. Some reverse proxies may
+close the connection before the end of tasks in absence of message before a
+short timeout. When this happens, `fatbuildrctl` reports this error:
+
+[source]
+----
+WARNING ⸬ Unable to read task output from HTTP request due to chunk encoding error
+WARNING ⸬ Unexpected end of task output from HTTP server
+----
+
+This timeout can be increased on reverse proxies to a significantly higher
+value, for example on Nginx:
+
+[source]
+----
+proxy_read_timeout 3600;
+----
+
 :nginx-proxy-doc: http://nginx.org/en/docs/http/ngx_http_proxy_module.html#proxy_buffering
 
 Please refer to {nginx-proxy-doc}[Nginx reference documentation] for more

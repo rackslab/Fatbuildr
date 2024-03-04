@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     code.
   - Document impact of HTTP reverse proxies buffering on tasks output streams
     with mention of possible configuration settings.
+  - Document HTTP reverse proxies settings of interest to allow submission of
+    large artifact builds and avoid timeout in live task output.
   - Mention _org.rackslab.Fatbuildr.edit-registry-as_ Polkit action.
   - Mention _edit-registry_ REST API permission action.
   - Mention REST API route to delete artifact.
