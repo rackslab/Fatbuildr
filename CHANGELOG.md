@@ -31,6 +31,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     API (#141)
   - Possibility to remove artifacts from registries in remote instance with the
     REST API (#142)
+  - Add `--include-git-untracked` option to `build` and `patches` commands to
+    avoid automatic exclusion from generated archive of files untracked by git
+    in local source tree.
 - web: Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
 - api:
   - Add _edit-registry_ permission action.

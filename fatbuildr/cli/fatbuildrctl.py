@@ -86,7 +86,9 @@ def prepare_tarball(apath, rundir: bool):
     return tarball
 
 
-def prepare_source_tarball(artifact, path, version, rundir: bool):
+def prepare_source_tarball(
+    artifact, path, version, rundir: bool, include_git_untracked: bool
+):
     """Generates a source tarball for the given artifact, tagged with the given
     main version, using sources in path."""
 
@@ -151,7 +153,11 @@ def prepare_source_tarball(artifact, path, version, rundir: bool):
             return None
         # If the source tree is a git repository and the file is ignored in the
         # repository, exclude this file from generated archive.
-        if git_repo is not None and git_repo.path_is_ignored(filename):
+        if (
+            git_repo is not None
+            and not include_git_untracked
+            and git_repo.path_is_ignored(filename)
+        ):
             logger.debug(
                 "Excluded file untracked in git repository: %s", tarinfo.name
             )
@@ -306,6 +312,14 @@ class Fatbuildrctl(FatbuildrCliRun):
             nargs='*',
             default=[],
         )
+        parser_build.add_argument(
+            '--include-git-untracked',
+            help=(
+                'Include in generated artifact source archive files untracked '
+                'in git repository.'
+            ),
+            action='store_true',
+        )
         parser_build.add_argument('-n', '--name', help='Maintainer name')
         parser_build.add_argument('-e', '--email', help='Maintainer email')
         parser_build.add_argument('-m', '--msg', help='Build log message')
@@ -357,6 +371,14 @@ class Fatbuildrctl(FatbuildrCliRun):
             ),
             nargs='*',
             default=[],
+        )
+        parser_patches.add_argument(
+            '--include-git-untracked',
+            help=(
+                'Include in generated artifact source archive files  untracked '
+                'in git repository.'
+            ),
+            action='store_true',
         )
         parser_patches.set_defaults(func=self._run_patches)
 
@@ -902,7 +924,9 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         return (format, distribution)
 
-    def _build_local_sources(self, defs, artifact, derivative, sources):
+    def _build_local_sources(
+        self, defs, artifact, derivative, sources, include_git_untracked
+    ):
         results = []
         for source in sources:
             if '#' in source:
@@ -937,6 +961,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                         Path(source_dir),
                         source_version,
                         self.connection.scheme == 'dbus',
+                        include_git_untracked,
                     ),
                 )
             )
@@ -1004,7 +1029,11 @@ class Fatbuildrctl(FatbuildrCliRun):
         logger.debug("Selected architectures: %s", selected_architectures)
 
         sources = self._build_local_sources(
-            defs, args.artifact, args.derivative, args.sources
+            defs,
+            args.artifact,
+            args.derivative,
+            args.sources,
+            args.include_git_untracked,
         )
 
         try:
@@ -1059,7 +1088,11 @@ class Fatbuildrctl(FatbuildrCliRun):
         user_name = self._get_user_name(args)
         user_email = self._get_user_email(args)
         sources = self._build_local_sources(
-            defs, args.artifact, args.derivative, args.sources
+            defs,
+            args.artifact,
+            args.derivative,
+            args.sources,
+            args.include_git_untracked,
         )
 
         patch_queue = PatchQueue(
