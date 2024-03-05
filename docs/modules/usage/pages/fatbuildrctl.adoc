@@ -90,6 +90,11 @@ This command accepts the following options:
   directory instead of using the source tarball from the URL declared in
   artifact definition. See <<man-src,*LOCAL SOURCES*>> section for more details.
 
+*--include-git-untracked*::
+  Include in artifact source archive generated from local source directory files
+  that are untracked in git repository. This option only has effect with
+  *--sources* option. See <<man-src,*LOCAL SOURCES*>> section for more details.
+
 *-n, --name*=_NAME_::
   User name for artifact build changelog entry. This option is required, unless
   the user name is defined in user preferences file (see
@@ -409,6 +414,11 @@ This command accepts the following options:
   directory instead of using the source tarball from the URL declared in
   artifact definition. See <<man-src,*LOCAL SOURCES*>> section for more details.
 
+*--include-git-untracked*::
+  Include in artifact source archive generated from local source directory files
+  that are untracked in git repository.  This option only has effect with
+  *--sources* option. See <<man-src,*LOCAL SOURCES*>> section for more details.
+
 *-n, --name*=_NAME_::
   User name for temporary Git repository initial commit author and commiter.
   This option is required, unless the user name is defined in user preferences
@@ -611,6 +621,14 @@ once.
   `~/path/to/code` and version `1.2.3`, and generate archive for artifact
   _other_ source with the content of directory `~/path/to/other-code` and
   version `4.5.6`.
+
+Some files are automatically excluded by Fatbuildr from the generated archives:
+
+* All files whose name start by `.git` (_ex:_ `.gitignore` and `.git/` folder),
+* The `debian/` subdirectory recursively,
+* If the source tree is an initialized Git repository, all files referenced as
+  untracked in this repository (typically in `.gitignore`). This can be disabled
+  with **--include-git-untracked** option.
 
 [[man-pref]]
 == Preferences file

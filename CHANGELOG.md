@@ -63,6 +63,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     tokens of prescript rules.
   - Mention possibility to install DNF modules as prescript dependencies with
     `module:` prefix.
+  - Mention new `--include-git-untracked` option for `build` and `patches`
+    commands in `fatbuildrctl` manpage.
 
 ### Changed
 - docs:
