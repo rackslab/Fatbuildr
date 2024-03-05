@@ -105,7 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Sanitize PRESCRIPT_TARBALLS names for correct detection by Debian build
   system.
 - docs: Add missing path parameter in REST API to retrieve artifact information.
-- pkgs: Add missing dependency on patch package.
+- pkgs: Add missing dependency on patch package (#145).
 
 ## [2.0.0] - 2023-05-05
 
