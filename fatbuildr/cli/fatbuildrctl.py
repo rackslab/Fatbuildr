@@ -34,6 +34,7 @@ from ..protocols.crawler import register_protocols
 from ..protocols.wire import WireSourceArchive
 from ..artifact import ArtifactDefs, ArtifactDefsFactory
 from ..patches import PatchQueue
+from ..git import load_git_repository
 from ..tokens import ClientTokensManager
 from ..console.client import tty_console_renderer
 from ..errors import (
@@ -85,27 +86,6 @@ def prepare_tarball(apath, rundir: bool):
     return tarball
 
 
-def source_tarball_filter(tarinfo):
-    """Custom tar add filter to filter out .git directory, .git* files (eg.
-    .gitignore) and debian subdirectory from source tarball."""
-
-    # Extract filename from tarinfo.name without tarball top-level directory by
-    # removing part before the first OS separator. If the OS separator is not
-    # found in filename, then consider the whole filename.
-    try:
-        filename = tarinfo.name.split(os.sep, 1)[1]
-    except IndexError:
-        filename = tarinfo.name
-    if (
-        filename.startswith('.git')
-        or filename == 'debian'
-        or filename.startswith('debian/')
-    ):
-        return None
-    logger.debug("File added in archive: %s", tarinfo.name)
-    return tarinfo
-
-
 def prepare_source_tarball(artifact, path, version, rundir: bool):
     """Generates a source tarball for the given artifact, tagged with the given
     main version, using sources in path."""
@@ -145,6 +125,40 @@ def prepare_source_tarball(artifact, path, version, rundir: bool):
         tarball,
         path,
     )
+
+    # If .git directory is present in source path, load existing git repository.
+    git_repo = None
+    if path.joinpath(".git").exists():
+        git_repo = load_git_repository(path)
+
+    def source_tarball_filter(tarinfo):
+        """Custom tar add filter to filter out .git directory, .git* files (eg.
+        .gitignore), debian subdirectory and files mentioned in .gitignore from
+        source tarball."""
+
+        # Extract filename from tarinfo.name without tarball top-level directory
+        # by removing part before the first OS separator. If the OS separator is
+        # not found in filename, then consider the whole filename.
+        try:
+            filename = tarinfo.name.split(os.sep, 1)[1]
+        except IndexError:
+            filename = tarinfo.name
+        if (
+            filename.startswith('.git')
+            or filename == 'debian'
+            or filename.startswith('debian/')
+        ):
+            return None
+        # If the source tree is a git repository and the file is ignored in the
+        # repository, exclude this file from generated archive.
+        if git_repo is not None and git_repo.path_is_ignored(filename):
+            logger.debug(
+                "Excluded file untracked in git repository: %s", tarinfo.name
+            )
+            return None
+        logger.debug("File added in archive: %s", tarinfo.name)
+        return tarinfo
+
     with tarfile.open(tarball, 'x:xz') as tar:
         tar.add(
             path, arcname=subdir, recursive=True, filter=source_tarball_filter

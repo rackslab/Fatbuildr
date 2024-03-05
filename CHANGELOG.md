@@ -23,6 +23,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   definition of different values for different distributions and formats (#156).
 - Support installation of DNF modules as prescript dependencies for RPM packages
   builds (#155).
+- Automatically exclude from generated archive files untracked by git (ex:
+  referenced in `.gitignore`) when building or managing patches from local
+  source tree with initialized git repository (#153).
 - cli:
   - Possibility to list artifacts in registries in remote instance with the REST
     API (#141)

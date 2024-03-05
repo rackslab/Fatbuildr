@@ -53,6 +53,10 @@ def is_meta_generic(meta):
     return 'Generic' in meta and meta['Generic'] == 'yes'
 
 
+def load_git_repository(path: str):
+    return pygit2.Repository(path)
+
+
 # It is not possible to inherit directory from pathlib.Path as this class
 # constructor actually returns the specialized type according to the underlying
 # OS. One solution is to discover the actual specialized type for the current OS
