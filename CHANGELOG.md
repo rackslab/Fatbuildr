@@ -55,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mention REST API route to delete artifact.
   - Mention syntax, usage and behaviour of distribution and format specific
     tokens of prescript rules.
+  - Mention possibility to install DNF modules as prescript dependencies with
+    `module:` prefix.
 
 ### Changed
 - docs:

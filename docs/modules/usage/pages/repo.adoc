@@ -622,6 +622,10 @@ the build environment before running the prescript. This list of packages is
 concatenated with the basic set of prescript dependencies declared in main
 Fatbuildr configuration file.
 
+TIP: Fatbuildr supports installation of DNF modules as prescript dependencies
+when building RPM packages. The module names must be specified with `module:`
+prefix in the list of packages.
+
 `#PRESCRIPT_TARBALLS`:: A space separated list of subdirectories used to
 generate supplementary tarballs for the artifact.
 
@@ -688,7 +692,7 @@ Example 2::
 ----
 #!/bin/bash
 
-#PRESCRIPT_DEPS@distributions:el8,el9 rpm-build-golang
+#PRESCRIPT_DEPS@distributions:el8,el9 rpm-build-golang module:python:39
 #PRESCRIPT_DEPS@format:deb dh-golang
 #PRESCRIPT_DEPS golang
 #PRESCRIPT_TARBALLS vendor
@@ -699,8 +703,8 @@ go mod vendor
 
 In this example:
 
-* `rpm-build-golang` package is temporarily installed by Fatbuildr in build
-  environments for _el8_ and _el9_ distributions.
+* `rpm-build-golang` package and `python:39` module are temporarily installed by
+  Fatbuildr in build environments for _el8_ and _el9_ distributions.
 * `dh-golang` package is installed in build environments for _deb_ format.
 * `golang` in other build environments.
 
