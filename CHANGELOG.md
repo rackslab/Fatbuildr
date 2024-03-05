@@ -106,6 +106,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   proxy (#148).
 - Sanitize PRESCRIPT_TARBALLS names for correct detection by Debian build
   system.
+- Enable network access to run prescript in Mock during RPM build.
 - docs: Add missing path parameter in REST API to retrieve artifact information.
 - pkgs: Add missing dependency on patch package (#145).
 

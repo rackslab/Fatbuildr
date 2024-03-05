@@ -475,6 +475,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 f"fatbuildr_derivatives:derivatives={','.join(self.derivatives)}",
                 '--plugin-option',
                 f"fatbuildr_derivatives:keyring={self.build_keyring}",
+                '--enable-network',
                 '--dnf-cmd',
                 'install',
             ] + self.prescript_deps
