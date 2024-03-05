@@ -51,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mention _org.rackslab.Fatbuildr.edit-registry-as_ Polkit action.
   - Mention _edit-registry_ REST API permission action.
   - Mention REST API route to delete artifact.
+  - Mention syntax, usage and behaviour of distribution and format specific
+    tokens of prescript rules.
 
 ### Changed
 - docs:

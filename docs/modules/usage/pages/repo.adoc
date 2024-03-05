@@ -652,6 +652,18 @@ the unique name are installed by Fatbuildr with an additional patch integrated
 in the source package, then packaging code can rely on initial names without
 impact.
 
+[TIP]
+====
+It is possible to define distribution and format specific values of prescript
+rules, with `@distributions:<dists>` and `@formats:<formats>` suffixes
+respectively. The matching distributions and formats are specified as a
+comma-separated list of values.
+
+This distribution specific value takes precedence over the format specific
+value, which takes precedence over the generic value. Only the first matching
+rule is considered.
+====
+
 Exemple 1::
 +
 --
@@ -676,6 +688,8 @@ Example 2::
 ----
 #!/bin/bash
 
+#PRESCRIPT_DEPS@distributions:el8,el9 rpm-build-golang
+#PRESCRIPT_DEPS@format:deb dh-golang
 #PRESCRIPT_DEPS golang
 #PRESCRIPT_TARBALLS vendor
 
@@ -683,11 +697,16 @@ mkdir vendor
 go mod vendor
 ----
 
-With this example, the `golang` package is temporarily installed by Fatbuildr in
-the build environment before prescript execution to get the `go` command
-available. Then, `go` command is used to do _vendoring_ of all dependencies.
-After the execution, Fatbuildr will generate one supplementary tarball with the
-content of the `vendor/` subdirectory.
+In this example:
+
+* `rpm-build-golang` package is temporarily installed by Fatbuildr in build
+  environments for _el8_ and _el9_ distributions.
+* `dh-golang` package is installed in build environments for _deb_ format.
+* `golang` in other build environments.
+
+Then, `go` command is used to do _vendoring_ of all dependencies. After the
+execution, Fatbuildr will generate one supplementary tarball with the content of
+the `vendor/` subdirectory.
 --
 
 == Template filters
