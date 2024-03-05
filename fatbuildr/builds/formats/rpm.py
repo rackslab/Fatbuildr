@@ -453,14 +453,19 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
 
         prescript_failed = False
 
-        try:
-            # install deps
-            logger.debug(
-                "Installing prescript dependencies in build environment %s: %s",
-                self.native_env.name,
-                self.prescript_deps,
-            )
+        module_prefix = 'module:'
+        prescript_modules_deps = [
+            dep[len(module_prefix) :]
+            for dep in self.prescript_deps
+            if dep.startswith(module_prefix)
+        ]
+        prescript_pkgs_deps = [
+            dep
+            for dep in self.prescript_deps
+            if not dep.startswith(module_prefix)
+        ]
 
+        def run_mock_dnf_cmd(args):
             cmd = [
                 self.image.builder,
                 '--root',
@@ -477,9 +482,30 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 f"fatbuildr_derivatives:keyring={self.build_keyring}",
                 '--enable-network',
                 '--dnf-cmd',
-                'install',
-            ] + self.prescript_deps
+            ] + args
             self.cruncmd(cmd)
+
+        try:
+            # Install packages dependencies, if any.
+            if len(prescript_pkgs_deps):
+                logger.debug(
+                    "Installing prescript packages dependencies in build environment "
+                    "%s: %s",
+                    self.native_env.name,
+                    prescript_pkgs_deps,
+                )
+
+                run_mock_dnf_cmd(['install'] + prescript_pkgs_deps)
+
+            # Install modules dependencies, if any.
+            if len(prescript_modules_deps):
+                logger.debug(
+                    "Installing prescript modules dependencies in build environment "
+                    "%s: %s",
+                    self.native_env.name,
+                    prescript_modules_deps,
+                )
+                run_mock_dnf_cmd(['module', 'install'] + prescript_modules_deps)
 
             logger.debug(
                 "Running the prescript using stage1 script in build "
