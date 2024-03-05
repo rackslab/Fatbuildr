@@ -540,31 +540,78 @@ class ArtifactEnvBuild(ArtifactBuild):
         """Returns path to the prescript wrapper script."""
         return self.image.common_libdir.joinpath('pre-wrapper.sh')
 
+    def prescript_get_token_lines(self, token):
+        """Iterate over the lines of prescript file and generate all lines that
+        matches the provided token with an additional item at least."""
+        with open(self.prescript_path, "r") as fh:
+            for line in fh:
+                if line.startswith(token):
+                    # Remove trailing EOL and split by whitespace
+                    items = line.strip().split(' ')
+                    if len(items) < 2:
+                        logger.warn(
+                            "Unable to parse prescript %s line %s",
+                            token,
+                            line,
+                        )
+                    else:
+                        yield items
+
+    def prescript_token_distribution(self, token):
+        """Return the list of values found in the prescript for the distribution
+        specific token that matches artifact distribution, or return an empty
+        list if not found."""
+        for line_items in self.prescript_get_token_lines(
+            f"#PRESCRIPT_{token}@distributions:"
+        ):
+            if self.distribution in line_items[0].split(':')[1].split(','):
+                return line_items[1:]
+        return []
+
+    def prescript_token_format(self, token):
+        """Return the list of values found in the prescript for the format
+        specific token that matches artifact format, or return an empty list if
+        not found."""
+        for line_items in self.prescript_get_token_lines(
+            f"#PRESCRIPT_{token}@formats:"
+        ):
+            if self.format in line_items[0].split(':')[1].split(','):
+                return line_items[1:]
+        return []
+
+    def prescript_token_generic(self, token):
+        """Return the list of values found in the prescript for the generic
+        token, or return an empty list if not found."""
+        for line_items in self.prescript_get_token_lines(
+            f"#PRESCRIPT_{token} "
+        ):
+            return line_items[1:]
+        return []
+
     def prescript_token(self, token):
         """Returns the list of values found for the given token parameter in the
-        prescript. If the prescript is absent or if the parameter is not found,
-        an empty list is returned."""
+        prescript. It first searches for distribution specific token, then
+        format specific token and generic token eventually. If the prescript is
+        absent or if the token is not found in any form, an empty list is
+        returned."""
         in_file = []
 
         # Check the prescript is present or return an empty list
         if not self.prescript_path.exists():
             return in_file
 
-        with open(self.prescript_path, "r") as fh:
-            for line in fh:
-                if line.startswith(f"#PRESCRIPT_{token}"):
-                    try:
-                        line = line.strip()  # Remove trailing EOL
-                        in_file = line.split(' ')[1:]
-                        break
-                    except IndexError:
-                        logger.warn(
-                            "Unable to parse prescript %s line %s",
-                            token,
-                            line,
-                        )
+        for method in [
+            self.prescript_token_distribution,
+            self.prescript_token_format,
+            self.prescript_token_generic,
+        ]:
+            in_file += method(token)
+            if len(in_file):
+                break
+
         if not len(in_file):
             logger.debug("Prescript in-file %s not found", token)
+
         return in_file
 
     @cached_property

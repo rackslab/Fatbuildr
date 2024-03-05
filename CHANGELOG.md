@@ -19,6 +19,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Possiblity to define patches templates with variables to replace (#128).
 - Support generation of prescript tarballs with subdirectory at any depth in
   source tree (#154).
+- Support distribution and format specific tokens of prescript rules to allow
+  definition of different values for different distributions and formats (#156).
 - cli:
   - Possibility to list artifacts in registries in remote instance with the REST
     API (#141)
