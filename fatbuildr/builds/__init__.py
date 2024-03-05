@@ -611,7 +611,8 @@ class ArtifactEnvBuild(ArtifactBuild):
         """Returns the name (string format) to uniquely timestamped renamed
         supplementary tarball subdirectory."""
         return (
-            f"{sanitized_stem(subdir)}-{date.today().strftime('%Y%m%d')}-{self.id[:8]}"
+            f"{sanitized_stem(subdir)}-{date.today().strftime('%Y%m%d')}-"
+            f"{self.id[:8]}"
         )
 
     def prescript(self):
@@ -634,10 +635,10 @@ class ArtifactEnvBuild(ArtifactBuild):
 
         if len(self.defined_prescript_tarballs):
             # Rename and symlink prescript tarballs subdirectories with unique
-            # timestamped names, so the resulting supplementary tarball name is
-            # also unique and cannot conflict in targeted package repository
-            # with another existing supplementary tarball with different
-            # content.
+            # timestamped names in source top-folder, so the resulting
+            # supplementary tarball name is also unique and cannot conflict in
+            # targeted package repository with another existing supplementary
+            # tarball with different content.
             for subdir in self.defined_prescript_tarballs:
                 subdir_path = archive_subdir.joinpath(subdir)
                 target = archive_subdir.joinpath(
@@ -649,9 +650,13 @@ class ArtifactEnvBuild(ArtifactBuild):
                     target,
                 )
                 subdir_path.rename(target)
-                # Create symbolic link for generic subdir to unique timestamped
-                # subdirectory, using the target name to get a relative path.
-                subdir_path.symlink_to(target.name)
+                # Create symbolic link from generic subdir to uniquely
+                # timestamped subdirectory. The symlink is defined with a
+                # relative path computed by prepending as many .. as necessary
+                # to walk up to the top-folder to the target name.
+                subdir_path.symlink_to(
+                    Path(*['..'] * (len(Path(subdir).parts) - 1), target.name)
+                )
             # Generate supplementary tarballs
             self.prescript_supp_tarball(archive_subdir)
             # Export patch with symlinks in patch queue

@@ -86,8 +86,9 @@ def sanitized_stem(stem):
     found for this implementation detail but the regexp can be found in dpkg
     source code, in find_original_tarballs() of Perl module
     scripts/Dpkg/Source/Package.pm. To match this requirement, this property
-    removes all characters except alphanumeric and dash."""
-    return re.sub("[^A-Za-z0-9\-]+", "", stem)
+    removes all characters except alphanumeric and dash. Path separator / is
+    replaced by -."""
+    return re.sub("[^A-Za-z0-9\-]+", "", re.sub("/", "-", stem))
 
 
 def extract_artifact_sources_archives(
