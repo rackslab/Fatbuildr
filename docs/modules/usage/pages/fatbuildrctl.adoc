@@ -205,71 +205,111 @@ The command accepts the following options:
 --
 *images*::
 
-  Manage container images and build environments. One operation among the
+  Manage container images and build environments. One operation among the 
   available subcommands must be specified.
 +
 --
-The *images* command accepts the following subcommands:
+The *images* subcommand accepts the following subcommands:
 
-*create*::
-  Submit tasks to create container images. Unless `-f, --format` or
-  `-d, --distribution` filters are used, all images for all formats declared in
-  instance pipelines are created. One task per image is submitted on server
-  side.
-
-*update*::
-  Submit tasks to update OS packages of container images. Unless `-f, --format`
-  or `-d, --distribution` filters are used, all images for all formats declared
-  in instance pipelines are updated. One task per image is submitted on server
-  side.
-
-*shell*::
-  Submit a task to run an interactive shell as root in a container image. One of
-  `-f, --format` or `-d, --distribution` filters is required to select the
-  image. The task is terminated when the shell is exited.
-
-*env-create*::
-  Submit tasks to create the build environments in the container images. Unless
-  `-f, --format`, `-d, --distribution` or `-a, --architecture` filters are used,
-  all build environments for all formats and architectures declared in instance
-  pipelines are created. One task per build environment is submitted on server
-  side.
-
-*env-update*::
-  Submit tasks to update the build environments in the container images. Unless
-  `-f, --format`, `-d, --distribution` or `-a, --architecture` filters are used,
-  all build environments for all formats and architectures declared in instance
-  pipelines are updated. One task per build environment is submitted on server
-  side.
-
-*env-shell*::
-  Submit a task to run an interactive shell as root in a build environment. The
-  build environment must be selected with `-f, --format`, `-d, --distribution`
-  and `-a, --architecture` filters. The task is terminated when the shell is
-  exited.
-
-The *images* command accepts the following option:
+*create*:::
+  Submit tasks to create container images. Unless *-f, --format* filter
+  is used, all images for all formats declared in instance pipelines are
+  created. One task per image (or format) is submitted on server side.
++
+The *create* subcommand accepts the following options:
 
 *-f, --format*=_FORMAT_::
-  Filter operation on container image dedicated to format _FORMAT_.
-
-*-d, --distribution*=_DISTRIBUTION_::
-  Filter operation on container image or build environment targeting
-  distribution _DISTRIBUTION_.
-
-*-a, --architecture*=_ARCHITECTURE_::
-  Filter operation on build environment for the hardware architecture
-  _ARCHITECTURE_. Without this option, all hardware architectures declared in
-  instance pipelines are considered. This option is ignored for operations
-  targeting container images.
+  Create container image specific to format _FORMAT_.
 
 *--force*::
   Force creation of container images even if already existing. Without this
-  option, creating container image that already exists gives an error. This
-  option is ignored with other command operations.
+  option, creating container image that already exists gives an error.
 
 *-w, --watch*::
   Wait for task to run and print its output until it is over.
+
+*update*:::
+  Submit tasks to update OS packages of container images. Unless *-f, --format*
+  filter is used, all images for all formats declared in instance pipelines are
+  updated. One task per image is submitted on server side.
++
+The *update* subcommand accepts the following options:
+
+*-f, --format*=_FORMAT_::
+  Update container image specific to format _FORMAT_.
+
+*-w, --watch*::
+  Wait for task to run and print its output until it is over.
+
+*shell*:::
+  Submit a task to launch an interactive shell as root in a container image.
+  Unless only one format is declared in the instance pipelines, it is necessary
+  to select the image with *-f, --format* filter. The task is terminated when
+  the shell is exited.
++
+The *shell* subcommand accepts the following option:
+
+*-f, --format*=_FORMAT_::
+  Select container image specific to format _FORMAT_.
+
+*env-create*:::
+  Submit tasks to create the build environments in the container images. Unless
+  *-f, --format*, *-d, --distribution* or *-a, --architecture* filters are used,
+  all build environments for all formats and architectures declared in instance
+  pipelines are created. One task per build environment is submitted on server
+  side.
++
+The *env-create* subcommand accepts the following options:
+
+*-f, --format*=_FORMAT_::
+  Create build environments for format _FORMAT_.
+
+*-d, --distribution*=_DISTRIBUTION_::
+  Create build environments for distribution _DISTRIBUTION_.
+
+*-a, --architecture*=_ARCHITECTURE_::
+  Create build environments for the hardware architecture _ARCHITECTURE_.
+
+*-w, --watch*::
+  Wait for task to run and print its output until it is over.
+
+*env-update*:::
+  Submit tasks to update the build environments in the container images. Unless
+  *-f, --format*, *-d, --distribution* or *-a, --architecture* filters are used,
+  all build environments for all formats and architectures declared in instance
+  pipelines are updated. One task per build environment is submitted on server
+  side.
++
+The *env-update* subcommand accepts the following options:
+
+*-f, --format*=_FORMAT_::
+  Update build environments for format _FORMAT_.
+
+*-d, --distribution*=_DISTRIBUTION_::
+  Update build environments for distribution _DISTRIBUTION_.
+
+*-a, --architecture*=_ARCHITECTURE_::
+  Update build environments for the hardware architecture _ARCHITECTURE_.
+
+*-w, --watch*::
+  Wait for task to run and print its output until it is over.
+
+*env-shell*:::
+  Submit a task to launch an interactive shell as root in a build environment.
+  The build environment must be selected with *-f, --format*,
+  *-d, --distribution* and *-a, --architecture* filters. The task is terminated
+  when the shell is exited.
++
+The *env-shell* subcommand accepts the following options:
+
+*-f, --format*=_FORMAT_::
+  Select build environment for format _FORMAT_.
+
+*-d, --distribution*=_DISTRIBUTION_::
+  Select build environment for distribution _DISTRIBUTION_.
+
+*-a, --architecture*=_ARCHITECTURE_::
+  Select build environment for the hardware architecture _ARCHITECTURE_.
 
 *Examples:*
 
