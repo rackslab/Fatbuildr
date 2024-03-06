@@ -75,6 +75,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `module:` prefix.
   - Mention new `--include-git-untracked` option for `build` and `patches`
     commands in `fatbuildrctl` manpage.
+  - Mention new `command` option for `images shell` and `images env-shell`
+    commands in `fatbuildrctl` manpage.
 
 ### Changed
 - docs:

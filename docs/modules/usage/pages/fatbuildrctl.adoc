@@ -242,15 +242,19 @@ The *update* subcommand accepts the following options:
   Wait for task to run and print its output until it is over.
 
 *shell*:::
-  Submit a task to launch an interactive shell as root in a container image.
-  Unless only one format is declared in the instance pipelines, it is necessary
-  to select the image with *-f, --format* filter. The task is terminated when
-  the shell is exited.
+  Submit a task to launch an interactive shell or execute a command as root in a
+  container image. Unless only one format is declared in the instance pipelines,
+  it is necessary to select the image with *-f, --format* filter. The task is
+  terminated when the shell is exited.
 +
-The *shell* subcommand accepts the following option:
+The *shell* subcommand accepts the following options:
 
 *-f, --format*=_FORMAT_::
   Select container image specific to format _FORMAT_.
+
+*command*::
+  Command to execute in container image. Without this option, an interative
+  shell is launched.
 
 *env-create*:::
   Submit tasks to create the build environments in the container images. Unless
@@ -295,8 +299,8 @@ The *env-update* subcommand accepts the following options:
   Wait for task to run and print its output until it is over.
 
 *env-shell*:::
-  Submit a task to launch an interactive shell as root in a build environment.
-  The build environment must be selected with *-f, --format*,
+  Submit a task to launch an interactive shell or execute command as root in a
+  build environment. The build environment must be selected with *-f, --format*,
   *-d, --distribution* and *-a, --architecture* filters. The task is terminated
   when the shell is exited.
 +
@@ -311,6 +315,10 @@ The *env-shell* subcommand accepts the following options:
 *-a, --architecture*=_ARCHITECTURE_::
   Select build environment for the hardware architecture _ARCHITECTURE_.
 
+*command*::
+  Command to execute in build environment. Without this option, an interative
+  shell is launched.
+
 *Examples:*
 
 `$ fatbuildrctl images create`::
@@ -321,8 +329,12 @@ The *env-shell* subcommand accepts the following options:
   Submit tasks to update container image for RPM format and watch its output
   until its completion.
 
-`$ fatbuildrctl images shell --format deb`::
+`$ fatbuildrctl images shell --format rpm`::
   Submit tasks to open an interactive shell in an instance of a container
+  running the image for RPM format.
+
+`$ fatbuildrctl images shell --format deb \-- dpkg -l`::
+  Submit tasks to execute `dpkg -l` command in an instance of a container
   running the image for Deb format.
 
 `$ fatbuildrctl images env-create --format deb --watch`::
@@ -341,6 +353,10 @@ The *env-shell* subcommand accepts the following options:
   Submit a task to open an interactive shell in the build environment declared
   in instances pipelines for the _el8_ distribution for `arm64` hardware
   architecture.
+
+`$ fatbuildrctl images env-shell --distribution sid \-- apt show curl`::
+  Submit a task to execute command `apt show curl` in the build environment
+  declared in instances pipelines for the _sid_ distribution.
 --
 
 *keyring*::
