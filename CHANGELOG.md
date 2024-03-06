@@ -55,6 +55,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - docs:
   - Mention `containerized` parameter in `[format:osi]` section of system
     configuration.
+  - Mention `exec_cmd` and `exec_tmpfile` parameters in `[format:deb]` and
+   `[format:rpm]` sections of system configuration.
   - Document patches DEP-3 metadata support with Fatbuildr specific fields and
     their management with fatbuildrctl patches subcommand.
   - Mention patches deb822 `Template` field and the patches templating feature.

@@ -197,6 +197,11 @@ parameters shared by all formats are the following:
 `shell_cmd`:: Command used in container to launch an interactive shell in build
 environment.
 
+`exec_cmd`:: Command used in container to execute command in build environment.
+
+`exec_tmpfile`:: Boolean to contrat if command to execute in build environment
+is provided in a temporary file or directly as executable arguments.
+
 `env_update_cmds`:: Command used in container to upgrade build environment
 software.
 
@@ -223,6 +228,11 @@ environment before prescripts are run.
 
 `shell_cmd`:: Command used in container to launch an interactive shell in build
 environment.
+
+`exec_cmd`:: Command used in container to execute command in build environment.
+
+`exec_tmpfile`:: Boolean to contrat if command to execute in build environment
+is provided in a temporary file or directly as executable arguments.
 
 `env_update_cmds`:: Command used in container to upgrade build environment
 software.
