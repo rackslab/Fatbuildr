@@ -88,6 +88,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mention possibility of HTTP/404 response code on supported derivative in
     REST API reference.
   - Split documentation of `images` command options by subcommands in manpage.
+  - Replace `-w, --watch` option by opposite `--batch` option in manpage.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
