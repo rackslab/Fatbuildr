@@ -256,6 +256,10 @@ The *shell* subcommand accepts the following options:
   Command to execute in container image. Without this option, an interative
   shell is launched.
 
+*command*::
+  Command to execute in container image. Without this option, an interative
+  shell is launched.
+
 *env-create*:::
   Submit tasks to create the build environments in the container images. Unless
   *-f, --format*, *-d, --distribution* or *-a, --architecture* filters are used,
