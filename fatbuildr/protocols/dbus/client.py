@@ -345,9 +345,11 @@ class DBusInstanceClient(AbstractClient):
         )
 
     @check_dbus_errors
-    def image_environment_shell(self, format, environment, architecture, term):
+    def image_environment_shell(
+        self, format, environment, architecture, term, command
+    ):
         return self.proxy.ImageEnvironmentShell(
-            format, environment, architecture, term
+            format, environment, architecture, term, command
         )
 
     # token

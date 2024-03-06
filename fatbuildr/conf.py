@@ -240,6 +240,8 @@ class RuntimeSubConfFormatDeb(object):
         self.env_path = None
         self.init_cmd = None
         self.shell_cmd = None
+        self.exec_cmd = None
+        self.exec_tmpfile = None
         self.img_update_cmds = None
         self.env_update_cmds = None
         self.env_as_root = None
@@ -253,6 +255,8 @@ class RuntimeSubConfFormatDeb(object):
         self.env_path = config.get(section, 'env_path')
         self.init_cmd = config.get(section, 'init_cmd')
         self.shell_cmd = config.get(section, 'shell_cmd')
+        self.exec_cmd = config.get(section, 'exec_cmd')
+        self.exec_tmpfile = config.getboolean(section, 'exec_tmpfile')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
         self.env_update_cmds = config.get(section, 'env_update_cmds')
         self.env_as_root = config.getboolean(section, 'env_as_root')
@@ -268,6 +272,8 @@ class RuntimeSubConfFormatDeb(object):
         logger.debug("  env_path: %s", self.env_path)
         logger.debug("  init_cmd: %s", self.init_cmd)
         logger.debug("  shell_cmd: %s", self.shell_cmd)
+        logger.debug("  exec_cmd: %s", self.exec_cmd)
+        logger.debug("  exec_tmpfile: %s", self.exec_tmpfile)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
         logger.debug("  env_update_cmds: %s", self.env_update_cmds)
         logger.debug("  env_as_root: %s", self.env_as_root)
@@ -287,6 +293,8 @@ class RuntimeSubConfFormatRpm(object):
         self.env_path = None
         self.init_cmd = None
         self.shell_cmd = None
+        self.exec_cmd = None
+        self.exec_tmpfile = None
         self.img_update_cmds = None
         self.env_update_cmds = None
         self.env_as_root = None
@@ -298,6 +306,8 @@ class RuntimeSubConfFormatRpm(object):
         self.env_path = config.get(section, 'env_path')
         self.init_cmd = config.get(section, 'init_cmd')
         self.shell_cmd = config.get(section, 'shell_cmd')
+        self.exec_cmd = config.get(section, 'exec_cmd')
+        self.exec_tmpfile = config.getboolean(section, 'exec_tmpfile')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
         self.env_update_cmds = config.get(section, 'env_update_cmds')
         self.env_as_root = config.getboolean(section, 'env_as_root')
@@ -309,6 +319,8 @@ class RuntimeSubConfFormatRpm(object):
         logger.debug("  env_path: %s", self.env_path)
         logger.debug("  init_cmd: %s", self.init_cmd)
         logger.debug("  shell_cmd: %s", self.shell_cmd)
+        logger.debug("  exec_cmd: %s", self.exec_cmd)
+        logger.debug("  exec_tmpfile: %s", self.exec_tmpfile)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
         logger.debug("  env_update_cmds: %s", self.env_update_cmds)
         logger.debug("  env_as_root: %s", self.env_as_root)

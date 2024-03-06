@@ -17,6 +17,8 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+import shlex
+
 from ..archive import SourceArchive
 from ..registry.formats import RegistryArtifact
 from ..log import logr
@@ -92,6 +94,14 @@ class WireRunnableTask(WireData):
             print(f"  format: {self.format}")
             print(f"  environment: {self.environment}")
             print(f"  architecture: {self.architecture}")
+        elif (
+            self.name == 'image shell'
+            or self.name == 'image build environment shell'
+        ):
+            print(
+                "  command:",
+                shlex.join(self.command) if len(self.command) else '∅',
+            )
         elif self.name == "keyring renewal":
             print(f"  duration: {self.duration}")
 

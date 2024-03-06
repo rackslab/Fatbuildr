@@ -18,6 +18,8 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import tarfile
+import shlex
+import tempfile
 from io import BytesIO
 
 from .templates import Templeter
@@ -282,6 +284,44 @@ class BuildEnv(object):
         task.cruncmd(
             self.image, cmd, envs=[f"TERM={term}"], init=True, asroot=True
         )
+
+    def execute(self, task, term, command):
+        logger.info(
+            "Executing command in build environment %s for architecture %s in "
+            "%s image",
+            self.name,
+            self.architecture,
+            self.image.format,
+        )
+
+        base_exec_cmd = Templeter().srender(
+            self.image.format_conf.exec_cmd,
+            environment=self.environment,
+            architecture=self.native_architecture,
+            name=self.name,
+            path=self.path,
+        )
+
+        if self.image.format_conf.exec_tmpfile:
+            with tempfile.NamedTemporaryFile(mode='w') as fp:
+                fp.write(shlex.join(command))
+                fp.flush()
+                task.cruncmd(
+                    self.image,
+                    base_exec_cmd + ' ' + fp.name,
+                    envs=[f"TERM={term}"],
+                    binds=[fp.name],
+                    init=True,
+                    asroot=True,
+                )
+        else:
+            task.cruncmd(
+                self.image,
+                base_exec_cmd + ' ' + shlex.join(command),
+                envs=[f"TERM={term}"],
+                init=True,
+                asroot=True,
+            )
 
 
 class ImagesManager(object):

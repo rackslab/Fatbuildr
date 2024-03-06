@@ -614,6 +614,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         environment: Str,
         architecture: Str,
         term: Str,
+        command: List[Str],
         *,
         call_info,
     ) -> Str:
@@ -626,6 +627,7 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
             environment,
             architecture,
             term,
+            command,
         )
 
     @accepts_additional_arguments

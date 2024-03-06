@@ -160,6 +160,7 @@ class ImageEnvironmentShellTask(RunnableTask):
         ExportableTaskField('environment'),
         ExportableTaskField('architecture'),
         ExportableTaskField('term'),
+        ExportableTaskField('command', List[str]),
     }
 
     def __init__(
@@ -172,12 +173,14 @@ class ImageEnvironmentShellTask(RunnableTask):
         environment,
         architecture,
         term,
+        command,
     ):
         super().__init__(task_id, user, place, instance, interactive=True)
         self.format = format
         self.environment = environment
         self.architecture = architecture
         self.term = term
+        self.command = command
 
     def run(self):
         logger.info(
@@ -187,4 +190,7 @@ class ImageEnvironmentShellTask(RunnableTask):
         build_env = self.instance.images_mgr.build_env(
             self.format, self.environment, self.architecture
         )
-        build_env.shell(self, self.term)
+        if not len(self.command):
+            build_env.shell(self, self.term)
+        else:
+            build_env.execute(self, self.term, self.command)

@@ -349,7 +349,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         # Sub-parser for images env-shell
         parser_images_env_shell = images_subparsers.add_parser(
             'env-shell',
-            help='Launch shell in build environment',
+            help='Launch shell or execute command in build environment',
         )
         parser_images_env_shell.add_argument(
             '-f',
@@ -365,6 +365,11 @@ class Fatbuildrctl(FatbuildrCliRun):
             '-a',
             '--architecture',
             help='Select build environment for this hardware architecture',
+        )
+        parser_images_env_shell.add_argument(
+            'command',
+            help='Command to execute in build environment',
+            nargs='*',
         )
 
         # Parser for the keyring command
@@ -848,6 +853,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 selected_env,
                 selected_architecture,
                 os.getenv('TERM'),
+                args.command,
                 interactive=True,
             )
 
