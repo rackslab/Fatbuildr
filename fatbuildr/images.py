@@ -151,6 +151,16 @@ class Image(object):
             )
         task.cruncmd(self, None, envs=[f"TERM={term}"], init=True, asroot=True)
 
+    def execute(self, task, term, command):
+        logger.info("Executing command in image for %s format", self.format)
+        if not self.exists:
+            raise RuntimeError(
+                f"Image {self.path} does not exist, create it first"
+            )
+        task.cruncmd(
+            self, command, envs=[f"TERM={term}"], init=True, asroot=True
+        )
+
 
 class BuildEnv(object):
     def __init__(self, conf, image, environment, architecture, pipelines):

@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add `--include-git-untracked` option to `build` and `patches` commands to
     avoid automatic exclusion from generated archive of files untracked by git
     in local source tree.
+  - Possibility to execute command in arguments of `images shell`.
 - web: Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
 - api:
   - Add _edit-registry_ permission action.
@@ -41,8 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     artifact route.
 - conf: Add `containerized` parameter in `[format:osi]` section.
 - pkgs: Add patch to define upstream version at build time.
-- dbus: Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
-  object to submit artifact deletion task with another user identity.
+- dbus:
+  - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
+    object to submit artifact deletion task with another user identity.
+  - Add `command` argument to `ImageShell` method.
 - polkit: Add _org.rackslab.Fatbuildr.edit-registry-as_ action.
 - docs:
   - Mention `containerized` parameter in `[format:osi]` section of system

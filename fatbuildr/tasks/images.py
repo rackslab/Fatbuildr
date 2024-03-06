@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+from typing import List
 
 from . import RunnableTask
 from ..protocols.exports import ExportableTaskField
@@ -74,12 +75,14 @@ class ImageShellTask(RunnableTask):
     EXFIELDS = {
         ExportableTaskField('format'),
         ExportableTaskField('term'),
+        ExportableTaskField('command', List[str]),
     }
 
-    def __init__(self, task_id, user, place, instance, format, term):
+    def __init__(self, task_id, user, place, instance, format, term, command):
         super().__init__(task_id, user, place, instance, interactive=True)
         self.format = format
         self.term = term
+        self.command = command
 
     def run(self):
         logger.info(
@@ -87,7 +90,10 @@ class ImageShellTask(RunnableTask):
             self.id,
         )
         img = self.instance.images_mgr.image(self.format)
-        img.shell(self, self.term)
+        if not len(self.command):
+            img.shell(self, self.term)
+        else:
+            img.execute(self, self.term, self.command)
 
 
 class ImageEnvironmentCreationTask(RunnableTask):

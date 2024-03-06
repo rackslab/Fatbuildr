@@ -329,8 +329,8 @@ class DBusInstanceClient(AbstractClient):
         return self.proxy.ImageUpdate(format)
 
     @check_dbus_errors
-    def image_shell(self, format, term):
-        return self.proxy.ImageShell(format, term)
+    def image_shell(self, format, term, command):
+        return self.proxy.ImageShell(format, term, command)
 
     @check_dbus_errors
     def image_environment_create(self, format, environment, architecture):

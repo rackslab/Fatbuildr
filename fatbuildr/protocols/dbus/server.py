@@ -564,10 +564,16 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
 
     @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.manage-image")
-    def ImageShell(self, format: Str, term: Str, *, call_info) -> Str:
+    def ImageShell(
+        self, format: Str, term: Str, command: List[Str], *, call_info
+    ) -> Str:
         """Submit an image shell task and returns the task id."""
         return self.implementation.submit(
-            'image shell', dbus_user(call_info['sender'])[1], format, term
+            'image shell',
+            dbus_user(call_info['sender'])[1],
+            format,
+            term,
+            command,
         )
 
     @accepts_additional_arguments

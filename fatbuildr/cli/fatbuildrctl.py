@@ -275,12 +275,23 @@ class Fatbuildrctl(FatbuildrCliRun):
         # Sub-parser for images shell
         parser_images_shell = images_subparsers.add_parser(
             'shell',
-            help='Launch shell in format specific container image',
+            help=(
+                'Launch shell or execute command in format specific container '
+                'image'
+            ),
         )
         parser_images_shell.add_argument(
             '-f',
             '--format',
-            help='Launch shell in this format specific container image',
+            help=(
+                'Launch shell or execute command in this format specific '
+                'container image'
+            ),
+        )
+        parser_images_shell.add_argument(
+            'command',
+            help='Command to execute in format specific container image',
+            nargs='*',
         )
 
         # Sub-parser for images env-create
@@ -733,6 +744,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 True,
                 selected_format,
                 os.getenv('TERM'),
+                args.command,
                 interactive=True,
             )
         elif args.operation == 'env-create':
