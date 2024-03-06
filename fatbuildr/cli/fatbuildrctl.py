@@ -225,45 +225,136 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_images = subparsers.add_parser(
             'images', help='Manage build images'
         )
-        parser_images.add_argument(
-            'operation',
-            help='Operation to realize on image or build environment',
-            choices=[
-                'create',
-                'update',
-                'shell',
-                'env-create',
-                'env-update',
-                'env-shell',
-            ],
+
+        parser_images.set_defaults(func=self._run_images)
+        if sys.version_info[1] >= 3 and sys.version_info[1] >= 7:
+            images_subparsers = parser_images.add_subparsers(
+                help='Operation on image', dest='operation', required=True
+            )
+        else:
+            images_subparsers = parser_images.add_subparsers(
+                help='Action to perform', dest='operation'
+            )
+        # Sub-parser for images create
+        parser_images_create = images_subparsers.add_parser(
+            'create', help='Create format specific container image'
         )
-        parser_images.add_argument(
+        parser_images_create.add_argument(
             '-f',
             '--format',
-            help='Manage image and build environment for this format',
+            help='Create container image for this format',
         )
-        parser_images.add_argument(
-            '-d',
-            '--distribution',
-            help='Manage build environment for this distribution',
-        )
-        parser_images.add_argument(
-            '-a',
-            '--architecture',
-            help='Manage build environment for this hardware architecture',
-        )
-        parser_images.add_argument(
+        parser_images_create.add_argument(
             '--force',
             action='store_true',
             help='Force creation of images even they already exist',
         )
-        parser_images.add_argument(
+        parser_images_create.add_argument(
             '-w',
             '--watch',
             action='store_true',
             help='Watch task log and wait until its end',
         )
-        parser_images.set_defaults(func=self._run_images)
+
+        # Sub-parser for images update
+        parser_images_update = images_subparsers.add_parser(
+            'update', help='Create format specific container image'
+        )
+        parser_images_update.add_argument(
+            '-f',
+            '--format',
+            help='Update container image for this format',
+        )
+        parser_images_update.add_argument(
+            '-w',
+            '--watch',
+            action='store_true',
+            help='Watch task log and wait until its end',
+        )
+
+        # Sub-parser for images shell
+        parser_images_shell = images_subparsers.add_parser(
+            'shell',
+            help='Launch shell in format specific container image',
+        )
+        parser_images_shell.add_argument(
+            '-f',
+            '--format',
+            help='Launch shell in this format specific container image',
+        )
+
+        # Sub-parser for images env-create
+        parser_images_env_create = images_subparsers.add_parser(
+            'env-create', help='Create build environments'
+        )
+        parser_images_env_create.add_argument(
+            '-f',
+            '--format',
+            help='Create build environments for this format',
+        )
+        parser_images_env_create.add_argument(
+            '-d',
+            '--distribution',
+            help='Create build environments for this distribution',
+        )
+        parser_images_env_create.add_argument(
+            '-a',
+            '--architecture',
+            help='Create build environments for this hardware architecture',
+        )
+        parser_images_env_create.add_argument(
+            '-w',
+            '--watch',
+            action='store_true',
+            help='Watch task log and wait until its end',
+        )
+
+        # Sub-parser for images env-update
+        parser_images_env_update = images_subparsers.add_parser(
+            'env-update', help='Update build environments'
+        )
+        parser_images_env_update.add_argument(
+            '-f',
+            '--format',
+            help='Update build environments for this format',
+        )
+        parser_images_env_update.add_argument(
+            '-d',
+            '--distribution',
+            help='Update build environments for this distribution',
+        )
+        parser_images_env_update.add_argument(
+            '-a',
+            '--architecture',
+            help='Update build environments for this hardware architecture',
+        )
+        parser_images_env_update.add_argument(
+            '-w',
+            '--watch',
+            action='store_true',
+            help='Watch task log and wait until its end',
+        )
+
+        # Sub-parser for images env-shell
+        parser_images_env_shell = images_subparsers.add_parser(
+            'env-shell',
+            help='Launch shell in build environment',
+        )
+        parser_images_env_shell.add_argument(
+            '-f',
+            '--format',
+            help='Select build environment for this format',
+        )
+        parser_images_env_shell.add_argument(
+            '-d',
+            '--distribution',
+            help='Select build environment for this distribution',
+        )
+        parser_images_env_shell.add_argument(
+            '-a',
+            '--architecture',
+            help='Select build environment for this hardware architecture',
+        )
 
         # Parser for the keyring command
         parser_keyring = subparsers.add_parser(
@@ -519,25 +610,30 @@ class Fatbuildrctl(FatbuildrCliRun):
     def _run_images(self, args):
         logger.debug("running images task")
 
-        if args.distribution:
-            dist_fmt = self.connection.pipelines_distribution_format(
-                args.distribution
-            )
-            # if format is also given, check it matches
-            if args.format and args.format != dist_fmt:
-                logger.error(
-                    "Specified format %s does not match the format "
-                    "of the specified distribution %s",
-                    args.format,
-                    args.distribution,
-                )
-                sys.exit(1)
-            selected_formats = [dist_fmt]
-        elif args.format:
-            selected_formats = [args.format]
-        else:
-            selected_formats = self.connection.pipelines_formats()
-        logger.debug("Selected formats: %s", selected_formats)
+        # Check action is provided in argument by checking default subparser
+        # func is defined.
+        if not hasattr(args, 'operation'):
+            # FIXME: print usage
+            logger.error("The operation argument must be given")
+            sys.exit(1)
+
+        def select_formats():
+            """Return the list of selected formats for the operation. If the
+            argument is defined, check it is supported and select it. Otherwise,
+            return the list of all supported formats."""
+            supported_formats = self.connection.pipelines_formats()
+            if args.format:
+                # Check format provided by user in argument is supported by this
+                # instance.
+                if args.format not in supported_formats:
+                    logger.error(
+                        "Format %s is not supported by this instance",
+                        args.format,
+                    )
+                    sys.exit(1)
+                return [args.format]
+            else:
+                return supported_formats
 
         def select_build_environments(format):
             """Returns the list of selected build environments for the
@@ -598,7 +694,7 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         # check if operation is on images and run it
         if args.operation == 'create':
-            for format in selected_formats:
+            for format in select_formats():
                 self._submit_watch(
                     self.connection.image_create,
                     f"{format} image creation",
@@ -607,7 +703,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                     args.force,
                 )
         elif args.operation == 'update':
-            for format in selected_formats:
+            for format in select_formats():
                 self._submit_watch(
                     self.connection.image_update,
                     f"{format} image update",
@@ -616,6 +712,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
         elif args.operation == 'shell':
             # Verify that only one format is selected at this stage or fail.
+            selected_formats = select_formats()
             try:
                 assert len(selected_formats) == 1
             except AssertionError:
@@ -625,8 +722,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                     ','.join(selected_formats),
                 )
                 logger.info(
-                    "Please use --format or --distribution filters to select "
-                    "the image for running the shell"
+                    "Please use --format filter to select the container image"
                 )
                 sys.exit(1)
 
@@ -640,10 +736,9 @@ class Fatbuildrctl(FatbuildrCliRun):
                 interactive=True,
             )
         elif args.operation == 'env-create':
-            selected_architectures = select_architectures()
-            for format in selected_formats:
+            for format in select_formats():
                 for env in select_build_environments(format):
-                    for architecture in selected_architectures:
+                    for architecture in select_architectures():
                         self._submit_watch(
                             self.connection.image_environment_create,
                             f"{format} {env}-{architecture} build "
@@ -654,10 +749,9 @@ class Fatbuildrctl(FatbuildrCliRun):
                             architecture,
                         )
         elif args.operation == 'env-update':
-            selected_architectures = select_architectures()
-            for format in selected_formats:
+            for format in select_formats():
                 for env in select_build_environments(format):
-                    for architecture in selected_architectures:
+                    for architecture in select_architectures():
                         self._submit_watch(
                             self.connection.image_environment_update,
                             f"{format} {env}-{architecture} build "
@@ -668,6 +762,21 @@ class Fatbuildrctl(FatbuildrCliRun):
                             architecture,
                         )
         elif args.operation == 'env-shell':
+            selected_formats = select_formats()
+            if args.distribution:
+                dist_fmt = self.connection.pipelines_distribution_format(
+                    args.distribution
+                )
+                # if format is also given, check it matches
+                if args.format and args.format != dist_fmt:
+                    logger.error(
+                        "Specified format %s does not match the format "
+                        "of the specified distribution %s",
+                        args.format,
+                        args.distribution,
+                    )
+                    sys.exit(1)
+                selected_formats = [dist_fmt]
             # Verify that only one format is selected at this stage or fail.
             try:
                 assert len(selected_formats) == 1
@@ -679,7 +788,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
                 logger.info(
                     "Please use --format or --distribution filters to select "
-                    "the build environment for running the shell"
+                    "the build environment"
                 )
                 sys.exit(1)
             selected_format = selected_formats[0]
@@ -696,7 +805,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
                 logger.info(
                     "Please use --distribution filter to select a "
-                    "specific build environment for running the shell"
+                    "specific build environment"
                 )
                 sys.exit(1)
             selected_env = selected_envs[0]
