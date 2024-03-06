@@ -233,7 +233,7 @@ pipelines:
 
 [source,shell]
 ----
-$ fatbuildrctl images --create --watch
+$ fatbuildrctl images --create
 ----
 
 This command submits tasks to create one container image per artifact format
@@ -246,7 +246,7 @@ command:
 
 [source,shell]
 ----
-$ fatbuildrctl images --create-envs --watch
+$ fatbuildrctl images --create-envs
 ----
 
 This submits tasks to create all build environments required for every
@@ -265,7 +265,7 @@ Fatbuildr installation:
 ----
 $ fatbuildrctl build --artifact hello --distribution bullseye \
   --basedir /usr/share/doc/fatbuildr/examples \
-  --name 'John Doe' --email john.doe@company.tld --message "First build!" --watch
+  --name 'John Doe' --email john.doe@company.tld --message "First build!"
 ----
 
 This submits a task to:
@@ -291,7 +291,7 @@ Then you can build your first RPM package:
 ----
 $ fatbuildrctl build --artifact hello --distribution el8 \
   --basedir /usr/share/doc/fatbuildr/examples \
-  --message "First RPM build!" --watch
+  --message "First RPM build!"
 ----
 
 This submits a task to build RPM packages of the same GNU Hello software for

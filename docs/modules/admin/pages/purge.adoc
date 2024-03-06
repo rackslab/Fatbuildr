@@ -45,7 +45,7 @@ submitting an history purge task with this command:
 
 [source,console]
 ----
-$ fatbuildrctl history purge [-w,--watch]
+$ fatbuildrctl history purge [--batch]
 ----
 
 ## Automatic purge

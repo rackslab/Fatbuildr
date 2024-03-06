@@ -131,6 +131,6 @@ command:
 
 [source,console]
 ----
-$ fatbuildrctl build --artifact hello --basedir ~/base --distribution el8 --watch
+$ fatbuildrctl build --artifact hello --basedir ~/base --distribution el8
 ----
 
