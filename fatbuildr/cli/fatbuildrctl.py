@@ -250,10 +250,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             help='Force creation of images even they already exist',
         )
         parser_images_create.add_argument(
-            '-w',
-            '--watch',
+            '--batch',
             action='store_true',
-            help='Watch task log and wait until its end',
+            help='Submit task in background',
         )
 
         # Sub-parser for images update
@@ -266,10 +265,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             help='Update container image for this format',
         )
         parser_images_update.add_argument(
-            '-w',
-            '--watch',
+            '--batch',
             action='store_true',
-            help='Watch task log and wait until its end',
+            help='Submit task in background',
         )
 
         # Sub-parser for images shell
@@ -314,10 +312,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             help='Create build environments for this hardware architecture',
         )
         parser_images_env_create.add_argument(
-            '-w',
-            '--watch',
+            '--batch',
             action='store_true',
-            help='Watch task log and wait until its end',
+            help='Submit task in background',
         )
 
         # Sub-parser for images env-update
@@ -340,10 +337,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             help='Update build environments for this hardware architecture',
         )
         parser_images_env_update.add_argument(
-            '-w',
-            '--watch',
+            '--batch',
             action='store_true',
-            help='Watch task log and wait until its end',
+            help='Submit task in background',
         )
 
         # Sub-parser for images env-shell
@@ -431,10 +427,9 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_build.add_argument('-e', '--email', help='Maintainer email')
         parser_build.add_argument('-m', '--msg', help='Build log message')
         parser_build.add_argument(
-            '-w',
-            '--watch',
+            '--batch',
             action='store_true',
-            help='Watch build log and wait until its end',
+            help='Submit task in background',
         )
         parser_build.add_argument(
             '-i',
@@ -510,10 +505,9 @@ class Fatbuildrctl(FatbuildrCliRun):
             default='list',
         )
         parser_history.add_argument(
-            '-w',
-            '--watch',
+            '--batch',
             action='store_true',
-            help='Watch task log and wait until its end',
+            help='Submit task in background',
         )
 
         parser_history.set_defaults(func=self._run_history)
@@ -711,19 +705,19 @@ class Fatbuildrctl(FatbuildrCliRun):
         # check if operation is on images and run it
         if args.operation == 'create':
             for format in select_formats():
-                self._submit_watch(
+                self._submit_task(
                     self.connection.image_create,
                     f"{format} image creation",
-                    args.watch,
+                    args.batch,
                     format,
                     args.force,
                 )
         elif args.operation == 'update':
             for format in select_formats():
-                self._submit_watch(
+                self._submit_task(
                     self.connection.image_update,
                     f"{format} image update",
-                    args.watch,
+                    args.batch,
                     format,
                 )
         elif args.operation == 'shell':
@@ -743,10 +737,10 @@ class Fatbuildrctl(FatbuildrCliRun):
                 sys.exit(1)
 
             selected_format = selected_formats[0]
-            self._submit_watch(
+            self._submit_task(
                 self.connection.image_shell,
                 f"{selected_format} image shell",
-                True,
+                False,
                 selected_format,
                 os.getenv('TERM'),
                 args.command,
@@ -756,11 +750,11 @@ class Fatbuildrctl(FatbuildrCliRun):
             for format in select_formats():
                 for env in select_build_environments(format):
                     for architecture in select_architectures():
-                        self._submit_watch(
+                        self._submit_task(
                             self.connection.image_environment_create,
                             f"{format} {env}-{architecture} build "
                             "environment creation",
-                            args.watch,
+                            args.batch,
                             format,
                             env,
                             architecture,
@@ -769,11 +763,11 @@ class Fatbuildrctl(FatbuildrCliRun):
             for format in select_formats():
                 for env in select_build_environments(format):
                     for architecture in select_architectures():
-                        self._submit_watch(
+                        self._submit_task(
                             self.connection.image_environment_update,
                             f"{format} {env}-{architecture} build "
                             "environment update",
-                            args.watch,
+                            args.batch,
                             format,
                             env,
                             architecture,
@@ -844,11 +838,11 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
                 sys.exit(1)
             selected_architecture = selected_architectures[0]
-            self._submit_watch(
+            self._submit_task(
                 self.connection.image_environment_shell,
                 f"{selected_format} {selected_env}-{selected_architecture} "
                 "build environment shell",
-                True,  # watch
+                False,  # batch
                 selected_format,
                 selected_env,
                 selected_architecture,
@@ -1107,10 +1101,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             )
             args.interactive = False
 
-        # If user asks for interactive build also force watch feature, otherwise
-        # interactive would be pointless.
+        # If user asks for interactive build also force deactivation of batch
+        # feature, otherwise interactive would be pointless.
         if args.interactive:
-            args.watch = True
+            args.batch = False
 
         apath = self._get_apath(args)
         defs = ArtifactDefs(apath, args.artifact)  # load generic artifact defs
@@ -1167,10 +1161,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             # Prepare artifact definition tarball, in fatbuildrd runtime
             # directory if connected to fatbuildrd through dbus.
             tarball = prepare_tarball(apath, self.connection.scheme == 'dbus')
-            self._submit_watch(
+            self._submit_task(
                 self.connection.build,
                 f"{args.artifact} build",
-                args.watch,
+                args.batch,
                 format,
                 distribution,
                 selected_architectures,
@@ -1238,10 +1232,10 @@ class Fatbuildrctl(FatbuildrCliRun):
             logger.debug("Removing generated source tarball %s", source.path)
             source.path.unlink()
 
-    def _submit_watch(self, caller, task_name, watch, *args, interactive=False):
+    def _submit_task(self, caller, task_name, batch, *args, interactive=False):
         task_id = caller(*args)
         print(f"Submitted {task_name} task {task_id}")
-        if watch:
+        if not batch:
             self._watch_task(task_id, interactive)
 
     def _watch_task(self, task_id, interactive):
@@ -1295,8 +1289,8 @@ class Fatbuildrctl(FatbuildrCliRun):
             for task in history:
                 task.report()
         elif args.operation == 'purge':
-            self._submit_watch(
-                self.connection.history_purge, 'tasks history purge', args.watch
+            self._submit_task(
+                self.connection.history_purge, 'tasks history purge', args.batch
             )
         else:
             NotImplementedError(
