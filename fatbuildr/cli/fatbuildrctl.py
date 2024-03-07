@@ -629,9 +629,26 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         def select_formats():
             """Return the list of selected formats for the operation. If the
-            argument is defined, check it is supported and select it. Otherwise,
-            return the list of all supported formats."""
+            distribution argument exists and is defined, check it matches the
+            format argument if defined and return the format associated to this
+            distribution. Else, if the argument is defined, check it is
+            supported and select it. Otherwise, return the list of all supported
+            formats."""
             supported_formats = self.connection.pipelines_formats()
+            if hasattr(args, 'distribution') and args.distribution:
+                dist_fmt = self.connection.pipelines_distribution_format(
+                    args.distribution
+                )
+                # if format is also given, check it matches
+                if args.format and args.format != dist_fmt:
+                    logger.error(
+                        "Specified format %s does not match the format "
+                        "of the specified distribution %s",
+                        args.format,
+                        args.distribution,
+                    )
+                    sys.exit(1)
+                return [dist_fmt]
             if args.format:
                 # Check format provided by user in argument is supported by this
                 # instance.
