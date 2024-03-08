@@ -21,6 +21,9 @@ sub-sections.
 `name`:: The name of the instance, as a free text form. This is essentially used
 for presentation in Fatbuildrweb HTML pages and API.
 
+`architectures`:: Optional list of hardware architectures supported by the
+instance. By default, only the host hardware architecture is supported.
+
 == Keyring
 
 Instance keyring parameters are declared as a hash associated to the `gpg` key.
@@ -138,6 +141,9 @@ The distributions of `rpm` format are:
   tag.
 
 The distributions of `osi` formats are `ci` and `ai`.
+
+In this example instance, 2 hardware architectures are supported: `x86_64` and
+`aarch64`.
 
 This instance is defined with 4 derivatives:
 

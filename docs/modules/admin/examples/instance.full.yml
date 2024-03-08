@@ -22,6 +22,9 @@ formats:
   osi:
   - name: ci
   - name: ia
+architectures:
+- x86_64
+- aarch64
 derivatives:
   extra:
     formats: [deb, rpm]
