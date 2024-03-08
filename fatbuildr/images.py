@@ -182,8 +182,12 @@ class BuildEnv(object):
             return Templeter().srender(env_path, name=self.name)
 
     @property
-    def name(self):
+    def base(self):
         return f"{self.environment}-{self.native_architecture}"
+
+    @property
+    def name(self):
+        return f"fatbuildr-{self.base}"
 
     @property
     def native_architecture(self):
@@ -235,11 +239,12 @@ class BuildEnv(object):
         cmds = [
             Templeter().srender(
                 _cmd.strip(),
+                name=self.name,
+                base=self.base,
                 environment=self.environment,
                 mirror=mirror,
                 components=components,
                 architecture=self.native_architecture,
-                name=self.name,
                 path=self.path,
             )
             for _cmd in self.image.format_conf.init_cmds.split('&&')
@@ -260,9 +265,10 @@ class BuildEnv(object):
         cmds = [
             Templeter().srender(
                 _cmd.strip(),
+                name=self.name,
+                base=self.base,
                 environment=self.environment,
                 architecture=self.native_architecture,
-                name=self.name,
                 path=self.path,
             )
             for _cmd in self.image.format_conf.env_update_cmds.split('&&')
@@ -280,9 +286,10 @@ class BuildEnv(object):
         )
         cmd = Templeter().srender(
             self.image.format_conf.shell_cmd,
+            name=self.name,
+            base=self.base,
             environment=self.environment,
             architecture=self.native_architecture,
-            name=self.name,
             path=self.path,
         )
         task.cruncmd(
@@ -300,9 +307,10 @@ class BuildEnv(object):
 
         base_exec_cmd = Templeter().srender(
             self.image.format_conf.exec_cmd,
+            name=self.name,
+            base=self.base,
             environment=self.environment,
             architecture=self.native_architecture,
-            name=self.name,
             path=self.path,
         )
 

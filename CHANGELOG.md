@@ -80,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     commands in `fatbuildrctl` manpage.
 
 ### Changed
+- Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.
 - cli: Watch task output by default when submitting tasks. The `-w, --watch`
   option is replaced by the opposite `--batch` option to submit tasks in
   background (#123).
