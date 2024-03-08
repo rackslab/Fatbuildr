@@ -94,6 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Replace `-w, --watch` option by opposite `--batch` option in manpage.
   - Remove mention of `--watch` options in various pages of documentation.
   - Use `fatbuildrctl shell images <command>` in troubleshooting page.
+  - Rename `init_cmd`→`init_cmds` parameter in `[format:deb]` and
+    `[format:rpm]` sections of system configuration.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds

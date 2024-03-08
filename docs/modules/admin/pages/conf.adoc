@@ -192,7 +192,7 @@ parameters shared by all formats are the following:
 
 `env_path`:: Absolute path to the build environment in the container image.
 
-`init_cmd`:: Command used in container to create build environment.
+`init_cmds`:: Command used in container to create build environment.
 
 `shell_cmd`:: Command used in container to launch an interactive shell in build
 environment.
@@ -224,7 +224,7 @@ environment before prescripts are run.
 
 `env_path`:: Absolute path to the build environment in the container image.
 
-`init_cmd`:: Command used in container to create build environment.
+`init_cmds`:: Command used in container to create build environment.
 
 `shell_cmd`:: Command used in container to launch an interactive shell in build
 environment.
