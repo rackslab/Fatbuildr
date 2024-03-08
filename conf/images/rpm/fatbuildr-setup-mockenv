@@ -35,11 +35,16 @@ config_opts['root'] = '{{ name }}'
 {% if packages|length %}
 config_opts['chroot_additional_packages'] = '{{packages | join(' ')}}'
 {% endif %}
+{% if modules|length %}
+config_opts['module_setup_commands'] = [
+    ('enable',  '{{ modules | join(', ')}}'),
+]
+{% endif %}\
 """
 
 
 def usage():
-    print(f"usage: {sys.argv[0]} <NAME> <BASE> [<PACKAGES>]")
+    print(f"usage: {sys.argv[0]} <NAME> <BASE> [<PACKAGES> [<MODULES>]]")
     sys.exit(1)
 
 
@@ -53,6 +58,9 @@ def main():
     packages = []
     if len(sys.argv) > 3 and len(sys.argv[3]):
         packages = sys.argv[3].split(',')
+    modules = []
+    if len(sys.argv) > 4 and len(sys.argv[4]):
+        modules = sys.argv[4].split(',')
 
     # Generate Mock environment configuration
     template = Environment(trim_blocks=True, lstrip_blocks=True).from_string(
@@ -63,7 +71,7 @@ def main():
     with open(config, 'w+') as fh:
         fh.write(
             template.render(
-                name=name, base=base, packages=packages
+                name=name, base=base, packages=packages, modules=modules
             )
         )
 

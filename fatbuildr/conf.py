@@ -298,6 +298,7 @@ class RuntimeSubConfFormatRpm(object):
         self.img_update_cmds = None
         self.env_update_cmds = None
         self.env_as_root = None
+        self.env_default_modules = []
         self.prescript_deps = []
 
     def load(self, config):
@@ -311,6 +312,12 @@ class RuntimeSubConfFormatRpm(object):
         self.img_update_cmds = config.get(section, 'img_update_cmds')
         self.env_update_cmds = config.get(section, 'env_update_cmds')
         self.env_as_root = config.getboolean(section, 'env_as_root')
+        try:
+            self.env_default_modules = config.get(
+                section, 'env_default_modules'
+            ).split(' ')
+        except configparser.NoOptionError:
+            pass
         self.prescript_deps = config.get(section, 'prescript_deps').split(' ')
 
     def dump(self):
@@ -324,6 +331,7 @@ class RuntimeSubConfFormatRpm(object):
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
         logger.debug("  env_update_cmds: %s", self.env_update_cmds)
         logger.debug("  env_as_root: %s", self.env_as_root)
+        logger.debug("  env_default_modules: %s", self.env_default_modules)
         logger.debug("  prescript_deps: %s", self.prescript_deps)
 
 class RuntimeSubConfFormatOsi(object):

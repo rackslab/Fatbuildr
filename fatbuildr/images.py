@@ -232,6 +232,19 @@ class BuildEnv(object):
                 components = self.image.format_conf.env_default_components
             except AttributeError:
                 components = None
+
+        # Get the modules defined in instance pipelines definition
+        modules = self.pipelines.env_modules(self.environment)
+        if modules is None:
+            # If the components is not defined in pipelines definition, get the
+            # environment default components in system configuration. If it is
+            # also not defined in system configuration (it is not available for
+            # all formats), fallback to None.
+            try:
+                modules = self.image.format_conf.env_default_modules
+            except AttributeError:
+                modules = None
+
         # Define if the environment creation command must be run as root in
         # container.
         asroot = self.image.format_conf.env_as_root
@@ -244,6 +257,7 @@ class BuildEnv(object):
                 environment=self.environment,
                 mirror=mirror,
                 components=components,
+                modules=modules,
                 architecture=self.native_architecture,
                 path=self.path,
             )

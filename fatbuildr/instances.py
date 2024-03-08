@@ -116,6 +116,19 @@ class InstancePipelines:
                     else:
                         return None
 
+    def env_modules(self, environment):
+        """Return the environment modules or None if not defined."""
+        for format, dists in self._formats.items():
+            for dist in dists:
+                if 'env' in dist and dist['env'] == environment:
+                    modules = dist.get('modules')
+                    if modules is not None and not isinstance(modules, list):
+                        raise FatbuildrPipelineError(
+                            f"Modules of environment {environment} is not a "
+                            "valid list"
+                        )
+                    return modules
+
     def format_dists(self, format):
         """Return the list of distributions for the given format."""
         return [dist['name'] for dist in self._formats[format]]

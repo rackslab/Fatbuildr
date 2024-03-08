@@ -26,6 +26,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Automatically exclude from generated archive files untracked by git (ex:
   referenced in `.gitignore`) when building or managing patches from local
   source tree with initialized git repository (#153).
+- Possibility to declare in instance pipelines definitions DNF modules to enable
+  in Mock build environments (#163).
 - cli:
   - Possibility to list artifacts in registries in remote instance with the REST
     API (#141)
@@ -46,6 +48,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add `exec_cmd` and `exec_tmpfile` parameters in `[format:deb]` and
     `[format:rpm]` sections.
   - Add support of multiple build environments initialization commands.
+  - Add optional `env_default_modules` parameter in `[format:rpm]` section.
 - pkgs: Add patch to define upstream version at build time.
 - dbus:
   - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
