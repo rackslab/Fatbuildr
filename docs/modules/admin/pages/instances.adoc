@@ -79,6 +79,10 @@ environment (_ex:_ _rocky-8_ or _fedora-36_).
 `tag`:: The tag appended to packages release number for this distribution. This
 is expected to be a short string with few alphanumeric characters.
 
+`modules`:: A list of DNF modules to enable in the Mock build environment for
+this distribution. This parameter is *optional*. When absent, the
+`env_default_modules` from xref:conf.adoc[system configuration] is used.
+
 === `osi` Distributions
 
 `name`:: The name of the distribution. This should be an alphanumeric string

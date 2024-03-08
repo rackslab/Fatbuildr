@@ -241,6 +241,11 @@ software.
 (creation and update) are run as root, instead the user running `fatbuildrd`
 daemon.
 
+`env_default_modules`:: Space separated list of DNF modules to enable by default
+in Mock build environments, unless overridden in
+xref:instances.adoc[instance pipelines definitions]. By default, this parameter
+is not defined and no DNF module is enabled.
+
 `prescript_deps`:: Space-separated list of packages installed in build
 environment before prescripts are run.
 

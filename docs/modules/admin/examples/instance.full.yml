@@ -16,6 +16,9 @@ formats:
   - name: el8
     env: rocky-8
     tag: el8
+    modules:
+    - nodejs:16
+    - nodejs:18
   - name: fc36
     env: fedora-36
     tag: fc36
