@@ -90,6 +90,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Split documentation of `images` command options by subcommands in manpage.
   - Replace `-w, --watch` option by opposite `--batch` option in manpage.
   - Remove mention of `--watch` options in various pages of documentation.
+  - Use `fatbuildrctl shell images <command>` in troubleshooting page.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds

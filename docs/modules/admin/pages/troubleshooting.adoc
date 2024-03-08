@@ -105,11 +105,8 @@ associated instance:
 
 [source,shell]
 ----
-$ sudo systemd-nspawn --quiet --directory /var/lib/fatbuildr/images/$instance/deb.img id fatbuildr
+$ fatbuildrctl images shell -f deb id fatbuildr
 ----
-
-Where `$instance` is the name of the Fatbuildr instance (ex: _default_ in the
-above example error message).
 
 If it does not match the host, the UID/GID of the user must be changed in the
 container image by editing `/etc/passwd` and `/etc/group` file. This should be
@@ -139,8 +136,8 @@ with the following commands:
 
 [source,shell]
 ----
-$ sudo systemd-nspawn --directory /var/lib/fatbuildr/images/$instance/rpm.img mock --root $environment --clean
-$ sudo systemd-nspawn --directory /var/lib/fatbuildr/images/$instance/rpm.img mock --root $environment --scrub all
+$ fatbuildrctl images shell -f rpm -- mock --root $environment --clean
+$ fatbuildrctl images shell -f rpm -- mock --root $environment --scrub all
 ----
 
 Where `$environment` is the name of the build environment (ex: _rocky-8-x86_64_
