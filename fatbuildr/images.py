@@ -197,12 +197,12 @@ class BuildEnv(object):
             self.image.format,
         )
 
-        # check init_cmd is defined for this format
-        if self.image.format_conf.init_cmd is None:
+        # check init_cmds is defined for this format
+        if self.image.format_conf.init_cmds is None:
             raise RuntimeError(
                 f"Unable to create build environment {self.name} for "
                 f"architecture {self.architecture} in {self.image.format} "
-                "image because init_cmd is not defined for this format"
+                "image because init_cmds is not defined for this format"
             )
 
         # Get the mirror defined in instance pipelines definition
@@ -232,16 +232,20 @@ class BuildEnv(object):
         # container.
         asroot = self.image.format_conf.env_as_root
 
-        cmd = Templeter().srender(
-            self.image.format_conf.init_cmd,
-            environment=self.environment,
-            mirror=mirror,
-            components=components,
-            architecture=self.native_architecture,
-            name=self.name,
-            path=self.path,
-        )
-        task.cruncmd(self.image, cmd, init=True, asroot=asroot)
+        cmds = [
+            Templeter().srender(
+                _cmd.strip(),
+                environment=self.environment,
+                mirror=mirror,
+                components=components,
+                architecture=self.native_architecture,
+                name=self.name,
+                path=self.path,
+            )
+            for _cmd in self.image.format_conf.init_cmds.split('&&')
+        ]
+        for cmd in cmds:
+            task.cruncmd(self.image, cmd, init=True, asroot=asroot)
 
     def update(self, task):
         logger.info(

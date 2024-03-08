@@ -42,9 +42,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Possibility to remove artifact from registries with DELETE verb on
     artifact route.
 - conf:
- - Add `containerized` parameter in `[format:osi]` section.
- - Add `exec_cmd` and `exec_tmpfile` parameters in `[format:deb]` and
-   `[format:rpm]` sections.
+  - Add `containerized` parameter in `[format:osi]` section.
+  - Add `exec_cmd` and `exec_tmpfile` parameters in `[format:deb]` and
+    `[format:rpm]` sections.
+  - Add support of multiple build environments initialization commands.
 - pkgs: Add patch to define upstream version at build time.
 - dbus:
   - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
@@ -82,6 +83,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - cli: Watch task output by default when submitting tasks. The `-w, --watch`
   option is replaced by the opposite `--batch` option to submit tasks in
   background (#123).
+- conf: Rename `init_cmd`→`init_cmds` parameter in `[format:deb]` and
+  `[format:rpm]` sections of system configuration.
 - docs:
   - Update table of available remote features with new registry content
     listing and artifact deletion possibilities.

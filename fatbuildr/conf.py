@@ -238,7 +238,7 @@ class RuntimeSubConfFormatDeb(object):
 
         self.builder = None
         self.env_path = None
-        self.init_cmd = None
+        self.init_cmds = None
         self.shell_cmd = None
         self.exec_cmd = None
         self.exec_tmpfile = None
@@ -253,7 +253,7 @@ class RuntimeSubConfFormatDeb(object):
         section = 'format:deb'
         self.builder = config.get(section, 'builder')
         self.env_path = config.get(section, 'env_path')
-        self.init_cmd = config.get(section, 'init_cmd')
+        self.init_cmds = config.get(section, 'init_cmds')
         self.shell_cmd = config.get(section, 'shell_cmd')
         self.exec_cmd = config.get(section, 'exec_cmd')
         self.exec_tmpfile = config.getboolean(section, 'exec_tmpfile')
@@ -270,7 +270,7 @@ class RuntimeSubConfFormatDeb(object):
         logger.debug("[format:deb]")
         logger.debug("  builder: %s", self.builder)
         logger.debug("  env_path: %s", self.env_path)
-        logger.debug("  init_cmd: %s", self.init_cmd)
+        logger.debug("  init_cmds: %s", self.init_cmds)
         logger.debug("  shell_cmd: %s", self.shell_cmd)
         logger.debug("  exec_cmd: %s", self.exec_cmd)
         logger.debug("  exec_tmpfile: %s", self.exec_tmpfile)
@@ -291,7 +291,7 @@ class RuntimeSubConfFormatRpm(object):
 
         self.builder = None
         self.env_path = None
-        self.init_cmd = None
+        self.init_cmds = None
         self.shell_cmd = None
         self.exec_cmd = None
         self.exec_tmpfile = None
@@ -304,7 +304,7 @@ class RuntimeSubConfFormatRpm(object):
         section = 'format:rpm'
         self.builder = config.get(section, 'builder')
         self.env_path = config.get(section, 'env_path')
-        self.init_cmd = config.get(section, 'init_cmd')
+        self.init_cmds = config.get(section, 'init_cmds')
         self.shell_cmd = config.get(section, 'shell_cmd')
         self.exec_cmd = config.get(section, 'exec_cmd')
         self.exec_tmpfile = config.getboolean(section, 'exec_tmpfile')
@@ -317,7 +317,7 @@ class RuntimeSubConfFormatRpm(object):
         logger.debug("[format:rpm]")
         logger.debug("  builder: %s", self.builder)
         logger.debug("  env_path: %s", self.env_path)
-        logger.debug("  init_cmd: %s", self.init_cmd)
+        logger.debug("  init_cmds: %s", self.init_cmds)
         logger.debug("  shell_cmd: %s", self.shell_cmd)
         logger.debug("  exec_cmd: %s", self.exec_cmd)
         logger.debug("  exec_tmpfile: %s", self.exec_tmpfile)
@@ -325,7 +325,6 @@ class RuntimeSubConfFormatRpm(object):
         logger.debug("  env_update_cmds: %s", self.env_update_cmds)
         logger.debug("  env_as_root: %s", self.env_as_root)
         logger.debug("  prescript_deps: %s", self.prescript_deps)
-
 
 class RuntimeSubConfFormatOsi(object):
     """Runtime sub-configuration class to hold RPM format settings."""
