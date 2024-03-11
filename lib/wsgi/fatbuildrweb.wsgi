@@ -32,7 +32,7 @@ logger.setup(False, fulldebug=False)
 # Register protocols with types
 register_protocols()
 
-# Load configuratio file
+# Load configuration file
 conf = RuntimeConfWeb()
 conf.load()
 
