@@ -38,6 +38,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     in local source tree.
   - Possibility to execute command in arguments of `images shell` and
     `images env-shell` (#98).
+  - Support `$FATBUILDR_URI` environment variable to override value in user
+    preferences file (#124).
 - web:
   - Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
   - Support file listing and folders browsing in registries (#65).

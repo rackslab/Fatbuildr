@@ -48,6 +48,7 @@ logger = logr(__name__)
 
 
 DEFAULT_URI = 'dbus://system/default'
+ENV_URI = 'FATBUILDR_URI'
 
 
 def progname():
@@ -204,7 +205,10 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser.add_argument(
             '--uri',
             dest='uri',
-            help=f"URI of Fatbuildr server (default: {DEFAULT_URI})",
+            help=(
+                "URI of Fatbuildr server (default: "
+                f"{os.environ.get(ENV_URI, DEFAULT_URI)})"
+            ),
         )
 
         # Unfortunately, Python 3.6 does support add_subparsers() required
@@ -606,16 +610,21 @@ class Fatbuildrctl(FatbuildrCliRun):
         # Load user preferences
         self.prefs = UserPreferences(args.preferences)
 
-        # Set URI with args, prefs and default descending priority
-        if args.uri is None:
-            if self.prefs.uri is None:
-                self.uri = DEFAULT_URI
-            else:
-                self.uri = self.prefs.uri
-        else:
-            self.uri = args.uri
+        # Determine instance URI
+        self.uri = self._instance_uri(args)
 
         self.prefs.dump()
+
+    def _instance_uri(self, args):
+        """Return the instance URI for this execution. Select args, env, user
+        preference file and default URI in this order."""
+        if args.uri is not None:
+            return args.uri
+        if ENV_URI in os.environ:
+            return os.environ[ENV_URI]
+        if self.prefs.uri is not None:
+            return self.prefs.uri
+        return DEFAULT_URI
 
     def _run_images(self, args):
         logger.debug("running images task")
