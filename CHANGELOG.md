@@ -92,6 +92,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     commands in `fatbuildrctl` manpage.
   - Mention new `command` option for `images shell` and `images env-shell`
     commands in `fatbuildrctl` manpage.
+  - Mention support of `$FATBUILDR_URI` environment variable in `fatbuildrctl`
+    manpage.
 
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.

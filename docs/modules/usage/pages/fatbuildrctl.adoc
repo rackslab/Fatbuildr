@@ -32,7 +32,8 @@ endif::[]
   refer to <<man-pref,*PREFERENCES FILE*>> section for details about this file.
 
 *--uri*=_URI_::
-  URI of Fatbuildr server (default: `dbus://system/default`). Accepted schemes
+  URI of Fatbuildr server (default: `dbus://system/default` or
+  <<env,`$FATBUILDR_URI` environment variable>> if defined). Accepted schemes
   are `dbus`, when interacting with local `fatbuildrd` service on D-Bus, or
   `http(s)` when interacting with potentially remote `fatbuildrweb` proxy (ex:
   `http://build.host/prod`).
@@ -755,6 +756,17 @@ uri = http://build.host/dev
 basedir = /home/john/path/to/basedir
 message = Artifact maintenance build
 ----
+
+[#env]
+== Environment Variables
+
+To avoid specifying some options to `fatbuildrctl`, it is possible to define the
+following environment variables:
+
+*FATBUILDR_URI*::
+  When defined, this environment variable overrides the instance URI defined in
+  <<man-pref,user preferences file>>. When *--uri* option is set, this
+  environment variable is ignored.
 
 [#tokens]
 == API Tokens
