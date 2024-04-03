@@ -65,6 +65,9 @@ CAUTION: `debug`, `host`, `port` and `instance` parameters are valid for
 Fatbuildrweb running as xref:install:web.adoc#autonomous[autonomous service]
 only. These parameters are ignored when Fatbuildrweb runs as WSGI application.
 
+`listing`:: Boolean to control if listing of files and browsing in registries
+folders is allowed.
+
 `vendor_templates`:: Absolute path to directory of vendor HTML pages templates.
 
 `templates`:: Absolute path to directory of site HTML pages templates.

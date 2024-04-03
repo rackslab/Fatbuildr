@@ -67,6 +67,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
    `[format:rpm]` sections of system configuration.
   - Mention new `env_default_modules` optional parameter in `[format:rpm]`
     section of system configuration.
+  - Mention `listing` parameter in `[web]` section of system configuration.
   - Mention new `modules` optional parameter for RPM distributions in instance
     pipelines definitions.
   - Document patches DEP-3 metadata support with Fatbuildr specific fields and
