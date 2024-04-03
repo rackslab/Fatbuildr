@@ -334,6 +334,7 @@ class RuntimeSubConfFormatRpm(object):
         logger.debug("  env_default_modules: %s", self.env_default_modules)
         logger.debug("  prescript_deps: %s", self.prescript_deps)
 
+
 class RuntimeSubConfFormatOsi(object):
     """Runtime sub-configuration class to hold RPM format settings."""
 
@@ -391,6 +392,7 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         self.host = None
         self.port = None
         self.instance = None
+        self.listing = None
         self.vendor_templates = None
         self.templates = None
         self.static = None
@@ -403,6 +405,7 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         self.host = config.get(section, 'host')
         self.port = config.getint(section, 'port')
         self.instance = config.get(section, 'instance')
+        self.listing = config.getboolean(section, 'listing')
         self.vendor_templates = config.get(section, 'vendor_templates')
         self.templates = config.get(section, 'templates')
         self.static = config.get(section, 'static')
@@ -415,6 +418,7 @@ class RuntimeSubConfWeb(RuntimeConfApp):
         logger.debug("  host: %s", self.host)
         logger.debug("  port: %i", self.port)
         logger.debug("  instance: %s", self.instance)
+        logger.debug("  listing: %s", self.listing)
         logger.debug("  vendor_templates: %s", self.vendor_templates)
         logger.debug("  static: %s", self.static)
         logger.debug("  vendor_policy: %s", self.vendor_policy)

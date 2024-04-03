@@ -1,0 +1,40 @@
+{% extends "layout/base.html.j2" %}
+{% block title %}{% if config['INSTANCE'] == 'all' %}{{ instance }}{% else %}formats{% endif %}{% endblock %}
+{% block content %}
+<nav aria-label="breadcrumb">
+  <ol class="breadcrumb">
+    {% if config['INSTANCE'] == 'all' %}<li class="breadcrumb-item active" aria-current="page">{{ instance }}</li>{% endif %}
+  </ol>
+</nav>
+<h1>{{ path.relative_to(instance_registry_folder) }}/ content</h1>
+
+<table class="table table-striped">
+  <tr>
+    <th>Filename</th>
+    <th>Size</th>
+    <th>Last modification</th>
+  </tr>
+{% if path.parent != instance_registry_folder %}
+  <tr>
+    <td>
+      <a href="{{ url_for('content', instance=instance, filename=path.parent.relative_to(instance_registry_folder)) }}">↰ Parent</a>
+    </td>
+    <td></td>
+    <td></td>
+  </tr>
+{% endif %}
+{% for item in path.iterdir() %}
+    <tr>
+    <td>
+{% if item.is_dir() %}
+      <a href="{{ url_for('content', instance=instance, filename=item.relative_to(instance_registry_folder)) }}">{{ item.name }}/</a>
+{% else %}
+      <a href="{{ url_for('content', instance=instance, filename=item.relative_to(instance_registry_folder)) }}">{{ item.name }}</a>
+{% endif %}
+    </td>
+    <td><small>{{ item.stat().st_size|filesizeformat }}</small></td>
+    <td><small>{{ item.stat().st_mtime|timestamp_iso }}</small></td>
+  </tr>
+{% endfor %}
+</table>
+{% endblock %}

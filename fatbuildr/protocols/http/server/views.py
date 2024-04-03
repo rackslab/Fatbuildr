@@ -635,7 +635,24 @@ def keyring(instance):
 
 
 def content(instance, filename):
-    return send_from_directory(
-        current_app.config['REGISTRY_FOLDER'].joinpath(instance),
-        filename,
+    instance_registry_folder = current_app.config['REGISTRY_FOLDER'].joinpath(
+        instance
     )
+    path = instance_registry_folder.joinpath(filename)
+    if not path.exists():
+        abort(404, 'File not found in registry')
+    if path.is_dir():
+        if current_app.conf.run.listing:
+            return fb_render_template(
+                'dir.html.j2',
+                instance=instance,
+                instance_registry_folder=instance_registry_folder,
+                path=path,
+            )
+        else:
+            abort(403, 'Access forbidden')
+    else:
+        return send_from_directory(
+            current_app.config['REGISTRY_FOLDER'].joinpath(instance),
+            filename,
+        )

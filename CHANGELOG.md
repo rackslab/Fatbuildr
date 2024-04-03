@@ -38,7 +38,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     in local source tree.
   - Possibility to execute command in arguments of `images shell` and
     `images env-shell` (#98).
-- web: Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
+- web:
+  - Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
+  - Support file listing and folders browsing in registries (#65).
 - api:
   - Add _edit-registry_ permission action.
   - Possibility to remove artifact from registries with DELETE verb on
@@ -49,6 +51,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `[format:rpm]` sections.
   - Add support of multiple build environments initialization commands.
   - Add optional `env_default_modules` parameter in `[format:rpm]` section.
+  - Add `listing` boolean parameter in `[web]` section to control activation of
+    listing feature in `fatbuildrweb`.
 - pkgs: Add patch to define upstream version at build time.
 - dbus:
   - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
