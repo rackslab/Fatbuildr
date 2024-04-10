@@ -543,15 +543,20 @@ class Fatbuildrctl(FatbuildrCliRun):
         parser_tokens = subparsers.add_parser(
             'tokens', help='Manage REST API tokens'
         )
-        parser_tokens.add_argument(
-            'operation',
-            help='Operation on tokens (default: %(default)s)',
-            nargs='?',
-            choices=['list', 'generate', 'save'],
-            default='list',
+        tokens_subparsers = parser_tokens.add_subparsers(
+            help='Operation on tokens',
+            dest='operation',
         )
-        parser_tokens.add_argument(
-            '--uri', help='URI associated to saved token'
+        # Sub-parser for tokens list
+        tokens_subparsers.add_parser('list', help='List available tokens')
+        # Sub-parser for tokens generate
+        tokens_subparsers.add_parser('generate', help='Generate new token')
+        # Sub-parser for tokens save
+        parser_tokens_save = tokens_subparsers.add_parser(
+            'save', help='Save token'
+        )
+        parser_tokens_save.add_argument(
+            '--uri', help='URL associated to saved token'
         )
 
         parser_tokens.set_defaults(func=self._run_tokens)
@@ -595,6 +600,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         connection and returns it."""
         if self._connection:
             return self._connection
+        logger.debug("Connecting to instance URI %s", self.uri)
         self._connection = ClientFactory.get(
             self.uri, ClientTokensManager(self.prefs.tokens_dir).load(self.uri)
         )
@@ -1362,6 +1368,8 @@ class Fatbuildrctl(FatbuildrCliRun):
                 )
 
     def _run_tokens(self, args):
+        if args.operation is None:
+            args.operation = 'list'
         if args.operation == 'list':
             for token in ClientTokensManager(self.prefs.tokens_dir).tokens():
                 print("token:\n  " + '\n  '.join(str(token).split('\n')))

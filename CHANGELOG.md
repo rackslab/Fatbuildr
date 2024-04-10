@@ -166,6 +166,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Enable network access to run prescript in Mock during RPM build.
 - Prescript failure due to missing groupadd/useradd commands (passwd package) in
   Debian sid build environment (#169).
+- Conflict between `fatbuildrctl --uri` option and
+  `fatbuildrctl tokens save --uri` option that prevent
+  `fatbuildrctl tokens generate` from connecting to an instance other than the
+  default (#168).
 - docs:
   - Add missing path parameter in REST API to retrieve artifact information.
   - Add missing optional `architectures` parameter in instances pipelines
