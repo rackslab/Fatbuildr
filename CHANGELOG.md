@@ -100,8 +100,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - cli: Watch task output by default when submitting tasks. The `-w, --watch`
   option is replaced by the opposite `--batch` option to submit tasks in
   background (#123).
-- conf: Rename `init_cmd`→`init_cmds` parameter in `[format:deb]` and
-  `[format:rpm]` sections of system configuration.
+- conf:
+  - Rename `init_cmd`→`init_cmds` parameter in `[format:deb]` and `[format:rpm]`
+    sections of system configuration.
+  - Bump Fedora release from 38 to 40 in rpm and osi container images.
 - docs:
   - Update table of available remote features with new registry content
     listing and artifact deletion possibilities.
