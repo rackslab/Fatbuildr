@@ -104,6 +104,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Rename `init_cmd`→`init_cmds` parameter in `[format:deb]` and `[format:rpm]`
     sections of system configuration.
   - Bump Fedora release from 38 to 40 in rpm and osi container images.
+  - Install podman for Mock in rpm container image.
 - docs:
   - Update table of available remote features with new registry content
     listing and artifact deletion possibilities.
