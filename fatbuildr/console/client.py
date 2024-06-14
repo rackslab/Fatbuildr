@@ -236,8 +236,28 @@ def console_unix_client(io, binary):
 
     def reader(size):
         data = connection.recv(size)
-        # retry until enough data has been received
+        max_retries = 2
+        retries = 0
+        last_data_size = 0
+        # Retry until enough data has been received.
         while len(data) < size:
+            # Check up to max_retries times more data has been received or
+            # return empty binary result to stop ConsoleMessage.read()
+            # processing. This can typically happen when fatbuildrd fail and
+            # the connection to unix server is closed inadvertently by the
+            # server.
+            if len(data) == last_data_size:
+                retries += 1
+                if retries == max_retries:
+                    logger.warn(
+                        f"{max_retries+1} successive failures to read data "
+                        "from console server"
+                    )
+                    return b""
+            else:
+                # Reset retry counter.
+                last_data_size = len(data)
+                retries = 0
             missing = size - len(data)
             data += connection.recv(missing)
         return data
