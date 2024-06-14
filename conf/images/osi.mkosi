@@ -8,4 +8,26 @@ Format=directory
 [Content]
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
-Packages=mkosi,rpm,dnf,apt,debian-keyring,diffutils,debootstrap,systemd-container,e2fsprogs,man-db
+Packages=
+  mkosi
+  rpm
+  dnf5
+  apt
+  debian-keyring
+  diffutils
+  cpio
+  debootstrap
+  systemd-udev
+  systemd-container
+  systemd-ukify
+  kmod
+  e2fsprogs
+  xfsprogs
+  btrfs-progs
+  dosfstools
+  squashfs-tools
+  mtools
+  edk2-ovmf
+  sbsigntools
+  man-db
+PostInstallationScript=/usr/share/fatbuildr/images/scripts/osi-postinstall.sh
