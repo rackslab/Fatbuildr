@@ -94,6 +94,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     commands in `fatbuildrctl` manpage.
   - Mention support of `$FATBUILDR_URI` environment variable in `fatbuildrctl`
     manpage.
+  - Explain upstream `debian/` directory in present artifact archives is removed
+    and replaced by Fatbuildr during Deb packages builds.
 
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.
