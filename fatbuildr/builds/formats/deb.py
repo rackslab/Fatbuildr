@@ -125,6 +125,12 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         # copy debian dir
         deb_code_from = self.place.joinpath('deb')
         deb_code_to = main_tarball_subdir.joinpath('debian')
+        if deb_code_to.exists():
+            logger.debug(
+                "Removing debian packaging directory extracted from source "
+                "archives"
+            )
+            shutil.rmtree(deb_code_to)
         logger.debug(
             "Copying debian packaging code from %s into %s",
             deb_code_from,

@@ -173,6 +173,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `fatbuildrctl tokens save --uri` option that prevent
   `fatbuildrctl tokens generate` from connecting to an instance other than the
   default (#168).
+- Support artifact archive with existing `debian/` folder. During deb packages
+  builds, this upstream `debian/` folder is removed and replaced by one
+  generated with the artifact definition (#174).
 - docs:
   - Add missing path parameter in REST API to retrieve artifact information.
   - Add missing optional `architectures` parameter in instances pipelines
