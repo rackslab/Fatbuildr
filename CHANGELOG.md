@@ -185,6 +185,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Detect console unix socket closed by server, generally due to unexpected
   `fatbuildrd` error, in order to avoid endless loop and properly stop the
   console on client side (`fatbuildrctl` and `fatbuildrweb`) with error message.
+- Check OSI artifact checksum file is properly created by mkosi or raise task
+  execution error to report in task journal.
 - docs:
   - Add missing path parameter in REST API to retrieve artifact information.
   - Add missing optional `architectures` parameter in instances pipelines

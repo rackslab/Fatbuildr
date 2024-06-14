@@ -21,6 +21,7 @@ import shutil
 import re
 
 from . import Registry, RegistryArtifact
+from ...errors import FatbuildrTaskExecutionError
 from ...log import logr
 
 logger = logr(__name__)
@@ -76,6 +77,13 @@ class RegistryOsi(Registry):
         new_checksum_path = build.place.joinpath(
             f"{build.artifact}_{build.version.main}.{self.CHECKSUMS_FILE_EXT}"
         )
+
+        # Check checksum file exists or raise error
+        if not new_checksum_path.exists():
+            raise FatbuildrTaskExecutionError(
+                f"Unable to find OSI checksum file {new_checksum_path}"
+            )
+
         derivative_checksum_path = derivative_path.joinpath(
             self.CHECKSUMS_FILE_EXT
         )
