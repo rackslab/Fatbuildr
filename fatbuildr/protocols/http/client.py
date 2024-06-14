@@ -69,7 +69,7 @@ class HttpClient(AbstractClient):
         if response.status_code == 404:
             raise FatbuildrServerError(f"{response.json()['error']} (404)")
         if response.status_code == 500:
-            raise FatbuildrServerError(f"Remote server internal error (500)")
+            raise FatbuildrServerError("Remote server internal error (500)")
         return response
 
     @check_http_errors
