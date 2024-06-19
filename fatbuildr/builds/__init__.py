@@ -548,6 +548,12 @@ class ArtifactEnvBuild(ArtifactBuild):
         """Returns path to the prescript wrapper script."""
         return self.image.common_libdir.joinpath('pre-wrapper.sh')
 
+    @property
+    def changelog_task_entry(self):
+        """Return text of changelog entry with reference to build task id and
+        instance name appended in artifact changelog."""
+        return f"Fatbuildr task {self.id}@{self.instance.name}"
+
     def check_build_env_exists(self, architecture=None):
         """Check build environment exists or raise FatbuildrTaskExecutionError.
         If architecture is None, it checks for existence of native build

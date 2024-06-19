@@ -249,7 +249,10 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 self.version.full,
                 f"{self.author} <{self.email}>",
                 datetime.now().timestamp(),
-                [self.message],
+                [
+                    self.message,
+                    self.changelog_task_entry,
+                ],
             )
         ]
         if existing_version:

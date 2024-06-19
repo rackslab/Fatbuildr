@@ -217,6 +217,14 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         _envs = ['DEBEMAIL=' + self.email, 'DEBFULLNAME=' + self.author]
         self.cruncmd(cmd, chdir=main_tarball_subdir, envs=_envs)
 
+        # Add task ID in changelog entry
+        cmd = [
+            'debchange',
+            '--append',
+            self.changelog_task_entry,
+        ]
+        self.cruncmd(cmd, chdir=main_tarball_subdir, envs=_envs)
+
         # Create orig symlinks to upstream source archives
         for archive in self.archives:
             if archive.is_main(self.artifact):

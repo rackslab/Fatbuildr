@@ -28,6 +28,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   source tree with initialized git repository (#153).
 - Possibility to declare in instance pipelines definitions DNF modules to enable
   in Mock build environments (#163).
+- Add reference to build task ID and instance name in RPM/deb package changelog
+  entries (#15).
 - cli:
   - Possibility to list artifacts in registries in remote instance with the REST
     API (#141)
