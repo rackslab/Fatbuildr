@@ -153,6 +153,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         )
 
     def build(self):
+        self.check_image_exists()
         self._build_src()
         for architecture in self.architectures:
             self._build_bin(architecture)
@@ -160,6 +161,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
 
     def _build_src(self):
         """Build source SRPM"""
+        self.check_build_env_exists()
 
         logger.info(
             "Building source RPM for %s in build environment %s",
@@ -340,6 +342,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
     def _build_bin(self, architecture):
         """Build binary RPM"""
 
+        self.check_build_env_exists(architecture)
         env = self.instance.images_mgr.build_env(
             self.format, self.env_name, architecture
         )

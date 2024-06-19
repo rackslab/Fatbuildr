@@ -67,6 +67,9 @@ class ArtifactBuildOsi(ArtifactBuild):
     def build(self):
         """Build the OS image using mkosi"""
 
+        if self.image.format_conf.containerized:
+            self.check_image_exists()
+
         logger.info("Building the OS image based %s", self.artifact)
 
         def_path = self.place.joinpath(self.format, self.artifact + '.mkosi')

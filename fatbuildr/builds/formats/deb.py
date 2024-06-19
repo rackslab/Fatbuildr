@@ -87,6 +87,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
         )
 
     def build(self):
+        self.check_image_exists()
         self._build_src()
         for architecture in self.architectures:
             self._build_bin(architecture)
@@ -252,6 +253,7 @@ class ArtifactBuildDeb(ArtifactEnvBuild):
     def _build_bin(self, architecture):
         """Build deb packages binary package."""
 
+        self.check_build_env_exists(architecture)
         env = self.instance.images_mgr.build_env(
             self.format, self.env_name, architecture
         )

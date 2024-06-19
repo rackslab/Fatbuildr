@@ -222,6 +222,14 @@ class ArtifactBuild(RunnableTask):
             ]
         return patches
 
+    def check_image_exists(self):
+        """Check container image for the build format exists or fail with
+        FatbuildrTaskExecutionError."""
+        if not self.image.exists:
+            raise FatbuildrTaskExecutionError(
+                f"Image {self.format} does not exist, it must be created."
+            )
+
     def run(self):
         logger.info("Running build %s", self.id)
         self.prepare()
@@ -539,6 +547,27 @@ class ArtifactEnvBuild(ArtifactBuild):
     def prewrapper_path(self):
         """Returns path to the prescript wrapper script."""
         return self.image.common_libdir.joinpath('pre-wrapper.sh')
+
+    def check_build_env_exists(self, architecture=None):
+        """Check build environment exists or raise FatbuildrTaskExecutionError.
+        If architecture is None, it checks for existence of native build
+        environment. Else it checks existence of the build environment for the
+        given architecture."""
+
+        if architecture is None:
+            env = self.native_env
+        else:
+            env = self.instance.images_mgr.build_env(
+                self.format, self.env_name, architecture
+            )
+
+        # First check native build environment exists or fail
+        if not env.exists():
+            raise FatbuildrTaskExecutionError(
+                f"Environment {env.environment} for architecture "
+                f"{env.architecture} in {self.format} image does not exist, it "
+                "must be created."
+            )
 
     def prescript_get_token_lines(self, token):
         """Iterate over the lines of prescript file and generate all lines that

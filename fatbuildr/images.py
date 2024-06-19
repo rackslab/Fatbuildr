@@ -21,6 +21,7 @@ import tarfile
 import shlex
 import tempfile
 from io import BytesIO
+from pathlib import Path
 
 from .templates import Templeter
 from .utils import current_user_group
@@ -179,7 +180,7 @@ class BuildEnv(object):
     def path(self):
         env_path = self.image.format_conf.env_path
         if env_path:
-            return Templeter().srender(env_path, name=self.name)
+            return Path(Templeter().srender(env_path, name=self.name))
 
     @property
     def base(self):
@@ -192,6 +193,16 @@ class BuildEnv(object):
     @property
     def native_architecture(self):
         return ArchMap(self.image.format).native(self.architecture)
+
+    def exists(self):
+        """Return True if the build environment exists in the container
+        image."""
+        return (
+            self.path is not None
+            and self.image.path.joinpath(
+                self.path.relative_to(self.path.anchor)
+            ).exists()
+        )
 
     def create(self, task):
         logger.info(

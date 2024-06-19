@@ -187,6 +187,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   console on client side (`fatbuildrctl` and `fatbuildrweb`) with error message.
 - Check OSI artifact checksum file is properly created by mkosi or raise task
   execution error to report in task journal.
+- Check container image and build environment exist or fail with appropriate
+  error at the beginning of build tasks (#17).
 - docs:
   - Add missing path parameter in REST API to retrieve artifact information.
   - Add missing optional `architectures` parameter in instances pipelines
