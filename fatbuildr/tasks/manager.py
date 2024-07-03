@@ -21,6 +21,7 @@ import uuid
 import threading
 import pickle
 import shutil
+import subprocess
 from collections import deque
 
 from ..errors import FatbuildrTaskExecutionError
@@ -171,9 +172,40 @@ class ServerTasksManager:
         logger.info("Task %s removed from queue", task.id)
         return task
 
+    def _run_hook(self, task, stage: str) -> None:
+        """Execute hook program if defined with some environment variable to
+        provide some context."""
+        if self.conf.tasks.hook is None:
+            return
+        target = self.conf.tasks.hook.resolve()
+        if not target.is_file():
+            logger.error("Tasks hook %s is not a valid file", target)
+            return
+        # Execute hook with environment variables
+        try:
+            subprocess.run(
+                [target.absolute()],
+                env={
+                    "FATBUILDR_INSTANCE_ID": self.instance.id,
+                    "FATBUILDR_INSTANCE_NAME": self.instance.name,
+                    "FATBUILDR_TASK_ID": task.id,
+                    "FATBUILDR_TASK_NAME": task.TASK_NAME,
+                    "FATBUILDR_TASK_METADATA": task.b64_metadata(),
+                    "FATBUILDR_TASK_STAGE": stage,
+                    "FATBUILDR_TASK_RESULT": task.result,
+                },
+                timeout=5,
+            )
+        except PermissionError as err:
+            logger.error("Error while running task hook: %s", str(err))
+        except subprocess.TimeoutExpired:
+            logger.error("Task hook timeout")
+
     def run(self, task):
         logger.info("Running task %s", task.id)
         task.prerun()
+        # execute hook
+        self._run_hook(task, "start")
         try:
             task.run()
         except (FatbuildrTaskExecutionError, RuntimeError) as err:
@@ -184,6 +216,8 @@ class ServerTasksManager:
             logger.info("Task succeeded")
             task.result = "success"
         task.postrun()
+        # execute hook
+        self._run_hook(task, "end")
         task.terminate()
         self.running = None
         self.save()

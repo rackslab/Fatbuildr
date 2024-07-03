@@ -31,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Add reference to build task ID and instance name in RPM/deb package changelog
   entries (#15).
 - Add result exportable field to all runnable tasks.
+- Possibility to execute hook program before and after tasks are run (#19).
 - cli:
   - Possibility to list artifacts in registries in remote instance with the REST
     API (#141)

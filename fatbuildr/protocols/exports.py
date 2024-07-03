@@ -21,6 +21,8 @@ import inspect
 from datetime import datetime
 from pathlib import Path
 from typing import List
+import json
+import base64
 
 from ..utils import Singleton
 
@@ -29,6 +31,12 @@ class ExportableType:
     def export(self):
         """Export object as a dict of fields."""
         return {field.name: field.export(self) for field in self.EXFIELDS}
+
+    def json(self) -> str:
+        return json.dumps(self.export())
+
+    def b64_metadata(self) -> str:
+        return base64.b64encode(self.json().encode()).decode()
 
 
 class ExportableField:

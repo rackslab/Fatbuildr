@@ -262,7 +262,7 @@ class TaskIO(ExportableType):
         logger.unmute_handler(self._journal_log_handler)
 
 
-class RunnableTask:
+class RunnableTask(ExportableType):
     """Abtract runnable task."""
 
     BASEFIELDS = {
