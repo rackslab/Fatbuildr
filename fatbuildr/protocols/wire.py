@@ -52,6 +52,7 @@ class WireRunnableTask(WireData):
         print(f"  user: {self.user}")
         print(f"  name: {self.name}")
         print(f"  state: {self.state}")
+        print(f"  result: {self.result}")
         print(f"  place: {self.place}")
         print(
             "  submission: ",

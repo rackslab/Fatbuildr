@@ -179,8 +179,10 @@ class ServerTasksManager:
         except (FatbuildrTaskExecutionError, RuntimeError) as err:
             logger.error("error while running task %s: %s", task.id, err)
             logger.info("Task failed")
+            task.result = "failed"
         else:
             logger.info("Task succeeded")
+            task.result = "success"
         task.postrun()
         task.terminate()
         self.running = None

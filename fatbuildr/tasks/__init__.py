@@ -272,6 +272,7 @@ class RunnableTask:
         ExportableTaskField('submission', datetime),
         ExportableTaskField('place', Path, archived=False),
         ExportableTaskField('state', archived=False),
+        ExportableTaskField('result'),
         ExportableTaskField('io', TaskIO, archived=False),
     }
 
@@ -291,6 +292,7 @@ class RunnableTask:
         self.place = place
         self.instance = instance
         self.state = state
+        self.result = "unknown"
         self.submission = submission
         self.io = TaskIO(
             interactive,
