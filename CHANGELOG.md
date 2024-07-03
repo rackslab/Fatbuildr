@@ -105,6 +105,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Basic hook to send syslog message.
     - Advanced hook to send custom notifications messages (based on templates)
       on Matrix room.
+  - Add _Tasks Hooks_ page.
 
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.

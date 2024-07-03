@@ -4,4 +4,5 @@
 * xref:polkit.adoc[]
 * xref:web.adoc[]
 * xref:purge.adoc[]
+* xref:hooks.adoc[]
 * xref:troubleshooting.adoc[]

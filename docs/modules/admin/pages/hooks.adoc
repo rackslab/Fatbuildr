@@ -1,0 +1,142 @@
+= Tasks Hooks
+
+Fatbuildr can execute any arbitrary program (script or a binary file) as a hook
+when tasks are started and terminated. This can typically be used to notify
+teams (with Matrix, Slack or similar) or trigger any synchronization or
+deployment system.
+
+== Configuration
+
+To enable tasks hook, define the `hook` parameter in `[tasks]` section of
+xref:conf.adoc[system configuration file]. For example:
+
+[source,ini]
+----
+[tasks]
+hook = /path/to/program
+----
+
+The destination of the path must be executable by `fatbuildr` system user, or a
+symbolic link to a file that is executable by this user.
+
+== Environments Variables
+
+When Fatbuildr executes the hook program, it defines multiple environment
+variables to provide some context:
+
+* `FATBUILDR_INSTANCE_ID`: The unique identifier of the instance.
+* `FATBUILDR_INSTANCE_NAME`: The full text name of the
+  xref:instances.adoc[instance], as defined in its pipeline definition.
+* `FATBUILDR_TASK_ID`: The unique identifier of the task.
+* `FATBUILDR_TASK_NAME`: The name of the task (ex: _artifact build_)
+* `FATBUILDR_TASK_METADATA`: base64 encoded representation of task metadata
+  serialized in JSON format.
+* `FATBUILDR_TASK_STAGE`: String value (_start_ or _end_) to determine if the
+  task is respectively starting or terminating.
+* `FATBUILDR_TASK_RESULT`: The result of the task. The value is _unknown_ when
+  task is starting, it can be _failed_ or _success_ when task is terminated.
+
+These environment variables can be used to implement some logic in the hook
+program.
+
+== Examples
+
+Fatbuildr includes two examples of tasks hooks. The following subsections
+describe their purpose with an installation procedure.
+
+=== Syslog Message
+
+The first example of tasks hook included in Fatbuildr packages is available
+under the path [.path]#`/usr/share/doc/fatbuildr/examples/fatbuildr-syslog`#.
+This is a really basic Python script that sends text message in syslog.
+
+This script can be installed with this command:
+
+[source,console]
+----
+$ sudo cp /usr/share/doc/fatbuildr/examples/fatbuildr-syslog \
+  /usr/local/lib/fatbuildr/fatbuildr-syslog
+----
+
+Then set `hook` parameter in xref:conf.adoc[system configuration file]
+`/etc/fatbuildr/fatbuildr.ini`:
+
+[source,ini]
+----
+[tasks]
+hook = /usr/local/lib/fatbuildr/fatbuildr-syslog
+----
+
+This hook script send these messages to syslog:
+
+----
+fatbuildr-hook: fatbuildr-hook task b84787a2-0f56-4c60-8e3d-a035c8e601eb@default is starting
+fatbuildr-hook: fatbuildr-hook task b84787a2-0f56-4c60-8e3d-a035c8e601eb@default is terminated: success
+fatbuildr-hook: fatbuildr-hook task 661beead-96c4-410c-a9c4-260d350a92c3@default is starting
+fatbuildr-hook: fatbuildr-hook task 661beead-96c4-410c-a9c4-260d350a92c3@default is terminated: success
+----
+
+=== Matrix Notifications
+
+The second example of tasks hook included in Fatbuildr packages is available
+under the path
+[.path]#`/usr/share/doc/fatbuildr/examples/hooks/fatbuildr-matrix-notify`#.
+This is a Python script designed to send custom notification to
+https://matrix.org/[Matrix chats rooms].
+
+It can be installed with this command:
+
+[source,console]
+----
+$ cp /usr/share/doc/fatbuildr/examples/hooks/fatbuildr-matrix-notify \
+  /usr/local/lib/fatbuildr/fatbuildr-matrix-notify
+----
+
+The script depends on https://pypi.org/project/nio/[Python _nio_ library] which
+can be installed with this command:
+
+[source,console]
+----
+$ sudo apt install python3-matrix-nio
+----
+
+Create configuration file `/etc/fatbuildr/matrix-hook.json` with the settings to
+access Matrix room:
+
+[source,json]
+----
+{
+  "homeserver": "https://matrix.example.com",
+  "user_id": "@user:matrix.example.com",
+  "device_name": "fatbuildr-bot",
+  "password": "SECR3T PASSWORD",
+  "room_id": "!room_id:matrix.example.com",
+  "url": "https://build.example.com",
+}
+----
+
+Notifications messages sent to Matrix rooms are generated based on templates.
+Install these templates with these commands:
+
+[source,console]
+----
+$ sudo mkdir /etc/fatbuildr/matrix-hook
+$ sudo cp -r /usr/share/doc/fatbuildr/examples/hooks/templates /etc/fatbuildr/matrix-hook/
+----
+
+NOTE: These templates can be modified to customize the content and layout of the
+notification messages.
+
+Finally, enable hook in xref:conf.adoc[system configuration file]
+`/etc/fatbuildr/fatbuildr.ini`:
+
+[source,ini]
+----
+[tasks]
+hook = /usr/local/lib/fatbuildr/fatbuildr-matrix-notify
+----
+
+This screenshot shows some examples of notification messages sent by this script
+in a Matrix room:
+
+image:screenshot_matrix_notifications.png[]
