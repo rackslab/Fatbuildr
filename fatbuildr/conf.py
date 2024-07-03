@@ -101,6 +101,7 @@ class RuntimeSubConfTasks(object):
         self.workspaces = None
         self.purge_policy = None
         self.purge_value = None
+        self.hook = None
 
     def load(self, config):
         section = 'tasks'
@@ -114,6 +115,10 @@ class RuntimeSubConfTasks(object):
                 f"unsupport value '{config.get(section, 'purge')}' for [tasks] "
                 "purge configuration parameter"
             )
+        try:
+            self.hook = Path(config.get(section, 'hook'))
+        except configparser.NoOptionError:
+            pass
 
     def dump(self):
         logger.debug("[tasks]")
@@ -121,6 +126,7 @@ class RuntimeSubConfTasks(object):
         logger.debug("  purge:")
         logger.debug("    policy: %s", self.purge_policy)
         logger.debug("    value: %s", self.purge_value)
+        logger.debug("  hook: %s", self.hook)
 
 
 class RuntimeSubConfContainers(object):

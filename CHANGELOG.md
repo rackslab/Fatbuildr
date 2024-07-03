@@ -58,6 +58,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add optional `env_default_modules` parameter in `[format:rpm]` section.
   - Add `listing` boolean parameter in `[web]` section to control activation of
     listing feature in `fatbuildrweb`.
+  - Add `hook` parameter in `[tasks]` section.
 - pkgs: Add patch to define upstream version at build time.
 - dbus:
   - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
