@@ -60,7 +60,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add `listing` boolean parameter in `[web]` section to control activation of
     listing feature in `fatbuildrweb`.
   - Add `hook` parameter in `[tasks]` section.
-- pkgs: Add patch to define upstream version at build time.
+- pkgs:
+  - Add patch to define upstream version at build time.
+  - Install tasks hooks examples uncompressed.
 - dbus:
   - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
     object to submit artifact deletion task with another user identity.

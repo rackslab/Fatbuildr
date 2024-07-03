@@ -20,3 +20,8 @@ override_dh_auto_build:
 override_dh_auto_install:
 	dh_auto_install
 	make -C lib/wrappers install
+
+# Avoid compression of matrix notifier example hook in order to make its
+# installation easier.
+override_dh_compress:
+	dh_compress -Xfatbuildr-matrix-notify
