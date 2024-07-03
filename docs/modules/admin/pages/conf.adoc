@@ -132,6 +132,12 @@ the name of the selected policy and the limit value separated by a colon (`:`)
 TIP: Please refer to xref:purge.adoc[] page for more details about this
 configuration parameter and the available purge policies.
 
+`hook`:: Path to executable script or binary that is executed before and after
+tasks are run.
+
+TIP: Please refer to xref:hooks.adoc[] page for more details about this
+configuration parameter.
+
 === `registry`
 
 This section controls managed artifact registries settings. It includes the
