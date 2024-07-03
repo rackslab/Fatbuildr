@@ -1,0 +1,4 @@
+{% import 'common.j2' as common %}
+
+<p>🔥 <strong>{{ task.name}}</strong> {{ task.id }}@{{ task.instance}} is <strong>starting</strong> ⸬ {{ common.task_subtitle(config, task) }}</p>
+{{ common.task_details(task)}}

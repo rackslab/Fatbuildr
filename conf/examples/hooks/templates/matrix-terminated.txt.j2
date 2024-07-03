@@ -1,0 +1,6 @@
+{% import 'common.j2' as common %}
+{% if task.name == 'artifact build' %}
+{{ common.result_icon(task) }} {{ task.name }} {{ task.id }}@{{ task.instance }} is terminated: {{ task.result }} {{ task.metadata['artifact'] }} {{ task.metadata.distribution }}
+{% else %}
+{{ common.result_icon(task) }} {{ task.name }} {{ task.id }}@{{ task.instance }} is terminated: {{ task.result }} {{ task.metadata }}
+{% endif %}

@@ -101,6 +101,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     manpage.
   - Explain upstream `debian/` directory in present artifact archives is removed
     and replaced by Fatbuildr during Deb packages builds.
+  - Add two examples of tasks hooks in Python:
+    - Basic hook to send syslog message.
+    - Advanced hook to send custom notifications messages (based on templates)
+      on Matrix room.
 
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.

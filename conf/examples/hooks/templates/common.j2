@@ -1,0 +1,25 @@
+{% macro result_icon(task) -%}
+{% if task.result == 'failed' %}🚫{% elif task.result == 'success' %}✅{% else %}❔{% endif %}
+{%- endmacro %}
+
+{% macro result_color(task) -%}
+{% if task.result == 'failed' %}#cc0000{% elif task.result == 'success' %}#29a329{% else %}#000000{% endif %}
+{%- endmacro %}
+
+{% macro task_subtitle(config, task) -%}
+{% if task.name == 'artifact build' %}
+📦️ {{ task.metadata['artifact'] }} → {{ task.metadata['distribution'] }} ({{ task.metadata['derivative'] }})
+{% endif %}
+📺 <a href="{{ config.url }}/{{ task.instance }}/watch/{{ task.id }}.html">console</a>
+{%- endmacro %}
+
+{% macro task_details(task) -%}
+<details>
+    <ul>
+        <li>🧑‍💻 {{ task.metadata['author'] }} &lt;{{ task.metadata['email'] }}&gt;</li>
+{% if 'architectures' in task.metadata %}
+        <li>⚙️ {{ task.metadata['architectures'] | join }}</li>
+{% endif %}
+    </ul>
+</details>
+{%- endmacro %}

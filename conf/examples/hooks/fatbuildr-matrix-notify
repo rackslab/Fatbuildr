@@ -1,0 +1,272 @@
+#!/usr/bin/env python3
+#
+# Copyright (C) 2024 Rackslab
+#
+# This file is part of Fatbuildr.
+#
+# Fatbuildr is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Fatbuildr is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
+
+"""Tasks hook for Fatbuildr to send notification message on Matrix room."""
+
+from dataclasses import dataclass
+import asyncio
+import json
+import sys
+import os
+import base64
+import logging
+
+from pathlib import Path
+
+from nio import (
+    AsyncClient,
+    LoginResponse,
+    LoginError,
+    JoinedRoomsError,
+    JoinError,
+)
+import jinja2
+
+CONFIG_FILE = "/etc/fatbuildr/matrix-hook.json"
+TEMPLATES_DIR = "/etc/fatbuildr/matrix-hook/templates"
+CREDENTIAL_CACHE_FILE = "/var/cache/fatbuildr/_common/credentials.json"
+
+logger = logging.getLogger(__name__)
+
+
+@dataclass
+class Config:
+    homeserver: str
+    user_id: str
+    device_name: str
+    password: str
+    room_id: str
+    url: str
+
+    @classmethod
+    def from_path(cls, conf: Path):
+        if not conf.exists():
+            logger.error("Unable to load configuration file %s", conf)
+            sys.exit(1)
+        with open(conf, "r") as f:
+            config = json.load(f)
+        return cls(
+            config["homeserver"],
+            config["user_id"],
+            config["device_name"],
+            config["password"],
+            config["room_id"],
+            config["url"],
+        )
+
+
+@dataclass
+class CredentialCache:
+    access_token: str
+    device_id: str
+
+    def save(self, cache: Path) -> None:
+        # Create parent directory if necessary
+        if not cache.parent.exists():
+            cache.parent.mkdir()
+
+        with open(cache, "w") as f:
+            json.dump(
+                {
+                    "device_id": self.device_id,
+                    "access_token": self.access_token,
+                },
+                f,
+            )
+
+    @classmethod
+    def from_resp(cls, response: LoginResponse):
+        return cls(response.access_token, response.device_id)
+
+    @classmethod
+    def from_path(cls, cache: Path):
+        if not cache.exists():
+            logger.error("Unable to credentials cache file %s", cache)
+            sys.exit(1)
+        with open(cache, "r") as f:
+            content = json.load(f)
+            return cls(content["access_token"], content["device_id"])
+
+
+class MatrixClient(AsyncClient):
+    def __init__(self, config: Config):
+        super().__init__(config.homeserver, config.user_id)
+
+    def set_cache_credentials(self, cache: CredentialCache):
+        self.access_token = cache.access_token
+        self.device_id = cache.device_id
+
+
+@dataclass
+class FatbuildrTask:
+    id: str
+    instance: str
+    name: str
+    metadata: dict
+    stage: str
+    result: str
+
+    @classmethod
+    def from_env(cls):
+        return cls(
+            os.environ["FATBUILDR_TASK_ID"],
+            os.environ["FATBUILDR_INSTANCE_ID"],
+            os.environ["FATBUILDR_TASK_NAME"],
+            json.loads(
+                base64.b64decode(os.environ["FATBUILDR_TASK_METADATA"].encode())
+            ),
+            os.environ["FATBUILDR_TASK_STAGE"],
+            os.environ["FATBUILDR_TASK_RESULT"],
+        )
+
+
+async def fail(client: MatrixClient, *args):
+    logger.critical(*args)
+    await client.close()
+    sys.exit(1)
+
+
+async def ensure_credential_cache(
+    client: AsyncClient, cache_p: Path, config: Config, ignore_cache=False
+) -> AsyncClient:
+
+    if not ignore_cache and cache_p.exists():
+        cache = CredentialCache.from_path(cache_p)
+        client.set_cache_credentials(cache)
+        return
+
+    logger.info("Credential cache not available, login must be performed")
+    response = await client.login(
+        config.password, device_name=config.device_name
+    )
+
+    if isinstance(response, LoginError):
+        logger.error(
+            "Failed to log in on homeserver %s with user %s",
+            config.homeserver,
+            config.user_id,
+        )
+        await client.close()
+        sys.exit(1)
+
+    cache = CredentialCache.from_resp(response)
+    cache.save(cache_p)
+    client.set_cache_credentials(cache)
+
+
+def render_messages(config: Config, task: FatbuildrTask) -> (str, str):
+    environment = jinja2.Environment(
+        loader=jinja2.FileSystemLoader(TEMPLATES_DIR)
+    )
+
+    try:
+        if task.stage == "start":
+            return environment.get_template("matrix-starting.txt.j2").render(
+                config=config, task=task
+            ), environment.get_template("matrix-starting.html.j2").render(
+                config=config, task=task
+            )
+        else:
+            return environment.get_template("matrix-terminated.txt.j2").render(
+                config=config, task=task
+            ), environment.get_template("matrix-terminated.html.j2").render(
+                config=config, task=task
+            )
+    except jinja2.exceptions.TemplateNotFound as err:
+        logger.error(
+            "Unable to find template %s", os.path.join(TEMPLATES_DIR, str(err))
+        )
+        raise RuntimeError() from err
+
+
+async def main() -> None:
+
+    # initialize logger
+    logging.basicConfig(
+        level=logging.INFO, format="%(module)s: %(levelname)s: %(message)s "
+    )
+    config = Config.from_path(Path(CONFIG_FILE))
+
+    client = MatrixClient(config)
+
+    await ensure_credential_cache(client, Path(CREDENTIAL_CACHE_FILE), config)
+
+    # check room_id in joined rooms or join room
+    response = await client.joined_rooms()
+
+    # Handle case when token is not valid anymore
+    if isinstance(response, JoinedRoomsError):
+        if response.status_code != "M_UNKNOWN_TOKEN":
+            # Report unexpected error
+            await fail(
+                client,
+                "Unexpected error to retrieved joined rooms: %s: %s",
+                response.status_code,
+                response.message,
+            )
+        await ensure_credential_cache(
+            client, Path(CREDENTIAL_CACHE_FILE), config, ignore_cache=True
+        )
+        response = await client.joined_rooms()
+
+        # Fail if error again
+        if isinstance(response, JoinedRoomsError):
+            await fail(
+                client,
+                "Unable to retrieve joined rooms with access token: %s: %s",
+                response.status_code,
+                response.message,
+            )
+
+    # Check room is already joined or do it
+    if config.room_id not in response.rooms:
+        response = await client.join(config.room_id)
+        if isinstance(response, JoinError):
+            await fail(
+                client,
+                "Unable to join room: %s: %s",
+                response.status_code,
+                response.message,
+            )
+
+    task = FatbuildrTask.from_env()
+
+    try:
+        (message, formatted_message) = render_messages(config, task)
+    except RuntimeError:
+        await fail(client, "Unable to render messages based on templates")
+
+    # Send message
+    await client.room_send(
+        config.room_id,
+        message_type="m.room.message",
+        content={
+            "msgtype": "m.notice",
+            "format": "org.matrix.custom.html",
+            "body": message,
+            "formatted_body": formatted_message,
+        },
+    )
+
+    logger.info("Notification sent to room %s", config.room_id)
+    await client.close()
+
+
+if __name__ == "__main__":
+    asyncio.get_event_loop().run_until_complete(main())

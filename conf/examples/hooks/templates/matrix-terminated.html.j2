@@ -1,0 +1,4 @@
+{% import 'common.j2' as common %}
+
+<p>{{ common.result_icon(task) }} <strong>{{ task.name }}</strong> {{ task.id }}@{{ task.instance }} is <strong>terminated</strong>: <strong><span data-mx-color='{{ common.result_color(task) }}'>{{ task.result }}</span> ⸬ </strong>{{ common.task_subtitle(config, task) }}</p>
+{{ common.task_details(task)}}
