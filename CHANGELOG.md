@@ -203,6 +203,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Check container image and build environment exist or fail with appropriate
   error at the beginning of build tasks (#17).
 - Fix `fatbuildrctl` crash when RPM spec file is not found (#165).
+- Use modern `%autopatch` macro instead of loop of `%patchN` to avoid deprecated
+  syntax error during RPM packages builds (#170).
 - docs:
   - Add missing path parameter in REST API to retrieve artifact information.
   - Add missing optional `architectures` parameter in instances pipelines

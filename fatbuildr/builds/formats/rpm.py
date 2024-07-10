@@ -71,9 +71,7 @@ Patch{{ loop.index0 }}: {{ patch.name }}
 """
 
 PATCHES_PREP_TPL = """
-{% for patch in patches %}
-%patch{{ loop.index0 }} -p1
-{% endfor %}
+%autopatch -p1
 """
 
 # Jinja2 filter to convert timestamp to date formatted for RPM spec file
@@ -215,9 +213,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             patches_decl = templater.srender(
                 PATCHES_DECL_TPL, patches=self.patches
             )
-            patches_prep = templater.srender(
-                PATCHES_PREP_TPL, patches=self.patches
-            )
+            patches_prep = PATCHES_PREP_TPL
 
         # Check if existing source package and get version
         existing_version = self.registry.source_version(
