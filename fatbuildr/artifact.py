@@ -275,16 +275,24 @@ class ArtifactRpmDefs(ArtifactFormatDefs):
 
         To determine the value, the BuildArch parameter is checked in RPM spec
         file. Unless BuildArch is set to noarch, the source package is
-        considered architecture dependent."""
+        considered architecture dependent.
+
+        Raise FatbuildrArtifactError if RPM spec file not found."""
         check_file = self.place.joinpath(self.format, f"{self.artifact}.spec")
-        with open(check_file, 'r') as fh:
-            for line in fh:
-                if (
-                    line.replace(' ', '')
-                    .replace('\t', '')
-                    .startswith('BuildArch:noarch')
-                ):
-                    return False
+        try:
+            with open(check_file, 'r') as fh:
+                for line in fh:
+                    if (
+                        line.replace(' ', '')
+                        .replace('\t', '')
+                        .startswith('BuildArch:noarch')
+                    ):
+                        return False
+        except FileNotFoundError:
+            raise FatbuildrArtifactError(
+                f"RPM spec file {check_file} not found, unable to determine if "
+                "package is architecture dependent"
+            )
         return True
 
     @property

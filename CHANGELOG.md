@@ -191,6 +191,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   execution error to report in task journal.
 - Check container image and build environment exist or fail with appropriate
   error at the beginning of build tasks (#17).
+- Fix `fatbuildrctl` crash when RPM spec file is not found (#165).
 - docs:
   - Add missing path parameter in REST API to retrieve artifact information.
   - Add missing optional `architectures` parameter in instances pipelines
