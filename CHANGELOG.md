@@ -135,6 +135,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Use `fatbuildrctl shell images <command>` in troubleshooting page.
   - Rename `init_cmd`→`init_cmds` parameter in `[format:deb]` and
     `[format:rpm]` sections of system configuration.
+  - Mention usage of `%autopatch` macro behind `prep_patches` templating
+    variable in artifact definition reference documentation for RPM spec files.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds
