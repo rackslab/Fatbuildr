@@ -19,6 +19,7 @@
 
 import string
 import secrets
+import re
 from datetime import datetime
 
 import gpg
@@ -29,6 +30,11 @@ from .errors import FatbuildrKeyringError
 from .log import logr
 
 logger = logr(__name__)
+
+
+def valid_duration(duration):
+    """Return True if duration argument is a valid duration string for gpg."""
+    return re.match(r"^\d+[wmy]?$", duration) is not None
 
 
 class KeyringKey(object):
@@ -295,6 +301,8 @@ class InstanceKeyring:
     def renew(self, duration):
         """Extend keyring expiry date with the given duration, for both the
         masterkey and the subkey."""
+        if not valid_duration(duration):
+            raise FatbuildrKeyringError(f"Invalid duration {duration}")
         with gpg.Context(
             home_dir=str(self.homedir),
             pinentry_mode=gpg.constants.PINENTRY_MODE_LOOPBACK,
@@ -308,7 +316,11 @@ class InstanceKeyring:
                     "More than one GPG key found in keyring"
                 )
             key = keys[0]
+            logger.info("Renewing master key with new duration %s", duration)
             self._renew_key(ctx, key, duration)
+            logger.info(
+                "Renewing signing sub key with new duration %s", duration
+            )
             self._renew_key(ctx, key, duration, subkey=True)
 
         # reload the keyring to get changes
