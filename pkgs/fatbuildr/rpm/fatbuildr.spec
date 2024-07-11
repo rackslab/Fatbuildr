@@ -64,8 +64,7 @@ This package contains the architecture independant requirements shared by
 Fatbuildr components.
 
 %prep
-{{ prep_sources }}
-{{ prep_patches }}
+{{ prep }}
 
 %build
 %set_build_flags
