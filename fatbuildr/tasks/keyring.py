@@ -41,7 +41,7 @@ class KeyringCreationTask(RunnableTask):
         try:
             self.instance.keyring.create()
         except FatbuildrKeyringError as err:
-            raise FatbuildrTaskExecutionError from err
+            raise FatbuildrTaskExecutionError(err) from err
 
 
 class KeyringRenewalTask(RunnableTask):
@@ -63,4 +63,4 @@ class KeyringRenewalTask(RunnableTask):
         try:
             self.instance.keyring.renew(self.duration)
         except FatbuildrKeyringError as err:
-            raise FatbuildrTaskExecutionError from err
+            raise FatbuildrTaskExecutionError(err) from err

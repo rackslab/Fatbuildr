@@ -230,6 +230,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Report error instead of crashing in `fatbuildrctl` when unable to find format
   corresponding to a given distribution with fatbuildrweb REST API (#172).
 - Validate keyring renewal duration format in `fatbuildrd`
+- Fix reporting of keyring errors during keyring creation and renewal tasks
+  execution.
 - docs:
   - Add missing path parameter in REST API to retrieve artifact information.
   - Add missing optional `architectures` parameter in instances pipelines
