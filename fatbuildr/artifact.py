@@ -120,9 +120,20 @@ class ArtifactSourceDefs:
     @property
     def _raw_source(self):
         if self.has_multisources:
-            return self.defs['sources'][self.id]
+            try:
+                return self.defs['sources'][self.id]
+            except KeyError:
+                raise FatbuildrArtifactError(
+                    f"Unable to find source URL for {self.id} in multi-sources "
+                    "YAML artifact definition file"
+                )
         else:
-            return self.defs['source']
+            try:
+                return self.defs['source']
+            except KeyError:
+                raise FatbuildrArtifactError(
+                    "Unable to find source URL in YAML artifact definition file"
+                )
 
     def url(self, derivative):
         """Returns the URL to download the artifact source for the given
