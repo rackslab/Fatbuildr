@@ -35,6 +35,7 @@ from ..protocols.wire import WireSourceArchive
 from ..artifact import ArtifactDefs, ArtifactDefsFactory
 from ..patches import PatchQueue
 from ..git import load_git_repository
+from ..keyring import valid_duration
 from ..tokens import ClientTokensManager
 from ..console.client import tty_console_renderer
 from ..errors import (
@@ -903,6 +904,9 @@ class Fatbuildrctl(FatbuildrCliRun):
                     "keyring --help' for details",
                     progname(),
                 )
+                sys.exit(1)
+            if not valid_duration(args.duration):
+                logger.error("Invalid duration %s", args.duration)
                 sys.exit(1)
             self._submit_task(
                 self.connection.keyring_renew,

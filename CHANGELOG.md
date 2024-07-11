@@ -229,7 +229,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `fatbuildrweb` (#146).
 - Report error instead of crashing in `fatbuildrctl` when unable to find format
   corresponding to a given distribution with fatbuildrweb REST API (#172).
-- Validate keyring renewal duration format in `fatbuildrd`
+- Validate keyring renewal duration format in server-side `fatbuildrd` and
+  client-side `fatbuildrctl` (#31).
 - Fix reporting of keyring errors during keyring creation and renewal tasks
   execution.
 - docs:
