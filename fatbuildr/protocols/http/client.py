@@ -19,6 +19,15 @@
 
 import requests
 
+# External requests library can use simplejson when available, with fallback to
+# standard json library. This module may receive JSONDecodeError from this
+# package, or from the standard library. Adopt the same import logic to catch
+# the correct error.
+try:
+    from simplejson import JSONDecodeError
+except ImportError:
+    from json import JSONDecodeError
+
 from . import JsonInstance, JsonRunnableTask, JsonArtifact
 from ..client import AbstractClient
 from ...errors import FatbuildrServerError, FatbuildrServerPermissionError
@@ -39,6 +48,10 @@ def check_http_errors(method):
         except requests.exceptions.ConnectionError as err:
             raise FatbuildrServerError(
                 f"unable to connect to {args[0].uri}: {err}"
+            )
+        except JSONDecodeError as err:
+            raise FatbuildrServerError(
+                f"unable to decode JSON response to {args[0].uri}: {err}"
             )
 
     return error_handler_wrapper

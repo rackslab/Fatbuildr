@@ -222,6 +222,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   syntax error during RPM packages builds (#170).
 - Fix crash of `fatbuildrctl` on missing source definition in YAML artifact
   definition file (#171).
+- Handle JSON decode error in `fatbuildrctl` in case of unexpected failure in
+  `fatbuildrweb` (#146).
 - docs:
   - Add missing path parameter in REST API to retrieve artifact information.
   - Add missing optional `architectures` parameter in instances pipelines
