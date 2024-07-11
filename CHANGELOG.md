@@ -121,6 +121,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     documentation for RPM spec files.
   - Mention new `commit_template` parameter in user preferences documentation
     in `fatbuildrctl` manpage.
+  - Mention new `--batch` option for `fatbuildrctl keyring` command in manpage.
 
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.

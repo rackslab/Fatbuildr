@@ -402,6 +402,9 @@ The *renew* subcommand accepts the following options:
   expirary date. This option is required with *renew* subcommand. It is
   silently ignored with other subcommands.
 
+*--batch*::
+  Submit task in background.
+
 *Examples:*
 
 `$ fatbuildrctl keyring`::
