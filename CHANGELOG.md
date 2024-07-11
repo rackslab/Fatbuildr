@@ -123,6 +123,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.
 - Support mkosi v22 in osi image (#173).
+- Factorize RPM repository updates by running it once for all packages that
+  share the same architecture (#49).
 - cli: Watch task output by default when submitting tasks. The `-w, --watch`
   option is replaced by the opposite `--batch` option to submit tasks in
   background (#123).
