@@ -34,6 +34,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Possibility to execute hook program before and after tasks are run (#19).
 - Add `prep` templating variable for RPM spec files as shorthand for
   `prep_sources` and `prep_patches` (#89).
+- Bash completion script for `fatbuildrctl` (#28).
 - cli:
   - Possibility to list artifacts in registries in remote instance with the REST
     API (#141)

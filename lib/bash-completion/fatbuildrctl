@@ -1,0 +1,231 @@
+# fatbuildrctl(1) completion
+# -*- shell-script -*-
+#
+# Copyright (C) 2024 Rackslab
+#
+# This file is part of Fatbuildr.
+#
+# Fatbuildr is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Fatbuildr is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
+
+__contains_word() {
+    local w word=$1; shift
+    for w in "$@"; do
+        [[ $w = "$word" ]] && return
+    done
+}
+
+_fatbuildrctl_global() {
+    local cur=$1 prev=$2 comps; shift; shift;
+    local verbs=$@
+    local OPTS='-v --version --debug --fulldebug --preferences --uri'
+    if [[ $cur = -* ]]; then
+        comps=$OPTS
+    else
+        comps=$verbs
+    fi
+    COMPREPLY=( $(compgen -W '${comps}' -- "$cur") )
+    return 0
+}
+
+_fatbuildrctl_build() {
+    local cur=$1 prev=$2
+    local -A OPTS=(
+        [STANDALONE]='--include-git-untracked --batch -i --interactive'
+        [ARG]='-a --artifact -d --distribution -f --format --derivative
+               --sources -n --name -e --email -m --msg'
+        [FILE]='-b --basedir -s --subdir'
+    )
+    if __contains_word "$prev" ${OPTS[FILE]}; then
+        _filedir -d
+    elif ! __contains_word "$prev" ${OPTS[ARG]}; then
+        COMPREPLY=( $(compgen -W '${OPTS[*]}' -- "$cur") )
+    fi
+    return 0
+}
+
+_fatbuildrctl_history() {
+    local cur=$1 prev=$2 comps
+    local SUBVERBS='purge list'
+    local OPTS='--batch'
+    if [[ $cur = -* ]]; then
+        comps=$OPTS
+    else
+        comps=$SUBVERBS
+    fi
+    COMPREPLY=( $(compgen -W '${comps}' -- "$cur") )
+    return 0
+}
+
+_fatbuildrctl_images() {
+    local cur=$1 prev=$2 subverb
+    local SUBVERBS='create update shell env-create env-update env-shell'
+    local -A OPTS=(
+        [CREATE]='-f --format --force --batch'
+        [UPDATE]='-f --format --batch'
+        [SHELL]='-f --format'
+        [ENV-CREATE]='-f --format -d --distribution -a --architecture --batch'
+        [ENV-UPDATE]='-f --format -d --distribution -a --architecture --batch'
+        [ENV-SHELL]='-f --format -d --distribution -a --architecture'
+    )
+    # Find the subverb in the command
+    for ((i=0; i <= COMP_CWORD; i++)); do
+        if __contains_word "${COMP_WORDS[i]}" ${SUBVERBS}; then
+            subverb=${COMP_WORDS[i]}
+            break
+        fi
+    done
+    case $subverb in
+        create):
+            COMPREPLY=( $(compgen -W '${OPTS[CREATE]}' -- "$cur") )
+            ;;
+        update):
+            COMPREPLY=( $(compgen -W '${OPTS[UPDATE]}' -- "$cur") )
+            ;;
+        shell):
+            COMPREPLY=( $(compgen -W '${OPTS[SHELL]}' -- "$cur") )
+            ;;
+        env-create):
+            COMPREPLY=( $(compgen -W '${OPTS[ENV-CREATE]}' -- "$cur") )
+            ;;
+        env-update):
+            COMPREPLY=( $(compgen -W '${OPTS[ENV-UPDATE]}' -- "$cur") )
+            ;;
+        env-shell):
+            COMPREPLY=( $(compgen -W '${OPTS[ENV-SHELL]}' -- "$cur") )
+            ;;
+        *):
+            COMPREPLY=( $(compgen -W '${SUBVERBS}' -- "$cur") )
+            ;;
+    esac
+    return 0
+}
+
+_fatbuildrctl_keyring() {
+    local cur=$1 prev=$2 comps
+    local SUBVERBS='show export create renew'
+    local OPTS='--duration --batch'
+    if [[ $cur = -* ]]; then
+        comps=$OPTS
+    else
+        comps=$SUBVERBS
+    fi
+    COMPREPLY=( $(compgen -W '${comps}' -- "$cur") )
+    return 0
+}
+
+_fatbuildrctl_patches() {
+    local cur=$1 prev=$2
+    local OPTS='-a --artifact --derivative -b --basedir -s --subdir -n --name
+                -e --email --sources --include-git-untracked'
+    COMPREPLY=( $(compgen -W '${OPTS}' -- "$cur") )
+    return 0
+}
+
+_fatbuildrctl_registry() {
+    local cur=$1 prev=$2 comps
+    local SUBVERBS='list delete'
+    local OPTS='-a --artifact --derivative -d --distribution'
+    if [[ $cur = -* ]]; then
+        comps=$OPTS
+    else
+        comps=$SUBVERBS
+    fi
+    COMPREPLY=( $(compgen -W '${comps}' -- "$cur") )
+    return 0
+}
+
+_fatbuildrctl_tokens() {
+    local cur=$1 prev=$2 subverb
+    local SUBVERBS='list generate save'
+    local -A OPTS=(
+        [SAVE]='--uri'
+    )
+    # Find the subverb in the command
+    for ((i=0; i <= COMP_CWORD; i++)); do
+        if __contains_word "${COMP_WORDS[i]}" ${SUBVERBS}; then
+            subverb=${COMP_WORDS[i]}
+            break
+        fi
+    done
+    case $subverb in
+        save):
+            COMPREPLY=( $(compgen -W '${OPTS[SAVE]}' -- "$cur") )
+            ;;
+        list|generate):
+            ;;
+        *):
+            COMPREPLY=( $(compgen -W '${SUBVERBS}' -- "$cur") )
+            ;;
+    esac
+    return 0
+}
+
+_fatbuildrctl() {
+    local cur prev opts
+    local i verb comps
+
+    local VERBS='images keyring build list patches watch history registry
+                 tokens'
+
+    _init_completion || return
+
+    # Find the verb in the command
+    for ((i=0; i <= COMP_CWORD; i++)); do
+        if __contains_word "${COMP_WORDS[i]}" ${VERBS}; then
+            verb=${COMP_WORDS[i]}
+            break
+        fi
+    done
+
+    case $verb in
+        build)
+            _fatbuildrctl_build "$cur" "$prev"
+            return
+            ;;
+        history)
+            _fatbuildrctl_history "$cur" "$prev"
+            return
+            ;;
+        images)
+            _fatbuildrctl_images "$cur" "$prev"
+            return
+            ;;
+        keyring)
+            _fatbuildrctl_keyring "$cur" "$prev"
+            return
+            ;;
+        patches)
+            _fatbuildrctl_patches "$cur" "$prev"
+            return
+            ;;
+        registry)
+            _fatbuildrctl_registry "$cur" "$prev"
+            return
+            ;;
+        tokens)
+            _fatbuildrctl_tokens "$cur" "$prev"
+            return
+            ;;
+        list|watch)
+            # Nothing to suggest for these verbs
+            return
+            ;;
+        *)
+            _fatbuildrctl_global "$cur" "$prev" $VERBS
+            return
+            ;;
+    esac
+}
+
+complete -F _fatbuildrctl fatbuildrctl
