@@ -281,6 +281,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                     prep_sources=sources_prep,
                     patches=patches_decl,
                     prep_patches=patches_prep,
+                    prep=sources_prep + patches_prep,
                     changelog=changelog,
                 )
             )
