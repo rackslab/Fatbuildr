@@ -741,6 +741,11 @@ The preferences file is formatted as an INI file. It can contains two sections:
   remote authentication to the REST API. The default value is
   `~/.local/share/fatbuildr` or `$XDG_DATA_HOME/fatbuildr` if the environment
   variable is defined.
+
+*commit_template*::
+  The path to the git commit message template file used to preformat the
+  messages of new git commits when using `fatbuildrctl patches` command. Default
+  value is [.path]#`/usr/share/fatbuildr/commit-message-template`#.
 --
 
 This is a full example of a user preferences file:

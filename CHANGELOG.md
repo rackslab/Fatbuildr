@@ -117,6 +117,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add _Tasks Hooks_ page.
   - Mention new `prep` templating variable in artifact definition reference
     documentation for RPM spec files.
+  - Mention new `commit_template` parameter in user preferences documentation
+    in `fatbuildrctl` manpage.
 
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.
