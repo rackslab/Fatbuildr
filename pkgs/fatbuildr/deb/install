@@ -1,5 +1,6 @@
 conf/etc/fatbuildr.ini etc/fatbuildr
 conf/vendor/fatbuildr.ini usr/share/fatbuildr
+conf/vendor/commit-message-template usr/share/fatbuildr
 conf/registry usr/share/fatbuildr
 conf/images usr/share/fatbuildr
 conf/web usr/share/fatbuildr

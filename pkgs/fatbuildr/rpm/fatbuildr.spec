@@ -82,6 +82,7 @@ install -p -m 0644 conf/etc/fatbuildr.ini %{buildroot}%{_sysconfdir}/fatbuildr
 
 install -d %{buildroot}%{_datadir}/fatbuildr
 install -p -m 0644 conf/vendor/fatbuildr.ini %{buildroot}%{_datadir}/fatbuildr/
+install -p -m 0644 conf/vendor/commit-message-template %{buildroot}%{_datadir}/fatbuildr/
 cp -vdr --no-preserve=ownership conf/registry %{buildroot}%{_datadir}/fatbuildr/
 cp -vdr --no-preserve=ownership conf/images %{buildroot}%{_datadir}/fatbuildr/
 cp -vdr --no-preserve=ownership conf/web %{buildroot}%{_datadir}/fatbuildr/

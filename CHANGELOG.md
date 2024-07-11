@@ -67,6 +67,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pkgs:
   - Add patch to define upstream version at build time.
   - Install tasks hooks examples uncompressed.
+  - Install default system-wide git commit message template for patches in both
+    Deb and RPM packages.
 - dbus:
   - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
     object to submit artifact deletion task with another user identity.
