@@ -48,6 +48,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     preferences file (#124).
   - Add git message template for patches to help filling and formatting patches
     metadata with expected fields and values (#30).
+  - Add `--batch` option to `fatbuildrctl keyring` command for keyring creation
+    and renewal tasks.
 - web:
   - Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
   - Support file listing and folders browsing in registries (#65).

@@ -378,6 +378,11 @@ class Fatbuildrctl(FatbuildrCliRun):
         )
         parser_keyring.add_argument('--duration', help='New duration for renew')
         parser_keyring.add_argument(
+            '--batch',
+            action='store_true',
+            help='Submit task in background',
+        )
+        parser_keyring.add_argument(
             'operation',
             help='Operation on keyring (default: %(default)s)',
             nargs='?',
@@ -886,8 +891,11 @@ class Fatbuildrctl(FatbuildrCliRun):
     def _run_keyring(self, args):
         logger.debug("running keyring operation")
         if args.operation == 'create':
-            task_id = self.connection.keyring_create()
-            print(f"Submitted keyring creation task {task_id}")
+            self._submit_task(
+                self.connection.keyring_create,
+                "keyring creation",
+                args.batch,
+            )
         elif args.operation == 'renew':
             if not args.duration:
                 logger.error(
@@ -896,8 +904,12 @@ class Fatbuildrctl(FatbuildrCliRun):
                     progname(),
                 )
                 sys.exit(1)
-            task_id = self.connection.keyring_renew(args.duration)
-            print(f"Submitted keyring renewal task {task_id}")
+            self._submit_task(
+                self.connection.keyring_renew,
+                "keyring renewal",
+                args.batch,
+                args.duration,
+            )
         elif args.operation == 'show':
             keyring = self.connection.keyring()
             if keyring:
