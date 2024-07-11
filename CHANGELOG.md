@@ -111,6 +111,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     - Advanced hook to send custom notifications messages (based on templates)
       on Matrix room.
   - Add _Tasks Hooks_ page.
+  - Mention new `prep` templating variable in artifact definition reference
+    documentation for RPM spec files.
 
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.
