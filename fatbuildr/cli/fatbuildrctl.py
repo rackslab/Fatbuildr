@@ -1256,6 +1256,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             user_name,
             user_email,
             sources,
+            self.prefs.commit_message_template,
         )
         patch_queue.run()
 

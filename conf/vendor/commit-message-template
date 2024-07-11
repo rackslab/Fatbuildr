@@ -1,0 +1,40 @@
+patch-title
+
+# NOTE: The patch title is used to generate the filename of the patch.
+# It is recommended separate words with dash.
+
+# It is highly recommended to add some metadata to the patch, in order
+# to simplify its maitenance over time. The metadata are expected to be
+# formatted in DEP-3 (see: https://dep-team.pages.debian.net/deps/dep3/)
+
+Description: Long text description to describe the purpose of the patch
+ and provide some context. Lines are continued with initial whitespace.
+Last-Update: YYYY-MM-DD
+Author: John Doe <john@example.com>
+
+# Explain if the patch has been forwarded to upstream developers,
+# optionally with bug tracker URL, or justify the reason otherwise.
+Forwarded: no
+
+# It is possible to restrict this patch to specific distributions and
+# artifacts formats with the following parameters:
+#
+# Distributions: el8 fc40
+# Formats: rpm
+#
+# Values must be whitespace separated.
+
+# It is possible to mark the patch as being a template. When enabled,
+# Fatbuildr replaces some variables (such as version.main) dynamically
+# in the patch before its installation in source package. It is
+# disabled by default.
+#
+# Template: yes (default: no)
+
+# Mark the patch as being generic, ie. not specific to an upstream
+# version of the package. This is disabled by default.
+#
+# Generic: yes (default: no)
+
+# Reference documentation is available online:
+# https://docs.rackslab.io/fatbuildr/usage/repo.html#patches

@@ -53,6 +53,7 @@ class PatchQueue:
         user,
         email,
         sources=[],
+        message_template=None,
     ):
         self.apath = apath
         self.derivative = derivative
@@ -63,6 +64,7 @@ class PatchQueue:
         self.git = None
         self.version = None
         self.sources = sources
+        self.message_template = message_template
         self.main_source = None
         self.supplementary_sources = []
 
@@ -118,7 +120,9 @@ class PatchQueue:
         )
 
         # init the git repository with its initial commit
-        self.git = GitRepository(repo_path, self.user, self.email)
+        self.git = GitRepository(
+            repo_path, self.user, self.email, self.message_template
+        )
 
         # import existing patches in queue
         patches_dir = PatchesDir(self.apath, self.version)

@@ -42,6 +42,10 @@ def default_user_tokens_dir():
     )
 
 
+def default_commit_message_template():
+    return Path('/usr/share/fatbuildr/commit-message-template')
+
+
 class UserPreferences:
     DEFAULT = default_user_pref()
 
@@ -53,6 +57,7 @@ class UserPreferences:
         self.basedir = None
         self.message = None
         self.tokens_dir = default_user_tokens_dir()
+        self.commit_message_template = default_commit_message_template()
 
         if not path.expanduser().exists():
             logger.debug(
@@ -79,6 +84,13 @@ class UserPreferences:
                 'prefs',
                 'tokens',
                 fallback=default_user_tokens_dir(),
+            )
+        ).expanduser()
+        self.commit_message_template = Path(
+            config.get(
+                'prefs',
+                'commit_template',
+                fallback=default_commit_message_template(),
             )
         ).expanduser()
 

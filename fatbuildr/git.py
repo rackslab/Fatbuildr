@@ -191,7 +191,7 @@ class PatchFile(PATH_TYPE):
 
 
 class GitRepository:
-    def __init__(self, path, author, email):
+    def __init__(self, path, author, email, message_template=None):
         self.path = path
 
         # Remove .gitignore file if present, to avoid modification realized
@@ -206,6 +206,17 @@ class GitRepository:
 
         self._repo = pygit2.init_repository(path, bare=False)
         self._initial_commit(author, email)
+
+        # Setup commit message template in git repository configuration if
+        # defined and file exists.
+        if message_template:
+            if not message_template.exists():
+                logger.warning(
+                    "Unable to find git commit message template %s, ignoring",
+                    message_template,
+                )
+            else:
+                self._repo.config['commit.template'] = message_template
 
     def _initial_commit(self, author, email):
         ref = "HEAD"
