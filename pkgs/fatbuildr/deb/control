@@ -14,6 +14,7 @@ Build-Depends:
  python3-requests,
  python3-yaml,
  asciidoctor,
+ bash-completion,
 Standards-Version: 3.9.3
 Section: devel
 
