@@ -130,6 +130,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Support mkosi v22 in osi image (#173).
 - Factorize RPM repository updates by running it once for all packages that
   share the same architecture (#49).
+- Replace `fatbuildrd` service runtime directory by _fatbuildr_ tmpfiles.d
+  configuration with POSIX ACL to give access to subdirectories to `fatbuildr`
+  system user and benefit from automatic cleanup by `systemd-tmpfiles`.
 - cli: Watch task output by default when submitting tasks. The `-w, --watch`
   option is replaced by the opposite `--batch` option to submit tasks in
   background (#123).

@@ -8,15 +8,6 @@ ExecStart=/usr/libexec/fatbuildrd
 WatchdogSec=3min
 Restart=on-failure
 User=fatbuildr
-# Create RuntimeDirectory to store temporary tarballs submitted with build
-# requests. These tarball are created by fatbuildrctl and fatbuildrweb with
-# their respective UID/GID, and they are removed by fatbuildrd service once
-# the request is accepted and put in queue. Then fatbuildr system user must
-# be granted to remove these files, hence this runtime directory owned by
-# fatbuildr:.
-RuntimeDirectory=fatbuildr
-RuntimeDirectoryMode=0770
-RuntimeDirectoryPreserve=yes
 # Ensure cache and state directories are created and owned by fatbuildr system
 # user before the service starts.
 StateDirectory=fatbuildr fatbuildr/workspaces fatbuildr/images fatbuildr/keyring fatbuildr/registry fatbuildr/tokens
