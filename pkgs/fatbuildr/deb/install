@@ -5,6 +5,7 @@ conf/registry usr/share/fatbuildr
 conf/images usr/share/fatbuildr
 conf/web usr/share/fatbuildr
 conf/system/service/* lib/systemd/system
+conf/system/tmpfiles/* usr/lib/tmpfiles.d
 conf/dbus/*.conf usr/share/dbus-1/system.d
 conf/dbus/*.service usr/share/dbus-1/system-services
 conf/polkit/*.pkla var/lib/polkit-1/localauthority/10-vendor.d

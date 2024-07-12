@@ -73,6 +73,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Install default system-wide git commit message template for patches in both
     Deb and RPM packages.
   - Install `fatbuildrctl` bash completion script in both Deb and RPM packages.
+  - Install fatbuildr tmpfiles.d configuration.
 - dbus:
   - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
     object to submit artifact deletion task with another user identity.
@@ -157,7 +158,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `[format:rpm]` sections of system configuration.
   - Mention usage of `%autopatch` macro behind `prep_patches` templating
     variable in artifact definition reference documentation for RPM spec files.
-  - pkgs: Use new `prep` variable in Fatbuildr RPM package spec file template.
+- pkgs: Use new `prep` variable in Fatbuildr RPM package spec file template.
 
 ### Fixed
 - Fix crash on client side when loading artifact definition for OSI builds

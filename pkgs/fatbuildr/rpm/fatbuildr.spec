@@ -88,6 +88,7 @@ cp -vdr --no-preserve=ownership conf/registry %{buildroot}%{_datadir}/fatbuildr/
 cp -vdr --no-preserve=ownership conf/images %{buildroot}%{_datadir}/fatbuildr/
 cp -vdr --no-preserve=ownership conf/web %{buildroot}%{_datadir}/fatbuildr/
 install -p -D -m 0644 conf/system/service/* -t %{buildroot}%{_unitdir}
+install -p -D -m 0644 conf/system/tmpfiles/* -t %{buildroot}%{_tmpfilesdir}
 install -p -D -m 0644 conf/dbus/*.conf -t %{buildroot}%{_datadir}/dbus-1/system.d
 install -p -D -m 0644 conf/dbus/*.service -t %{buildroot}%{_datadir}/dbus-1/system-services
 install -p -D -m 0644 conf/polkit/*.policy -t %{buildroot}%{_datadir}/polkit-1/actions
@@ -148,6 +149,7 @@ rm -rf %{buildroot}
 %{_datadir}/polkit-1/actions/*
 %{compldir}/*
 %{_unitdir}/*
+%{_tmpfilesdir}/*
 %doc %{_mandir}/man1/*
 
 %files -n %{name}-common
