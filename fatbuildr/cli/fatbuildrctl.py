@@ -57,19 +57,28 @@ def progname():
     return Path(sys.argv[0]).name
 
 
-def prepare_tarball(apath, rundir: bool):
-    """Generates tarball container artifact definition. If rundir is True, the
-    tarball is generated in fatbuildrd system runtime directory. Otherwise, it
-    is generated in default temporary directory."""
-
+def tarballs_base(rundir: bool):
+    """Return the path to the directory where generated tarballs must be
+    created. If rundir is True, this directory is created in fatbuildr runtime
+    directory managed by tmpfiles.d. Otherwise, it is the default temporary
+    directory."""
     if rundir:
-        base = Path('/run/fatbuildr')
+        # Create temporary directory with random name in fatbuildr runtime
+        # directory. This directory is created manually instead of using
+        # tempfile.mkdtemp() in order to avoid hard-coded mode 0700 of the
+        # latter, which has the effect of setting too restricted mask in POSIX
+        # ACL that prevent fatbuildrd from accessing the files.
+        base = Path('/run/fatbuildr', next(tempfile._get_candidate_names()))
+        base.mkdir()
+        return base
     else:
-        base = Path(tempfile._get_default_tempdir())
+        return Path(tempfile._get_default_tempdir())
 
-    tarball = base.joinpath(
-        f"fatbuildr-artifact-{next(tempfile._get_candidate_names())}.tar.xz"
-    )
+
+def prepare_tarball(apath, base: Path):
+    """Generates tarball container artifact definition in base path."""
+
+    tarball = base.joinpath("fatbuildr-artifact.tar.xz")
 
     if not apath.exists():
         raise RuntimeError(
@@ -89,15 +98,10 @@ def prepare_tarball(apath, rundir: bool):
 
 
 def prepare_source_tarball(
-    artifact, path, version, rundir: bool, include_git_untracked: bool
+    artifact, path, version, base: Path, include_git_untracked: bool
 ):
     """Generates a source tarball for the given artifact, tagged with the given
     main version, using sources in path."""
-
-    if rundir:
-        base = Path('/run/fatbuildr')
-    else:
-        base = Path(tempfile._get_default_tempdir())
 
     logger.info(
         "Generating artifact %s source tarball version %s using directory %s",
@@ -1094,7 +1098,7 @@ class Fatbuildrctl(FatbuildrCliRun):
         return (format, distribution)
 
     def _build_local_sources(
-        self, defs, artifact, derivative, sources, include_git_untracked
+        self, defs, artifact, derivative, sources, base, include_git_untracked
     ):
         results = []
         for source in sources:
@@ -1129,7 +1133,7 @@ class Fatbuildrctl(FatbuildrCliRun):
                         source_id,
                         Path(source_dir),
                         source_version,
-                        self.connection.scheme == 'dbus',
+                        base,
                         include_git_untracked,
                     ),
                 )
@@ -1197,18 +1201,21 @@ class Fatbuildrctl(FatbuildrCliRun):
 
         logger.debug("Selected architectures: %s", selected_architectures)
 
+        base = tarballs_base(self.connection.scheme == 'dbus')
+
         sources = self._build_local_sources(
             defs,
             args.artifact,
             args.derivative,
             args.sources,
+            base,
             args.include_git_untracked,
         )
 
         try:
             # Prepare artifact definition tarball, in fatbuildrd runtime
             # directory if connected to fatbuildrd through dbus.
-            tarball = prepare_tarball(apath, self.connection.scheme == 'dbus')
+            tarball = prepare_tarball(apath, base)
             self._submit_task(
                 self.connection.build,
                 f"{args.artifact} build",
@@ -1261,6 +1268,7 @@ class Fatbuildrctl(FatbuildrCliRun):
             args.artifact,
             args.derivative,
             args.sources,
+            tarballs_base(False),
             args.include_git_untracked,
         )
 

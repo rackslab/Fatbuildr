@@ -21,6 +21,8 @@ import inspect
 import io
 from functools import wraps
 import os
+import tempfile
+from pathlib import Path
 
 from flask import (
     request,
@@ -488,9 +490,17 @@ def search(instance, output='html'):
 @check_instance_token_permission('build')
 def build(instance):
     tarball = request.files['tarball']
-    tarball_path = current_app.config['UPLOAD_FOLDER'].joinpath(
-        secure_filename(tarball.filename)
+    # Create temporary directory with random name in fatbuildr runtime
+    # directory. This directory is created manually instead of using
+    # tempfile.mkdtemp() in order to avoid hard-coded mode 0700 of the latter,
+    # which has the effect of setting too restricted mask in POSIX ACL that
+    # prevent fatbuildrd from accessing the files.
+    tarballs_dir = Path(
+        current_app.config['UPLOAD_FOLDER'],
+        next(tempfile._get_candidate_names()),
     )
+    tarballs_dir.mkdir()
+    tarball_path = tarballs_dir.joinpath(secure_filename(tarball.filename))
     tarball.save(tarball_path)
 
     sources = []
@@ -498,7 +508,7 @@ def build(instance):
         if file_name.startswith('source/'):
             source_id = file_name[7:]
             source_archive = request.files[file_name]
-            source_archive_path = current_app.config['UPLOAD_FOLDER'].joinpath(
+            source_archive_path = tarballs_dir.joinpath(
                 # The source archive filename is not secured with werkzeug
                 # utility secure_filename() as the artifact main version is
                 # extracted from source archive filename and it removes ~

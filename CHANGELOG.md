@@ -238,6 +238,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   client-side `fatbuildrctl` (#31).
 - Fix reporting of keyring errors during keyring creation and renewal tasks
   execution.
+- Drop off artifact and sources archives tarballs in subdirectory of fatbuildr
+  runtime directory to avoid potential collisions between multiple builds in
+  queue (#179).
 - docs:
   - Add missing path parameter in REST API to retrieve artifact information.
   - Add missing optional `architectures` parameter in instances pipelines

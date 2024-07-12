@@ -249,6 +249,7 @@ class ArtifactBuild(RunnableTask):
         self.input_tarball.extract(self.place)
 
         # Remove the input tarball
+        logger.debug("Removing build input tarball %s", self.input_tarball.path)
         self.input_tarball.path.unlink()
 
         # ensure artifact cache directory exists
@@ -297,6 +298,13 @@ class ArtifactBuild(RunnableTask):
             self.archives.append(
                 ArtifactSourceArchive(source.id, source_archive_target)
             )
+
+        # Remove parent directory of input tarball, it should be empty now
+        logger.debug(
+            "Removing build submission temporary files directory %s",
+            self.input_tarball.path.parent,
+        )
+        self.input_tarball.path.parent.rmdir()
 
         # If the artifact version has not been defined base on source archive
         # provided in the build request, define the version based on artifact
