@@ -109,6 +109,11 @@ class HttpClient(AbstractClient):
         url = f"{self.uri}/pipelines/formats.json?distribution={distribution}"
         response = self._auth_request(requests.get, url)
         formats = response.json()
+        if len(formats) == 0:
+            raise FatbuildrServerError(
+                "Unable to find format corresponding to distribution "
+                f"{distribution}"
+            )
         return list(formats.keys())[0]
 
     @check_http_errors
