@@ -465,7 +465,64 @@ Response:
     "architecture": "src",
     "name": "fatbuildr",
     "version": "0.1-2.deb11"
-  }
+  },
+  "content": [
+    {
+      "path": "/usr",
+      "size": 0,
+      "type": "d"
+    },
+    {
+      "path": "/usr/libexec",
+      "size": 0,
+      "type": "d"
+    },
+    {
+      "path": "/usr/libexec/fatbuildr",
+      "size": 0,
+      "type": "d"
+    },
+    {
+      "path": "/usr/libexec/fatbuildr/u-mkosi",
+      "size": 14504,
+      "type": "f"
+    },
+    {
+      "path": "/usr/libexec/fatbuildr/u-nspawn",
+      "size": 14504,
+      "type": "f"
+    },
+    {
+      "path": "/usr/share",
+      "size": 0,
+      "type": "d"
+    },
+    {
+      "path": "/usr/share/doc",
+      "size": 0,
+      "type": "d"
+    },
+    {
+      "path": "/usr/share/doc/fatbuildr-wrappers",
+      "size": 0,
+      "type": "d"
+    },
+    {
+      "path": "/usr/share/doc/fatbuildr-wrappers/changelog.Debian.gz",
+      "size": 271,
+      "type": "f"
+    },
+    {
+      "path": "/usr/share/doc/fatbuildr-wrappers/changelog.gz",
+      "size": 6897,
+      "type": "f"
+    },
+    {
+      "path": "/usr/share/doc/fatbuildr-wrappers/copyright",
+      "size": 53,
+      "type": "f"
+    }
+  ]
 }
 ----
 ====

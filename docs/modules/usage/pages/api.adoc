@@ -136,6 +136,11 @@ Properties:
 |List of artifact changelog entries
 |✓
 |_array[xref:#object-changelog-entry[] object]_
+
+|`content`
+|List of artifact content
+|✓
+|_array[xref:#object-artifact-content[] object]_
 |===
 
 [#object-artifact]
@@ -161,6 +166,32 @@ Properties:
 |Version number of the artifact
 |✓
 |_string_
+|===
+
+[#object-artifact-content]
+=== ArtifactContent
+
+Properties:
+
+[cols="{tbl-obj-props-cols-specs}"]
+|===
+|Name|Description|Required|Type
+
+|`path`
+|Path to file in artifact
+|✓
+|_string_
+
+|`type`
+|File type encoded as a single character (`f` for regular file, `d` for
+directory, `l` for symbolic link)
+|✓
+|_string_
+
+|`size`
+|File size in bytes
+|✓
+|_integer_
 |===
 
 [#object-changelog-entry]

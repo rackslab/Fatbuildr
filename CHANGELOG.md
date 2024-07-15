@@ -134,6 +134,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     in `fatbuildrctl` manpage.
   - Mention new `--batch` option for `fatbuildrctl keyring` command in manpage.
   - Mention content section in binary artifact web interface page.
+  - Mention content key in `ArtifactDescription` object and introduce
+    `ArtifactContent` object in REST API reference documentation.
 
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.
