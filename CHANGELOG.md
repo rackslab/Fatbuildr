@@ -58,6 +58,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Add _edit-registry_ permission action.
   - Possibility to remove artifact from registries with DELETE verb on
     artifact route.
+  - Introduce `ArtifactContent` objects.
+  - Add content key in `ArtifactDescription` object associated to a list of
+    `ArtifactContent` objects for Deb and RPM binary packages.
 - conf:
   - Add `containerized` parameter in `[format:osi]` section.
   - Add `exec_cmd` and `exec_tmpfile` parameters in `[format:deb]` and

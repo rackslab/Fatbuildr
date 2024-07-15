@@ -24,6 +24,7 @@ from . import (
     DBusRunnableTask,
     DBusArtifact,
     DBusChangelogEntry,
+    DBusArtifactMember,
     DBusKeyring,
     FatbuildrDBusError,
     FatbuildrDBusErrorNotAuthorized,
@@ -181,6 +182,20 @@ class DBusInstanceClient(AbstractClient):
     def changelog(self, fmt, distribution, derivative, architecture, artifact):
         return DBusChangelogEntry.from_structure_list(
             self.proxy.Changelog(
+                fmt,
+                distribution,
+                derivative,
+                architecture,
+                artifact,
+            )
+        )
+
+    @check_dbus_errors
+    def artifact_content(
+        self, fmt, distribution, derivative, architecture, artifact
+    ):
+        return DBusArtifactMember.from_structure_list(
+            self.proxy.ArtifactContent(
                 fmt,
                 distribution,
                 derivative,

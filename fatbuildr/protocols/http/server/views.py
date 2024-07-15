@@ -54,6 +54,7 @@ from .. import (
     JsonRunnableTask,
     JsonArtifact,
     JsonChangelogEntry,
+    JsonArtifactMember,
 )
 from ....log import logr
 
@@ -367,12 +368,17 @@ def artifact(
                 fmt, distribution, derivative, artifact
             )
             template = 'src.html.j2'
+            content = []
         else:
             source = connection.artifact_src(
                 fmt, distribution, derivative, artifact
             )
+            content = connection.artifact_content(
+                fmt, distribution, derivative, architecture, artifact
+            )
             binaries = []
             template = 'bin.html.j2'
+
     except FatbuildrServerRegistryError as err:
         abort(404, str(err))
     if output == 'json':
@@ -383,6 +389,9 @@ def artifact(
                     'source': JsonArtifact.export(source),
                     'changelog': [
                         JsonChangelogEntry.export(entry) for entry in changelog
+                    ],
+                    'content': [
+                        JsonArtifactMember.export(member) for member in content
                     ],
                 }
             )
@@ -410,6 +419,7 @@ def artifact(
             source=source,
             binaries=binaries,
             changelog=changelog,
+            content=content,
         )
 
 

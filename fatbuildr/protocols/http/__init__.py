@@ -27,6 +27,7 @@ from ..wire import (
     WireRunnableTask,
     WireArtifact,
     WireChangelogEntry,
+    WireArtifactMember,
     WireTaskIO,
     WireTaskJournal,
 )
@@ -151,6 +152,10 @@ class JsonChangelogEntry(JsonNativeData, WireChangelogEntry):
     pass
 
 
+class JsonArtifactMember(JsonNativeData, WireArtifactMember):
+    pass
+
+
 class JsonTaskIO(JsonNativeData, WireTaskIO):
     pass
 
@@ -167,6 +172,7 @@ TYPES_MAP = {
     ('ArtifactSourceArchive', 'DBusSourceArchive', JsonSourceArchive),
     ('RegistryArtifact', 'DBusArtifact', JsonArtifact),
     ('ChangelogEntry', 'DBusChangelogEntry', JsonChangelogEntry),
+    ('ArtifactMember', 'DBusArtifactMember', JsonArtifactMember),
     ('TaskIO', 'DBusTaskIO', JsonTaskIO),
     ('TaskJournal', 'DBusTaskJournal', JsonTaskJournal),
 }
