@@ -161,7 +161,7 @@ This web page contains the information about a specific artifact published in a
 registry. If this is a source artifact (_ie_. architecture is `src`), the list
 of all subsequent binary artifacts is provided. If this is binary artifact, the
 corresponding source artifact is indicated. The page also contains the changelog
-of the artifact, when possible.
+and the content (ie. list of files) of the artifact, when possible.
 
 ===== Path Parameters
 
