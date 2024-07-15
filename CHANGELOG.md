@@ -77,6 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     Deb and RPM packages.
   - Install `fatbuildrctl` bash completion script in both Deb and RPM packages.
   - Install fatbuildr tmpfiles.d configuration.
+  - Add _bootstrap-icon_ additional source archive.
+  - Install bootstrap icon fonts in Deb and RPM packages.
 - dbus:
   - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
     object to submit artifact deletion task with another user identity.

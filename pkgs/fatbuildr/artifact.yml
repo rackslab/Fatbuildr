@@ -2,6 +2,7 @@
 sources:
   fatbuildr: https://github.com/rackslab/Fatbuildr/archive/refs/tags/v{{ version }}.tar.gz
   bootstrap: https://github.com/twbs/bootstrap/releases/download/v{{ version }}/bootstrap-{{ version }}-dist.zip
+  bootstrap-icon: https://github.com/twbs/icons/releases/download/v{{ version }}/bootstrap-icons-{{ version }}.zip
 checksums:
   fatbuildr:
     2.0.0:
@@ -9,9 +10,13 @@ checksums:
   bootstrap:
     5.2.3:
       sha256: 8fa2016a3dee1e204bd1623e050dcf477e9d28c13bb98a1f58f57e0fd40cdd38
+  bootstrap-icon:
+    1.11.3:
+      sha256: 100a3d6bd8484d52010b44fa81a2d5b5653f6ddffc20ed6eb346f6517ab64e4f
 versions:
   fatbuildr: 2.0.0
   bootstrap: 5.2.3
+  bootstrap-icon: 1.11.3
 rpm:
   release: 1
 deb:
