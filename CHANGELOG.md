@@ -51,6 +51,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     metadata with expected fields and values (#30).
   - Add `--batch` option to `fatbuildrctl keyring` command for keyring creation
     and renewal tasks.
+  - Add size attribute to artifacts found in registry.
 - web:
   - Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
   - Support file listing and folders browsing in registries (#65).
@@ -62,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Introduce `ArtifactContent` objects.
   - Add content key in `ArtifactDescription` object associated to a list of
     `ArtifactContent` objects for Deb and RPM binary packages.
+  - Add size attribute to `Artifact` objects.
 - conf:
   - Add `containerized` parameter in `[format:osi]` section.
   - Add `exec_cmd` and `exec_tmpfile` parameters in `[format:deb]` and

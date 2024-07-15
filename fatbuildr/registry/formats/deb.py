@@ -183,7 +183,7 @@ class RegistryDeb(Registry):
             '--component',
             derivative,
             '--list-format',
-            '${package}|${Architecture}|${$architecture}|${version}\n',
+            '${package}|${Architecture}|${$architecture}|${version}|${Size}\n',
             'list',
             distribution,
         ]
@@ -192,13 +192,17 @@ class RegistryDeb(Registry):
         for line in lines:
             if not line:  # skip empty lines
                 continue
-            (name, arch, locarch, version) = line.split('|')
+            (name, arch, locarch, version, size) = line.split('|')
             if locarch == 'source':
                 _arch = locarch
             else:
                 _arch = arch
+            if not len(size):
+                size = 0
+            else:
+                size = int(size)
             artifact = RegistryArtifact(
-                name, self.archmap.normalized(_arch), version
+                name, self.archmap.normalized(_arch), version, size
             )
             # Architecture independant packages can appear multiple times in
             # reprepro command output as their duplicated for every
@@ -220,7 +224,7 @@ class RegistryDeb(Registry):
             '--component',
             derivative,
             '--list-format',
-            '${package}|${Architecture}|${$architecture}|${$source}|${version}\n',
+            '${package}|${Architecture}|${$architecture}|${$source}|${version}|${Size}\n',
             'list',
             distribution,
         ]
@@ -229,13 +233,17 @@ class RegistryDeb(Registry):
         for line in lines:
             if not line:  # skip empty lines
                 continue
-            (name, arch, locarch, source, version) = line.split('|')
+            (name, arch, locarch, source, version, size) = line.split('|')
             if locarch == 'source':  # skip non-binary package
                 continue
             if source != src_artifact:
                 continue
+            if not len(size):
+                size = 0
+            else:
+                size = int(size)
             artifact = RegistryArtifact(
-                name, self.archmap.normalized(arch), version
+                name, self.archmap.normalized(arch), version, size
             )
             # Architecture independant packages can appear multiple times in
             # reprepro command output as their duplicated for every
@@ -270,7 +278,7 @@ class RegistryDeb(Registry):
             (locarch, source, version) = line.split('|')
             if locarch == 'source':  # skip source package
                 continue
-            return RegistryArtifact(source, 'src', version)
+            return RegistryArtifact(source, 'src', version, 0)
         raise FatbuildrRegistryError(
             "Unable to find source package associated to deb binary package "
             f"{bin_artifact} in distribution {distribution} and derivative "

@@ -116,12 +116,13 @@ class WireArtifact(WireData, RegistryArtifact):
         if len(args):
             super().__init__(*args)
         else:
-            super().__init__(None, None, None)
+            super().__init__(None, None, None, None)
 
     def report(self):
         print(f"- name: {self.name}")
         print(f"  architecture: {self.architecture}")
         print(f"  version: {self.version}")
+        print(f"  size: {self.size}")
 
 
 class WireChangelogEntry(WireData):

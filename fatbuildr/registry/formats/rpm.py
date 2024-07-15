@@ -204,7 +204,10 @@ class RegistryRpm(Registry):
             for key in md.keys():
                 pkg = md.get(key)
                 artifact = RegistryArtifact(
-                    pkg.name, pkg.arch, pkg.version + '-' + pkg.release
+                    pkg.name,
+                    pkg.arch,
+                    pkg.version + '-' + pkg.release,
+                    pkg.size_package,
                 )
                 # Architecture independant packages can be duplicated in
                 # multiple architectures repositories. We check the
@@ -231,7 +234,10 @@ class RegistryRpm(Registry):
                 if source != src_artifact:
                     continue
                 artifact = RegistryArtifact(
-                    pkg.name, pkg.arch, pkg.version + '-' + pkg.release
+                    pkg.name,
+                    pkg.arch,
+                    pkg.version + '-' + pkg.release,
+                    pkg.size_package,
                 )
                 # Architecture independant packages can be duplicated in
                 # multiple architectures repositories. We check the
@@ -240,6 +246,29 @@ class RegistryRpm(Registry):
                 if artifact not in artifacts:
                     artifacts.append(artifact)
         return artifacts
+
+    def _src_artifact(self, distribution, derivative, src_name, src_version):
+        """Return the RegistryArtifact of the source RPM package in the given
+        distribution and derivative matching the provided src_name and
+        version."""
+        src_dir = self.dist_path(distribution).joinpath(derivative, 'source')
+        md = cr.Metadata()
+        md.locate_and_load_xml(str(src_dir))
+        # Now search the source package in repository.
+        for key in md.keys():
+            pkg = md.get(key)
+            if pkg.name != src_name:
+                continue
+            if pkg.arch != 'src':  # skip binary package
+                continue
+            if pkg.version + '-' + pkg.release != src_version:
+                continue
+            return RegistryArtifact(
+                pkg.name,
+                pkg.arch,
+                pkg.version + '-' + pkg.release,
+                pkg.size_package,
+            )
 
     def artifact_src(self, distribution, derivative, bin_artifact):
         for arch_dir in self.available_arch_dirs(distribution, derivative):
@@ -261,7 +290,7 @@ class RegistryRpm(Registry):
                 src_version = (
                     srcrpm_components[1] + '-' + srcrpm_components[2][:-8]
                 )
-                return RegistryArtifact(src_name, 'src', src_version)
+                return self._src_artifact(distribution, derivative, src_name, src_version)
 
     def source_version(self, distribution, derivative, artifact):
         """Returns the version of the given source package name, or None if not

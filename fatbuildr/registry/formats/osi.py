@@ -187,6 +187,7 @@ class RegistryOsi(Registry):
                     f_re.group('name'),
                     f_re.group('arch'),
                     f_re.group('version'),
+                    _path.stat().st_size,
                 )
             )
 

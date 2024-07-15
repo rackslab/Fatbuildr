@@ -126,18 +126,21 @@ class RegistryArtifact(ExportableType):
         ExportableField('name'),
         ExportableField('architecture'),
         ExportableField('version'),
+        ExportableField('size', int),
     }
 
-    def __init__(self, name, architecture, version):
+    def __init__(self, name, architecture, version, size=-1):
         self.name = name
         self.architecture = architecture
         self.version = version
+        self.size = size
 
     def __eq__(self, other):
         return (
             self.name == other.name
             and self.architecture == other.architecture
             and self.version == other.version
+            and self.size == other.size
         )
 
 
