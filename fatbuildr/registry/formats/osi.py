@@ -166,7 +166,7 @@ class RegistryOsi(Registry):
     def _artifacts_filter(self, distribution, derivative, name_filter=None):
         artifacts = []
         for _path in self.derivative_path(distribution, derivative).iterdir():
-            if _path.name == RegistryOsi.CHECKSUMS_FILE:
+            if _path.suffix == '.' + RegistryOsi.CHECKSUMS_FILE_EXT:
                 continue
             if _path.suffix == '.manifest':
                 continue
