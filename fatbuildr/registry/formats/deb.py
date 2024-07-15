@@ -23,7 +23,13 @@ from pathlib import Path
 
 from debian import deb822, changelog, debfile
 
-from . import Registry, ArtifactVersion, RegistryArtifact, ChangelogEntry
+from . import (
+    Registry,
+    ArtifactVersion,
+    RegistryArtifact,
+    ChangelogEntry,
+    ArtifactMember,
+)
 from ...templates import Templeter
 from ...exec import runcmd
 from ...errors import FatbuildrRegistryError
@@ -439,6 +445,37 @@ class RegistryDeb(Registry):
             return self._bin_changelog(
                 distribution, derivative, architecture, artifact
             )
+
+    @staticmethod
+    def _tarinfo_type(member):
+        if member.isfile():
+            return 'f'
+        if member.isdir():
+            return 'd'
+        if member.issym():
+            return 'l'
+        return 'n/a'
+
+    def artifact_content(
+        self, distribution, derivative, architecture, artifact
+    ):
+        self._check_derivative(distribution, derivative)
+        if architecture == 'src':
+            raise FatbuildrRegistryError(
+                "Unable to get content of debian source package"
+            )
+
+        deb_path = self._package_deb_path(
+            distribution, derivative, architecture, artifact
+        )
+        return [
+            # remove initial '.' in filename and skip root file '.'
+            ArtifactMember(
+                member.name[1:], self._tarinfo_type(member), member.size
+            )
+            for member in debfile.DebFile(deb_path).data.tgz().getmembers()
+            if member.name != '.'
+        ]
 
     def delete_artifact(self, distribution, derivative, artifact):
 

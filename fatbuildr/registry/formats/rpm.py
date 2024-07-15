@@ -21,7 +21,13 @@ import shutil
 
 import createrepo_c as cr
 
-from . import Registry, ArtifactVersion, RegistryArtifact, ChangelogEntry
+from . import (
+    Registry,
+    ArtifactVersion,
+    RegistryArtifact,
+    ChangelogEntry,
+    ArtifactMember,
+)
 from ...log import logr
 from ...utils import host_architecture
 from ...exec import runcmd
@@ -298,6 +304,56 @@ class RegistryRpm(Registry):
             if pkg.arch != architecture:
                 continue
             return RpmChangelog(pkg.changelogs).entries()
+        raise FatbuildrRegistryError(
+            f"Unable to find RPM package {artifact} with architecture "
+            f"{architecture} in distribution {distribution} and derivative "
+            f"{derivative}"
+        )
+
+    @staticmethod
+    def _artifact_content_from_rpm_query(package_path):
+        cmd = [
+            'rpm',
+            '--query',
+            '--queryformat',
+            "[%{FILENAMES} %{FILEMODES:perms} %{FILESIZES}\n]",
+            '--package',
+            package_path,
+        ]
+        proc = runcmd(cmd)
+        result = []
+        for line in proc.stdout.decode().splitlines():
+            (path, mode, size) = line.split(' ')
+            result.append(
+                ArtifactMember(
+                    path, 'f' if mode.startswith('-') else mode[0], int(size)
+                )
+            )
+        return result
+
+    def artifact_content(
+        self, distribution, derivative, architecture, artifact
+    ):
+        self._check_derivative(distribution, derivative)
+        repo_path = self.repo_path(distribution, derivative, architecture)
+        if not repo_path.exists():
+            raise FatbuildrRegistryError(
+                "Unable to find repository path for architecture "
+                f"{architecture} in distribution {distribution} and "
+                f"derivative {derivative}"
+            )
+        md = cr.Metadata()
+
+        md.locate_and_load_xml(str(repo_path))
+        for key in md.keys():
+            pkg = md.get(key)
+            if pkg.name != artifact:
+                continue
+            if pkg.arch == 'src':  # skip non-binary package
+                continue
+            return self._artifact_content_from_rpm_query(
+                repo_path.joinpath(pkg.location_href)
+            )
         raise FatbuildrRegistryError(
             f"Unable to find RPM package {artifact} with architecture "
             f"{architecture} in distribution {distribution} and derivative "

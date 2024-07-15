@@ -30,6 +30,7 @@ from ..wire import (
     WireRunnableTask,
     WireArtifact,
     WireChangelogEntry,
+    WireArtifactMember,
     WireKeyring,
     WireTaskIO,
     WireTaskJournal,
@@ -308,6 +309,10 @@ class DBusChangelogEntry(FatbuildrNativeDBusData, WireChangelogEntry):
     pass
 
 
+class DBusArtifactMember(FatbuildrNativeDBusData, WireArtifactMember):
+    pass
+
+
 class DBusKeyring(FatbuildrNativeDBusData, WireKeyring):
     pass
 
@@ -331,6 +336,7 @@ TYPES_MAP = {
     ('ArtifactSourceArchive', DBusSourceArchive),
     ('RegistryArtifact', DBusArtifact),
     ('ChangelogEntry', DBusChangelogEntry),
+    ('ArtifactMember', DBusArtifactMember),
     ('KeyringMasterKey', DBusKeyring),
     ('KeyringSubKey', DBusKeyringSubKey),
     ('TaskIO', DBusTaskIO),

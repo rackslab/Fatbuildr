@@ -77,6 +77,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - dbus:
   - Add `ArtifactDeleteAs` method to `org.rackslab.Fatbuildr.Instance`
     object to submit artifact deletion task with another user identity.
+  - Add `ArtifactContent` method to `org.rackslab.Fatbuildr.Instance`
+    object to retrieve the content of binary artifacts.
   - Add `command` argument to `ImageShell` method.
   - Add `command` argument to `ImageEnvironmentShell` method.
 - polkit: Add _org.rackslab.Fatbuildr.edit-registry-as_ action.

@@ -155,3 +155,17 @@ class ChangelogEntry(ExportableType):
         self.author = author
         self.date = date
         self.changes = changes
+
+
+class ArtifactMember(ExportableType):
+
+    EXFIELDS = {
+        ExportableField('path'),
+        ExportableField('type'),
+        ExportableField('size', int),
+    }
+
+    def __init__(self, path, _type, size):
+        self.path = path
+        self.type = _type
+        self.size = size

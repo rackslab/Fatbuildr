@@ -214,6 +214,13 @@ class RegistryOsi(Registry):
         """Return empty array as there is notion of changelog with OSI."""
         return []
 
+    def artifact_content(
+        self, distribution, derivative, architecture, artifact
+    ):
+        """Return empty array as listing content of OSI artifacts is not
+        supported."""
+        return []
+
     def delete_artifact(self, distribution, derivative, artifact):
         path = self.derivative_path(distribution, derivative).joinpath(
             f"{artifact.name}_{artifact.version}.{artifact.architecture}"

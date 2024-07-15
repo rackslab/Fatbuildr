@@ -128,6 +128,10 @@ class WireChangelogEntry(WireData):
     pass
 
 
+class WireArtifactMember(WireData):
+    pass
+
+
 class WireTaskIO(WireData):
     pass
 

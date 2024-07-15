@@ -73,6 +73,14 @@ class RegistryManager:
             distribution, derivative, architecture, artifact
         )
 
+    def artifact_content(
+        self, fmt, distribution, derivative, architecture, artifact
+    ):
+        registry = self.factory(fmt)
+        return registry.artifact_content(
+            distribution, derivative, architecture, artifact
+        )
+
     def delete_artifact(self, fmt, distribution, derivative, artifact):
         registry = self.factory(fmt)
         return registry.delete_artifact(distribution, derivative, artifact)

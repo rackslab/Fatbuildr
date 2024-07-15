@@ -38,6 +38,7 @@ from . import (
     DBusRunnableTask,
     DBusArtifact,
     DBusChangelogEntry,
+    DBusArtifactMember,
     DBusKeyring,
     FatbuildrDBusErrorNotAuthorized,
     FatbuildrDBusErrorUnknownInstance,
@@ -439,6 +440,26 @@ class FatbuildrDBusInstanceInterface(InterfaceTemplate):
         except FatbuildrRegistryError as err:
             raise FatbuildrDBusErrorRegistry(err)
 
+    @require_polkit_authorization("org.rackslab.Fatbuildr.view-registry")
+    def ArtifactContent(
+        self,
+        fmt: Str,
+        distribution: Str,
+        derivative: Str,
+        architecture: Str,
+        artifact: Str,
+    ) -> List[Structure]:
+        """Return the list of files in the given artifact and architecture in
+        this derivative of this distribution registry."""
+        try:
+            return DBusArtifactMember.to_structure_list(
+                self.implementation.artifact_content(
+                    fmt, distribution, derivative, architecture, artifact
+                )
+            )
+        except FatbuildrRegistryError as err:
+            raise FatbuildrDBusErrorRegistry(err)
+
     @accepts_additional_arguments
     @require_polkit_authorization("org.rackslab.Fatbuildr.build")
     def Build(
@@ -739,6 +760,20 @@ class FatbuildrDBusInstance(Publishable):
         """Get the changelog of the given artifact and architecture in this
         distribution registry."""
         return self._instance.registry_mgr.changelog(
+            fmt, distribution, derivative, architecture, artifact
+        )
+
+    def artifact_content(
+        self,
+        fmt: Str,
+        distribution: Str,
+        derivative: Str,
+        architecture: Str,
+        artifact: Str,
+    ):
+        """Get the content of the given artifact and architecture in this
+        distribution registry."""
+        return self._instance.registry_mgr.artifact_content(
             fmt, distribution, derivative, architecture, artifact
         )
 

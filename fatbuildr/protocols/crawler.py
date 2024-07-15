@@ -36,7 +36,7 @@ from ..tasks.images import (
 
 # types
 from ..instances import RunningInstance
-from ..registry.formats import RegistryArtifact, ChangelogEntry
+from ..registry.formats import RegistryArtifact, ChangelogEntry, ArtifactMember
 from ..keyring import KeyringMasterKey, KeyringSubKey
 from ..tasks import TaskIO, TaskJournal
 
@@ -63,6 +63,7 @@ def register_protocols():
         ArtifactSourceArchive,
         RegistryArtifact,
         ChangelogEntry,
+        ArtifactMember,
         KeyringMasterKey,
         KeyringSubKey,
         TaskIO,
