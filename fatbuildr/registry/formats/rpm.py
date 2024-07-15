@@ -290,7 +290,9 @@ class RegistryRpm(Registry):
                 src_version = (
                     srcrpm_components[1] + '-' + srcrpm_components[2][:-8]
                 )
-                return self._src_artifact(distribution, derivative, src_name, src_version)
+                return self._src_artifact(
+                    distribution, derivative, src_name, src_version
+                )
 
     def source_version(self, distribution, derivative, artifact):
         """Returns the version of the given source package name, or None if not
