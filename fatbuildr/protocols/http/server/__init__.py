@@ -21,7 +21,7 @@ from datetime import datetime
 from pathlib import Path
 
 from flask import Flask
-from flask.helpers import locked_cached_property
+from werkzeug.utils import cached_property
 from jinja2 import FileSystemLoader
 
 from . import views
@@ -219,7 +219,7 @@ class WebApp(Flask):
             debug=self.conf.run.debug,
         )
 
-    @locked_cached_property
+    @cached_property
     def jinja_loader(self):
         """Override Flask Scaffold.jinja_loader() to use Jinja2
         FileSystemLoader with 2 paths: the site templates directory and the
