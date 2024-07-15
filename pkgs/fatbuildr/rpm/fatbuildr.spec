@@ -98,9 +98,11 @@ install -p -D -m 0644 conf/polkit/*.rules -t %{buildroot}%{_datadir}/polkit-1/ru
 install -d %{buildroot}%{_datadir}/fatbuildr/web/static/js
 install -d %{buildroot}%{_datadir}/fatbuildr/web/static/css
 install -d %{buildroot}%{_datadir}/fatbuildr/web/static/font
+install -d %{buildroot}%{_datadir}/fatbuildr/web/static/font/fonts
 install -p -m 0644 bootstrap/js/*.js -t %{buildroot}%{_datadir}/fatbuildr/web/static/js
 install -p -m 0644 bootstrap/css/*.css -t %{buildroot}%{_datadir}/fatbuildr/web/static/css
-install -p -m 0644 bootstrap-icon/font/* -t %{buildroot}%{_datadir}/fatbuildr/web/static/font
+install -p -m 0644 bootstrap-icon/font/*.{css,scss,json} -t %{buildroot}%{_datadir}/fatbuildr/web/static/font
+install -p -m 0644 bootstrap-icon/font/fonts/* -t %{buildroot}%{_datadir}/fatbuildr/web/static/font/fonts
 
 install -p -d assets/* %{buildroot}%{_datadir}/fatbuildr/web/static
 install -d %{buildroot}%{_datadir}/fatbuildr/wsgi
