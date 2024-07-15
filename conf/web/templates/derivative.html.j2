@@ -17,6 +17,9 @@
     <a href="{{ url_for('artifact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=artifact.architecture, artifact=artifact.name, output='html') }}">
       {{ artifact.name }} {{ artifact.architecture }} {{ artifact.version }}
     </a>
+{% if artifact.size %}
+    <small>({{ artifact.size | filesizeformat }})</small>
+{%endif %}
   </li>
 {% endfor %}
 </ul>

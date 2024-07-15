@@ -15,7 +15,7 @@
 Binary artifacts:
 <ul>
 {% for binary in binaries %}
-  <li><a href="{{ url_for('artifact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=binary.architecture, artifact=binary.name, output='html') }}">{{ binary.name }}</a> {{ binary.architecture }} {{ binary.version }}</li>
+  <li><a href="{{ url_for('artifact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=binary.architecture, artifact=binary.name, output='html') }}">{{ binary.name }}</a> {{ binary.architecture }} {{ binary.version }} {% if binary.size %}<small>({{ binary.size | filesizeformat }})</small></li>{% endif %}
 {% endfor %}
 </ul>
 {% include 'partials/changelog.html.j2' %}

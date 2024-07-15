@@ -13,7 +13,7 @@
 
 <h1>{{ artifact }} binary artifact</h1>
 Source artifact:
-<a href="{{ url_for('artifact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=source.architecture, artifact=source.name, output='html') }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }}
+<a href="{{ url_for('artifact', instance=instance, fmt=format, distribution=distribution, derivative=derivative, architecture=source.architecture, artifact=source.name, output='html') }}">{{ source.name }}</a> {{ source.architecture }} {{ source.version }} {% if source.size %}<small>({{ source.size | filesizeformat }})</small>{% endif %}
 {% include 'partials/changelog.html.j2' %}
 
 {% if content|length %}

@@ -56,6 +56,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Report fatbuildr version in footer of fatbuildrweb HTML pages (#108).
   - Support file listing and folders browsing in registries (#65).
   - List RPM/Deb binary artifacts content (#22).
+  - Display artifacts sizes in derivatives and artifacts pages of the web
+    interface (#23).
 - api:
   - Add _edit-registry_ permission action.
   - Possibility to remove artifact from registries with DELETE verb on
