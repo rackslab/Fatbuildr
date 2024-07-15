@@ -140,6 +140,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Mention content section in binary artifact web interface page.
   - Mention content key in `ArtifactDescription` object and introduce
     `ArtifactContent` object in REST API reference documentation.
+  - Mention new `size` property of `Artifact` object in REST API reference
+    documentation.
 
 ### Changed
 - Rename Mock and Cowbuilder build environments to add `fatbuildr-` prefix.

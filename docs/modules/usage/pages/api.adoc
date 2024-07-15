@@ -166,6 +166,11 @@ Properties:
 |Version number of the artifact
 |✓
 |_string_
+
+|`size`
+|Size of the artifact in bytes
+|✓
+|_integer_
 |===
 
 [#object-artifact-content]

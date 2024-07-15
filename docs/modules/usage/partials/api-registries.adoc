@@ -275,26 +275,31 @@ Response:
   {
     "architecture": "noarch",
     "name": "fatbuildr",
+    "size": 580300,
     "version": "0.1-1.deb11"
   },
   {
     "architecture": "noarch",
     "name": "fatbuildr-common",
+    "size": 8824,
     "version": "0.1-1.deb11"
   },
   {
     "architecture": "x86_64",
     "name": "fatbuildr-wrappers",
+    "size": 36364,
     "version": "0.1-1.deb11"
   },
   {
     "architecture": "x86_64",
     "name": "fatbuildr-wrappers-dbgsym",
+    "size": 6320,
     "version": "0.1-1.deb11"
   },
   {
     "architecture": "src",
     "name": "fatbuildr",
+    "size": 0,
     "version": "0.1-1.deb11"
   }
 ]
@@ -391,21 +396,25 @@ Response:
     {
       "architecture": "noarch",
       "name": "fatbuildr",
+      "size": 587200,
       "version": "0.1-2.deb11"
     },
     {
       "architecture": "noarch",
       "name": "fatbuildr-common",
+      "size": 10792,
       "version": "0.1-2.deb11"
     },
     {
       "architecture": "x86_64",
       "name": "fatbuildr-wrappers",
+      "size": 13012,
       "version": "0.1-2.deb11"
     },
     {
       "architecture": "x86_64",
       "name": "fatbuildr-wrappers-dbgsym",
+      "size": 5988,
       "version": "0.1-2.deb11"
     }
   ],
@@ -464,6 +473,7 @@ Response:
   "source": {
     "architecture": "src",
     "name": "fatbuildr",
+    "size": 0,
     "version": "0.1-2.deb11"
   },
   "content": [
@@ -713,26 +723,31 @@ Response:
         {
           "architecture": "noarch",
           "name": "fatbuildr",
+          "size": 587200,
           "version": "0.1-1.deb11"
         },
         {
           "architecture": "noarch",
           "name": "fatbuildr-common",
+          "size": 10792,
           "version": "0.1-1.deb11"
         },
         {
           "architecture": "x86_64",
           "name": "fatbuildr-wrappers",
+          "size": 13012,
           "version": "0.1-1.deb11"
         },
         {
           "architecture": "x86_64",
           "name": "fatbuildr-wrappers-dbgsym",
+          "size": 5988,
           "version": "0.1-1.deb11"
         },
         {
           "architecture": "src",
           "name": "fatbuildr",
+          "size": 0,
           "version": "0.1-1.deb11"
         }
       ]
@@ -744,26 +759,31 @@ Response:
         {
           "architecture": "noarch",
           "name": "fatbuildr",
+          "size": 464556,
           "version": "0.1-1.el8"
         },
         {
           "architecture": "noarch",
           "name": "fatbuildr-common",
+          "size": 8560,
           "version": "0.1-1.el8"
         },
         {
           "architecture": "x86_64",
           "name": "fatbuildr-wrappers",
+          "size": 12748,
           "version": "0.1-1.el8"
         },
         {
           "architecture": "x86_64",
           "name": "fatbuildr-wrappers-dbgsym",
+          "size": 9748,
           "version": "0.1-1.el8"
         },
         {
           "architecture": "src",
           "name": "fatbuildr",
+          "size": 2166701,
           "version": "0.1-1.el8"
         }
       ]
