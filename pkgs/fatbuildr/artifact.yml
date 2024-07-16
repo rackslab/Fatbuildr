@@ -14,7 +14,7 @@ checksums:
     1.11.3:
       sha256: 100a3d6bd8484d52010b44fa81a2d5b5653f6ddffc20ed6eb346f6517ab64e4f
 versions:
-  fatbuildr: 2.0.0
+  fatbuildr: 2.1.0
   bootstrap: 5.3.3
   bootstrap-icon: 1.11.3
 rpm:

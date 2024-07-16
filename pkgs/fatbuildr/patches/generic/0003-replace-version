@@ -1,5 +1,5 @@
 Description: replace the software hard-coded version number with the
-Last-Update: 2023-07-25
+Last-Update: 2024-07-16
 Template: yes
 Author: Rémi Palancher <remi@rackslab.io>
 
@@ -12,5 +12,5 @@ index b5d3800..db13aee 100644
  # You should have received a copy of the GNU General Public License
  # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
  
--__version__ = '2.0.0'
+-__version__ = '2.1.0'
 +__version__ = '{{ version.main }}'
