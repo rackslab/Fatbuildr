@@ -5,8 +5,8 @@ sources:
   bootstrap-icon: https://github.com/twbs/icons/releases/download/v{{ version }}/bootstrap-icons-{{ version }}.zip
 checksums:
   fatbuildr:
-    2.0.0:
-      sha256: 3fc4df609620ef55bce84aaa262a7009fe7da70a2a8dff146d7b814cae566194
+    2.1.0:
+      sha256: 43431c37cc8f6b1a8ef32a61956f92d4d44b94d5d934d084bf8a53c74bfadccc
   bootstrap:
     5.3.3:
       sha256: 5b0a245ab8458951668d29fd149fc6c8e63c676977efc23822a223c08245de1a
