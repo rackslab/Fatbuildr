@@ -17,20 +17,6 @@ Create `/etc/apt/sources.list.d/rackslab.sources` with this content:
 
 [tabs]
 ======
-Debian 11 _« bullseye »_::
-+
-====
-[source]
-----
-Types: deb
-URIs: https://pkgs.rackslab.io/deb
-Suites: bullseye
-Components: main
-Architectures: amd64
-Signed-By: /usr/share/keyrings/rackslab.gpg
-----
-====
-
 Debian 12 _« bookworm »_::
 +
 ====
@@ -39,6 +25,20 @@ Debian 12 _« bookworm »_::
 Types: deb
 URIs: https://pkgs.rackslab.io/deb
 Suites: bookworm
+Components: main
+Architectures: amd64
+Signed-By: /usr/share/keyrings/rackslab.gpg
+----
+====
+
+Debian 13 _« trixie »_::
++
+====
+[source]
+----
+Types: deb
+URIs: https://pkgs.rackslab.io/deb
+Suites: trixie
 Components: main
 Architectures: amd64
 Signed-By: /usr/share/keyrings/rackslab.gpg
@@ -67,6 +67,20 @@ Ubuntu 22.04 LTS _« jammy »_::
 Types: deb
 URIs: https://pkgs.rackslab.io/deb
 Suites: ubuntu22.04
+Components: main
+Architectures: amd64
+Signed-By: /usr/share/keyrings/rackslab.gpg
+----
+====
+
+Ubuntu 24.04 LTS _« noble »_::
++
+====
+[source]
+----
+Types: deb
+URIs: https://pkgs.rackslab.io/deb
+Suites: ubuntu24.04
 Components: main
 Architectures: amd64
 Signed-By: /usr/share/keyrings/rackslab.gpg
@@ -134,14 +148,19 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rackslab
 ----
 ====
 
-Fedora 37::
+RHEL9::
 +
 ====
+
+NOTE: These packages are also compatible with https://www.centos.org/[CentOS 9],
+https://rockylinux.org/[Rocky Linux 9] and
+https://almalinux.org/[AlmaLinux OS 9].
+
 [source]
 ----
 [rackslab]
 name=Rackslab
-baseurl=https://pkgs.rackslab.io/rpm/fc37/main/$basearch/
+baseurl=https://pkgs.rackslab.io/rpm/el9/main/$basearch/
 gpgcheck=1
 enabled=1
 countme=1
@@ -149,14 +168,29 @@ gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rackslab
 ----
 ====
 
-Fedora 38::
+Fedora 39::
 +
 ====
 [source]
 ----
 [rackslab]
 name=Rackslab
-baseurl=https://pkgs.rackslab.io/rpm/fc38/main/$basearch/
+baseurl=https://pkgs.rackslab.io/rpm/fc39/main/$basearch/
+gpgcheck=1
+enabled=1
+countme=1
+gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-Rackslab
+----
+====
+
+Fedora 40::
++
+====
+[source]
+----
+[rackslab]
+name=Rackslab
+baseurl=https://pkgs.rackslab.io/rpm/fc40/main/$basearch/
 gpgcheck=1
 enabled=1
 countme=1

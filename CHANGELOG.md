@@ -175,6 +175,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     `[format:rpm]` sections of system configuration.
   - Mention usage of `%autopatch` macro behind `prep_patches` templating
     variable in artifact definition reference documentation for RPM spec files.
+  - Update supported Linux distributions in quickstart guide (drop Debian 11,
+    Fedora 37-38, add Debian 13, Ubuntu 24.04, RHEL9, Fedora 38-40).
 - pkgs:
   - Use new `prep` variable in Fatbuildr RPM package spec file template.
   - Bump _boostrap_ version to 5.3.3.
