@@ -88,7 +88,7 @@ It can be installed with this command:
 
 [source,console]
 ----
-$ cp /usr/share/doc/fatbuildr/examples/hooks/fatbuildr-matrix-notify \
+$ sudo cp /usr/share/doc/fatbuildr/examples/hooks/fatbuildr-matrix-notify \
   /usr/local/lib/fatbuildr/fatbuildr-matrix-notify
 ----
 
