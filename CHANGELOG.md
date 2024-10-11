@@ -8,6 +8,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Fixed
+- Fix infinite recursion error with `PatchesSubdir` on Python 3.12+ (#195).
 - docs: Add missing `sudo` matrix hooks installation procedure.
 
 ## [2.1.0] - 2024-07-16

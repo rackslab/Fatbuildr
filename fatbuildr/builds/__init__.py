@@ -365,14 +365,7 @@ class ArtifactBuild(RunnableTask):
         # Render all patches templates found in patches directories
         for patch in self.patches:
             if patch.template:
-                patch_tmp = patch.with_suffix('.swp')
-                patch.rename(patch_tmp)
-                logger.info("Rendering patch template %s", patch)
-                with open(patch, 'w+') as fh:
-                    fh.write(
-                        Templeter().frender(patch_tmp, version=self.version)
-                    )
-                patch_tmp.unlink()
+                patch.render(version=self.version)
 
         # Render rename index template if present
         rename_idx_path = self.place.joinpath('rename')

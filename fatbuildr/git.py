@@ -38,6 +38,7 @@ except ImportError:
 import pygit2
 from debian import deb822
 
+from .templates import Templeter
 from .log import logr
 
 logger = logr(__name__)
@@ -56,32 +57,23 @@ def is_meta_generic(meta):
 def load_git_repository(path: str):
     return pygit2.Repository(path)
 
-
-# It is not possible to inherit directory from pathlib.Path as this class
-# constructor actually returns the specialized type according to the underlying
-# OS. One solution is to discover the actual specialized type for the current OS
-# and inherit from it.
-PATH_TYPE = type(Path())
-
-
-class PatchesDir(PATH_TYPE):
-    """Class to manipulatz patches directories and their subdirs. In pathlib
+class PatchesDir:
+    """Class to manipulate patches directories and their subdirs. In pathlib
     classes the attributes are given as arguments to the constructor, and not to
     the __init__() method. This class overrides the constructor to add the
     version argument."""
 
-    def __new__(cls, path, version):
-        obj = super().__new__(cls, path.joinpath('patches'))
-        obj.version = version
-        return obj
+    def __init__(self, path, version):
+        self._path = Path(path.joinpath('patches'))
+        self.version = version
 
     @cached_property
     def generic_subdir(self):
-        return PatchesSubdir(self, self.joinpath('generic'))
+        return PatchesSubdir(self, 'generic')
 
     @cached_property
     def version_subdir(self):
-        return PatchesSubdir(self, self.joinpath(self.version))
+        return PatchesSubdir(self, self.version)
 
     @property
     def subdirs(self):
@@ -97,66 +89,78 @@ class PatchesDir(PATH_TYPE):
 
     def ensure(self):
         """Create patches directory if it does not exist yet."""
-        if not self.exists():
-            logger.debug("Creating artifact patches directory %s", self)
-            self.mkdir()
-            self.chmod(0o755)
+        if not self._path.exists():
+            logger.debug("Creating artifact patches directory %s", self._path)
+            self._path.mkdir()
+            self._path.chmod(0o755)
 
 
-class PatchesSubdir(PATH_TYPE):
+class PatchesSubdir:
     """Class to manipulate patches subdirectories. In pathlib classes the
     attributes are given as arguments to the constructor, and not to the
     __init__() method. This class overrides the constructor to add the
     patches_dir argument."""
 
-    def __new__(cls, patches_dir, path):
-        obj = super().__new__(cls, path)
-        obj.patches_dir = patches_dir
-        return obj
+    def __init__(self, patches_dir, sub_dir):
+        self.patches_dir = patches_dir
+        self._path = self.patches_dir._path.joinpath(sub_dir)
 
     @property
     def patches(self):
         """Return sorted list of PatchFiles available in subdir."""
-        return sorted([PatchFile(patch) for patch in self.iterdir()])
+        return sorted([PatchFile(patch) for patch in self._path.iterdir()])
+
+    def exists(self):
+        return self._path.exists()
 
     def ensure(self):
         """Create patches subdirectory if it does not exist yet."""
         # First ensure parent patches directory
         self.patches_dir.ensure()
 
-        if not self.exists():
-            logger.debug("Creating patches subdirectory %s", self)
-            self.mkdir()
-            self.chmod(0o755)
+        if not self._path.exists():
+            logger.debug("Creating patches subdirectory %s", self._path)
+            self._path.mkdir()
+            self._path.chmod(0o755)
 
     def clean(self):
         """Remove all existing patches in subdir."""
-        if not self.exists():
+        if not self._path.exists():
             return
         for patch in self.patches:
             logger.debug("Removing old patch %s", patch.fullname)
-            patch.unlink()
+            patch.remove()
 
 
-class PatchFile(PATH_TYPE):
+class PatchFile:
     """Class to manipulate patch files."""
 
     TEMPLATE_KEY = 'Template'
 
+    def __init__(self, path: Path):
+        self._path = path
+
+    def __lt__(self, other):
+        return self._path < other._path
+
+    @property
+    def name(self):
+        return self._path.name
+
     @property
     def fullname(self):
-        return f"{self.parent.name}/{self.name}"
+        return f"{self._path.parent.name}/{self._path.name}"
 
     @cached_property
     def content(self):
-        with open(self, 'rb') as fh:
+        with open(self._path, 'rb') as fh:
             return fh.read()
 
     @cached_property
     def title(self):
         # Extract commit title (1st line) from patch filename, by removing
         # the patch index before the first dash.
-        return self.name.split('-', 1)[1]
+        return self._path.name.split('-', 1)[1]
 
     @cached_property
     def meta(self):
@@ -171,6 +175,16 @@ class PatchFile(PATH_TYPE):
             and self.meta[self.TEMPLATE_KEY] == 'yes'
         )
 
+    def render(self, **kwargs):
+        patch_tmp = self._path.with_suffix('.swp')
+        self._path.rename(patch_tmp)
+        logger.info("Rendering patch template %s", self._path)
+        with open(self._path, 'w+') as fh:
+            fh.write(
+                Templeter().frender(patch_tmp, **kwargs)
+            )
+        patch_tmp.unlink()
+
     def in_field(self, field, value):
         """Returns True if value in found in space separated list field, or
         False otherwise."""
@@ -178,16 +192,22 @@ class PatchFile(PATH_TYPE):
 
     @property
     def generic(self):
-        return self.parent.name == 'generic'
+        return self._path.parent.name == 'generic'
 
     @staticmethod
     def create(subdir, title):
-        return PatchFile(subdir.joinpath(title))
+        return PatchFile(subdir._path.joinpath(title))
 
     def write(self, meta, diff):
-        with open(self, 'w+') as fh:
+        with open(self._path, 'w+') as fh:
             fh.write(str(meta) + '\n\n')
             fh.write(diff)
+
+    def rename(self, to):
+        self._path.rename(to)
+
+    def remove(self):
+        self._path.unlink()
 
 
 class GitRepository:
