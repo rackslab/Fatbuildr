@@ -22,7 +22,7 @@ import tempfile
 from pathlib import Path
 import shutil
 
-from fatbuildr.git import PatchesDir
+from fatbuildr.git import PatchesDir, PatchesSubdir, PatchFile
 
 class TestPatchesDir(unittest.TestCase):
     def setUp(self):
@@ -60,3 +60,27 @@ class TestPatchesDir(unittest.TestCase):
         (generic_subdir, version_subdir) = self.patchesdir.subdirs
         self.assertEqual(generic_subdir, self.patchesdir.generic_subdir)
         self.assertEqual(version_subdir, self.patchesdir.version_subdir)
+
+class TestPatchesSubdir(unittest.TestCase):
+    def setUp(self):
+        self.test_dir = tempfile.mkdtemp()
+        self.patches_dir = PatchesDir(Path(self.test_dir), "1.0.0")
+        self.patches_subdir = PatchesSubdir(self.patches_dir, "generic")
+
+    def tearDown(self):
+        shutil.rmtree(self.test_dir)
+
+    def test_patches(self):
+        self.patches_subdir.ensure()
+        self.assertCountEqual(self.patches_subdir.patches, [])
+        with open(self.patches_subdir._path.joinpath("test.patch"), "w+"):
+            pass
+        self.assertEqual(len(self.patches_subdir.patches), 1)
+        self.assertIsInstance(self.patches_subdir.patches[0], PatchFile)
+        self.patches_subdir.clean()
+        self.assertCountEqual(self.patches_subdir.patches, [])
+
+    def test_exists(self):
+        self.assertFalse(self.patches_subdir.exists())
+        self.patches_subdir.ensure()
+        self.assertTrue(self.patches_subdir.exists())
