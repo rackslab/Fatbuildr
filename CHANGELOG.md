@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [unreleased]
 
 ### Added
 - Add AppArmor profile for `u-nspawn` wrapper to execute this program,
@@ -42,6 +42,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `PermissionError` on `os.setresuid()` when building OSI on Ubuntu 24.04
   with AppArmor and `unprivileged_userns` profile (#197).
 - Fix `SyntaxWarning` on regexp raised by Python 3.12 on in utils module (#201).
+- Replace calls to `shlex.join()` by `shlex_join()` backport provided by
+  rfl.core external library (#199).
 - hooks: Fix `DeprecationWarning: There is no current event loop` in
   `fatbuildr-matrix-notify` raised in Python 3.12+ (#196).
 - docs: Add missing `sudo` matrix hooks installation procedure.

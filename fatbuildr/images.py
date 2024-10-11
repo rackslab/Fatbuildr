@@ -18,10 +18,11 @@
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
 import tarfile
-import shlex
 import tempfile
 from io import BytesIO
 from pathlib import Path
+
+from rfl.core.utils import shlex_join
 
 from .templates import Templeter
 from .utils import current_user_group
@@ -355,7 +356,7 @@ class BuildEnv(object):
 
         if self.image.format_conf.exec_tmpfile:
             with tempfile.NamedTemporaryFile(mode='w') as fp:
-                fp.write(shlex.join(command))
+                fp.write(shlex_join(command))
                 fp.flush()
                 task.cruncmd(
                     self.image,
@@ -368,7 +369,7 @@ class BuildEnv(object):
         else:
             task.cruncmd(
                 self.image,
-                base_exec_cmd + ' ' + shlex.join(command),
+                base_exec_cmd + ' ' + shlex_join(command),
                 envs=[f"TERM={term}"],
                 init=True,
                 asroot=True,

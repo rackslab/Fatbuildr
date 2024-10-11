@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-import shlex
+from rfl.core.utils import shlex_join
 
 from ..archive import SourceArchive
 from ..registry.formats import RegistryArtifact
@@ -101,7 +101,7 @@ class WireRunnableTask(WireData):
         ):
             print(
                 "  command:",
-                shlex.join(self.command) if len(self.command) else '∅',
+                shlex_join(self.command) if len(self.command) else '∅',
             )
         elif self.name == "keyring renewal":
             print(f"  duration: {self.duration}")
