@@ -8,8 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
-- Add AppArmor profile for `u-spawn` wrapper to execute this program,
+- Add AppArmor profile for `u-nspawn` wrapper to execute this program,
   `systemd-nspawn` and some packages build utilities in restricted sandboxes.
+- pkgs: Install and enable AppArmor profile for `u-nspawn` on systems that
+  support this LSM.
 
 ### Fixed
 - Fix infinite recursion error with `PatchesSubdir` on Python 3.12+ (#195).

@@ -21,6 +21,9 @@ override_dh_auto_install:
 	dh_auto_install
 	make -C lib/wrappers install
 
+execute_after_dh_install:
+	dh_apparmor --profile-name=usr.libexec.fatbuildr.u-nspawn
+
 # Avoid compression of matrix notifier example hook in order to make its
 # installation easier.
 override_dh_compress:

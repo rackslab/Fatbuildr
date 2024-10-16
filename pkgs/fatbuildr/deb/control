@@ -3,6 +3,7 @@ Priority: optional
 Maintainer: Rémi Palancher <remi@rackslab.io>
 Build-Depends:
  debhelper (>= 11),
+ dh-apparmor,
  dh-python,
  python3-all (>= 2.7),
  python3-setuptools,
