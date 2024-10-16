@@ -1,0 +1,223 @@
+# Copyright (C) 2024 Rackslab
+#
+# This file is part of Fatbuildr.
+#
+# Fatbuildr is free software: you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# Fatbuildr is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
+
+# This is an apparmor profile for u-nspawn, a wrapper for systemd-nspawn
+# provided by Fatbuildr. It is designed to confine u-nspawn, systemd-nspawn
+# (when launch by u-nspawn). However, build systems such as cowbuilder, mock
+# and mkosi are executed unconfined (in systemd-nspawn containers though)
+# because the resources required by what they build are very hard to determine
+# explicitely. Some utilities such as debchange and dpkg-source are executed in
+# a restrictive sandbox.
+
+abi <abi/3.0>,
+
+include <tunables/global>
+
+/usr/libexec/fatbuildr/u-nspawn {
+  include <abstractions/base>
+  include <abstractions/consoles>
+
+  capability setgid,
+  capability setuid,
+
+  /usr/bin/systemd-nspawn Cx,
+
+  profile /usr/bin/systemd-nspawn flags=(attach_disconnected) {
+    include <abstractions/base>
+    include <abstractions/consoles>
+    include <abstractions/dbus-strict>
+    include <abstractions/user-tmp>
+
+    capability chown,
+    capability dac_override,
+    capability dac_read_search,
+    capability kill,
+    capability mknod,
+    capability net_admin,
+    capability setgid,
+    capability setpcap,
+    capability setuid,
+    capability sys_admin,
+    capability sys_resource,
+
+    network unix stream,
+
+    mount fstype=(cgroup2) options=(nodev, noexec, nosuid, rw) cgroup -> /sys/fs/cgroup/,
+    mount fstype=(devpts) options=(noexec, nosuid, rw) devpts -> /var/lib/fatbuildr/images/*/*.img/dev/pts/,
+    mount fstype=(mqueue) options=(nodev, noexec, nosuid, rw) mqueue -> /dev/mqueue/,
+    mount fstype=(proc) options=(nodev, noexec, nosuid, rw) proc -> /proc/,
+    mount fstype=(sysfs) options=(nodev, noexec, nosuid, ro) sysfs -> /var/lib/fatbuildr/images/*/*.img/sys/,
+    mount fstype=(tmpfs) options=(nodev, nosuid, rw, strictatime) tmpfs -> /var/lib/fatbuildr/images/*/*.img/dev/shm/,
+    mount fstype=(tmpfs) options=(nodev, nosuid, rw, strictatime) tmpfs -> /var/lib/fatbuildr/images/*/*.img/run/,
+    mount fstype=(tmpfs) options=(nodev, nosuid, rw, strictatime) tmpfs -> /var/lib/fatbuildr/images/*/*.img/tmp/,
+    mount fstype=(tmpfs) options=(nosuid, rw, strictatime) tmpfs -> /var/lib/fatbuildr/images/*/*.img/dev/,
+    mount options=(bind, nodev, noexec, nosuid, remount, ro) -> /proc/**,
+    mount options=(bind, nodev, noexec, nosuid, remount, ro) -> /run/host/,
+    mount options=(bind, nodev, noexec, nosuid, remount, ro) -> /var/lib/fatbuildr/images/*/*.img/run/host/os-release,
+    mount options=(bind, remount, ro) -> /var/lib/fatbuildr/images/*/*.img/run/host/incoming/,
+    mount options=(bind, rw) /proc/acpi/ -> /proc/acpi/,
+    mount options=(bind, rw) /proc/asound/ -> /proc/asound/,
+    mount options=(bind, rw) /proc/bus/ -> /proc/bus/,
+    mount options=(bind, rw) /proc/fs/ -> /proc/fs/,
+    mount options=(bind, rw) /proc/irq/ -> /proc/irq/,
+    mount options=(bind, rw) /proc/scsi/ -> /proc/scsi/,
+    mount options=(bind, rw) /proc/sys/ -> /proc/sys/,
+    mount options=(bind, rw) /run/* -> /proc/kmsg,
+    mount options=(bind, rw) /run/* -> /proc/sys/kernel/random/boot_id,
+    mount options=(bind, rw) /run/systemd/nspawn/propagate/*.img/ -> /var/lib/fatbuildr/images/*/*.img/run/host/incoming/,
+    mount options=(bind, rw) /usr/lib/os-release -> /var/lib/fatbuildr/images/*/*.img/run/host/os-release,
+    mount options=(bind, rw) /var/lib/fatbuildr/images/*/*.img/run/host/ -> /var/lib/fatbuildr/images/*/*.img/run/host/,
+    mount options=(move, rw) / -> /,
+    mount options=(private, rw) -> /var/lib/fatbuildr/images/*/*.img/run/host/os-release,
+    mount options=(rbind, rw) /usr/share/fatbuildr/images/common/ -> /var/lib/fatbuildr/images/*/*.img/usr/share/fatbuildr/images/common/,
+    mount options=(rbind, rw) /usr/share/fatbuildr/images/deb/ -> /var/lib/fatbuildr/images/*/*.img/usr/share/fatbuildr/images/deb/,
+    mount options=(rbind, rw) /usr/share/fatbuildr/images/rpm/ -> /var/lib/fatbuildr/images/default/rpm.img/usr/share/fatbuildr/images/rpm/,
+    mount options=(rbind, rw) /var/cache/fatbuildr/*/*/ -> /var/lib/fatbuildr/images/*/*/var/cache/fatbuildr/*/*/,
+    mount options=(rbind, rw) /var/lib/fatbuildr/images/*/*.img/ -> /var/lib/fatbuildr/images/*/*.img/,
+    mount options=(rbind, rw) /var/lib/fatbuildr/registry/**/ -> /var/lib/fatbuildr/images/**/var/lib/fatbuildr/registry/**/,
+    mount options=(rbind, rw) /var/lib/fatbuildr/workspaces/*/*/,
+    mount options=(rprivate, rw) -> /var/lib/fatbuildr/images/*/*.img/,
+    mount options=(rshared, rw) -> /,
+    mount options=(rslave, rw) -> /,
+    mount options=(rw, slave) -> /run/host/incoming/,
+    umount /,
+
+    signal send set=kill peer=/usr/bin/mkosi,
+    signal send set=kill peer=/usr/libexec/fatbuildr/u-nspawn//fatbuildr-builder,
+    signal send set=kill peer=/usr/libexec/fatbuildr/u-nspawn//fatbuildr-utils,
+    signal send set=kill peer=unconfined,
+
+    pivot_root -> /var/lib/fatbuildr/images/*/*.img/,
+
+    /proc/sys/kernel/cap_last_cap r,
+    /run/systemd/resolve/stub-resolv.conf r,
+    /usr/bin/bash Ux,
+    /usr/bin/consolehelper Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-builder,
+    /usr/bin/dash Ux,
+    /usr/bin/debchange Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-utils,
+    /usr/bin/dpkg-source Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-utils,
+    /usr/bin/getent Ux,
+    /usr/bin/mkosi Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-builder,
+    /usr/bin/rpmlint Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-utils,
+    /usr/bin/systemd-nspawn mr,
+    /usr/sbin/cowbuilder Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-builder,
+    /var/cache/fatbuildr/** r,
+    /var/lib/fatbuildr/ r,
+    /var/lib/fatbuildr/images/ r,
+    /var/lib/fatbuildr/registry/**/ r,
+    /var/lib/fatbuildr/workspaces/**/ r,
+    owner / r,
+    owner /dev/ r,
+    owner /dev/mqueue/ w,
+    owner /dev/net/tun r,
+    owner /dev/pts/ptmx rw,
+    owner /emdfncr7 w,
+    owner /etc/ r,
+    owner /etc/ld.so.cache r,
+    owner /etc/machine-id r,
+    owner /etc/os-release r,
+    owner /proc/ r,
+    owner /proc/*/cgroup r,
+    owner /proc/*/loginuid r,
+    owner /proc/*/setgroups r,
+    owner /proc/*/stat r,
+    owner /proc/acpi/ r,
+    owner /proc/asound/ r,
+    owner /proc/bus/ r,
+    owner /proc/filesystems r,
+    owner /proc/fs/ r,
+    owner /proc/irq/ r,
+    owner /proc/kallsyms r,
+    owner /proc/kcore r,
+    owner /proc/keys r,
+    owner /proc/pressure/cpu r,
+    owner /proc/pressure/io r,
+    owner /proc/pressure/memory r,
+    owner /proc/scsi/ r,
+    owner /proc/sys/ r,
+    owner /proc/sys/fs/nr_open r,
+    owner /proc/sysrq-trigger r,
+    owner /proc/timer_list r,
+    owner /run/ r,
+    owner /run/.#proc-kmsg* rw,
+    owner /run/.#proc-sys-kernel-random-boot-* w,
+    owner /run/host/ r,
+    owner /run/host/notify w,
+    owner /run/systemd/ r,
+    owner /run/systemd/nspawn/ r,
+    owner /run/systemd/nspawn/locks/inode-* rwk,
+    owner /run/systemd/nspawn/propagate/ r,
+    owner /run/systemd/nspawn/propagate/*.img/ rw,
+    owner /sys/ r,
+    owner /sys/fs/ r,
+    owner /sys/fs/cgroup/ r,
+    owner /sys/fs/cgroup/cgroup.controllers r,
+    owner /sys/fs/cgroup/system.slice/fatbuildrd.service/** rw,
+    owner /usr/ r,
+    owner /usr/lib/ r,
+    owner /usr/share/fatbuildr/images/common/ r,
+    owner /var/ r,
+    owner /var/lib/ r,
+    owner /var/lib/fatbuildr/images/*/ r,
+    owner /var/lib/fatbuildr/images/*/*.img/ r,
+    owner /var/lib/fatbuildr/images/*/*.img/** rwl,
+    owner /var/lib/fatbuildr/images/*/.#*.img.lck rwk,
+    owner /var/lib/fatbuildr/workspaces/*/*/** r,
+
+  }
+
+  profile fatbuildr-builder flags=(unconfined) {
+  }
+
+  profile fatbuildr-utils flags=(complain) {
+    include <abstractions/base>
+    include <abstractions/bash>
+    include <abstractions/consoles>
+    include <abstractions/perl>
+    include <abstractions/user-tmp>
+
+    signal receive set=kill peer=/usr/libexec/fatbuildr/u-nspawn///usr/bin/systemd-nspawn,
+
+    /etc/devscripts.conf r,
+    /etc/dpkg/origins/debian r,
+    /etc/group r,
+    /etc/ld.so.cache r,
+    /etc/nsswitch.conf r,
+    /etc/passwd r,
+    /usr/bin/bash mrix,
+    /usr/bin/chmod mrix,
+    /usr/bin/cp mrix,
+    /usr/bin/dash mrix,
+    /usr/bin/debchange r,
+    /usr/bin/dpkg-source r,
+    /usr/bin/gunzip mrix,
+    /usr/bin/gzip mrix,
+    /usr/bin/patch mrix,
+    /usr/bin/perl r,
+    /usr/bin/pwd mrix,
+    /usr/bin/rm mrix,
+    /usr/bin/tar mrix,
+    /usr/bin/xz mrix,
+    /usr/share/distro-info/debian.csv r,
+    /usr/share/distro-info/ubuntu.csv r,
+    /usr/share/dpkg/cputable r,
+    /usr/share/dpkg/tupletable r,
+    owner /var/lib/fatbuildr/workspaces/*/*/ r,
+    owner /var/lib/fatbuildr/workspaces/*/*/** l,
+    owner /var/lib/fatbuildr/workspaces/*/*/** rw,
+  }
+}

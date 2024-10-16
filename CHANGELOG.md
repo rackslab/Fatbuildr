@@ -7,8 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- Add AppArmor profile for `u-spawn` wrapper to execute this program,
+  `systemd-nspawn` and some packages build utilities in restricted sandboxes.
+
 ### Fixed
 - Fix infinite recursion error with `PatchesSubdir` on Python 3.12+ (#195).
+- Fix `PermissionError` on `os.setresuid()` when building OSI on Ubuntu 24.04
+  with AppArmor and `unprivileged_userns` profile (#197).
 - docs: Add missing `sudo` matrix hooks installation procedure.
 
 ## [2.1.0] - 2024-07-16
