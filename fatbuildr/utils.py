@@ -88,7 +88,7 @@ def sanitized_stem(stem):
     scripts/Dpkg/Source/Package.pm. To match this requirement, this property
     removes all characters except alphanumeric and dash. Path separator / is
     replaced by -."""
-    return re.sub("[^A-Za-z0-9\-]+", "", re.sub("/", "-", stem))
+    return re.sub(r"[^A-Za-z0-9\-]+", "", re.sub("/", "-", stem))
 
 
 def extract_artifact_sources_archives(
