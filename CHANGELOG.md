@@ -16,6 +16,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   support this LSM.
 
 ### Changed
+- Use uncompressed skeleton archive to bootstrap fatbuildr system user in build
+  images for compatibility with latest version of `mkosi`.
 - conf:
   - Convert _definition_ and _path_ variables to Path objects to render
   `[images]` > `create_cmd` template and remove _dirpath_ variable (replaced by

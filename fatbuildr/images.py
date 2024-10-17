@@ -43,7 +43,7 @@ class Image(object):
         self.def_path = conf.images.defs.joinpath(self.format).with_suffix(
             '.mkosi'
         )
-        self.skel_path = conf.images.storage.joinpath('skeleton.tar.xz')
+        self.skel_path = conf.images.storage.joinpath('skeleton.tar')
 
     @property
     def exists(self):
@@ -97,7 +97,7 @@ class Image(object):
             )
             self.skel_path.unlink()
 
-        with tarfile.open(self.skel_path, 'x:xz') as tar:
+        with tarfile.open(self.skel_path, 'x') as tar:
             (uid, user, gid, group) = current_user_group()
             content = (
                 f"g {group} {gid}\n"
