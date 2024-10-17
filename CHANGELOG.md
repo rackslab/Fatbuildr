@@ -16,9 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   support this LSM.
 
 ### Changed
-- conf: Convert _definition_ and _path_ variables to Path objects to render
+- conf:
+  - Convert _definition_ and _path_ variables to Path objects to render
   `[images]` > `create_cmd` template and remove _dirpath_ variable (replaced by
   `path.parent`).
+  - Update `[images]` > `create_cmd`, images definitions and postinstall scripts
+    to support `mkosi` >= 15 (#198).
 
 ### Fixed
 - Fix infinite recursion error with `PatchesSubdir` on Python 3.12+ (#195).

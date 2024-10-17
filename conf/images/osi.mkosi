@@ -6,8 +6,10 @@ Release=40
 Format=directory
 
 [Content]
+Bootable=no
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
+CleanPackageMetadata=no
 Packages=
   mkosi
   rpm
@@ -30,4 +32,4 @@ Packages=
   edk2-ovmf
   sbsigntools
   man-db
-PostInstallationScript=/usr/share/fatbuildr/images/scripts/osi-postinstall.sh
+PostInstallationScripts=/usr/share/fatbuildr/images/scripts/osi-postinstall.sh

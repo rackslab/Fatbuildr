@@ -6,8 +6,9 @@ Release=40
 Format=directory
 
 [Content]
+Bootable=no
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
-Packages=mock,qemu-user-static,man-db,rpmlint,podman
-PostInstallationScript=/usr/share/fatbuildr/images/scripts/rpm-postinstall.sh
-FinalizeScript=/usr/share/fatbuildr/images/scripts/rpm-finalize.sh
+CleanPackageMetadata=no
+Packages=rpm,dnf,mock,qemu-user-static,man-db,rpmlint,podman
+PostInstallationScripts=/usr/share/fatbuildr/images/scripts/rpm-postinstall.sh

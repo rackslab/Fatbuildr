@@ -9,16 +9,16 @@
 # and group with the required UID/GID and rerun systemd-sysusers without
 # arguments to create all the missing stuff.
 
-EXISTING_USER=$(getent passwd ${FATBUILDR_UID}|cut -d: -f1)
+EXISTING_USER=$(mkosi-chroot getent passwd ${FATBUILDR_UID}|cut -d: -f1)
 if [ -n "${EXISTING_USER}" ]; then
     echo "Deleting conflicting system user ${EXISTING_USER}"
-    userdel $EXISTING_USER
+    mkosi-chroot userdel $EXISTING_USER
 fi
 
-EXISTING_GROUP=$(getent group ${FATBUILDR_GID}|cut -d: -f1)
+EXISTING_GROUP=$(mkosi-chroot getent group ${FATBUILDR_GID}|cut -d: -f1)
 if [ -n "${EXISTING_GROUP}" ]; then
     echo "Deleting conflicting system group ${EXISTING_GROUP}"
-    groupdel $EXISTING_GROUP
+    mkosi-chroot groupdel $EXISTING_GROUP
 fi
 
-systemd-sysusers
+mkosi-chroot systemd-sysusers

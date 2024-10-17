@@ -6,7 +6,8 @@ Release=sid
 Format=directory
 
 [Content]
+Bootable=no
 # Docs are useful to get examples from packages and manpages when digging
 WithDocs=yes
-Packages=systemd-resolved,cowbuilder,ubuntu-keyring,zstd,libdistro-info-perl,qemu-user-static,devscripts,neovim,man-db,less
-PostInstallationScript=/usr/share/fatbuildr/images/scripts/deb-postinstall.sh
+Packages=systemd-resolved,apt,cowbuilder,debian-keyring,ubuntu-keyring,zstd,libdistro-info-perl,qemu-user-static,devscripts,neovim,man-db,less
+PostInstallationScripts=/usr/share/fatbuildr/images/scripts/deb-postinstall.sh
