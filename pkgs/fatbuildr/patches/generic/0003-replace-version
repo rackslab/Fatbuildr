@@ -5,7 +5,7 @@ Author: Rémi Palancher <remi@rackslab.io>
 
 
 diff --git a/fatbuildr/version.py b/fatbuildr/version.py
-index b5d3800..db13aee 100644
+index 0d2402d..db13aee 100644
 --- a/fatbuildr/version.py
 +++ b/fatbuildr/version.py
 @@ -17,4 +17,4 @@

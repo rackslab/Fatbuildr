@@ -1,23 +1,16 @@
 Description: Adapt vendor configuration for el8 distribution.
-Last-Update: 2023-03-27
+Last-Update: 2024-10-16
 Distributions: el8
 Author: Rémi Palancher <remi@rackslab.io>
 
 
 diff --git a/conf/vendor/fatbuildr.ini b/conf/vendor/fatbuildr.ini
-index b842ac5..488d3c3 100644
+index f4f973d..15bb81f 100644
 --- a/conf/vendor/fatbuildr.ini
 +++ b/conf/vendor/fatbuildr.ini
-@@ -56,21 +56,23 @@ exec = /usr/libexec/fatbuildr/u-nspawn
- # The images built with mkosi have a symlink
- # /etc/resolv.conf → /run/systemd/resolve/* as they expect systemd-resolved to
- # run inside the containers (ie. systemd-nspawn -B).
--init_opts = --resolv-conf=replace-stub
-+init_opts = --resolv-conf=auto
- # Disable registration to systemd-machined as recommended in systemd-nspawn(1)
- # for containers not running service manager. Also keep fatbuildrd unit scope
+@@ -67,15 +67,17 @@ init_opts =
  # so processes in containers get the resources allocated to fatbuildrd service.
- opts = --quiet --register=no --keep-unit
+ opts = --quiet --resolv-conf=bind-stub --register=no --keep-unit
  # Controls whether seccomp is used to filter the list of syscalls available to
 -# the containers.
 -seccomp = yes
