@@ -22,6 +22,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `path.parent`).
   - Update `[images]` > `create_cmd`, images definitions and postinstall scripts
     to support `mkosi` >= 15 (#198).
+  - Use `--resolv-conf=bind-stub` instead of `--resolv-conf=replace-stub` option
+    for `systemd-nspawn` by default.
 
 ### Fixed
 - Fix infinite recursion error with `PatchesSubdir` on Python 3.12+ (#195).
