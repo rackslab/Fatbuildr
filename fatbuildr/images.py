@@ -97,16 +97,28 @@ class Image(object):
             )
             self.skel_path.unlink()
 
+        def tar_file(content: str, path: str, mode=0o644):
+            _content = content.encode()
+            tarinfo = tarfile.TarInfo(name=path)
+            tarinfo.size = len(_content)
+            tarinfo.mode = mode
+            tar.addfile(tarinfo, BytesIO(_content))
+
         with tarfile.open(self.skel_path, 'x') as tar:
             (uid, user, gid, group) = current_user_group()
-            content = (
-                f"g {group} {gid}\n"
-                f"u {user} {uid}:{gid} \"Fatbuildr user\"\n"
-            ).encode()
-            tarinfo = tarfile.TarInfo(name="usr/lib/sysusers.d/fatbuildr.conf")
-            tarinfo.size = len(content)
-            tarinfo.mode = 0o644
-            tar.addfile(tarinfo, BytesIO(content))
+            tar_file(
+                f"{user}:x:{uid}:{gid}:Fatbuildr system user:/:/bin/false\n",
+                "etc/passwd"
+            )
+            tar_file(
+                f"{group}:x:{gid}:\n",
+                "etc/group",
+            )
+            tar_file(
+                f"{group}:!*::\n",
+                "etc/gshadow",
+                mode=0o640
+            )
 
         logger.info("Creating image for %s format", self.format)
         cmd = (
