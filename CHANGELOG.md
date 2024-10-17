@@ -15,6 +15,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - pkgs: Install and enable AppArmor profile for `u-nspawn` on systems that
   support this LSM.
 
+### Changed
+- conf: Convert _definition_ and _path_ variables to Path objects to render
+  `[images]` > `create_cmd` template and remove _dirpath_ variable (replaced by
+  `path.parent`).
+
 ### Fixed
 - Fix infinite recursion error with `PatchesSubdir` on Python 3.12+ (#195).
 - Fix `PermissionError` on `os.setresuid()` when building OSI on Ubuntu 24.04

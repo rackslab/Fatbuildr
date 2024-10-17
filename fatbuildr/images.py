@@ -114,9 +114,8 @@ class Image(object):
             .srender(
                 self.conf.images.create_cmd,
                 format=self.format,
-                definition=str(self.def_path),
-                dirpath=str(self.path.parent),
-                path=str(self.path),
+                definition=self.def_path,
+                path=self.path,
                 skeleton=str(self.skel_path),
                 user=user,
                 group=group,
