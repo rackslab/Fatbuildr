@@ -23,6 +23,7 @@ override_dh_auto_install:
 
 execute_after_dh_install:
 	dh_apparmor --profile-name=usr.libexec.fatbuildr.u-nspawn
+	dh_apparmor --profile-name=usr.libexec.fatbuildrd
 
 # Avoid compression of matrix notifier example hook in order to make its
 # installation easier.
