@@ -39,7 +39,8 @@ setup(name='Fatbuildr',
                         'Flask',
                         'pygit2',
                         'python-debian',
-                        'dasbus>=1.6'],
+                        'dasbus>=1.6',
+                        'RFL.core>=1.1.0'],
       entry_points = {
           'console_scripts': [
               'fatbuildrd=fatbuildr.cli.fatbuildrd:Fatbuildrd.run',
