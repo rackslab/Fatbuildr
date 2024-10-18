@@ -41,6 +41,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `PermissionError` on `os.setresuid()` when building OSI on Ubuntu 24.04
   with AppArmor and `unprivileged_userns` profile (#197).
 - Fix `SyntaxWarning` on regexp raised by Python 3.12 on in utils module (#201).
+- hooks: Fix `DeprecationWarning: There is no current event loop` in
+  `fatbuildr-matrix-notify` raised in Python 3.12+ (#196).
 - docs: Add missing `sudo` matrix hooks installation procedure.
 
 ## [2.1.0] - 2024-07-16

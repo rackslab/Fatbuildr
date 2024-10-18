@@ -37,6 +37,7 @@ from nio import (
     JoinError,
 )
 import jinja2
+from rfl.core.asyncio import asyncio_run
 
 CONFIG_FILE = "/etc/fatbuildr/matrix-hook.json"
 TEMPLATES_DIR = "/etc/fatbuildr/matrix-hook/templates"
@@ -269,4 +270,4 @@ async def main() -> None:
 
 
 if __name__ == "__main__":
-    asyncio.get_event_loop().run_until_complete(main())
+    asyncio_run(main())
