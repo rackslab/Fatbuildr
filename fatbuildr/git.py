@@ -57,6 +57,7 @@ def is_meta_generic(meta):
 def load_git_repository(path: str):
     return pygit2.Repository(path)
 
+
 class PatchesDir:
     """Class to manipulate patches directories and their subdirs. In pathlib
     classes the attributes are given as arguments to the constructor, and not to
@@ -180,9 +181,7 @@ class PatchFile:
         self._path.rename(patch_tmp)
         logger.info("Rendering patch template %s", self._path)
         with open(self._path, 'w+') as fh:
-            fh.write(
-                Templeter().frender(patch_tmp, **kwargs)
-            )
+            fh.write(Templeter().frender(patch_tmp, **kwargs))
         patch_tmp.unlink()
 
     def in_field(self, field, value):

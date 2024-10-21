@@ -74,6 +74,7 @@ PATCHES_PREP_TPL = """
 %autopatch -p1
 """
 
+
 # Jinja2 filter to convert timestamp to date formatted for RPM spec file
 # changelog entries.
 def timestamp_rpmdate(value):

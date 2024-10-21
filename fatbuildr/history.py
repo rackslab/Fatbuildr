@@ -119,7 +119,7 @@ class HistoryPurgePolicy:
             "Purge policy has removed %d task(s) workspace(s) and retrieved "
             "%.3fMB",
             self.removed_tasks,
-            self.retrieved_size / 1024 ** 2,
+            self.retrieved_size / 1024**2,
         )
 
 
@@ -257,17 +257,17 @@ class HistoryPurgeSize(HistoryPurgePolicy):
         quantity = float(m.group(1))
         unit = m.group(3)
         if unit == 'Mb':
-            multiplier = (10 ** 6) / 8
+            multiplier = (10**6) / 8
         elif unit == 'MB':
-            multiplier = 1024 ** 2
+            multiplier = 1024**2
         elif unit == 'Gb':
-            multiplier = (10 ** 9) / 8
+            multiplier = (10**9) / 8
         elif unit == 'GB':
-            multiplier = 1024 ** 3
+            multiplier = 1024**3
         elif unit == 'Tb':
-            multiplier = (10 ** 12) / 8
+            multiplier = (10**12) / 8
         elif unit == 'TB':
-            multiplier = 1024 ** 4
+            multiplier = 1024**4
         else:
             raise FatbuildrSystemConfigurationError(
                 f"history purge size policy unit '{unit}' is not supported"
