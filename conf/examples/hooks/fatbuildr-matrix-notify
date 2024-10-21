@@ -20,7 +20,6 @@
 """Tasks hook for Fatbuildr to send notification message on Matrix room."""
 
 from dataclasses import dataclass
-import asyncio
 import json
 import sys
 import os
