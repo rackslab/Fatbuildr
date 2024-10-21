@@ -24,7 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   build images for compatibility with latest version of `mkosi`.
 - Boostrap fatbuildr system user with raw seed of `/etc/passwd`, `/etc/group`
   and `/etc/gshadow` instead of `sysusers.d` configuraton file in `mkosi`
-  skeleton archive.
+  skeleton archive for RPM and OSI formats.
 - conf:
   - Convert _definition_ and _path_ variables to Path objects to render
   `[images]` > `create_cmd` template and remove _dirpath_ variable (replaced by
