@@ -249,6 +249,7 @@ class RuntimeSubConfFormatDeb(object):
         self.exec_cmd = None
         self.exec_tmpfile = None
         self.img_update_cmds = None
+        self.img_create_use_sysusersd = None
         self.env_update_cmds = None
         self.env_as_root = None
         self.env_default_mirror = None
@@ -264,6 +265,9 @@ class RuntimeSubConfFormatDeb(object):
         self.exec_cmd = config.get(section, 'exec_cmd')
         self.exec_tmpfile = config.getboolean(section, 'exec_tmpfile')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
+        self.img_create_use_sysusersd = config.getboolean(
+            section, 'img_create_use_sysusersd'
+        )
         self.env_update_cmds = config.get(section, 'env_update_cmds')
         self.env_as_root = config.getboolean(section, 'env_as_root')
         self.env_default_mirror = config.get(section, 'env_default_mirror')
@@ -281,6 +285,9 @@ class RuntimeSubConfFormatDeb(object):
         logger.debug("  exec_cmd: %s", self.exec_cmd)
         logger.debug("  exec_tmpfile: %s", self.exec_tmpfile)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
+        logger.debug(
+            "  img_create_use_sysusersd: %s", self.img_create_use_sysusersd
+        )
         logger.debug("  env_update_cmds: %s", self.env_update_cmds)
         logger.debug("  env_as_root: %s", self.env_as_root)
         logger.debug("  env_default_mirror: %s", self.env_default_mirror)
@@ -302,6 +309,7 @@ class RuntimeSubConfFormatRpm(object):
         self.exec_cmd = None
         self.exec_tmpfile = None
         self.img_update_cmds = None
+        self.img_create_use_sysusersd = None
         self.env_update_cmds = None
         self.env_as_root = None
         self.env_default_modules = []
@@ -316,6 +324,9 @@ class RuntimeSubConfFormatRpm(object):
         self.exec_cmd = config.get(section, 'exec_cmd')
         self.exec_tmpfile = config.getboolean(section, 'exec_tmpfile')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
+        self.img_create_use_sysusersd = config.getboolean(
+            section, 'img_create_use_sysusersd'
+        )
         self.env_update_cmds = config.get(section, 'env_update_cmds')
         self.env_as_root = config.getboolean(section, 'env_as_root')
         try:
@@ -335,6 +346,9 @@ class RuntimeSubConfFormatRpm(object):
         logger.debug("  exec_cmd: %s", self.exec_cmd)
         logger.debug("  exec_tmpfile: %s", self.exec_tmpfile)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
+        logger.debug(
+            "  img_create_use_sysusersd: %s", self.img_create_use_sysusersd
+        )
         logger.debug("  env_update_cmds: %s", self.env_update_cmds)
         logger.debug("  env_as_root: %s", self.env_as_root)
         logger.debug("  env_default_modules: %s", self.env_default_modules)
@@ -348,18 +362,25 @@ class RuntimeSubConfFormatOsi(object):
 
         self.builder = None
         self.img_update_cmds = None
+        self.img_create_use_sysusersd = None
         self.containerized = None
 
     def load(self, config):
         section = 'format:osi'
         self.builder = config.get(section, 'builder')
         self.img_update_cmds = config.get(section, 'img_update_cmds')
+        self.img_create_use_sysusersd = config.getboolean(
+            section, 'img_create_use_sysusersd'
+        )
         self.containerized = config.getboolean(section, 'containerized')
 
     def dump(self):
         logger.debug("[format:osi]")
         logger.debug("  builder: %s", self.builder)
         logger.debug("  img_update_cmds: %s", self.img_update_cmds)
+        logger.debug(
+            "  img_create_use_sysusersd: %s", self.img_create_use_sysusersd
+        )
         logger.debug("  containerized: %s", self.containerized)
 
 

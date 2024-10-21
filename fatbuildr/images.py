@@ -106,19 +106,22 @@ class Image(object):
 
         with tarfile.open(self.skel_path, 'x') as tar:
             (uid, user, gid, group) = current_user_group()
-            tar_file(
-                f"{user}:x:{uid}:{gid}:Fatbuildr system user:/:/bin/false\n",
-                "etc/passwd"
-            )
-            tar_file(
-                f"{group}:x:{gid}:\n",
-                "etc/group",
-            )
-            tar_file(
-                f"{group}:!*::\n",
-                "etc/gshadow",
-                mode=0o640
-            )
+            if self.format_conf.img_create_use_sysusersd:
+                tar_file(
+                    f"g {group} {gid}\n"
+                    f"u {user} {uid}:{gid} \"Fatbuildr user\"\n",
+                    "usr/lib/sysusers.d/fatbuildr.conf",
+                )
+            else:
+                tar_file(
+                    f"{user}:x:{uid}:{gid}:Fatbuildr system user:/:/bin/false\n",
+                    "etc/passwd",
+                )
+                tar_file(
+                    f"{group}:x:{gid}:\n",
+                    "etc/group",
+                )
+                tar_file(f"{group}:!*::\n", "etc/gshadow", mode=0o640)
 
         logger.info("Creating image for %s format", self.format)
         cmd = (
