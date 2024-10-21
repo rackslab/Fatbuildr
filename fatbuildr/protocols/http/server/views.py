@@ -672,7 +672,32 @@ def content(instance, filename):
         else:
             abort(403, 'Access forbidden')
     else:
+        mimetype = None
+
+        # Hack for Red Hat Satellite (Pulp/aiohttp).
+        #
+        # For compressed XML files, Flask set response headers to these values:
+        #
+        # content-encoding: gzip
+        # content-type: application/xml; charset=utf-8
+        #
+        # The aiohttp library automatically decompress response content for its
+        # consumer application (ie. Pulp or Red Hat Satellite) when
+        # 'content-encoding: gzip' is set in response headers. This makes Red
+        # Hat Satellite and Pulp fail because of unmatching checksums between
+        # the downloaded files and repository metadata eventually. For
+        # reference, this behavior is discussed here:
+        # https://github.com/pulp/pulp-smash/issues/1309
+        #
+        # A simple workaround for this is to force mimetype to application/gzip.
+        # This way, Flask does not set content-encoding header in its response,
+        # and Pulp get the raw compressed file and can validate checksums
+        # eventually.
+        if filename.endswith('.xml.gz'):
+            mimetype = "application/gzip"
+
         return send_from_directory(
             current_app.config['REGISTRY_FOLDER'].joinpath(instance),
             filename,
+            mimetype=mimetype,
         )
