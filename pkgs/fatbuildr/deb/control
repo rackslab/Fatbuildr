@@ -13,6 +13,7 @@ Build-Depends:
  python3-jwt,
  python3-pygit2,
  python3-requests,
+ python3-rfl-core,
  python3-yaml,
  asciidoctor,
  bash-completion,
