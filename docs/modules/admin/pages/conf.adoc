@@ -197,6 +197,10 @@ parameters shared by all formats are the following:
 
 `img_update_cmds`:: Command used in container to upgrade image software.
 
+`img_create_use_sysusersd`:: Boolean to determine if _fatbuildr_ system user is
+created with `sysusers.d` configuration file during image bootstrap. If not, the
+user is create with raw seeds of `/etc/passwd`, `/etc/group` and `/etc/gshadow`.
+
 === `format:deb`
 
 `env_path`:: Absolute path to the build environment in the container image.
