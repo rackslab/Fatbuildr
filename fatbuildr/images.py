@@ -115,7 +115,8 @@ class Image(object):
                 )
             else:
                 tar_file(
-                    f"{user}:x:{uid}:{gid}:Fatbuildr system user:/:/bin/false\n",
+                    f"{user}:x:{uid}:{gid}:Fatbuildr system user:/:"
+                    "/bin/false\n",
                     "etc/passwd",
                 )
                 tar_file(
