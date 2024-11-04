@@ -267,7 +267,7 @@ pipelines:
 
 [source,shell]
 ----
-$ fatbuildrctl images --create
+$ fatbuildrctl images create
 ----
 
 This command submits tasks to create one container image per artifact format
@@ -280,7 +280,7 @@ command:
 
 [source,shell]
 ----
-$ fatbuildrctl images --create-envs
+$ fatbuildrctl images env-create
 ----
 
 This submits tasks to create all build environments required for every
@@ -299,7 +299,7 @@ Fatbuildr installation:
 ----
 $ fatbuildrctl build --artifact hello --distribution bullseye \
   --basedir /usr/share/doc/fatbuildr/examples \
-  --name 'John Doe' --email john.doe@company.tld --message "First build!"
+  --name 'John Doe' --email john.doe@company.tld --msg "First build!"
 ----
 
 This submits a task to:

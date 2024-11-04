@@ -49,7 +49,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   checksum mismatch error (#194).
 - hooks: Fix `DeprecationWarning: There is no current event loop` in
   `fatbuildr-matrix-notify` raised in Python 3.12+ (#196).
-- docs: Add missing `sudo` matrix hooks installation procedure.
+- docs:
+  - Add missing `sudo` matrix hooks installation procedure.
+  - Update quickstart guide to reflect `fatbuildrctl` command changes (thanks
+    @kjrstory).
 
 ## [2.1.0] - 2024-07-16
 
