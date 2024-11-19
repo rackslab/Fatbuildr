@@ -47,6 +47,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Fix `SyntaxWarning` on regexp raised by Python 3.12 on in utils module (#201).
 - Replace calls to `shlex.join()` by `shlex_join()` backport provided by
   rfl.core external library (#199).
+- Add template filter `rpm_version` designed to replace illegal character `-` by
+  `~` in RPM spec `Version` field (#210).
 - web: Send `*.xml.gz` files in repositories with `application/zip` mimetype to
   fool aiohttp library and workaround Pulp and Red Hat Satellite synchronization
   checksum mismatch error (#194).

@@ -36,6 +36,9 @@ def filter_gittag(value):
     composed of the Git tag."""
     return value.replace('~', '-')
 
+def filter_rpm_version(value):
+    """Filter to replace characters not authorized in RPM version."""
+    return value.replace('-', '~')
 
 def timestamp_rpmdate(value):
     """Filter to convert timestamp to date formatted for RPM spec file changelog
@@ -50,6 +53,7 @@ def timestamp_iso(value):
 
 def register_filters(env):
     env.filters['gittag'] = filter_gittag
+    env.filters['rpm_version'] = filter_rpm_version
     env.filters['timestamp_rpmdate'] = timestamp_rpmdate
     env.filters['timestamp_iso'] = timestamp_iso
 
