@@ -27,6 +27,7 @@ import deb822
 
 from fatbuildr.git import PatchesDir, PatchesSubdir, PatchFile
 
+
 class TestPatchesDir(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
@@ -64,6 +65,7 @@ class TestPatchesDir(unittest.TestCase):
         self.assertEqual(generic_subdir, self.patchesdir.generic_subdir)
         self.assertEqual(version_subdir, self.patchesdir.version_subdir)
 
+
 class TestPatchesSubdir(unittest.TestCase):
     def setUp(self):
         self.test_dir = tempfile.mkdtemp()
@@ -87,6 +89,7 @@ class TestPatchesSubdir(unittest.TestCase):
         self.assertFalse(self.patches_subdir.exists())
         self.patches_subdir.ensure()
         self.assertTrue(self.patches_subdir.exists())
+
 
 class TestPatchFile(unittest.TestCase):
     def setUp(self):
@@ -172,14 +175,12 @@ class TestPatchFile(unittest.TestCase):
     def test_meta(self):
         self.assertEqual(
             self.patch.meta["Description"],
-            "Very very long multi-line\n description."
+            "Very very long multi-line\n description.",
         )
         self.assertEqual(
             self.patch.meta["Author"], "John Doe <john.doe@corp.org>"
         )
-        self.assertEqual(
-            self.patch.meta["Last-Update"], "1970-01-02"
-        )
+        self.assertEqual(self.patch.meta["Last-Update"], "1970-01-02")
         # Test undefined key
         self.assertNotIn("Unknown", self.patch.meta)
         with self.assertRaises(KeyError):
@@ -215,8 +216,7 @@ class TestPatchFile(unittest.TestCase):
         meta["Author"] = "Jane Doe <jane.doe@corp.org>"
         self.patch.write(meta, self.diff)
         self.assertEqual(
-            self.patch.meta["Author"],
-            "Jane Doe <jane.doe@corp.org>"
+            self.patch.meta["Author"], "Jane Doe <jane.doe@corp.org>"
         )
 
     def test_rename(self):
