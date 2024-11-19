@@ -732,11 +732,22 @@ templates:
 |Name|Description
 
 |`gittag`
-| It replaces in a string characters disallowed in Git tags. For reference, see
+| Replace in a string characters disallowed in Git tags. For reference, see
 https://git-scm.com/docs/git-check-ref-format[`git check-ref-format` manpage].
 It is notably useful to transform a complex version number into a valid Git tag
 in tarball URL.
 
 _Ex:_ `1.2.3~beta1` → `1.2.3-beta1`
+
+|`timestamp_rpmdate`
+| Transform an integer timestamp into a date formatted as expected for RPM spec
+changelog.
+
+_Ex:_ `949547106` → `Thu Feb 03 2000`
+
+|`timestamp_iso`
+| Transform an integer timestamp into a date in ISO format.
+
+_Ex:_ `949547106` → `2000-02-03 04:05:06`
 
 |===

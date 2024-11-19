@@ -18,8 +18,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `/etc/group` and `/etc/gshadow`.
 - pkgs: Install and enable AppArmor profile for `u-nspawn` on systems that
   support this LSM.
-- docs: Mention `img_create_use_sysusersd` parameter in `[format:*]` sections of
-  system configuration.
+- docs:
+  - Mention `img_create_use_sysusersd` parameter in `[format:*]` sections of
+    system configuration.
+  - Mention template filters `timestamp_rpmdate` and `timestamp_iso` in artifact
+    definition reference documentation.
 
 ### Changed
 - Use uncompressed skeleton archive to bootstrap _fatbuildr_ system user in
