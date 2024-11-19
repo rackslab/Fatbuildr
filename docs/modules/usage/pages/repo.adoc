@@ -739,6 +739,12 @@ in tarball URL.
 
 _Ex:_ `1.2.3~beta1` → `1.2.3-beta1`
 
+|`rpm_version`
+| Replace in a string illegal characters in RPM spec Version field. More
+specifically, it replaces `-` by `~`.
+
+_Ex:_ `1.2-0rc1` → `1.2~0rc1`
+
 |`timestamp_rpmdate`
 | Transform an integer timestamp into a date formatted as expected for RPM spec
 changelog.

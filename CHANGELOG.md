@@ -21,8 +21,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - docs:
   - Mention `img_create_use_sysusersd` parameter in `[format:*]` sections of
     system configuration.
-  - Mention template filters `timestamp_rpmdate` and `timestamp_iso` in artifact
-    definition reference documentation.
+  - Mention template filters `timestamp_rpmdate`, `timestamp_iso` and
+    `rpm_version` in artifact definition reference documentation.
 
 ### Changed
 - Use uncompressed skeleton archive to bootstrap _fatbuildr_ system user in
