@@ -87,7 +87,7 @@ include <tunables/global>
     mount options=(private, rw) -> /var/lib/fatbuildr/images/*/*.img/run/host/os-release,
     mount options=(rbind, rw) /usr/share/fatbuildr/images/common/ -> /var/lib/fatbuildr/images/*/*.img/usr/share/fatbuildr/images/common/,
     mount options=(rbind, rw) /usr/share/fatbuildr/images/deb/ -> /var/lib/fatbuildr/images/*/*.img/usr/share/fatbuildr/images/deb/,
-    mount options=(rbind, rw) /usr/share/fatbuildr/images/rpm/ -> /var/lib/fatbuildr/images/default/rpm.img/usr/share/fatbuildr/images/rpm/,
+    mount options=(rbind, rw) /usr/share/fatbuildr/images/rpm/ -> /var/lib/fatbuildr/images/*/rpm.img/usr/share/fatbuildr/images/rpm/,
     mount options=(rbind, rw) /var/cache/fatbuildr/*/*/ -> /var/lib/fatbuildr/images/*/*/var/cache/fatbuildr/*/*/,
     mount options=(rbind, rw) /var/lib/fatbuildr/images/*/*.img/ -> /var/lib/fatbuildr/images/*/*.img/,
     mount options=(rbind, rw) /var/lib/fatbuildr/registry/**/ -> /var/lib/fatbuildr/images/**/var/lib/fatbuildr/registry/**/,
