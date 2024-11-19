@@ -118,13 +118,10 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
     def spec_basename(self):
         return self.artifact + '.spec'
 
-    @property
-    def srpm_filename(self):
-        return self.artifact + '-' + self.version.full + '.src.rpm'
-
-    @property
     def srpm_path(self):
-        return self.place.joinpath(self.srpm_filename)
+        """Return first *.src.rpm found in build place."""
+        for srpm in self.place.glob(f"{self.artifact}-*.src.rpm"):
+            return srpm
 
     @property
     def source_path(self):
@@ -342,7 +339,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
         )
         logger.info(
             "Building binary RPM based on %s in build environment %s",
-            self.srpm_path,
+            self.srpm_path(),
             env,
         )
 
@@ -372,7 +369,7 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             '--resultdir',
             self.place,
             '--rebuild',
-            self.srpm_path,
+            self.srpm_path(),
         ]
 
         # Add additional build args if defined
