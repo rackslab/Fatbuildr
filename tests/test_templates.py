@@ -56,6 +56,14 @@ class TestTempleter(unittest.TestCase):
             "1.2-0-rc1",
         )
 
+    def test_filter_rpm_version(self):
+        self.assertEqual(
+            self.templeter.srender(
+                "{{ version | rpm_version }}", version="1.2-0rc1"
+            ),
+            "1.2~0rc1",
+        )
+
     def test_filter_timestamp_rpmdate(self):
         self.assertEqual(
             self.templeter.srender(
