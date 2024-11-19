@@ -17,11 +17,17 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
+from datetime import datetime
+
 import jinja2
 
 from .log import logr
 
 logger = logr(__name__)
+
+#
+# Custom Jinja2 filters
+#
 
 
 def filter_gittag(value):
@@ -29,6 +35,23 @@ def filter_gittag(value):
     especially usefull for versions numbers in tarballs URL when the URL is
     composed of the Git tag."""
     return value.replace('~', '-')
+
+
+def timestamp_rpmdate(value):
+    """Filter to convert timestamp to date formatted for RPM spec file changelog
+    entries."""
+    return datetime.fromtimestamp(value).strftime("%a %b %d %Y")
+
+
+def timestamp_iso(value):
+    """Filter to convert timestamp to date formatted in ISO format."""
+    return datetime.fromtimestamp(value).isoformat(sep=' ', timespec='seconds')
+
+
+def register_filters(env):
+    env.filters['gittag'] = filter_gittag
+    env.filters['timestamp_rpmdate'] = timestamp_rpmdate
+    env.filters['timestamp_iso'] = timestamp_iso
 
 
 class Templeter:
@@ -42,7 +65,7 @@ class Templeter:
         self.env = jinja2.Environment(
             trim_blocks=True, lstrip_blocks=True, keep_trailing_newline=True
         )
-        self.env.filters['gittag'] = filter_gittag
+        register_filters(self.env)
 
     def srender(self, str, **kwargs):
         """Render a string template."""

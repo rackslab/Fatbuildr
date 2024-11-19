@@ -75,12 +75,6 @@ PATCHES_PREP_TPL = """
 """
 
 
-# Jinja2 filter to convert timestamp to date formatted for RPM spec file
-# changelog entries.
-def timestamp_rpmdate(value):
-    return datetime.fromtimestamp(value).strftime("%a %b %d %Y")
-
-
 class ArtifactBuildRpm(ArtifactEnvBuild):
     """Class to manipulation package in RPM format."""
 
@@ -256,7 +250,6 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
             new_changelog.extend(existing_changelog)
 
         # Render changelog based on string template
-        templater.env.filters["timestamp_rpmdate"] = timestamp_rpmdate
         changelog = templater.srender(CHANGELOG_TPL, changelog=new_changelog)
 
         # Generate spec file based on template

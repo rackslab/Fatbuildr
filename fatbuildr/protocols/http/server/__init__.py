@@ -17,7 +17,6 @@
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
 
-from datetime import datetime
 from pathlib import Path
 
 from flask import Flask
@@ -27,14 +26,11 @@ from jinja2 import FileSystemLoader
 from . import views
 from .policy import PolicyManager
 from ....tokens import TokensManager
+from ....templates import register_filters
 from ....errors import FatbuildrRuntimeError, FatbuildrServerInstanceError
 from ....log import logr
 
 logger = logr(__name__)
-
-
-def timestamp_iso(value):
-    return datetime.fromtimestamp(value).isoformat(sep=' ', timespec='seconds')
 
 
 class WebApp(Flask):
@@ -176,7 +172,7 @@ class WebApp(Flask):
         self.register_error_handler(403, views.error_forbidden)
         self.register_error_handler(404, views.error_not_found)
 
-        self.jinja_env.filters['timestamp_iso'] = timestamp_iso
+        register_filters(self.jinja_env)
         self.config['UPLOAD_FOLDER'] = Path('/run/fatbuildr')
         self.config['REGISTRY_FOLDER'] = self.conf.dirs.registry
         self.config['INSTANCE'] = self.instance
