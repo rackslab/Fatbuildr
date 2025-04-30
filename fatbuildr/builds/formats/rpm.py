@@ -520,11 +520,11 @@ class ArtifactBuildRpm(ArtifactEnvBuild):
                 "bind_mount:dirs="
                 f"[(\"{self.place}\",\"{self.place}\"),"
                 f"(\"{self.image.common_libdir}\",\"{self.image.common_libdir}\")]",
+                '--unpriv',
                 '--shell',
                 '--',
                 f"FATBUILDR_SOURCE_DIR={archive_subdir}",
                 '/bin/bash',
-                self.image.common_libdir.joinpath('pre-stage1-rpm.sh'),
                 self.prewrapper_path,
                 self.prescript_path,
             ]
