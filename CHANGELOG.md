@@ -30,6 +30,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Boostrap fatbuildr system user with raw seed of `/etc/passwd`, `/etc/group`
   and `/etc/gshadow` instead of `sysusers.d` configuraton file in `mkosi`
   skeleton archive for RPM and OSI formats.
+- Use `mock --unpriv` instead of `pre-stage1-rpm.sh` to run prescript in order
+  to avoid relying on working `su` command in build environment (#216).
 - conf:
   - Convert _definition_ and _path_ variables to Path objects to render
   `[images]` > `create_cmd` template and remove _dirpath_ variable (replaced by
