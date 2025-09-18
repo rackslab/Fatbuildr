@@ -23,6 +23,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     system configuration.
   - Mention template filters `timestamp_rpmdate`, `timestamp_iso` and
     `rpm_version` in artifact definition reference documentation.
+  - Mention support of Debian 14 _« forky »_.
 
 ### Changed
 - Use uncompressed skeleton archive to bootstrap _fatbuildr_ system user in
