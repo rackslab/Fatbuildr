@@ -14,7 +14,7 @@
 #
 # You should have received a copy of the GNU General Public License
 # along with Fatbuildr.  If not, see <https://www.gnu.org/licenses/>.
-
+#
 # This is an apparmor profile for u-nspawn, a wrapper for systemd-nspawn
 # provided by Fatbuildr. It is designed to confine u-nspawn, systemd-nspawn
 # (when launch by u-nspawn). However, build systems such as cowbuilder, mock
@@ -105,6 +105,8 @@ include <tunables/global>
 
     pivot_root -> /var/lib/fatbuildr/images/*/*.img/,
 
+    /etc/pki/tls/openssl.cnf r,
+    /etc/pki/tls/openssl.d/ r,
     /proc/sys/kernel/cap_last_cap r,
     /run/systemd/resolve/stub-resolv.conf r,
     /usr/bin/bash Ux,
@@ -116,6 +118,8 @@ include <tunables/global>
     /usr/bin/mkosi Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-builder,
     /usr/bin/rpmlint Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-utils,
     /usr/bin/systemd-nspawn mr,
+    /usr/bin/tput Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-utils,
+    /usr/local/bin/mkosi Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-builder,
     /usr/sbin/cowbuilder Px -> /usr/libexec/fatbuildr/u-nspawn//fatbuildr-builder,
     /var/cache/fatbuildr/** r,
     /var/lib/fatbuildr/ r,
