@@ -35,6 +35,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   to avoid relying on working `su` command in build environment (#216).
 - Update `mkosi --checksum` command line arguments to bring compatibility with
   latest version v25.3.
+- Use Fedora _rawhide_ images for _rpm_ and _osi_ formats (#60).
 - conf:
   - Convert _definition_ and _path_ variables to Path objects to render
   `[images]` > `create_cmd` template and remove _dirpath_ variable (replaced by
