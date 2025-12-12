@@ -19,6 +19,7 @@ Packages=
   diffutils
   cpio
   debootstrap
+  distribution-gpg-keys
   systemd-udev
   systemd-container
   systemd-ukify
@@ -32,4 +33,5 @@ Packages=
   edk2-ovmf
   sbsigntools
   man-db
+  zypper
 PostInstallationScripts=/usr/share/fatbuildr/images/scripts/osi-postinstall.sh

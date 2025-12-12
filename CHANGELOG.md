@@ -12,10 +12,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   `systemd-nspawn` and some packages build utilities in restricted sandboxes.
 - Add AppArmor profile for `fatbuildrd` to run `mkosi` in unconfined sandboxes
   without transition to default `unprivileged_userns` profile.
-- conf: Add `img_create_use_sysusersd` boolean parameter in `[format:*]` section
-  to control if _fatbuildr_ system user is created with `sysusers.d`
-  configuration file during image creation or with raw seeds of `/etc/passwd`,
-  `/etc/group` and `/etc/gshadow`.
+- Add support to build opensuse OSI images (#222).
+- conf:
+  - Add `img_create_use_sysusersd` boolean parameter in `[format:*]` section
+    to control if _fatbuildr_ system user is created with `sysusers.d`
+    configuration file during image creation or with raw seeds of `/etc/passwd`,
+    `/etc/group` and `/etc/gshadow`.
+  - Add `zypper` and `distribution-gpg-keys` in OSI image to support building
+    openSUSE.
 - pkgs: Install and enable AppArmor profile for `u-nspawn` on systems that
   support this LSM.
 - docs:
