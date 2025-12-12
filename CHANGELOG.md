@@ -44,7 +44,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
     to support `mkosi` >= 15 (#198).
   - Use `--resolv-conf=bind-stub` instead of `--resolv-conf=replace-stub` option
     for `systemd-nspawn` by default.
-- pkgs: Add dependency on RFL.core >= 1.1.0, required for `asyncio_run` wrapper.
+- pkgs:
+  - Add dependency on RFL.core >= 1.1.0, required for `asyncio_run` wrapper.
+  - Add dependency on `systemd-resolved` required for DNS resolution in
+    `systemd-nspawn` containers.
 
 ### Fixed
 - Fix infinite recursion error with `PatchesSubdir` on Python 3.12+ (#195).

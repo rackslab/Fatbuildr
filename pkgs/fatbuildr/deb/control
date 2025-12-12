@@ -35,6 +35,7 @@ Depends:
  reprepro,
  rpm,
  systemd-container,
+ systemd-resolved,
 Description: Software solution to build artifacts and publish them in registries
  Fatbuildr is a software solution to build various forms of artifacts (eg. deb
  and RPM packages) and publish them in managed registries with integrated
