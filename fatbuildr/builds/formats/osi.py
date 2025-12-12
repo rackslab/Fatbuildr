@@ -94,7 +94,7 @@ class ArtifactBuildOsi(ArtifactBuild):
             self.artifact,
             '--image-version',
             self.version.main,
-            '--checksum',
+            '--checksum=yes',
             'build',
         ]
         if self.image.format_conf.containerized:
